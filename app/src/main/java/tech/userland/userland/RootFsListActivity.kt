@@ -6,14 +6,13 @@ import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.content_main.*
+import kotlinx.android.synthetic.main.activity_root_fs_list.*
 
-class MainActivity : AppCompatActivity() {
+class RootFsListActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_root_fs_list)
         setSupportActionBar(toolbar)
 
         fab.setOnClickListener { view ->
@@ -21,8 +20,6 @@ class MainActivity : AppCompatActivity() {
                     .setAction("Action", null).show()
         }
 
-        // Example of a call to a native method
-        sample_text.text = stringFromJNI()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
