@@ -1,5 +1,6 @@
 package tech.userland.userland
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
@@ -33,22 +34,14 @@ class RootFsListActivity : AppCompatActivity() {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
-            R.id.action_settings -> true
+            R.id.action_settings -> navigateToSettings()
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-    /**
-     * A native method that is implemented by the 'native-lib' native library,
-     * which is packaged with this application.
-     */
-    external fun stringFromJNI(): String
-
-    companion object {
-
-        // Used to load the 'native-lib' library on application startup.
-        init {
-            System.loadLibrary("native-lib")
-        }
+    private fun navigateToSettings(): Boolean {
+        val intent = Intent(this, SettingsActivity::class.java)
+        startActivity(intent)
+        return true
     }
 }
