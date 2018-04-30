@@ -35,12 +35,19 @@ class RootFsListActivity : AppCompatActivity() {
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
             R.id.action_settings -> navigateToSettings()
+            R.id.action_help -> navigateToHelp()
             else -> super.onOptionsItemSelected(item)
         }
     }
 
     private fun navigateToSettings(): Boolean {
         val intent = Intent(this, SettingsActivity::class.java)
+        startActivity(intent)
+        return true
+    }
+
+    private fun navigateToHelp(): Boolean {
+        val intent = Intent(this, HelpActivity::class.java)
         startActivity(intent)
         return true
     }

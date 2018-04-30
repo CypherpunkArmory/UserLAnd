@@ -25,6 +25,10 @@
             android:name=".SettingsActivity"
             android:label="Settings" />
 
+        <activity
+            android:name=".HelpActivity"
+            android:label="Help" />
+
     </application>
 
 </manifest>
