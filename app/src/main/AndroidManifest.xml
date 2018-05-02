@@ -29,6 +29,10 @@
             android:name=".HelpActivity"
             android:label="Help" />
 
+        <activity
+            android:name=".TermsAndConditionsActivity"
+            android:label="Terms And Conditions" />
+
     </application>
 
 </manifest>

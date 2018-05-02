@@ -38,8 +38,8 @@ class RootFsListActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.action_settings -> navigateToSettings()
-            R.id.action_help -> navigateToHelp()
+            R.id.menu_item_settings -> navigateToSettings()
+            R.id.menu_item_help -> navigateToHelp()
             else -> super.onOptionsItemSelected(item)
         }
     }
