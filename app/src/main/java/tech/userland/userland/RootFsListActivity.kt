@@ -22,13 +22,7 @@ class RootFsListActivity : AppCompatActivity() {
         root_fs_list.layoutManager = LinearLayoutManager(this)
         root_fs_list.adapter = ListAdapter(rootFsList, this)
 
-
-        /*
-        fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
-        }
-        */
+        fab.setOnClickListener { navigateToAddRootFs() }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -52,6 +46,12 @@ class RootFsListActivity : AppCompatActivity() {
 
     private fun navigateToHelp(): Boolean {
         val intent = Intent(this, HelpActivity::class.java)
+        startActivity(intent)
+        return true
+    }
+
+    private fun navigateToAddRootFs(): Boolean {
+        val intent = Intent(this, RootFsAddActivity::class.java)
         startActivity(intent)
         return true
     }

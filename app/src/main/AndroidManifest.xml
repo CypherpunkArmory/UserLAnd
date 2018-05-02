@@ -22,6 +22,10 @@
         </activity>
 
         <activity
+            android:name=".RootFsAddActivity"
+            android:label="Add New Root File System" />
+
+        <activity
             android:name=".SettingsActivity"
             android:label="Settings" />
 
