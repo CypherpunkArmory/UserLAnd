@@ -3,35 +3,28 @@ package tech.userland.userland
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.LinearLayoutManager
 import android.view.ContextMenu
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.ArrayAdapter
-import android.widget.Toast
-import kotlinx.android.synthetic.main.activity_root_fs_list.*
+import kotlinx.android.synthetic.main.activity_session_list.*
 
-class RootFsListActivity : AppCompatActivity() {
+class SessionListActivity : AppCompatActivity() {
 
-    val rootFsList: ArrayList<String> = ArrayList()
+    val sessionList: ArrayList<String> = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_root_fs_list)
+        setContentView(R.layout.activity_session_list)
         setSupportActionBar(toolbar)
 
-        genStubRootFsList()
+        genStubSessionList()
 
-        /*
-        root_fs_list.layoutManager = LinearLayoutManager(this)
-        root_fs_list.adapter = ListAdapter(rootFsList,this)
-        registerForContextMenu(root_fs_list)
-        */
-        list_sessions.adapter = ArrayAdapter(this, R.layout.list_item, rootFsList)
+        list_sessions.adapter = ArrayAdapter(this, R.layout.list_item, sessionList)
         registerForContextMenu(list_sessions)
 
-        fab.setOnClickListener { navigateToAddRootFs() }
+        fab.setOnClickListener { navigateToSessionAdd() }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -52,12 +45,6 @@ class RootFsListActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.context_menu_sessions, menu)
     }
 
-    /*
-    val onLongClickCallback: () -> Unit = {
-        Toast.makeText(this, "Hello from rootfs", Toast.LENGTH_LONG).show()
-    }
-    */
-
     private fun navigateToSettings(): Boolean {
         val intent = Intent(this, SettingsActivity::class.java)
         startActivity(intent)
@@ -70,15 +57,15 @@ class RootFsListActivity : AppCompatActivity() {
         return true
     }
 
-    private fun navigateToAddRootFs(): Boolean {
-        val intent = Intent(this, RootFsAddActivity::class.java)
+    private fun navigateToSessionAdd(): Boolean {
+        val intent = Intent(this, SessionAddActivity::class.java)
         startActivity(intent)
         return true
     }
 
-    fun genStubRootFsList() {
-        rootFsList.add("Debian")
-        rootFsList.add("Ubuntu")
-        rootFsList.add("Debian with vnc server")
+    fun genStubSessionList() {
+        sessionList.add("Debian")
+        sessionList.add("Ubuntu")
+        sessionList.add("Debian with vnc server")
     }
 }

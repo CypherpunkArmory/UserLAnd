@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorPrimaryDark"
-    tools:context=".RootFsListActivity">
+    tools:context=".SessionListActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -21,13 +21,6 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <!--
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/root_fs_list"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_marginTop="?attr/actionBarSize" />
-    -->
     <ListView
         android:id="@+id/list_sessions"
         android:layout_width="fill_parent"
