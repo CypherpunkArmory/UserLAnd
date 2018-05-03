@@ -3,6 +3,7 @@ package tech.userland.userland
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
+import android.widget.ArrayAdapter
 import kotlinx.android.synthetic.main.activity_settings.*
 
 class SettingsActivity : AppCompatActivity() {
@@ -14,8 +15,8 @@ class SettingsActivity : AppCompatActivity() {
 
         genStubSettingsList()
 
-        settings_list.layoutManager = LinearLayoutManager(this)
-        settings_list.adapter = ListAdapter(settingsList, this)
+        list_settings.adapter = ArrayAdapter(this, R.layout.list_item, settingsList)
+
 
     }
 

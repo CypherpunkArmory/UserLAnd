@@ -4,8 +4,12 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
+import android.view.ContextMenu
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.ArrayAdapter
+import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_root_fs_list.*
 
 class RootFsListActivity : AppCompatActivity() {
@@ -19,8 +23,13 @@ class RootFsListActivity : AppCompatActivity() {
 
         genStubRootFsList()
 
+        /*
         root_fs_list.layoutManager = LinearLayoutManager(this)
-        root_fs_list.adapter = ListAdapter(rootFsList, this)
+        root_fs_list.adapter = ListAdapter(rootFsList,this)
+        registerForContextMenu(root_fs_list)
+        */
+        list_sessions.adapter = ArrayAdapter(this, R.layout.list_item, rootFsList)
+        registerForContextMenu(list_sessions)
 
         fab.setOnClickListener { navigateToAddRootFs() }
     }
@@ -37,6 +46,17 @@ class RootFsListActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
+
+    override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
+        super.onCreateContextMenu(menu, v, menuInfo)
+        menuInflater.inflate(R.menu.context_menu_sessions, menu)
+    }
+
+    /*
+    val onLongClickCallback: () -> Unit = {
+        Toast.makeText(this, "Hello from rootfs", Toast.LENGTH_LONG).show()
+    }
+    */
 
     private fun navigateToSettings(): Boolean {
         val intent = Intent(this, SettingsActivity::class.java)

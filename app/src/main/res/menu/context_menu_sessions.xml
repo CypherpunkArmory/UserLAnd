@@ -1,0 +1,21 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/colorPrimaryDark"
+    tools:context="tech.userland.userland.RootFsListActivity">
+    <item
+        android:id="@+id/menu_item_session_disconnect"
+        android:orderInCategory="100"
+        android:title="Disconnect"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_item_session_edit"
+        android:orderInCategory="101"
+        android:title="Edit"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_item_session_delete"
+        android:orderInCategory="102"
+        android:title="Delete"
+        app:showAsAction="never" />
+</menu>

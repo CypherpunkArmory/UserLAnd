@@ -21,11 +21,25 @@
 
     </android.support.design.widget.AppBarLayout>
 
+    <!--
     <android.support.v7.widget.RecyclerView
         android:id="@+id/root_fs_list"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_marginTop="?attr/actionBarSize" />
+    -->
+    <ListView
+        android:id="@+id/list_sessions"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:background="@android:color/transparent"
+        android:cacheColorHint="@android:color/transparent"
+        android:divider="#CCCCCC"
+        android:dividerHeight="1dp"
+        android:paddingLeft="2dp" >
+    </ListView>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
