@@ -3,13 +3,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="tech.userland.userland.SessionListActivity">
     <item
+        android:id="@+id/menu_item_file_system_management"
+        android:orderInCategory="101"
+        android:title="File System Management"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/menu_item_settings"
-        android:orderInCategory="100"
+        android:orderInCategory="101"
         android:title="@string/action_settings"
         app:showAsAction="never" />
     <item
         android:id="@+id/menu_item_help"
-        android:orderInCategory="101"
+        android:orderInCategory="102"
         android:title="Help"
         app:showAsAction="never" />
 </menu>

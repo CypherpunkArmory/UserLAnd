@@ -1,30 +1,37 @@
 package tech.userland.userland
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.support.v7.app.AppCompatActivity
 import android.view.ContextMenu
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.ArrayAdapter
+import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_session_list.*
 
 class SessionListActivity : AppCompatActivity() {
 
-    val sessionList: ArrayList<String> = ArrayList()
+    lateinit var sharedPreferences: SharedPreferences
+    lateinit var sessionList: ArrayList<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_session_list)
         setSupportActionBar(toolbar)
 
-        genStubSessionList()
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        sessionList = ArrayList(sharedPreferences.getString("sessions", "").split(", "))
+        Toast.makeText(this, "Session list created with " + sessionList.toString(), Toast.LENGTH_LONG).show()
 
+        list_sessions.emptyView = findViewById(R.id.empty)
         list_sessions.adapter = ArrayAdapter(this, R.layout.list_item, sessionList)
         registerForContextMenu(list_sessions)
 
-        fab.setOnClickListener { navigateToSessionAdd() }
+        fab.setOnClickListener { navigateToSessionCreate() }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -34,6 +41,7 @@ class SessionListActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.menu_item_file_system_management -> navigateToFileSystemManagement()
             R.id.menu_item_settings -> navigateToSettings()
             R.id.menu_item_help -> navigateToHelp()
             else -> super.onOptionsItemSelected(item)
@@ -43,6 +51,31 @@ class SessionListActivity : AppCompatActivity() {
     override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
         super.onCreateContextMenu(menu, v, menuInfo)
         menuInflater.inflate(R.menu.context_menu_sessions, menu)
+    }
+
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        return when(item.itemId) {
+            R.id.menu_item_session_disconnect -> disconnectSession(item)
+            R.id.menu_item_session_edit -> navigateToSessionCreate()
+            R.id.menu_item_session_delete -> deleteSession(item)
+            else -> super.onContextItemSelected(item)
+        }
+    }
+
+    fun disconnectSession(item: MenuItem): Boolean {
+        // TODO
+        return true
+    }
+
+    fun deleteSession(item: MenuItem): Boolean {
+        // TODO
+        return true
+    }
+
+    private fun navigateToFileSystemManagement(): Boolean {
+        val intent = Intent(this, FileSystemManagementActivity::class.java)
+        startActivity(intent)
+        return true
     }
 
     private fun navigateToSettings(): Boolean {
@@ -57,15 +90,9 @@ class SessionListActivity : AppCompatActivity() {
         return true
     }
 
-    private fun navigateToSessionAdd(): Boolean {
-        val intent = Intent(this, SessionAddActivity::class.java)
+    private fun navigateToSessionCreate(): Boolean {
+        val intent = Intent(this, SessionCreateActivity::class.java)
         startActivity(intent)
         return true
-    }
-
-    fun genStubSessionList() {
-        sessionList.add("Debian")
-        sessionList.add("Ubuntu")
-        sessionList.add("Debian with vnc server")
     }
 }

@@ -1,0 +1,16 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/colorPrimaryDark"
+    tools:context="tech.userland.userland.SessionListActivity">
+    <item
+        android:id="@+id/menu_item_file_system_edit"
+        android:orderInCategory="100"
+        android:title="Edit"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_item_file_system_delete"
+        android:orderInCategory="101"
+        android:title="Delete"
+        app:showAsAction="never" />
+</menu>
