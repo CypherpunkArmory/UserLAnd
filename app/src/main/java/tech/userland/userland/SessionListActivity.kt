@@ -12,19 +12,23 @@ import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_session_list.*
+import org.jetbrains.anko.db.parseList
+import org.jetbrains.anko.db.select
+import org.jetbrains.anko.doAsync
+import tech.userland.userland.database.DatabaseOpenHelper
 
 class SessionListActivity : AppCompatActivity() {
 
-    lateinit var sharedPreferences: SharedPreferences
     lateinit var sessionList: ArrayList<String>
+    lateinit var database: DatabaseOpenHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_session_list)
         setSupportActionBar(toolbar)
 
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
-        sessionList = ArrayList(sharedPreferences.getString("sessions", "").split(", "))
+        database = DatabaseOpenHelper(this)
+        sessionList = getSessions()
         Toast.makeText(this, "Session list created with " + sessionList.toString(), Toast.LENGTH_LONG).show()
 
         list_sessions.emptyView = findViewById(R.id.empty)
@@ -59,6 +63,12 @@ class SessionListActivity : AppCompatActivity() {
             R.id.menu_item_session_edit -> navigateToSessionCreate()
             R.id.menu_item_session_delete -> deleteSession(item)
             else -> super.onContextItemSelected(item)
+        }
+    }
+
+    fun getSessions() {
+        database.use {
+            this.select("Session", "*").exec { parseList(sessionParser)}
         }
     }
 
