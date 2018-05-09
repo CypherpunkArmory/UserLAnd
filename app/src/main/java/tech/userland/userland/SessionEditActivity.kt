@@ -27,7 +27,9 @@ class SessionEditActivity: AppCompatActivity() {
         arrayAdapterList.add("New")
 
         val dropdown: Spinner = findViewById(R.id.spinner_file_system_list)
-        dropdown.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, arrayAdapterList)
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, arrayAdapterList)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        dropdown.adapter = adapter
         dropdown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) {
                 // TODO how should this be handled?
@@ -38,11 +40,13 @@ class SessionEditActivity: AppCompatActivity() {
                 // onItemSelected is called during initialization. This is to avoid adding empty
                 // values.
                 if(!hasSpinnerBeenCalled) {
+                    Toast.makeText(this@SessionEditActivity, "not been called", Toast.LENGTH_LONG).show()
                     hasSpinnerBeenCalled = true
                     return
                 }
                 val data = parent.getItemAtPosition(position)
                 if(data == "New") {
+                    Toast.makeText(this@SessionEditActivity, "New", Toast.LENGTH_LONG).show()
                     navigateToFilesystemEdit()
                 }
                 else {
@@ -59,6 +63,6 @@ class SessionEditActivity: AppCompatActivity() {
     }
 
     fun genStubSession(name: String): Session {
-        return Session(name, 0, "/", "/", "/", 0, true, "ssh")
+        return Session(name, 0, "", "", "/", "/", "/", 0, true, "ssh")
     }
 }

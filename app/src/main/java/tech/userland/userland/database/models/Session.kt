@@ -2,6 +2,8 @@ package tech.userland.userland.database.models
 
 data class Session(val name: String,
                    val filesystemId: Int,
+                   val username: String,
+                   val password: String,
                    val initialCommand: String,
                    val runAtDeviceStartup: String,
                    val startupScript: String,
@@ -13,6 +15,8 @@ data class Session(val name: String,
         val COLUMN_SESSION_ID = "sessionId"
         val COLUMN_NAME = "name"
         val COLUMN_FILESYSTEM_ID = "filesystemId"
+        val COLUMN_USERNAME = "username"
+        val COLUMN_PASSWORD = "password"
         val COLUMN_INITIAL_COMMAND = "initialCommand"
         val COLUMN_RUN_AT_DEVICE_STARTUP = "runAtDeviceStartup"
         val COLUMN_STARTUP_SCRIPT = "startupScript"

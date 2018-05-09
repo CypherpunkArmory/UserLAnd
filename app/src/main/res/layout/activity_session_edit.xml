@@ -16,6 +16,7 @@
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
 
     <Spinner
+        style="@style/Widget.AppCompat.Spinner.DropDown"
         android:id="@+id/spinner_file_system_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

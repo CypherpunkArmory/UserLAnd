@@ -7,7 +7,13 @@ import tech.userland.userland.database.models.Filesystem
 
 class FilesystemRepository(val context: Context) {
 
-    private val parser = rowParser { filesystemId: Int, name: String, realRoot: Int, location: String, type: String, dateCreated: String ->
+    private val parser = rowParser { filesystemId: Int,
+                                     name: String,
+                                     realRoot: Int,
+                                     location: String,
+                                     type: String,
+                                     dateCreated: String ->
+
         val realRootBool = (realRoot == 1)
         Filesystem(name, realRootBool, location, type, dateCreated)
     }

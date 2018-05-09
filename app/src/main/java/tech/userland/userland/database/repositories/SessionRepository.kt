@@ -7,9 +7,21 @@ import tech.userland.userland.database.models.Session
 
 class SessionRepository(val context: Context) {
 
-    private val parser = rowParser { sessionId: Int, name: String, filesystemId: Int, initialCommand: String, runAtDeviceStartup: String, startupScript: String, pid: Int, active: Int, type: String ->
+    private val parser = rowParser {
+        sessionId: Int,
+        name: String,
+        filesystemId: Int,
+        username: String,
+        password: String,
+        initialCommand: String,
+        runAtDeviceStartup: String,
+        startupScript: String,
+        pid: Int,
+        active: Int,
+        type: String ->
+
         val activeBool = (active == 1)
-        Session(name, filesystemId, initialCommand, runAtDeviceStartup, startupScript, pid, activeBool, type)
+        Session(name, filesystemId, username, password, initialCommand, runAtDeviceStartup, startupScript, pid, activeBool, type)
     }
 
     fun getAllSessions(): ArrayList<Session> {

@@ -33,6 +33,8 @@ class DatabaseOpenHelper(context: Context): ManagedSQLiteOpenHelper(context, "Ap
                 Session.COLUMN_SESSION_ID to INTEGER + PRIMARY_KEY + AUTOINCREMENT,
                 Session.COLUMN_NAME to TEXT,
                 Session.COLUMN_FILESYSTEM_ID to INTEGER,
+                Session.COLUMN_USERNAME to TEXT,
+                Session.COLUMN_PASSWORD to TEXT,
                 Session.COLUMN_INITIAL_COMMAND to TEXT,
                 Session.COLUMN_RUN_AT_DEVICE_STARTUP to TEXT,
                 Session.COLUMN_STARTUP_SCRIPT to TEXT,
@@ -41,17 +43,6 @@ class DatabaseOpenHelper(context: Context): ManagedSQLiteOpenHelper(context, "Ap
                 Session.COLUMN_TYPE to TEXT,
                 FOREIGN_KEY(Session.COLUMN_FILESYSTEM_ID, Filesystem.TABLE_NAME, Filesystem.COLUMN_FILESYSTEM_ID)
                 )
-//        database.createTable("Session", true,
-//                "sessionId" to INTEGER + PRIMARY_KEY + AUTOINCREMENT,
-//                "name" to TEXT,
-//                "filesystemId" to INTEGER,
-//                "initialCommand" to TEXT,
-//                "runAtDeviceStartup" to TEXT,
-//                "startupScript" to TEXT,
-//                "pid" to INTEGER,
-//                "active" to INTEGER,
-//                "type" to TEXT,
-//                FOREIGN_KEY("filesystemId", "Filesystem","filesystemId"))
     }
 
     // TODO don't just drop tables on upgrade
