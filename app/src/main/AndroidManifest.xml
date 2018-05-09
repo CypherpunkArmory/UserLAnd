@@ -26,7 +26,7 @@
 
         <activity
             android:name=".FilesystemListActivity"
-            android:label="File System Management" />
+            android:label="Filesystems" />
 
         <activity
             android:name=".FilesystemEditActivity"

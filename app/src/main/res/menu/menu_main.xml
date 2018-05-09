@@ -5,7 +5,7 @@
     <item
         android:id="@+id/menu_item_file_system_management"
         android:orderInCategory="101"
-        android:title="File System Management"
+        android:title="Filesystems"
         app:showAsAction="never" />
     <item
         android:id="@+id/menu_item_settings"
