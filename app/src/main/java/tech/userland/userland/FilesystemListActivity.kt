@@ -7,17 +7,17 @@ import android.view.ContextMenu
 import android.view.MenuItem
 import android.view.View
 import android.widget.ArrayAdapter
-import kotlinx.android.synthetic.main.activity_file_system_management.*
+import kotlinx.android.synthetic.main.activity_filesystem_list.*
 import tech.userland.userland.database.models.Filesystem
 import tech.userland.userland.database.repositories.FilesystemRepository
 
-class FileSystemManagementActivity: AppCompatActivity() {
+class FilesystemListActivity: AppCompatActivity() {
 
     lateinit var filesystemList: ArrayList<Filesystem>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_file_system_management)
+        setContentView(R.layout.activity_filesystem_list)
         setSupportActionBar(toolbar)
 
         filesystemList = FilesystemRepository(this).getAllFilesystems()
@@ -26,7 +26,7 @@ class FileSystemManagementActivity: AppCompatActivity() {
         list_file_system_management.adapter = ArrayAdapter(this, R.layout.list_item, filesystemNames)
         registerForContextMenu(list_file_system_management)
 
-        fab.setOnClickListener { navigateToFileSystemCreate() }
+        fab.setOnClickListener { navigateToFilesystemEdit() }
     }
 
     override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
@@ -36,19 +36,19 @@ class FileSystemManagementActivity: AppCompatActivity() {
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.menu_item_file_system_edit -> navigateToFileSystemCreate()
-            R.id.menu_item_file_system_delete -> deleteFileSystem(item)
+            R.id.menu_item_file_system_edit -> navigateToFilesystemEdit()
+            R.id.menu_item_file_system_delete -> deleteFilesystem(item)
             else -> super.onContextItemSelected(item)
         }
     }
 
-    fun navigateToFileSystemCreate(): Boolean {
-        val intent = Intent(this, FileSystemCreateActivity::class.java)
+    fun navigateToFilesystemEdit(): Boolean {
+        val intent = Intent(this, FilesystemEditActivity::class.java)
         startActivity(intent)
         return true
     }
 
-    fun deleteFileSystem(item: MenuItem): Boolean {
+    fun deleteFilesystem(item: MenuItem): Boolean {
         // TODO
         return true
     }

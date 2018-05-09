@@ -21,16 +21,16 @@
         </activity>
 
         <activity
-            android:name=".SessionCreateActivity"
-            android:label="Create New Session" />
+            android:name=".SessionEditActivity"
+            android:label="Edit Session" />
 
         <activity
-            android:name=".FileSystemManagementActivity"
+            android:name=".FilesystemListActivity"
             android:label="File System Management" />
 
         <activity
-            android:name=".FileSystemCreateActivity"
-            android:label="Create New File System" />
+            android:name=".FilesystemEditActivity"
+            android:label="Edit Filesystem" />
 
         <activity
             android:name=".SettingsActivity"

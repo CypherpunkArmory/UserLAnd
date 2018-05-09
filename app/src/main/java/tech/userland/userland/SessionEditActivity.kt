@@ -8,18 +8,18 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.Toast
-import kotlinx.android.synthetic.main.activity_session_create.*
+import kotlinx.android.synthetic.main.activity_session_edit.*
 import tech.userland.userland.database.repositories.*
 import tech.userland.userland.database.models.*
 
-class SessionCreateActivity: AppCompatActivity() {
+class SessionEditActivity: AppCompatActivity() {
     lateinit var filesystemList: ArrayList<Filesystem>
 
     private var hasSpinnerBeenCalled = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_session_create)
+        setContentView(R.layout.activity_session_edit)
         setSupportActionBar(toolbar)
 
         filesystemList = FilesystemRepository(this).getAllFilesystems()
@@ -43,18 +43,18 @@ class SessionCreateActivity: AppCompatActivity() {
                 }
                 val data = parent.getItemAtPosition(position)
                 if(data == "New") {
-                    navigateToCreateFileSystem()
+                    navigateToFilesystemEdit()
                 }
                 else {
-                    Toast.makeText(this@SessionCreateActivity, "Adding " + data.toString(), Toast.LENGTH_LONG).show()
-                    SessionRepository(this@SessionCreateActivity).insertSession(genStubSession(data.toString()))
+                    Toast.makeText(this@SessionEditActivity, "Adding " + data.toString(), Toast.LENGTH_LONG).show()
+                    SessionRepository(this@SessionEditActivity).insertSession(genStubSession(data.toString()))
                 }
             }
         }
     }
 
-    fun navigateToCreateFileSystem() {
-        val intent = Intent(this, FileSystemCreateActivity::class.java)
+    fun navigateToFilesystemEdit() {
+        val intent = Intent(this, FilesystemEditActivity::class.java)
         startActivity(intent)
     }
 

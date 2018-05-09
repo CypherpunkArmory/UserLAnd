@@ -1,9 +1,7 @@
 package tech.userland.userland
 
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.support.v7.app.AppCompatActivity
 import android.view.ContextMenu
 import android.view.Menu
@@ -24,14 +22,14 @@ class SessionListActivity : AppCompatActivity() {
         setContentView(R.layout.activity_session_list)
         setSupportActionBar(toolbar)
 
-        sessionList = SessionRepository(this).getAllSessions()
+        sessionList = ArrayList(SessionRepository(this).getAllSessions())
         Toast.makeText(this, "Session list created with " + sessionList.toString(), Toast.LENGTH_LONG).show()
 
         list_sessions.emptyView = findViewById(R.id.empty)
         list_sessions.adapter = ArrayAdapter(this, R.layout.list_item, sessionList)
         registerForContextMenu(list_sessions)
 
-        fab.setOnClickListener { navigateToSessionCreate() }
+        fab.setOnClickListener { navigateToSessionEdit() }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -41,7 +39,7 @@ class SessionListActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.menu_item_file_system_management -> navigateToFileSystemManagement()
+            R.id.menu_item_file_system_management -> navigateToFilesystemManagement()
             R.id.menu_item_settings -> navigateToSettings()
             R.id.menu_item_help -> navigateToHelp()
             else -> super.onOptionsItemSelected(item)
@@ -56,7 +54,7 @@ class SessionListActivity : AppCompatActivity() {
     override fun onContextItemSelected(item: MenuItem): Boolean {
         return when(item.itemId) {
             R.id.menu_item_session_disconnect -> disconnectSession(item)
-            R.id.menu_item_session_edit -> navigateToSessionCreate()
+            R.id.menu_item_session_edit -> navigateToSessionEdit()
             R.id.menu_item_session_delete -> deleteSession(item)
             else -> super.onContextItemSelected(item)
         }
@@ -72,8 +70,8 @@ class SessionListActivity : AppCompatActivity() {
         return true
     }
 
-    private fun navigateToFileSystemManagement(): Boolean {
-        val intent = Intent(this, FileSystemManagementActivity::class.java)
+    private fun navigateToFilesystemManagement(): Boolean {
+        val intent = Intent(this, FilesystemListActivity::class.java)
         startActivity(intent)
         return true
     }
@@ -90,8 +88,8 @@ class SessionListActivity : AppCompatActivity() {
         return true
     }
 
-    private fun navigateToSessionCreate(): Boolean {
-        val intent = Intent(this, SessionCreateActivity::class.java)
+    private fun navigateToSessionEdit(): Boolean {
+        val intent = Intent(this, SessionEditActivity::class.java)
         startActivity(intent)
         return true
     }

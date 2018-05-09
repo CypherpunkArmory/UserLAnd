@@ -7,23 +7,23 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.widget.Button
 import android.widget.Toast
-import kotlinx.android.synthetic.main.activity_file_system_create.*
+import kotlinx.android.synthetic.main.activity_filesystem_edit.*
 import tech.userland.userland.database.models.Filesystem
 import tech.userland.userland.database.repositories.FilesystemRepository
 
-class FileSystemCreateActivity: AppCompatActivity() {
+class FilesystemEditActivity: AppCompatActivity() {
     var newFilesystemName: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_file_system_create)
+        setContentView(R.layout.activity_filesystem_edit)
         setSupportActionBar(toolbar)
 
         val nameInput: TextInputEditText = findViewById(R.id.input_file_system_name)
         nameInput.addTextChangedListener(object: TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
                 newFilesystemName = p0.toString()
-                Toast.makeText(this@FileSystemCreateActivity, newFilesystemName, Toast.LENGTH_LONG).show()
+                Toast.makeText(this@FilesystemEditActivity, newFilesystemName, Toast.LENGTH_LONG).show()
             }
 
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
