@@ -1,9 +1,7 @@
 package tech.userland.userland
 
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.widget.AdapterView
@@ -11,11 +9,11 @@ import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_session_create.*
+import tech.userland.userland.database.repositories.*
+import tech.userland.userland.database.models.*
 
 class SessionCreateActivity: AppCompatActivity() {
-    lateinit var sharedPreferences: SharedPreferences
-    lateinit var fileSystemList: ArrayList<String>
-    lateinit var sessionList: ArrayList<String>
+    lateinit var filesystemList: ArrayList<Filesystem>
 
     private var hasSpinnerBeenCalled = false
 
@@ -24,10 +22,8 @@ class SessionCreateActivity: AppCompatActivity() {
         setContentView(R.layout.activity_session_create)
         setSupportActionBar(toolbar)
 
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
-        fileSystemList = ArrayList(sharedPreferences.getString("fileSystems", "").split(", "))
-        sessionList = ArrayList(sharedPreferences.getString("sessions", "").split(", "))
-        val arrayAdapterList: ArrayList<String> = fileSystemList
+        filesystemList = FilesystemRepository(this).getAllFilesystems()
+        val arrayAdapterList: ArrayList<String> = ArrayList(filesystemList.map { filesystem -> filesystem.name })
         arrayAdapterList.add("New")
 
         val dropdown: Spinner = findViewById(R.id.spinner_file_system_list)
@@ -51,23 +47,18 @@ class SessionCreateActivity: AppCompatActivity() {
                 }
                 else {
                     Toast.makeText(this@SessionCreateActivity, "Adding " + data.toString(), Toast.LENGTH_LONG).show()
-                    sessionList.add(data.toString())
+                    SessionRepository(this@SessionCreateActivity).insertSession(genStubSession(data.toString()))
                 }
             }
-        }
-    }
-
-    override fun onStop() {
-        super.onStop()
-        val sessionListString = sessionList.joinToString()
-        with(sharedPreferences.edit()) {
-            putString("sessions", sessionListString)
-            commit()
         }
     }
 
     fun navigateToCreateFileSystem() {
         val intent = Intent(this, FileSystemCreateActivity::class.java)
         startActivity(intent)
+    }
+
+    fun genStubSession(name: String): Session {
+        return Session(name, 0, "/", "/", "/", 0, true, "ssh")
     }
 }

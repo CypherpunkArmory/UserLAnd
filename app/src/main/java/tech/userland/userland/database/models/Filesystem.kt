@@ -1,15 +1,14 @@
 package tech.userland.userland.database.models
 
-import java.util.Date
-
-data class Filesystem(val filesystemId: Int,
+data class Filesystem(val name: String,
                       val realRoot: Boolean,
                       val location: String,
                       val type: String,
-                      val dateCreated: Date) {
+                      val dateCreated: String) {
     companion object {
         val TABLE_NAME = "Filesystem"
         val COLUMN_FILESYSTEM_ID = "filesystemId"
+        val COLUMN_NAME = "name"
         val COLUMN_REAL_ROOT  = "realRoot"
         val COLUMN_LOCATION = "location"
         val COLUMN_TYPE = "type"
