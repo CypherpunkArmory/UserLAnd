@@ -16,6 +16,7 @@ import tech.userland.userland.database.repositories.SessionRepository
 class SessionListActivity : AppCompatActivity() {
 
     lateinit var sessionList: ArrayList<Session>
+    lateinit var sessionAdapter: ArrayAdapter<Session>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,13 +24,19 @@ class SessionListActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         sessionList = ArrayList(SessionRepository(this).getAllSessions())
+        sessionAdapter = ArrayAdapter(this, R.layout.list_item, sessionList)
         Toast.makeText(this, "Session list created with " + sessionList.toString(), Toast.LENGTH_LONG).show()
 
         list_sessions.emptyView = findViewById(R.id.empty)
-        list_sessions.adapter = ArrayAdapter(this, R.layout.list_item, sessionList)
+        list_sessions.adapter = sessionAdapter
         registerForContextMenu(list_sessions)
 
         fab.setOnClickListener { navigateToSessionEdit() }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        sessionAdapter.notifyDataSetChanged()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

@@ -1,6 +1,8 @@
 package tech.userland.userland.database.repositories
 
 import android.content.Context
+import android.database.sqlite.SQLiteConstraintException
+import android.widget.Toast
 import org.jetbrains.anko.db.*
 import tech.userland.userland.database.database
 import tech.userland.userland.database.models.Session
@@ -33,17 +35,22 @@ class SessionRepository(val context: Context) {
     }
 
     fun insertSession(session: Session) {
-        return context.database.use {
-            insert(Session.TABLE_NAME,
-                    "name" to session.name,
-                    "filesystemID" to session.filesystemId,
-                    "initialCommand" to session.initialCommand,
-                    "runAtDeviceStartup" to session.runAtDeviceStartup,
-                    "startupScript" to session.startupScript,
-                    "pid" to session.pid,
-                    "active" to session.active,
-                    "type" to session.type
-            )
+        try {
+            return context.database.use {
+                insertOrThrow(Session.TABLE_NAME,
+                        "name" to session.name,
+                        "filesystemID" to session.filesystemId,
+                        "initialCommand" to session.initialCommand,
+                        "runAtDeviceStartup" to session.runAtDeviceStartup,
+                        "startupScript" to session.startupScript,
+                        "pid" to session.pid,
+                        "active" to session.active,
+                        "type" to session.type
+                )
+            }
+        }
+        catch (error: SQLiteConstraintException) {
+            Toast.makeText(context, "Session name exists. Names must be unique.", Toast.LENGTH_LONG).show()
         }
     }
 }
