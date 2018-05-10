@@ -22,7 +22,7 @@ class DatabaseOpenHelper(context: Context): ManagedSQLiteOpenHelper(context, "Ap
     override fun onCreate(database: SQLiteDatabase) {
         database.createTable(Filesystem.TABLE_NAME, true,
                 Filesystem.COLUMN_FILESYSTEM_ID to INTEGER + PRIMARY_KEY + AUTOINCREMENT,
-                Filesystem.COLUMN_NAME to TEXT,
+                Filesystem.COLUMN_NAME to TEXT + UNIQUE(ConflictClause.FAIL),
                 Filesystem.COLUMN_REAL_ROOT to INTEGER,
                 Filesystem.COLUMN_LOCATION to TEXT,
                 Filesystem.COLUMN_TYPE to TEXT,
@@ -31,7 +31,7 @@ class DatabaseOpenHelper(context: Context): ManagedSQLiteOpenHelper(context, "Ap
 
         database.createTable(Session.TABLE_NAME, true,
                 Session.COLUMN_SESSION_ID to INTEGER + PRIMARY_KEY + AUTOINCREMENT,
-                Session.COLUMN_NAME to TEXT,
+                Session.COLUMN_NAME to TEXT + UNIQUE(ConflictClause.FAIL),
                 Session.COLUMN_FILESYSTEM_ID to INTEGER,
                 Session.COLUMN_USERNAME to TEXT,
                 Session.COLUMN_PASSWORD to TEXT,

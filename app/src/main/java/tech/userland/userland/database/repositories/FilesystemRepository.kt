@@ -1,6 +1,8 @@
 package tech.userland.userland.database.repositories
 
 import android.content.Context
+import android.database.sqlite.SQLiteConstraintException
+import android.widget.Toast
 import org.jetbrains.anko.db.*
 import tech.userland.userland.database.database
 import tech.userland.userland.database.models.Filesystem
@@ -27,14 +29,19 @@ class FilesystemRepository(val context: Context) {
     }
 
     fun insertFilesystem(filesystem: Filesystem) {
-        return context.database.use {
-            insert(Filesystem.TABLE_NAME,
-                    "name" to filesystem.name,
-                    "realRoot" to filesystem.realRoot,
-                    "location" to filesystem.location,
-                    "type" to filesystem.type,
-                    "dateCreated" to filesystem.dateCreated
-            )
+        try {
+            return context.database.use {
+                insertOrThrow(Filesystem.TABLE_NAME,
+                        "name" to filesystem.name,
+                        "realRoot" to filesystem.realRoot,
+                        "location" to filesystem.location,
+                        "type" to filesystem.type,
+                        "dateCreated" to filesystem.dateCreated
+                )
+            }
+        }
+        catch (error: SQLiteConstraintException) {
+            Toast.makeText(context, "Filesystem name exists. Names must be unique.", Toast.LENGTH_LONG).show()
         }
     }
 }
