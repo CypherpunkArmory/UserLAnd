@@ -6,6 +6,8 @@ import android.support.design.widget.TextInputEditText
 import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import kotlinx.android.synthetic.main.activity_filesystem_edit.*
@@ -56,9 +58,20 @@ class FilesystemEditActivity: AppCompatActivity() {
             }
         }
 
-        val submitButton: Button = findViewById(R.id.button_submit_new_filesystem)
-        submitButton.setOnClickListener {
-            insertFilesystem()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_edit, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when(item.itemId) {
+            R.id.menu_item_add -> {
+                insertFilesystem()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 

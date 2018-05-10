@@ -44,4 +44,14 @@ class FilesystemRepository(val context: Context) {
             Toast.makeText(context, "Filesystem name exists. Names must be unique.", Toast.LENGTH_LONG).show()
         }
     }
+
+    fun updateFilesystem(filesystem: Filesystem) {
+
+    }
+
+    fun deleteFilesystem(filesystem: Filesystem) {
+        return context.database.use {
+            delete(Filesystem.TABLE_NAME, "name = {name}", "name" to filesystem.name)
+        }
+    }
 }

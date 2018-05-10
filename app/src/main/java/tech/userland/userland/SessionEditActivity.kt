@@ -6,6 +6,8 @@ import android.support.design.widget.TextInputEditText
 import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import kotlinx.android.synthetic.main.activity_session_edit.*
@@ -43,24 +45,22 @@ class SessionEditActivity: AppCompatActivity() {
         // Filesystem name dropdown
         val filesystemList = FilesystemRepository(this).getAllFilesystems()
         val filesystemNameList: ArrayList<String> = ArrayList(filesystemList.map { filesystem -> filesystem.name })
-        //filesystemNameList.add("New")
+        filesystemNameList.add("Make your selection")
+        filesystemNameList.add("New")
 
         val filesystemNameDropdown: Spinner = findViewById(R.id.spinner_filesystem_list)
         val filesystemNameAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, filesystemNameList)
         filesystemNameAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         filesystemNameDropdown.adapter = filesystemNameAdapter
         filesystemNameDropdown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                // TODO how should this be handled?
-            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
 
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
                 val data = parent.getItemAtPosition(position)
                 if(data == "New") {
-                    //navigateToFilesystemEdit()
+                    navigateToFilesystemEdit()
                 }
                 else {
-                    //Toast.makeText(this@SessionEditActivity, "Adding " + data.toString(), Toast.LENGTH_LONG).show()
                     filesystemName = data.toString()
                 }
             }
@@ -113,12 +113,23 @@ class SessionEditActivity: AppCompatActivity() {
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
             }
         })
+    }
 
-        val submitButton: Button = findViewById(R.id.button_submit_new_session)
-        submitButton.setOnClickListener {
-            insertSession()
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_edit, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when(item.itemId) {
+            R.id.menu_item_add -> {
+                insertSession()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
+
 
     fun navigateToFilesystemEdit() {
         val intent = Intent(this, FilesystemEditActivity::class.java)

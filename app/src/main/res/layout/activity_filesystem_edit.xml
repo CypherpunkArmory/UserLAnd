@@ -51,14 +51,4 @@
         app:layout_constraintStart_toEndOf="@id/text_filesystem_type"
         app:layout_constraintTop_toBottomOf="@id/text_input_layout" />
 
-    <Button
-        android:id="@+id/button_submit_new_filesystem"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Submit"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_filesystem_type" /> <!-- @string/text_type -->
-
 </android.support.constraint.ConstraintLayout>

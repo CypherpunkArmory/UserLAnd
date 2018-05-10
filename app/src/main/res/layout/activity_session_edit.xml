@@ -13,7 +13,10 @@
         android:background="?attr/colorPrimary"
         android:elevation="4dp"
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+
+
+    </android.support.v7.widget.Toolbar>
 
     <android.support.design.widget.TextInputLayout
         android:id="@+id/text_input_layout_session_name"
@@ -108,17 +111,5 @@
             android:hint="Password" />
 
     </android.support.design.widget.TextInputLayout>
-
-    <Button
-        android:id="@+id/button_submit_new_session"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Submit"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_input_layout_password" />
-
-
 
 </android.support.constraint.ConstraintLayout>

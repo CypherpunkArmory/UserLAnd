@@ -40,6 +40,8 @@ class SessionRepository(val context: Context) {
                 insertOrThrow(Session.TABLE_NAME,
                         "name" to session.name,
                         "filesystemID" to session.filesystemId,
+                        "username" to session.username,
+                        "password" to session.password,
                         "initialCommand" to session.initialCommand,
                         "runAtDeviceStartup" to session.runAtDeviceStartup,
                         "startupScript" to session.startupScript,
