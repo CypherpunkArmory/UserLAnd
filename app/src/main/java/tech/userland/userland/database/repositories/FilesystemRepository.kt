@@ -54,4 +54,10 @@ class FilesystemRepository(val context: Context) {
             delete(Filesystem.TABLE_NAME, "name = {name}", "name" to filesystem.name)
         }
     }
+
+    fun deleteFilesystemByName(name: String) {
+        return context.database.use {
+            delete(Filesystem.TABLE_NAME, "name = {name}", "name" to name)
+        }
+    }
 }

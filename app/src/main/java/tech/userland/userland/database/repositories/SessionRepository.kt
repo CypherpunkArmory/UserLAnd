@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteConstraintException
 import android.widget.Toast
 import org.jetbrains.anko.db.*
 import tech.userland.userland.database.database
+import tech.userland.userland.database.models.Filesystem
 import tech.userland.userland.database.models.Session
 
 class SessionRepository(val context: Context) {
@@ -53,6 +54,20 @@ class SessionRepository(val context: Context) {
         }
         catch (error: SQLiteConstraintException) {
             Toast.makeText(context, "Session name exists. Names must be unique.", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    fun updateSessionActivity(session: Session) {
+        return context.database.use {
+            update(Session.TABLE_NAME, "active" to session.active)
+                    .whereArgs("name = {name}", "name" to session.name)
+                    .exec()
+        }
+    }
+
+    fun deleteSessionByName(name: String) {
+        return context.database.use {
+            delete(Session.TABLE_NAME, "name = {name}", "name" to name)
         }
     }
 }

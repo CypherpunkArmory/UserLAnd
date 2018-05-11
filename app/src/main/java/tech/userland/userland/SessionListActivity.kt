@@ -1,44 +1,46 @@
 package tech.userland.userland
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.view.ContextMenu
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.ArrayAdapter
-import android.widget.Toast
+import android.widget.AdapterView
 import kotlinx.android.synthetic.main.activity_session_list.*
 import tech.userland.userland.database.models.Session
 import tech.userland.userland.database.repositories.SessionRepository
+import tech.userland.userland.ui.SessionListAdapter
 
 class SessionListActivity : AppCompatActivity() {
 
     lateinit var sessionList: ArrayList<Session>
-    lateinit var sessionAdapter: ArrayAdapter<Session>
+    lateinit var sessionNameList: ArrayList<String>
+    lateinit var sessionAdapter: SessionListAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_session_list)
         setSupportActionBar(toolbar)
 
-        sessionList = ArrayList(SessionRepository(this).getAllSessions())
-        sessionAdapter = ArrayAdapter(this, R.layout.list_item, sessionList)
-        Toast.makeText(this, "Session list created with " + sessionList.toString(), Toast.LENGTH_LONG).show()
+        sessionList = SessionRepository(this).getAllSessions()
+        sessionNameList = ArrayList(sessionList.map { session -> session.name })
+        sessionAdapter = SessionListAdapter(this, sessionList)
 
         list_sessions.emptyView = findViewById(R.id.empty)
         list_sessions.adapter = sessionAdapter
         registerForContextMenu(list_sessions)
+        list_sessions.onItemClickListener = AdapterView.OnItemClickListener {
+            parent, view, position, id ->
+            val session = sessionList[position]
+            if(!session.active == true) {
+                session.active = true
+                SessionRepository(this).updateSessionActivity(session)
+            }
+        }
 
         fab.setOnClickListener { navigateToSessionEdit() }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        sessionAdapter.notifyDataSetChanged()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -70,12 +72,19 @@ class SessionListActivity : AppCompatActivity() {
     }
 
     fun disconnectSession(item: MenuItem): Boolean {
-        // TODO
+        val menuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
+        val position = menuInfo.position
+        val session = sessionList[position]
+        session.active = false
+        SessionRepository(this).updateSessionActivity(session)
         return true
     }
 
     fun deleteSession(item: MenuItem): Boolean {
-        // TODO
+        val menuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
+        val position = menuInfo.position
+        val sessionName = sessionNameList[position]
+        SessionRepository(this).deleteSessionByName(sessionName)
         return true
     }
 

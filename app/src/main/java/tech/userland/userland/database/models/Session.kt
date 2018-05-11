@@ -8,7 +8,7 @@ data class Session(val name: String,
                    val runAtDeviceStartup: String,
                    val startupScript: String,
                    val pid: Int,
-                   val active: Boolean,
+                   var active: Boolean,
                    val type: String) {
     companion object {
         val TABLE_NAME = "Session"

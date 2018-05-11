@@ -6,10 +6,12 @@ import android.support.v7.app.AppCompatActivity
 import android.view.ContextMenu
 import android.view.MenuItem
 import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import kotlinx.android.synthetic.main.activity_filesystem_list.*
 import tech.userland.userland.database.models.Filesystem
 import tech.userland.userland.database.repositories.FilesystemRepository
+
 
 class FilesystemListActivity: AppCompatActivity() {
 
@@ -23,7 +25,7 @@ class FilesystemListActivity: AppCompatActivity() {
         filesystemList = FilesystemRepository(this).getAllFilesystems()
         val filesystemNames = filesystemList.map { filesystem -> filesystem.name }
 
-        list_file_system_management.adapter = ArrayAdapter(this, R.layout.list_item, filesystemNames)
+        list_file_system_management.adapter = ArrayAdapter(this, R.layout.list_item_session, filesystemNames)
         registerForContextMenu(list_file_system_management)
 
         fab.setOnClickListener { navigateToFilesystemEdit() }
@@ -49,7 +51,10 @@ class FilesystemListActivity: AppCompatActivity() {
     }
 
     fun deleteFilesystem(item: MenuItem): Boolean {
-        // TODO
+        val menuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
+        val position = menuInfo.position
+        val filesystem = filesystemList[position]
+        FilesystemRepository(this).deleteFilesystem(filesystem)
         return true
     }
 }
