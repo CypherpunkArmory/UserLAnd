@@ -40,7 +40,7 @@ class SessionListActivity : AppCompatActivity() {
             }
         }
 
-        fab.setOnClickListener { navigateToSessionEdit() }
+        fab.setOnClickListener { navigateToSessionEdit(null) }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -63,28 +63,25 @@ class SessionListActivity : AppCompatActivity() {
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
+        val menuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
+        val position = menuInfo.position
+        val session = sessionList[position]
         return when(item.itemId) {
-            R.id.menu_item_session_disconnect -> disconnectSession(item)
-            R.id.menu_item_session_edit -> navigateToSessionEdit()
-            R.id.menu_item_session_delete -> deleteSession(item)
+            R.id.menu_item_session_disconnect -> disconnectSession(session)
+            R.id.menu_item_session_edit -> navigateToSessionEdit(session)
+            R.id.menu_item_session_delete -> deleteSession(session)
             else -> super.onContextItemSelected(item)
         }
     }
 
-    fun disconnectSession(item: MenuItem): Boolean {
-        val menuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
-        val position = menuInfo.position
-        val session = sessionList[position]
+    fun disconnectSession(session: Session): Boolean {
         session.active = false
         SessionRepository(this).updateSessionActive(session)
         return true
     }
 
-    fun deleteSession(item: MenuItem): Boolean {
-        val menuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
-        val position = menuInfo.position
-        val sessionName = sessionNameList[position]
-        SessionRepository(this).deleteSessionByName(sessionName)
+    fun deleteSession(session: Session): Boolean {
+        SessionRepository(this).deleteSessionByName(session.name)
         return true
     }
 
@@ -106,8 +103,11 @@ class SessionListActivity : AppCompatActivity() {
         return true
     }
 
-    private fun navigateToSessionEdit(): Boolean {
+    private fun navigateToSessionEdit(session: Session?): Boolean {
         val intent = Intent(this, SessionEditActivity::class.java)
+        intent.putExtra("sessionName", session?.name)
+        intent.putExtra("username", session?.username)
+        intent.putExtra("password", session?.password)
         startActivity(intent)
         return true
     }

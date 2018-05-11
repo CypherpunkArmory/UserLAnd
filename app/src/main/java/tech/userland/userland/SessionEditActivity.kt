@@ -29,7 +29,9 @@ class SessionEditActivity: AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         // Session name input
+        sessionName = intent.getStringExtra("sessionName")
         val sessionNameInput: TextInputEditText = findViewById(R.id.text_input_session_name)
+        sessionNameInput.setText(sessionName)
         sessionNameInput.addTextChangedListener(object: TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
                 sessionName = p0.toString()
@@ -87,7 +89,9 @@ class SessionEditActivity: AppCompatActivity() {
         }
 
         // Username input
+        username = intent.getStringExtra("username")
         val usernameInput: TextInputEditText = findViewById(R.id.text_input_username)
+        usernameInput.setText(username)
         usernameInput.addTextChangedListener(object: TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
                 username = p0.toString()
@@ -101,7 +105,9 @@ class SessionEditActivity: AppCompatActivity() {
         })
 
         // Password input
+        password = intent.getStringExtra("password")
         val passwordInput: TextInputEditText = findViewById(R.id.text_input_password)
+        passwordInput.setText(password)
         passwordInput.addTextChangedListener(object: TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
                 password = p0.toString()
