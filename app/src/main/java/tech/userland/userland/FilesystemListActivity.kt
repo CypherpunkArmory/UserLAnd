@@ -28,7 +28,7 @@ class FilesystemListActivity: AppCompatActivity() {
         list_file_system_management.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, filesystemNames)
         registerForContextMenu(list_file_system_management)
 
-        fab.setOnClickListener { navigateToFilesystemEdit() }
+        fab.setOnClickListener { navigateToFilesystemEdit("") }
     }
 
     override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
@@ -37,23 +37,25 @@ class FilesystemListActivity: AppCompatActivity() {
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
+        val menuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
+        val position = menuInfo.position
+        val filesystem = filesystemList[position]
+
         return when (item.itemId) {
-            R.id.menu_item_file_system_edit -> navigateToFilesystemEdit()
-            R.id.menu_item_file_system_delete -> deleteFilesystem(item)
+            R.id.menu_item_file_system_edit -> navigateToFilesystemEdit(filesystem.name)
+            R.id.menu_item_file_system_delete -> deleteFilesystem(filesystem)
             else -> super.onContextItemSelected(item)
         }
     }
 
-    fun navigateToFilesystemEdit(): Boolean {
+    fun navigateToFilesystemEdit(filesystemName: String): Boolean {
         val intent = Intent(this, FilesystemEditActivity::class.java)
+        intent.putExtra("filesystemName", filesystemName)
         startActivity(intent)
         return true
     }
 
-    fun deleteFilesystem(item: MenuItem): Boolean {
-        val menuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
-        val position = menuInfo.position
-        val filesystem = filesystemList[position]
+    fun deleteFilesystem(filesystem: Filesystem): Boolean {
         FilesystemRepository(this).deleteFilesystem(filesystem)
         return true
     }

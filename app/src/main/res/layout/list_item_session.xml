@@ -42,7 +42,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
-        android:textSize="32dp"
+        android:textSize="32sp"
         android:textAppearance="?android:attr/textAppearanceListItemSmall"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/text_list_item_type"

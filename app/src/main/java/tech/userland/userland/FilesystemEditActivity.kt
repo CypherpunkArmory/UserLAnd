@@ -16,19 +16,22 @@ import tech.userland.userland.database.repositories.FilesystemRepository
 import java.util.*
 
 class FilesystemEditActivity: AppCompatActivity() {
-    var newFilesystemName: String = ""
-    var newFilesystemType: String = ""
+    var filesystemName: String = ""
+    var filesystemType: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_filesystem_edit)
         setSupportActionBar(toolbar)
 
+        filesystemName = intent.getStringExtra("filesystemName")
+
         val nameInput: TextInputEditText = findViewById(R.id.input_filesystem_name)
+        nameInput.setText(filesystemName)
         nameInput.addTextChangedListener(object: TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
-                newFilesystemName = p0.toString()
-                Toast.makeText(this@FilesystemEditActivity, newFilesystemName, Toast.LENGTH_LONG).show()
+                filesystemName = p0.toString()
+                Toast.makeText(this@FilesystemEditActivity, filesystemName, Toast.LENGTH_LONG).show()
             }
 
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
@@ -77,7 +80,7 @@ class FilesystemEditActivity: AppCompatActivity() {
 
     fun insertFilesystem() {
         val date = Date()
-        val newFilesystem = Filesystem(newFilesystemName, false, "/", newFilesystemType, date.toString())
+        val newFilesystem = Filesystem(filesystemName, false, "/", filesystemType, date.toString())
         FilesystemRepository(this@FilesystemEditActivity).insertFilesystem(newFilesystem)
     }
 }
