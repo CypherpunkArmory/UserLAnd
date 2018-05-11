@@ -57,7 +57,7 @@ class SessionRepository(val context: Context) {
         }
     }
 
-    fun updateSessionActivity(session: Session) {
+    fun updateSessionActive(session: Session) {
         return context.database.use {
             update(Session.TABLE_NAME, "active" to session.active)
                     .whereArgs("name = {name}", "name" to session.name)

@@ -36,7 +36,7 @@ class SessionListActivity : AppCompatActivity() {
             val session = sessionList[position]
             if(!session.active == true) {
                 session.active = true
-                SessionRepository(this).updateSessionActivity(session)
+                SessionRepository(this).updateSessionActive(session)
             }
         }
 
@@ -76,7 +76,7 @@ class SessionListActivity : AppCompatActivity() {
         val position = menuInfo.position
         val session = sessionList[position]
         session.active = false
-        SessionRepository(this).updateSessionActivity(session)
+        SessionRepository(this).updateSessionActive(session)
         return true
     }
 

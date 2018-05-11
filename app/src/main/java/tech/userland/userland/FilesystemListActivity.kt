@@ -25,7 +25,7 @@ class FilesystemListActivity: AppCompatActivity() {
         filesystemList = FilesystemRepository(this).getAllFilesystems()
         val filesystemNames = filesystemList.map { filesystem -> filesystem.name }
 
-        list_file_system_management.adapter = ArrayAdapter(this, R.layout.list_item_session, filesystemNames)
+        list_file_system_management.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, filesystemNames)
         registerForContextMenu(list_file_system_management)
 
         fab.setOnClickListener { navigateToFilesystemEdit() }
