@@ -31,7 +31,6 @@ class FilesystemEditActivity: AppCompatActivity() {
         nameInput.addTextChangedListener(object: TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
                 filesystemName = p0.toString()
-                Toast.makeText(this@FilesystemEditActivity, filesystemName, Toast.LENGTH_LONG).show()
             }
 
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
@@ -51,13 +50,10 @@ class FilesystemEditActivity: AppCompatActivity() {
         filesystemTypeDropdown.adapter = filesystemTypeAdapter
         filesystemTypeDropdown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
 
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
 
-            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-                val data = parent.getItemAtPosition(position)
-                Toast.makeText(this@FilesystemEditActivity, "Type " + data.toString(), Toast.LENGTH_LONG).show()
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val data = parent?.getItemAtPosition(position) ?: ""
             }
         }
 
@@ -79,8 +75,13 @@ class FilesystemEditActivity: AppCompatActivity() {
     }
 
     fun insertFilesystem() {
-        val date = Date()
-        val newFilesystem = Filesystem(filesystemName, false, "/", filesystemType, date.toString())
-        FilesystemRepository(this@FilesystemEditActivity).insertFilesystem(newFilesystem)
+        if(filesystemName != "") {
+            val date = Date()
+            val newFilesystem = Filesystem(filesystemName, false, "/", filesystemType, date.toString())
+            FilesystemRepository(this@FilesystemEditActivity).insertFilesystem(newFilesystem)
+        }
+        else {
+            Toast.makeText(this@FilesystemEditActivity, "Filesystem name cannot be blank.", Toast.LENGTH_LONG).show()
+        }
     }
 }

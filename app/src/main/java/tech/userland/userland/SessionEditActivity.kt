@@ -60,8 +60,8 @@ class SessionEditActivity: AppCompatActivity() {
         filesystemNameDropdown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
-            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-                val data = parent.getItemAtPosition(position)
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val data = parent?.getItemAtPosition(position) ?: ""
                 if(data == "New") {
                     navigateToFilesystemEdit("")
                 }
@@ -85,8 +85,8 @@ class SessionEditActivity: AppCompatActivity() {
                 TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
             }
 
-            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-                val data = parent.getItemAtPosition(position)
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val data = parent?.getItemAtPosition(position) ?: ""
                 sessionType = data.toString()
             }
         }
@@ -148,7 +148,12 @@ class SessionEditActivity: AppCompatActivity() {
     }
 
     fun insertSession() {
-        val newSession = Session(sessionName, 0, filesystemName, username, password, 2022, "/", "/", "/", 0, false, sessionType)
-        SessionRepository(this).insertSession(newSession)
+        if(sessionName == "" || username == "" || password == "") {
+            Toast.makeText(this@SessionEditActivity, "Each field must be answered.", Toast.LENGTH_LONG).show()
+        }
+        else {
+            val newSession = Session(sessionName, 0, filesystemName, username, password, 2022, "/", "/", "/", 0, false, sessionType)
+            SessionRepository(this).insertSession(newSession)
+        }
     }
 }
