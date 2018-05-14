@@ -14,8 +14,10 @@ class SessionRepository(val context: Context) {
         sessionId: Int,
         name: String,
         filesystemId: Int,
+        filesystemName: String,
         username: String,
         password: String,
+        port: Int,
         initialCommand: String,
         runAtDeviceStartup: String,
         startupScript: String,
@@ -24,7 +26,7 @@ class SessionRepository(val context: Context) {
         type: String ->
 
         val activeBool = (active == 1)
-        Session(name, filesystemId, username, password, initialCommand, runAtDeviceStartup, startupScript, pid, activeBool, type)
+        Session(name, filesystemId, filesystemName, username, password, port, initialCommand, runAtDeviceStartup, startupScript, pid, activeBool, type)
     }
 
     fun getAllSessions(): ArrayList<Session> {
@@ -41,8 +43,10 @@ class SessionRepository(val context: Context) {
                 insertOrThrow(Session.TABLE_NAME,
                         "name" to session.name,
                         "filesystemID" to session.filesystemId,
+                        "filesystemName" to session.filesystemName,
                         "username" to session.username,
                         "password" to session.password,
+                        "port" to session.port,
                         "initialCommand" to session.initialCommand,
                         "runAtDeviceStartup" to session.runAtDeviceStartup,
                         "startupScript" to session.startupScript,

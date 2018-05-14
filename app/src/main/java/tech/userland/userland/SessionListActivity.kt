@@ -105,9 +105,10 @@ class SessionListActivity : AppCompatActivity() {
 
     private fun navigateToSessionEdit(session: Session?): Boolean {
         val intent = Intent(this, SessionEditActivity::class.java)
-        intent.putExtra("sessionName", session?.name)
-        intent.putExtra("username", session?.username)
-        intent.putExtra("password", session?.password)
+        intent.putExtra("sessionName", session?.name ?: "")
+        intent.putExtra("filesystemName", session?.filesystemName ?: "")
+        intent.putExtra("username", session?.username ?: "")
+        intent.putExtra("password", session?.password ?: "")
         startActivity(intent)
         return true
     }

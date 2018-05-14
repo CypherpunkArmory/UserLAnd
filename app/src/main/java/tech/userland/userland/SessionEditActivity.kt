@@ -52,15 +52,18 @@ class SessionEditActivity: AppCompatActivity() {
 
         val filesystemNameDropdown: Spinner = findViewById(R.id.spinner_filesystem_list)
         val filesystemNameAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, filesystemNameList)
+        filesystemName = intent.getStringExtra("filesystemName")
+        val filesystemNamePosition = filesystemNameAdapter.getPosition(filesystemName)
         filesystemNameAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         filesystemNameDropdown.adapter = filesystemNameAdapter
+        filesystemNameDropdown.setSelection(filesystemNamePosition)
         filesystemNameDropdown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
                 val data = parent.getItemAtPosition(position)
                 if(data == "New") {
-                    navigateToFilesystemEdit()
+                    navigateToFilesystemEdit("")
                 }
                 else {
                     filesystemName = data.toString()
@@ -137,13 +140,15 @@ class SessionEditActivity: AppCompatActivity() {
     }
 
 
-    fun navigateToFilesystemEdit() {
+    fun navigateToFilesystemEdit(filesystemName: String): Boolean {
         val intent = Intent(this, FilesystemEditActivity::class.java)
+        intent.putExtra("filesystemName", filesystemName)
         startActivity(intent)
+        return true
     }
 
     fun insertSession() {
-        val newSession = Session(sessionName, 0, username, password, "/", "/", "/", 0, false, sessionType)
+        val newSession = Session(sessionName, 0, filesystemName, username, password, 2022, "/", "/", "/", 0, false, sessionType)
         SessionRepository(this).insertSession(newSession)
     }
 }

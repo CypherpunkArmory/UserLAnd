@@ -15,7 +15,8 @@ class SessionListAdapter(private var activity: Activity, private var items: Arra
     private class ViewHolder(row: View) {
         var imageViewActive: ImageView = row.findViewById(R.id.image_list_item_active)
         var textViewType: TextView = row.findViewById(R.id.text_list_item_type)
-        var textViewName: TextView = row.findViewById(R.id.text_list_item_name)
+        var textViewSessionName: TextView = row.findViewById(R.id.text_list_item_session_name)
+        var textViewFilesystemName: TextView = row.findViewById(R.id.text_list_item_filesystem_name)
     }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
@@ -41,7 +42,8 @@ class SessionListAdapter(private var activity: Activity, private var items: Arra
         }
 
         viewHolder.textViewType.text = session.type
-        viewHolder.textViewName.text = session.name
+        viewHolder.textViewSessionName.text = session.name
+        viewHolder.textViewFilesystemName.text = session.filesystemName
 
         return view as View
     }
