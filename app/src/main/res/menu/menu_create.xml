@@ -4,7 +4,7 @@
     <item
         android:id="@+id/menu_item_add"
         android:orderInCategory="100"
-        android:icon="@drawable/ic_save_white_24dp"
-        android:title="Save"
+        android:icon="@drawable/ic_add_white_24dp"
+        android:title="Add"
         app:showAsAction="always" /> <!-- TODO string res -->
 </menu>

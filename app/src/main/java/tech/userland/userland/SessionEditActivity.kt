@@ -23,6 +23,8 @@ class SessionEditActivity: AppCompatActivity() {
     var username: String = ""
     var password: String = ""
 
+    var editExisting = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_session_edit)
@@ -30,6 +32,9 @@ class SessionEditActivity: AppCompatActivity() {
 
         // Session name input
         sessionName = intent.getStringExtra("sessionName")
+        if(sessionName != "") {
+            editExisting = true
+        }
         val sessionNameInput: TextInputEditText = findViewById(R.id.text_input_session_name)
         sessionNameInput.setText(sessionName)
         sessionNameInput.addTextChangedListener(object: TextWatcher {
@@ -125,7 +130,12 @@ class SessionEditActivity: AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.menu_edit, menu)
+        if(editExisting) {
+            menuInflater.inflate(R.menu.menu_edit, menu)
+        }
+        else {
+            menuInflater.inflate(R.menu.menu_create, menu)
+        }
         return true
     }
 

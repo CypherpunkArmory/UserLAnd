@@ -19,12 +19,17 @@ class FilesystemEditActivity: AppCompatActivity() {
     var filesystemName: String = ""
     var filesystemType: String = ""
 
+    var editExisting = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_filesystem_edit)
         setSupportActionBar(toolbar)
 
         filesystemName = intent.getStringExtra("filesystemName")
+        if(filesystemName != "") {
+            editExisting = true
+        }
 
         val nameInput: TextInputEditText = findViewById(R.id.input_filesystem_name)
         nameInput.setText(filesystemName)
@@ -60,7 +65,12 @@ class FilesystemEditActivity: AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.menu_edit, menu)
+        if(editExisting) {
+            menuInflater.inflate(R.menu.menu_edit, menu)
+        }
+        else {
+            menuInflater.inflate(R.menu.menu_create, menu)
+        }
         return true
     }
 
