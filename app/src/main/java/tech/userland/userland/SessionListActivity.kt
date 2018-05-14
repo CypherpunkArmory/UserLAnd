@@ -8,10 +8,14 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
+import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_session_list.*
 import tech.userland.userland.database.models.Session
 import tech.userland.userland.database.repositories.SessionRepository
 import tech.userland.userland.ui.SessionListAdapter
+import java.io.File
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class SessionListActivity : AppCompatActivity() {
 
@@ -28,7 +32,6 @@ class SessionListActivity : AppCompatActivity() {
         sessionNameList = ArrayList(sessionList.map { session -> session.name })
         sessionAdapter = SessionListAdapter(this, sessionList)
 
-        list_sessions.emptyView = findViewById(R.id.empty)
         list_sessions.adapter = sessionAdapter
         registerForContextMenu(list_sessions)
         list_sessions.onItemClickListener = AdapterView.OnItemClickListener {
@@ -41,6 +44,9 @@ class SessionListActivity : AppCompatActivity() {
         }
 
         fab.setOnClickListener { navigateToSessionEdit(null) }
+
+        progress_bar_session_list.visibility = View.VISIBLE
+        dialogTest()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -111,6 +117,21 @@ class SessionListActivity : AppCompatActivity() {
         intent.putExtra("password", session?.password ?: "")
         startActivity(intent)
         return true
+    }
+
+    private fun dialogTest() {
+        val installDir = File(packageManager.getApplicationInfo("tech.userland.userland", 0).dataDir)
+        Runtime.getRuntime().exec(arrayOf("touch", "testFile"), arrayOf<String>(), installDir)
+        val testFile = File(installDir.absolutePath + "/testFile")
+        val fileStatusExecutor = Executors.newSingleThreadScheduledExecutor()
+        fileStatusExecutor.scheduleAtFixedRate(object: Runnable {
+            override fun run() {
+                if(testFile.exists()) {
+                    progress_bar_session_list.progress = 100
+                    fileStatusExecutor.shutdown()
+                }
+            }
+        }, 1, 1, TimeUnit.SECONDS)
     }
 
     /*CC: Just putting this code here as an example of how to run the various client connection intents
