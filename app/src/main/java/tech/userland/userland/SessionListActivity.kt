@@ -15,6 +15,7 @@ import org.jetbrains.anko.toast
 import tech.userland.userland.database.models.Session
 import tech.userland.userland.database.repositories.SessionRepository
 import tech.userland.userland.ui.SessionListAdapter
+import tech.userland.userland.utils.*
 import java.io.File
 
 class SessionListActivity : AppCompatActivity() {
@@ -121,30 +122,21 @@ class SessionListActivity : AppCompatActivity() {
     }
 
     private fun sessionInstallAndStartStub() {
-        // https://medium.com/@andrea.bresolin/playing-with-kotlin-in-android-coroutines-and-how-to-get-rid-of-the-callback-hell-a96e817c108b
-        launch(UI) {
+        launchAsync {
             text_session_list_progress_update.text = "Downloading required assets..."
-            async(CommonPool) {
-                delay(2000)
-            }.await()
+            asyncAwait { delay(2000) }
             progress_bar_session_list.progress = 25
 
             text_session_list_progress_update.text = "Setting up file system..."
-            async(CommonPool) {
-                delay(2000)
-            }.await()
+            asyncAwait { delay(2000) }
             progress_bar_session_list.progress = 50
 
             text_session_list_progress_update.text = "Starting service..."
-            async(CommonPool) {
-                delay(2000)
-            }.await()
+            asyncAwait { delay(2000) }
             progress_bar_session_list.progress = 75
 
             text_session_list_progress_update.text = "Connecting to service..."
-            async(CommonPool) {
-                delay(2000)
-            }.await()
+            asyncAwait { delay(2000) }
             progress_bar_session_list.progress = 100
 
             text_session_list_progress_update.text = "Session active!"
@@ -154,15 +146,13 @@ class SessionListActivity : AppCompatActivity() {
     private fun fileCreationStub() {
         val installDir = File(packageManager.getApplicationInfo("tech.userland.userland", 0).dataDir)
         val testFile = File(installDir.absolutePath + "/coroutine")
-        launch(UI) {
+        launchAsync {
             launch {
                 delay(10000)
                 Runtime.getRuntime().exec(arrayOf("touch", "coroutine"), arrayOf<String>(), installDir)
             }
             while(!testFile.exists()) {
-                async(CommonPool) {
-                    delay(100)
-                }.await()
+                asyncAwait { delay(100) }
             }
             toast("File created")
         }
