@@ -8,17 +8,14 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
-import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_session_list.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.android.UI
-import org.jetbrains.anko.custom.async
 import org.jetbrains.anko.toast
 import tech.userland.userland.database.models.Session
 import tech.userland.userland.database.repositories.SessionRepository
 import tech.userland.userland.ui.SessionListAdapter
 import java.io.File
-import kotlin.coroutines.experimental.CoroutineContext
 
 class SessionListActivity : AppCompatActivity() {
 
@@ -34,8 +31,6 @@ class SessionListActivity : AppCompatActivity() {
         sessionList = SessionRepository(this).getAllSessions()
         sessionNameList = ArrayList(sessionList.map { session -> session.name })
         sessionAdapter = SessionListAdapter(this, sessionList)
-
-        val uiContext: CoroutineContext = UI
 
         list_sessions.adapter = sessionAdapter
         registerForContextMenu(list_sessions)
@@ -172,50 +167,4 @@ class SessionListActivity : AppCompatActivity() {
             toast("File created")
         }
     }
-
-    /*CC: Just putting this code here as an example of how to run the various client connection intents
-    fun fireBvncIntent() {
-        val bvncIntent = Intent()
-        bvncIntent.action = "android.intent.action.VIEW"
-        bvncIntent.type = "application/vnd.vnc"
-        bvncIntent.data = Uri.parse("vnc://127.0.0.1:5951/?" + PARAM_VNC_PWD + "=" + "bogusVncPassword")
-        startActivity(bvncIntent)
-    }
-
-    fun fireConnectBotIntent() {
-        val connectBotIntent = Intent()
-        connectBotIntent.action = "android.intent.action.VIEW"
-        connectBotIntent.data = Uri.parse("ssh://user@host:port/#nickname")
-        startActivity(connectBotIntent)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (data != null) {
-            try {
-                Log.i("XSDL-Launcher", "Got return result data: " + data.getStringExtra("run"))
-            } catch (e: Exception) {
-                Log.i("XSDL-Launcher", "Got exception: " + e.toString())
-            }
-        }
-    }
-
-    fun startXSDL() {
-        Log.i("XSDL-Launcher", "Launching XSDL")
-        try {
-            val i = Intent(Intent.ACTION_MAIN, Uri.parse("x11://give.me.display:111"))
-            startActivityForResult(i, 1)
-        } catch (e: Exception) {
-            Log.i("XSDL-Launcher","XSDL not installed!")
-            val appPackageName = "x.org.server"
-            try {
-                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName")))
-            } catch (anfe: android.content.ActivityNotFoundException) {
-                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$appPackageName")))
-            }
-
-        }
-
-    }
-    */
 }
