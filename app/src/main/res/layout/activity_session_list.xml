@@ -28,6 +28,13 @@
         app:layout_constraintTop_toBottomOf="@id/toolbar"
         app:layout_constraintStart_toStartOf="parent"/>
 
+    <TextView
+        android:id="@+id/text_session_list_progress_update"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="@id/progress_bar_session_list"
+        app:layout_constraintTop_toBottomOf="@id/progress_bar_session_list" />
+
     <ListView
         android:id="@+id/list_sessions"
         android:layout_width="0dp"
