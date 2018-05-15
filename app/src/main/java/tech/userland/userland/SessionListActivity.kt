@@ -10,12 +10,15 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_session_list.*
+import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.android.UI
+import org.jetbrains.anko.custom.async
+import org.jetbrains.anko.toast
 import tech.userland.userland.database.models.Session
 import tech.userland.userland.database.repositories.SessionRepository
 import tech.userland.userland.ui.SessionListAdapter
 import java.io.File
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
+import kotlin.coroutines.experimental.CoroutineContext
 
 class SessionListActivity : AppCompatActivity() {
 
@@ -32,6 +35,8 @@ class SessionListActivity : AppCompatActivity() {
         sessionNameList = ArrayList(sessionList.map { session -> session.name })
         sessionAdapter = SessionListAdapter(this, sessionList)
 
+        val uiContext: CoroutineContext = UI
+
         list_sessions.adapter = sessionAdapter
         registerForContextMenu(list_sessions)
         list_sessions.onItemClickListener = AdapterView.OnItemClickListener {
@@ -40,13 +45,14 @@ class SessionListActivity : AppCompatActivity() {
             if(!session.active == true) {
                 session.active = true
                 SessionRepository(this).updateSessionActive(session)
+                sessionInstallAndStartStub()
             }
         }
 
         fab.setOnClickListener { navigateToSessionEdit(null) }
 
         progress_bar_session_list.visibility = View.VISIBLE
-        dialogTest()
+        fileCreationStub()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -118,7 +124,55 @@ class SessionListActivity : AppCompatActivity() {
         startActivity(intent)
         return true
     }
-    
+
+    private fun sessionInstallAndStartStub() {
+        // https://medium.com/@andrea.bresolin/playing-with-kotlin-in-android-coroutines-and-how-to-get-rid-of-the-callback-hell-a96e817c108b
+        launch(UI) {
+            text_session_list_progress_update.text = "Downloading required assets..."
+            async(CommonPool) {
+                delay(2000)
+            }.await()
+            progress_bar_session_list.progress = 25
+
+            text_session_list_progress_update.text = "Setting up file system..."
+            async(CommonPool) {
+                delay(2000)
+            }.await()
+            progress_bar_session_list.progress = 50
+
+            text_session_list_progress_update.text = "Starting service..."
+            async(CommonPool) {
+                delay(2000)
+            }.await()
+            progress_bar_session_list.progress = 75
+
+            text_session_list_progress_update.text = "Connecting to service..."
+            async(CommonPool) {
+                delay(2000)
+            }.await()
+            progress_bar_session_list.progress = 100
+
+            text_session_list_progress_update.text = "Session active!"
+        }
+    }
+
+    private fun fileCreationStub() {
+        val installDir = File(packageManager.getApplicationInfo("tech.userland.userland", 0).dataDir)
+        val testFile = File(installDir.absolutePath + "/coroutine")
+        launch(UI) {
+            launch {
+                delay(10000)
+                Runtime.getRuntime().exec(arrayOf("touch", "coroutine"), arrayOf<String>(), installDir)
+            }
+            while(!testFile.exists()) {
+                async(CommonPool) {
+                    delay(100)
+                }.await()
+            }
+            toast("File created")
+        }
+    }
+
     /*CC: Just putting this code here as an example of how to run the various client connection intents
     fun fireBvncIntent() {
         val bvncIntent = Intent()
