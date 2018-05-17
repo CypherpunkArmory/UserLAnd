@@ -1,5 +1,6 @@
 package tech.userland.userland
 
+import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.TextInputEditText
@@ -13,6 +14,9 @@ import android.widget.*
 import kotlinx.android.synthetic.main.activity_session_edit.*
 import tech.userland.userland.database.repositories.*
 import tech.userland.userland.database.models.*
+import tech.userland.userland.ui.SessionViewModel
+import tech.userland.userland.ui.SessionViewModelFactory
+import tech.userland.userland.utils.provideSessionViewModelFactory
 import java.util.*
 
 class SessionEditActivity: AppCompatActivity() {
@@ -24,6 +28,14 @@ class SessionEditActivity: AppCompatActivity() {
     var password: String = ""
 
     var editExisting = false
+
+    private val sessionViewModelFactory: SessionViewModelFactory by lazy {
+        provideSessionViewModelFactory(this)
+    }
+
+    private val sessionViewModel: SessionViewModel by lazy {
+        ViewModelProviders.of(this, sessionViewModelFactory).get(SessionViewModel::class.java)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -163,7 +175,8 @@ class SessionEditActivity: AppCompatActivity() {
         }
         else {
             val newSession = Session(sessionName, 0, filesystemName, username, password, 2022, "/", "/", "/", 0, false, sessionType)
-            SessionRepository(this).insertSession(newSession)
+//            SessionRepository(this).insertSession(newSession)
+            sessionViewModel.insertSession(newSession)
         }
     }
 }

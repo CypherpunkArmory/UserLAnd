@@ -1,5 +1,8 @@
 package tech.userland.userland
 
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProvider
+import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -10,11 +13,12 @@ import android.view.View
 import android.widget.AdapterView
 import kotlinx.android.synthetic.main.activity_session_list.*
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.android.UI
 import org.jetbrains.anko.toast
 import tech.userland.userland.database.models.Session
 import tech.userland.userland.database.repositories.SessionRepository
 import tech.userland.userland.ui.SessionListAdapter
+import tech.userland.userland.ui.SessionViewModel
+import tech.userland.userland.ui.SessionViewModelFactory
 import tech.userland.userland.utils.*
 import java.io.File
 
@@ -24,16 +28,37 @@ class SessionListActivity : AppCompatActivity() {
     lateinit var sessionNameList: ArrayList<String>
     lateinit var sessionAdapter: SessionListAdapter
 
+    private val sessionViewModelFactory: SessionViewModelFactory by lazy {
+        provideSessionViewModelFactory(this)
+    }
+
+    private val sessionViewModel: SessionViewModel by lazy {
+        ViewModelProviders.of(this, sessionViewModelFactory).get(SessionViewModel::class.java)
+    }
+
+    private val sessionChangeObserver = Observer<ArrayList<Session>> {
+        it?.let {
+            sessionList = it
+            sessionAdapter = SessionListAdapter(this, sessionList)
+//            sessionAdapter.notifyDataSetChanged()
+//
+            list_sessions.adapter = sessionAdapter
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_session_list)
         setSupportActionBar(toolbar)
 
-        sessionList = SessionRepository(this).getAllSessions()
-        sessionNameList = ArrayList(sessionList.map { session -> session.name })
-        sessionAdapter = SessionListAdapter(this, sessionList)
 
-        list_sessions.adapter = sessionAdapter
+        sessionViewModel.getSessions().observe(this, sessionChangeObserver)
+//        sessionViewModel.sessions.observe(this, Observer(this::bindSessions))
+
+//        sessionList = SessionRepository(this).getAllSessions()
+//        sessionAdapter = SessionListAdapter(this, sessionList)
+//
+//        list_sessions.adapter = sessionAdapter
         registerForContextMenu(list_sessions)
         list_sessions.onItemClickListener = AdapterView.OnItemClickListener {
             parent, view, position, id ->
@@ -50,6 +75,12 @@ class SessionListActivity : AppCompatActivity() {
         progress_bar_session_list.visibility = View.VISIBLE
         fileCreationStub()
     }
+
+//    override fun onStart() {
+//        super.onStart()
+////        sessionViewModel.getSessions()
+//    }
+
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
@@ -81,6 +112,12 @@ class SessionListActivity : AppCompatActivity() {
             else -> super.onContextItemSelected(item)
         }
     }
+
+//    private fun bindSessions(sessions: ArrayList<Session>) {
+//        sessionNameList = ArrayList(sessions.map { session -> session.name })
+//        sessionAdapter = SessionListAdapter(this, sessionList)
+//        list_sessions.adapter = sessionAdapter
+//    }
 
     fun disconnectSession(session: Session): Boolean {
         session.active = false
