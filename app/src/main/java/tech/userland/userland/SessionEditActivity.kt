@@ -21,6 +21,7 @@ class SessionEditActivity: AppCompatActivity() {
 
     var sessionName: String = ""
     var filesystemName: String = ""
+    var filesystemId: Long = -1
     var sessionType: String = ""
     var username: String = ""
     var password: String = ""
@@ -90,6 +91,7 @@ class SessionEditActivity: AppCompatActivity() {
                 }
                 else {
                     filesystemName = data.toString()
+                    filesystemId = filesystemViewModel.getFilesystemByName(filesystemName).id
                 }
             }
         }
@@ -180,7 +182,7 @@ class SessionEditActivity: AppCompatActivity() {
             Toast.makeText(this@SessionEditActivity, "Each field must be answered.", Toast.LENGTH_LONG).show()
         }
         else {
-            val newSession = Session(0, sessionName, 0, filesystemName, username, password, 2022, false, sessionType, "/", "/", "/", 0)
+            val newSession = Session(0, sessionName, filesystemId, filesystemName, username, password, 2022, false, sessionType, "/", "/", "/", 0)
             sessionViewModel.insertSession(newSession)
         }
     }
