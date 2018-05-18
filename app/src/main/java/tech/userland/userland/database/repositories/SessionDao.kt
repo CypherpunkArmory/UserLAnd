@@ -9,6 +9,9 @@ interface SessionDao {
     @Query("select * from Session")
     fun getAllSessions(): LiveData<List<Session>>
 
+    @Query("select * from session where name = :name")
+    fun getSessionByName(name: String): Session
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertSession(session: Session)
 

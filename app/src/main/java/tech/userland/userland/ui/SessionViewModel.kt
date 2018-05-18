@@ -18,6 +18,10 @@ class SessionViewModel(application: Application) : AndroidViewModel(application)
         return sessions
     }
 
+    fun getSessionByName(name: String): Session {
+        return appDatabase.sessionDao().getSessionByName(name)
+    }
+
     fun insertSession(session: Session) {
         appDatabase.sessionDao().insertSession(session)
     }

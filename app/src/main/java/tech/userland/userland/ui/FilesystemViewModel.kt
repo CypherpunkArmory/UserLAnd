@@ -20,6 +20,10 @@ class FilesystemViewModel(application: Application) : AndroidViewModel(applicati
         return filesystems
     }
 
+    fun getFilesystemByName(name: String): Filesystem {
+        return appDatabase.filesystemDao().getFilesystemByName(name)
+    }
+
     fun insertFilesystem(filesystem: Filesystem) {
         appDatabase.filesystemDao().insertFilesystem(filesystem)
     }
