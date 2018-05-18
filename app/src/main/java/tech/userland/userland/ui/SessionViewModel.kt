@@ -21,4 +21,12 @@ class SessionViewModel(application: Application) : AndroidViewModel(application)
     fun insertSession(session: Session) {
         appDatabase.sessionDao().insertSession(session)
     }
+
+    fun deleteSessionById(id: Long) {
+        appDatabase.sessionDao().deleteSessionById(id)
+    }
+
+    fun updateSession(session: Session) {
+        appDatabase.sessionDao().updateSession(session)
+    }
 }

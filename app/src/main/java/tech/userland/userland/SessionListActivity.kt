@@ -32,8 +32,6 @@ class SessionListActivity : AppCompatActivity() {
         it?.let {
             sessionList = it
             sessionAdapter = SessionListAdapter(this, ArrayList(sessionList))
-//            sessionAdapter.notifyDataSetChanged()
-//
             list_sessions.adapter = sessionAdapter
         }
     }
@@ -44,19 +42,14 @@ class SessionListActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         sessionViewModel.getAllSessions().observe(this, sessionChangeObserver)
-//        sessionViewModel.sessions.observe(this, Observer(this::bindSessions))
 
-//        sessionList = SessionRepository(this).getAllSessions()
-//        sessionAdapter = SessionListAdapter(this, sessionList)
-//
-//        list_sessions.adapter = sessionAdapter
         registerForContextMenu(list_sessions)
         list_sessions.onItemClickListener = AdapterView.OnItemClickListener {
             parent, view, position, id ->
             val session = sessionList[position]
             if(!session.active == true) {
-                // TODO activate session
-//                session.active = true
+                session.active = true
+                sessionViewModel.updateSession(session)
                 sessionInstallAndStartStub()
             }
         }
@@ -66,12 +59,6 @@ class SessionListActivity : AppCompatActivity() {
         progress_bar_session_list.visibility = View.VISIBLE
         fileCreationStub()
     }
-
-//    override fun onStart() {
-//        super.onStart()
-////        sessionViewModel.getSessions()
-//    }
-
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
@@ -97,29 +84,23 @@ class SessionListActivity : AppCompatActivity() {
         val position = menuInfo.position
         val session = sessionList[position]
         return when(item.itemId) {
-//            R.id.menu_item_session_disconnect -> disconnectSession(session)
+            R.id.menu_item_session_disconnect -> disconnectSession(session)
             R.id.menu_item_session_edit -> navigateToSessionEdit(session)
-//            R.id.menu_item_session_delete -> deleteSession(session)
+            R.id.menu_item_session_delete -> deleteSession(session)
             else -> super.onContextItemSelected(item)
         }
     }
 
-//    private fun bindSessions(sessions: ArrayList<Session>) {
-//        sessionNameList = ArrayList(sessions.map { session -> session.name })
-//        sessionAdapter = SessionListAdapter(this, sessionList)
-//        list_sessions.adapter = sessionAdapter
-//    }
+    fun disconnectSession(session: Session): Boolean {
+        session.active = false
+        sessionViewModel.updateSession(session)
+        return true
+    }
 
-//    fun disconnectSession(session: Session): Boolean {
-//        session.active = false
-//        SessionRepository(this).updateSessionActive(session)
-//        return true
-//    }
-//
-//    fun deleteSession(session: Session): Boolean {
-//        SessionRepository(this).deleteSessionByName(session.name)
-//        return true
-//    }
+    fun deleteSession(session: Session): Boolean {
+        sessionViewModel.deleteSessionById(session.id)
+        return true
+    }
 
     private fun navigateToFilesystemManagement(): Boolean {
         val intent = Intent(this, FilesystemListActivity::class.java)

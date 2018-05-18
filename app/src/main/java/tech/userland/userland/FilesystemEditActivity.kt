@@ -62,7 +62,7 @@ class FilesystemEditActivity: AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val data = parent?.getItemAtPosition(position) ?: ""
+                filesystemType = parent?.getItemAtPosition(position).toString()
             }
         }
 

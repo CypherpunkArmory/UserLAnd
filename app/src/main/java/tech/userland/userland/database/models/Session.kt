@@ -19,7 +19,7 @@ data class Session(
         val username: String = "",
         val password: String = "",
         val port: Long,
-        val active: Boolean = false,
+        var active: Boolean = false,
         val type: String = "",
         val initialCommand: String = "",
         val runAtDeviceStartup: String = "",

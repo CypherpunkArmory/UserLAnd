@@ -41,11 +41,15 @@ class SessionEditActivity: AppCompatActivity() {
         it?.let {
             filesystemList = it
             val filesystemNameList = ArrayList(filesystemList.map { filesystem -> filesystem.name })
-            filesystemNameList.add("new")
+            filesystemNameList.add("New")
             filesystemNameList.add("static test")
 
             val filesystemAdapter = ArrayAdapter(this,  android.R.layout.simple_spinner_item, filesystemNameList)
+            filesystemAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            filesystemName = intent.getStringExtra("filesystemName")
+            val filesystemNamePosition = filesystemAdapter.getPosition(filesystemName)
             spinner_filesystem_list.adapter = filesystemAdapter
+            spinner_filesystem_list.setSelection(filesystemNamePosition)
         }
     }
 
@@ -76,20 +80,7 @@ class SessionEditActivity: AppCompatActivity() {
         })
 
         // Filesystem name dropdown
-//        val filesystemList = FilesystemRepository(this).getAllFilesystems()
-//        val filesystemNameList: ArrayList<String> = ArrayList(filesystemList.map { filesystem -> filesystem.name })
-        val filesystemNameList = ArrayList<String>()
-        filesystemNameList.add("Make your selection")
-        filesystemNameList.add("New")
-
-        val filesystemNameDropdown: Spinner = findViewById(R.id.spinner_filesystem_list)
-        val filesystemNameAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, filesystemNameList)
-        filesystemName = intent.getStringExtra("filesystemName")
-//        val filesystemNamePosition = filesystemNameAdapter.getPosition(filesystemName)
-//        filesystemNameAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        filesystemNameDropdown.adapter = filesystemNameAdapter
-//        filesystemNameDropdown.setSelection(filesystemNamePosition)
-        filesystemNameDropdown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        spinner_filesystem_list.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -190,7 +181,6 @@ class SessionEditActivity: AppCompatActivity() {
         }
         else {
             val newSession = Session(0, sessionName, 0, filesystemName, username, password, 2022, false, sessionType, "/", "/", "/", 0)
-//            SessionRepository(this).insertSession(newSession)
             sessionViewModel.insertSession(newSession)
         }
     }
