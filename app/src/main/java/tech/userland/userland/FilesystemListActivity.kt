@@ -17,14 +17,9 @@ import tech.userland.userland.ui.FilesystemViewModel
 
 class FilesystemListActivity: AppCompatActivity() {
 
-    lateinit var filesystemList: List<Filesystem>
-
-//    private val filesystemViewModelFactory: FilesystemViewModelFactory by lazy {
-//        provideFilesystemViewModelFactory(this)
-//    }
+    private lateinit var filesystemList: List<Filesystem>
 
     private val fileSystemViewModel: FilesystemViewModel by lazy {
-//        ViewModelProviders.of(this, filesystemViewModelFactory).get(FilesystemViewModel::class.java)
         ViewModelProviders.of(this).get(FilesystemViewModel::class.java)
     }
 
@@ -61,7 +56,7 @@ class FilesystemListActivity: AppCompatActivity() {
 
         return when (item.itemId) {
             R.id.menu_item_file_system_edit -> navigateToFilesystemEdit(filesystem.name)
-//            R.id.menu_item_file_system_delete -> deleteFilesystem(filesystem)
+            R.id.menu_item_file_system_delete -> deleteFilesystem(filesystem)
             else -> super.onContextItemSelected(item)
         }
     }
@@ -73,8 +68,8 @@ class FilesystemListActivity: AppCompatActivity() {
         return true
     }
 
-//    fun deleteFilesystem(filesystem: Filesystem): Boolean {
-//        FilesystemRepository(this).deleteFilesystem(filesystem)
-//        return true
-//    }
+    fun deleteFilesystem(filesystem: Filesystem): Boolean {
+        fileSystemViewModel.deleteFilesystemById(filesystem.id)
+        return true
+    }
 }

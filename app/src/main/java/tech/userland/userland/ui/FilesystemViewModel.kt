@@ -17,12 +17,15 @@ class FilesystemViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun getAllFilesystems(): LiveData<List<Filesystem>> {
-        //filesystems.value = appDatabase.filesystemDao().getAllFilesystems().value
         return filesystems
     }
 
     fun insertFilesystem(filesystem: Filesystem) {
         appDatabase.filesystemDao().insertFilesystem(filesystem)
+    }
+
+    fun deleteFilesystemById(id: Long) {
+        appDatabase.filesystemDao().deleteFilesystemById(id)
     }
 
     class insertAsyncFilesystem(appDatabase: AppDatabase) : AsyncTask<Filesystem, Void, Void>() {

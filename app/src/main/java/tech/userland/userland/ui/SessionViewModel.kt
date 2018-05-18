@@ -2,10 +2,8 @@ package tech.userland.userland.ui
 
 import android.app.Application
 import android.arch.lifecycle.*
-import org.jetbrains.anko.Android
 import tech.userland.userland.database.AppDatabase
 import tech.userland.userland.database.models.Session
-import tech.userland.userland.database.repositories.SessionDao
 
 class SessionViewModel(application: Application) : AndroidViewModel(application) {
     private val appDatabase: AppDatabase by lazy {
