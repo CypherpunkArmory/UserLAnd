@@ -1,5 +1,7 @@
 package tech.userland.userland
 
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -10,22 +12,33 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import kotlinx.android.synthetic.main.activity_filesystem_list.*
 import tech.userland.userland.database.models.Filesystem
-import tech.userland.userland.database.repositories.FilesystemRepository
+import tech.userland.userland.ui.FilesystemViewModel
 
 
 class FilesystemListActivity: AppCompatActivity() {
 
-    lateinit var filesystemList: ArrayList<Filesystem>
+    private lateinit var filesystemList: List<Filesystem>
+
+    private val fileSystemViewModel: FilesystemViewModel by lazy {
+        ViewModelProviders.of(this).get(FilesystemViewModel::class.java)
+    }
+
+    private val filesystemChangeObserver = Observer<List<Filesystem>> {
+        it?.let {
+            filesystemList = it
+            val filesystemNames = filesystemList.map { filesystem -> filesystem.name }
+
+            list_file_system_management.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, filesystemNames)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_filesystem_list)
         setSupportActionBar(toolbar)
 
-        filesystemList = FilesystemRepository(this).getAllFilesystems()
-        val filesystemNames = filesystemList.map { filesystem -> filesystem.name }
+        fileSystemViewModel.getAllFilesystems().observe(this, filesystemChangeObserver)
 
-        list_file_system_management.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, filesystemNames)
         registerForContextMenu(list_file_system_management)
 
         fab.setOnClickListener { navigateToFilesystemEdit("") }
@@ -56,7 +69,7 @@ class FilesystemListActivity: AppCompatActivity() {
     }
 
     fun deleteFilesystem(filesystem: Filesystem): Boolean {
-        FilesystemRepository(this).deleteFilesystem(filesystem)
+        fileSystemViewModel.deleteFilesystemById(filesystem.id)
         return true
     }
 }

@@ -1,5 +1,7 @@
 package tech.userland.userland
 
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.TextInputEditText
@@ -11,9 +13,9 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import kotlinx.android.synthetic.main.activity_session_edit.*
-import tech.userland.userland.database.repositories.*
 import tech.userland.userland.database.models.*
-import java.util.*
+import tech.userland.userland.ui.FilesystemViewModel
+import tech.userland.userland.ui.SessionViewModel
 
 class SessionEditActivity: AppCompatActivity() {
 
@@ -25,10 +27,38 @@ class SessionEditActivity: AppCompatActivity() {
 
     var editExisting = false
 
+    lateinit var filesystemList: List<Filesystem>
+
+    private val sessionViewModel: SessionViewModel by lazy {
+        ViewModelProviders.of(this).get(SessionViewModel::class.java)
+    }
+
+    private val filesystemViewModel: FilesystemViewModel by lazy {
+        ViewModelProviders.of(this).get(FilesystemViewModel::class.java)
+    }
+
+    private val filesystemChangeObserver = Observer<List<Filesystem>> {
+        it?.let {
+            filesystemList = it
+            val filesystemNameList = ArrayList(filesystemList.map { filesystem -> filesystem.name })
+            filesystemNameList.add("New")
+            filesystemNameList.add("static test")
+
+            val filesystemAdapter = ArrayAdapter(this,  android.R.layout.simple_spinner_item, filesystemNameList)
+            filesystemAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            filesystemName = intent.getStringExtra("filesystemName")
+            val filesystemNamePosition = filesystemAdapter.getPosition(filesystemName)
+            spinner_filesystem_list.adapter = filesystemAdapter
+            spinner_filesystem_list.setSelection(filesystemNamePosition)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_session_edit)
         setSupportActionBar(toolbar)
+
+        filesystemViewModel.getAllFilesystems().observe(this, filesystemChangeObserver)
 
         // Session name input
         sessionName = intent.getStringExtra("sessionName")
@@ -50,19 +80,7 @@ class SessionEditActivity: AppCompatActivity() {
         })
 
         // Filesystem name dropdown
-        val filesystemList = FilesystemRepository(this).getAllFilesystems()
-        val filesystemNameList: ArrayList<String> = ArrayList(filesystemList.map { filesystem -> filesystem.name })
-        filesystemNameList.add("Make your selection")
-        filesystemNameList.add("New")
-
-        val filesystemNameDropdown: Spinner = findViewById(R.id.spinner_filesystem_list)
-        val filesystemNameAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, filesystemNameList)
-        filesystemName = intent.getStringExtra("filesystemName")
-        val filesystemNamePosition = filesystemNameAdapter.getPosition(filesystemName)
-        filesystemNameAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        filesystemNameDropdown.adapter = filesystemNameAdapter
-        filesystemNameDropdown.setSelection(filesystemNamePosition)
-        filesystemNameDropdown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        spinner_filesystem_list.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -162,8 +180,8 @@ class SessionEditActivity: AppCompatActivity() {
             Toast.makeText(this@SessionEditActivity, "Each field must be answered.", Toast.LENGTH_LONG).show()
         }
         else {
-            val newSession = Session(sessionName, 0, filesystemName, username, password, 2022, "/", "/", "/", 0, false, sessionType)
-            SessionRepository(this).insertSession(newSession)
+            val newSession = Session(0, sessionName, 0, filesystemName, username, password, 2022, false, sessionType, "/", "/", "/", 0)
+            sessionViewModel.insertSession(newSession)
         }
     }
 }

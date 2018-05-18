@@ -1,5 +1,7 @@
 package tech.userland.userland
 
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -10,37 +12,44 @@ import android.view.View
 import android.widget.AdapterView
 import kotlinx.android.synthetic.main.activity_session_list.*
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.android.UI
 import org.jetbrains.anko.toast
 import tech.userland.userland.database.models.Session
-import tech.userland.userland.database.repositories.SessionRepository
 import tech.userland.userland.ui.SessionListAdapter
+import tech.userland.userland.ui.SessionViewModel
 import tech.userland.userland.utils.*
 import java.io.File
 
 class SessionListActivity : AppCompatActivity() {
 
-    lateinit var sessionList: ArrayList<Session>
-    lateinit var sessionNameList: ArrayList<String>
+    lateinit var sessionList: List<Session>
     lateinit var sessionAdapter: SessionListAdapter
+
+    private val sessionViewModel: SessionViewModel by lazy {
+        ViewModelProviders.of(this).get(SessionViewModel::class.java)
+    }
+
+    private val sessionChangeObserver = Observer<List<Session>> {
+        it?.let {
+            sessionList = it
+            sessionAdapter = SessionListAdapter(this, ArrayList(sessionList))
+            list_sessions.adapter = sessionAdapter
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_session_list)
         setSupportActionBar(toolbar)
 
-        sessionList = SessionRepository(this).getAllSessions()
-        sessionNameList = ArrayList(sessionList.map { session -> session.name })
-        sessionAdapter = SessionListAdapter(this, sessionList)
+        sessionViewModel.getAllSessions().observe(this, sessionChangeObserver)
 
-        list_sessions.adapter = sessionAdapter
         registerForContextMenu(list_sessions)
         list_sessions.onItemClickListener = AdapterView.OnItemClickListener {
             parent, view, position, id ->
             val session = sessionList[position]
             if(!session.active == true) {
                 session.active = true
-                SessionRepository(this).updateSessionActive(session)
+                sessionViewModel.updateSession(session)
                 sessionInstallAndStartStub()
             }
         }
@@ -84,12 +93,12 @@ class SessionListActivity : AppCompatActivity() {
 
     fun disconnectSession(session: Session): Boolean {
         session.active = false
-        SessionRepository(this).updateSessionActive(session)
+        sessionViewModel.updateSession(session)
         return true
     }
 
     fun deleteSession(session: Session): Boolean {
-        SessionRepository(this).deleteSessionByName(session.name)
+        sessionViewModel.deleteSessionById(session.id)
         return true
     }
 
