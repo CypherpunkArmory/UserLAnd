@@ -13,6 +13,6 @@ suspend fun <T> asyncAwait(block: suspend CoroutineScope.() -> T): T {
     return async(block).await()
 }
 
-public fun launchAsync(block: suspend CoroutineScope.() -> Unit): Job {
+fun launchAsync(block: suspend CoroutineScope.() -> Unit): Job {
     return launch(UI) { block() }
 }

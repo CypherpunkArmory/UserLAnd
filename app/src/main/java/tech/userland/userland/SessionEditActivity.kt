@@ -13,6 +13,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import kotlinx.android.synthetic.main.activity_session_edit.*
+import org.jetbrains.anko.toast
 import tech.userland.userland.database.models.*
 import tech.userland.userland.ui.FilesystemViewModel
 import tech.userland.userland.ui.SessionViewModel
@@ -172,7 +173,7 @@ class SessionEditActivity: AppCompatActivity() {
 
     fun insertSession() {
         if(sessionName == "" || username == "" || password == "") {
-            Toast.makeText(this@SessionEditActivity, "Each field must be answered.", Toast.LENGTH_LONG).show()
+            toast("Each field must be answered.")
         }
         else {
             session.name = sessionName

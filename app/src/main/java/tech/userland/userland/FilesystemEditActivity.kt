@@ -11,6 +11,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import kotlinx.android.synthetic.main.activity_filesystem_edit.*
+import org.jetbrains.anko.toast
 import tech.userland.userland.database.models.Filesystem
 import tech.userland.userland.ui.FilesystemViewModel
 import java.util.*
@@ -49,7 +50,7 @@ class FilesystemEditActivity: AppCompatActivity() {
             }
         })
 
-        // Session type dropdown
+        // OS type dropdown
         val filesystemTypeList = ArrayList<String>()
         filesystemTypeList.add("debian")
 
@@ -65,6 +66,8 @@ class FilesystemEditActivity: AppCompatActivity() {
                 filesystemType = parent?.getItemAtPosition(position).toString()
             }
         }
+
+        if(editExisting) filesystemTypeDropdown.isEnabled = false
 
     }
 
@@ -94,7 +97,7 @@ class FilesystemEditActivity: AppCompatActivity() {
             filesystemViewModel.insertFilesystem(newFilesystem)
         }
         else {
-            Toast.makeText(this@FilesystemEditActivity, "Filesystem name cannot be blank.", Toast.LENGTH_LONG).show()
+           toast("Filesystem name cannot be blank.")
         }
     }
 }
