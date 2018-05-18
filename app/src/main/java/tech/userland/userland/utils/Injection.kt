@@ -1,7 +1,6 @@
 package tech.userland.userland.utils
 
 import android.content.Context
-import tech.userland.userland.database.repositories.SessionRepository
 import tech.userland.userland.ui.SessionViewModelFactory
 
 fun provideSessionRepository(context: Context): SessionRepository {

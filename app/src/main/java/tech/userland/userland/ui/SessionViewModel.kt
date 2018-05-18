@@ -2,7 +2,6 @@ package tech.userland.userland.ui
 
 import android.arch.lifecycle.*
 import tech.userland.userland.database.models.Session
-import tech.userland.userland.database.repositories.SessionRepository
 
 class SessionViewModel(private val sessionRepository: SessionRepository) : ViewModel() {
 //    lateinit var sessionRepository: SessionRepository

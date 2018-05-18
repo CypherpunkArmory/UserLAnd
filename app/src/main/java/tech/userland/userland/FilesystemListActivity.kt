@@ -10,7 +10,6 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import kotlinx.android.synthetic.main.activity_filesystem_list.*
 import tech.userland.userland.database.models.Filesystem
-import tech.userland.userland.database.repositories.FilesystemRepository
 
 
 class FilesystemListActivity: AppCompatActivity() {

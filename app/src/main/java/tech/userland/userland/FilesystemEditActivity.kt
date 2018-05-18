@@ -1,6 +1,5 @@
 package tech.userland.userland
 
-import android.database.sqlite.SQLiteConstraintException
 import android.os.Bundle
 import android.support.design.widget.TextInputEditText
 import android.support.v7.app.AppCompatActivity
@@ -12,7 +11,6 @@ import android.view.View
 import android.widget.*
 import kotlinx.android.synthetic.main.activity_filesystem_edit.*
 import tech.userland.userland.database.models.Filesystem
-import tech.userland.userland.database.repositories.FilesystemRepository
 import java.util.*
 
 class FilesystemEditActivity: AppCompatActivity() {

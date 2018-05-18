@@ -1,7 +1,6 @@
 package tech.userland.userland
 
 import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
 import android.os.Bundle
@@ -15,7 +14,6 @@ import kotlinx.android.synthetic.main.activity_session_list.*
 import kotlinx.coroutines.experimental.*
 import org.jetbrains.anko.toast
 import tech.userland.userland.database.models.Session
-import tech.userland.userland.database.repositories.SessionRepository
 import tech.userland.userland.ui.SessionListAdapter
 import tech.userland.userland.ui.SessionViewModel
 import tech.userland.userland.ui.SessionViewModelFactory

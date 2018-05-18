@@ -2,7 +2,6 @@ package tech.userland.userland.ui
 
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
-import tech.userland.userland.database.repositories.SessionRepository
 
 class SessionViewModelFactory(private val sessionRepository: SessionRepository) : ViewModelProvider.Factory {
 
