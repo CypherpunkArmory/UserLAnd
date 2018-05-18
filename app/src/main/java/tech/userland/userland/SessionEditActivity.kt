@@ -19,6 +19,10 @@ import tech.userland.userland.ui.SessionViewModel
 
 class SessionEditActivity: AppCompatActivity() {
 
+    val session: Session by lazy {
+        intent.getParcelableExtra("session") as Session
+    }
+
     var sessionName: String = ""
     var filesystemName: String = ""
     var filesystemId: Long = -1
@@ -47,7 +51,7 @@ class SessionEditActivity: AppCompatActivity() {
 
             val filesystemAdapter = ArrayAdapter(this,  android.R.layout.simple_spinner_item, filesystemNameList)
             filesystemAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            filesystemName = intent.getStringExtra("filesystemName")
+            filesystemName = session.filesystemName
             val filesystemNamePosition = filesystemAdapter.getPosition(filesystemName)
             spinner_filesystem_list.adapter = filesystemAdapter
             spinner_filesystem_list.setSelection(filesystemNamePosition)
@@ -62,7 +66,7 @@ class SessionEditActivity: AppCompatActivity() {
         filesystemViewModel.getAllFilesystems().observe(this, filesystemChangeObserver)
 
         // Session name input
-        sessionName = intent.getStringExtra("sessionName")
+        sessionName = session.name
         if(sessionName != "") {
             editExisting = true
         }
@@ -73,11 +77,8 @@ class SessionEditActivity: AppCompatActivity() {
                 sessionName = p0.toString()
             }
 
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-            }
-
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-            }
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
         })
 
         // Filesystem name dropdown
@@ -106,9 +107,7 @@ class SessionEditActivity: AppCompatActivity() {
         sessionTypeDropdown.adapter = sessionTypeAdapter
         sessionTypeDropdown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
 
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val data = parent?.getItemAtPosition(position) ?: ""
@@ -117,7 +116,7 @@ class SessionEditActivity: AppCompatActivity() {
         }
 
         // Username input
-        username = intent.getStringExtra("username")
+        username = session.username
         val usernameInput: TextInputEditText = findViewById(R.id.text_input_username)
         usernameInput.setText(username)
         usernameInput.addTextChangedListener(object: TextWatcher {
@@ -125,15 +124,12 @@ class SessionEditActivity: AppCompatActivity() {
                 username = p0.toString()
             }
 
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-            }
-
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-            }
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
         })
 
         // Password input
-        password = intent.getStringExtra("password")
+        password = session.password
         val passwordInput: TextInputEditText = findViewById(R.id.text_input_password)
         passwordInput.setText(password)
         passwordInput.addTextChangedListener(object: TextWatcher {
@@ -141,11 +137,8 @@ class SessionEditActivity: AppCompatActivity() {
                 password = p0.toString()
             }
 
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-            }
-
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-            }
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
         })
     }
 
@@ -182,8 +175,13 @@ class SessionEditActivity: AppCompatActivity() {
             Toast.makeText(this@SessionEditActivity, "Each field must be answered.", Toast.LENGTH_LONG).show()
         }
         else {
-            val newSession = Session(0, sessionName, filesystemId, filesystemName, username, password, 2022, false, sessionType, "/", "/", "/", 0)
-            sessionViewModel.insertSession(newSession)
+            session.name = sessionName
+            session.type = sessionType
+            session.filesystemId = filesystemId
+            session.filesystemName = filesystemName
+            session.username = username
+            session.password = password
+            sessionViewModel.insertSession(session)
         }
     }
 }

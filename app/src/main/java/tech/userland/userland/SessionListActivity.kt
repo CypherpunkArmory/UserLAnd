@@ -54,7 +54,7 @@ class SessionListActivity : AppCompatActivity() {
             }
         }
 
-        fab.setOnClickListener { navigateToSessionEdit(null) }
+        fab.setOnClickListener { navigateToSessionEdit(Session(0, filesystemId = 0)) }
 
         progress_bar_session_list.visibility = View.VISIBLE
         fileCreationStub()
@@ -122,10 +122,7 @@ class SessionListActivity : AppCompatActivity() {
 
     private fun navigateToSessionEdit(session: Session?): Boolean {
         val intent = Intent(this, SessionEditActivity::class.java)
-        intent.putExtra("sessionName", session?.name ?: "")
-        intent.putExtra("filesystemName", session?.filesystemName ?: "")
-        intent.putExtra("username", session?.username ?: "")
-        intent.putExtra("password", session?.password ?: "")
+        session?.let { intent.putExtra("session", session) }
         startActivity(intent)
         return true
     }
