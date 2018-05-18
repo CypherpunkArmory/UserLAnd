@@ -1,42 +1,26 @@
 package tech.userland.userland.ui
 
+import android.app.Application
 import android.arch.lifecycle.*
+import org.jetbrains.anko.Android
+import tech.userland.userland.database.AppDatabase
 import tech.userland.userland.database.models.Session
+import tech.userland.userland.database.repositories.SessionDao
 
-class SessionViewModel(private val sessionRepository: SessionRepository) : ViewModel() {
-//    lateinit var sessionRepository: SessionRepository
-    val sessions = MutableLiveData<ArrayList<Session>>()
+class SessionViewModel(application: Application) : AndroidViewModel(application) {
+    private val appDatabase: AppDatabase by lazy {
+        AppDatabase.getInstance(application)
+    }
 
-    fun getSessions(): LiveData<ArrayList<Session>> {
-        sessions.value = sessionRepository.getAllSessions()
+    private val sessions: LiveData<List<Session>> by lazy {
+        appDatabase.sessionDao().getAllSessions()
+    }
+
+    fun getAllSessions(): LiveData<List<Session>> {
         return sessions
     }
 
     fun insertSession(session: Session) {
-        sessionRepository.insertSession(session)
-        getSessions()
+        appDatabase.sessionDao().insertSession(session)
     }
-
-//    fun setRepository(sessionRepository: SessionRepository) {
-//        this.sessionRepository = sessionRepository
-//    }
-
-//    companion object {
-//        fun setRepository(sessionRepository: SessionRepository): SessionRepository {
-//            return sessionRepository
-//        }
-//    }
-
-//    companion object : ViewModelProvider.Factory {
-//        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-//            if(modelClass.isAssignableFrom(SessionViewModel::class.java)) {
-//                return SessionViewModel(sessionRepository) as T
-//            }
-//        }
-//    }
-//    companion object {
-//        fun create(activity: FragmentActivity) : SessionViewModel {
-//            return ViewModelProviders.of(activity).get(SessionViewModel::class.java)
-//        }
-//    }
 }

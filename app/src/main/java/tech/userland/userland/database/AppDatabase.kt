@@ -11,7 +11,7 @@ import tech.userland.userland.database.repositories.SessionDao
 
 // TODO export schema appropriately
 @Database(entities = arrayOf(Session::class, Filesystem::class), version = 1, exportSchema = false)
-abstract class Database : RoomDatabase() {
+abstract class AppDatabase : RoomDatabase() {
 
     abstract fun sessionDao(): SessionDao
     abstract fun filesystemDao(): FilesystemDao
@@ -20,16 +20,17 @@ abstract class Database : RoomDatabase() {
 
 
         @Volatile
-        private var INSTANCE: Database? = null
+        private var INSTANCE: AppDatabase? = null
 
-        fun getInstance(context: Context): Database =
+        fun getInstance(context: Context): AppDatabase =
                 INSTANCE ?: synchronized(this) {
                     INSTANCE ?: buildDatabase(context).also { INSTANCE = it }
                 }
 
         private fun buildDatabase(context: Context) =
                 Room.databaseBuilder(context.applicationContext,
-                        Database::class.java, "Data.db")
+                        AppDatabase::class.java, "Data.db")
+                        .allowMainThreadQueries() //TODO disallow main thread queries https://developer.android.com/training/data-storage/room/accessing-data
                         .build()
     }
 }

@@ -1,5 +1,6 @@
 package tech.userland.userland
 
+import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.design.widget.TextInputEditText
 import android.support.v7.app.AppCompatActivity
@@ -11,6 +12,7 @@ import android.view.View
 import android.widget.*
 import kotlinx.android.synthetic.main.activity_filesystem_edit.*
 import tech.userland.userland.database.models.Filesystem
+import tech.userland.userland.ui.FilesystemViewModel
 import java.util.*
 
 class FilesystemEditActivity: AppCompatActivity() {
@@ -18,6 +20,10 @@ class FilesystemEditActivity: AppCompatActivity() {
     var filesystemType: String = ""
 
     var editExisting = false
+
+    private val filesystemViewModel: FilesystemViewModel by lazy {
+        ViewModelProviders.of(this).get(FilesystemViewModel::class.java)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,9 +90,8 @@ class FilesystemEditActivity: AppCompatActivity() {
 
     fun insertFilesystem() {
         if(filesystemName != "") {
-            val date = Date()
-            val newFilesystem = Filesystem(filesystemName, false, "/", filesystemType, date.toString())
-            FilesystemRepository(this@FilesystemEditActivity).insertFilesystem(newFilesystem)
+            val newFilesystem = Filesystem(0, filesystemName, filesystemType, false, "/", Date().toString())
+            filesystemViewModel.insertFilesystem(newFilesystem)
         }
         else {
             Toast.makeText(this@FilesystemEditActivity, "Filesystem name cannot be blank.", Toast.LENGTH_LONG).show()

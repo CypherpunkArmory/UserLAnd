@@ -12,5 +12,5 @@ data class Filesystem(
         val type: String = "",
         val realRoot: Boolean = false,
         val location: String = "",
-        val dateCreated: Date = Date()
+        val dateCreated: String = Date().toString()
 )

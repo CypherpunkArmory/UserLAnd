@@ -16,28 +16,22 @@ import org.jetbrains.anko.toast
 import tech.userland.userland.database.models.Session
 import tech.userland.userland.ui.SessionListAdapter
 import tech.userland.userland.ui.SessionViewModel
-import tech.userland.userland.ui.SessionViewModelFactory
 import tech.userland.userland.utils.*
 import java.io.File
 
 class SessionListActivity : AppCompatActivity() {
 
-    lateinit var sessionList: ArrayList<Session>
-    lateinit var sessionNameList: ArrayList<String>
+    lateinit var sessionList: List<Session>
     lateinit var sessionAdapter: SessionListAdapter
 
-    private val sessionViewModelFactory: SessionViewModelFactory by lazy {
-        provideSessionViewModelFactory(this)
-    }
-
     private val sessionViewModel: SessionViewModel by lazy {
-        ViewModelProviders.of(this, sessionViewModelFactory).get(SessionViewModel::class.java)
+        ViewModelProviders.of(this).get(SessionViewModel::class.java)
     }
 
-    private val sessionChangeObserver = Observer<ArrayList<Session>> {
+    private val sessionChangeObserver = Observer<List<Session>> {
         it?.let {
             sessionList = it
-            sessionAdapter = SessionListAdapter(this, sessionList)
+            sessionAdapter = SessionListAdapter(this, ArrayList(sessionList))
 //            sessionAdapter.notifyDataSetChanged()
 //
             list_sessions.adapter = sessionAdapter
@@ -49,8 +43,7 @@ class SessionListActivity : AppCompatActivity() {
         setContentView(R.layout.activity_session_list)
         setSupportActionBar(toolbar)
 
-
-        sessionViewModel.getSessions().observe(this, sessionChangeObserver)
+        sessionViewModel.getAllSessions().observe(this, sessionChangeObserver)
 //        sessionViewModel.sessions.observe(this, Observer(this::bindSessions))
 
 //        sessionList = SessionRepository(this).getAllSessions()
@@ -62,8 +55,8 @@ class SessionListActivity : AppCompatActivity() {
             parent, view, position, id ->
             val session = sessionList[position]
             if(!session.active == true) {
-                session.active = true
-                SessionRepository(this).updateSessionActive(session)
+                // TODO activate session
+//                session.active = true
                 sessionInstallAndStartStub()
             }
         }
@@ -104,9 +97,9 @@ class SessionListActivity : AppCompatActivity() {
         val position = menuInfo.position
         val session = sessionList[position]
         return when(item.itemId) {
-            R.id.menu_item_session_disconnect -> disconnectSession(session)
+//            R.id.menu_item_session_disconnect -> disconnectSession(session)
             R.id.menu_item_session_edit -> navigateToSessionEdit(session)
-            R.id.menu_item_session_delete -> deleteSession(session)
+//            R.id.menu_item_session_delete -> deleteSession(session)
             else -> super.onContextItemSelected(item)
         }
     }
@@ -117,16 +110,16 @@ class SessionListActivity : AppCompatActivity() {
 //        list_sessions.adapter = sessionAdapter
 //    }
 
-    fun disconnectSession(session: Session): Boolean {
-        session.active = false
-        SessionRepository(this).updateSessionActive(session)
-        return true
-    }
-
-    fun deleteSession(session: Session): Boolean {
-        SessionRepository(this).deleteSessionByName(session.name)
-        return true
-    }
+//    fun disconnectSession(session: Session): Boolean {
+//        session.active = false
+//        SessionRepository(this).updateSessionActive(session)
+//        return true
+//    }
+//
+//    fun deleteSession(session: Session): Boolean {
+//        SessionRepository(this).deleteSessionByName(session.name)
+//        return true
+//    }
 
     private fun navigateToFilesystemManagement(): Boolean {
         val intent = Intent(this, FilesystemListActivity::class.java)
