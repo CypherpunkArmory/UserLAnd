@@ -6,16 +6,16 @@
     <item
         android:id="@+id/menu_item_session_disconnect"
         android:orderInCategory="100"
-        android:title="Disconnect"
+        android:title="@string/disconnect"
         app:showAsAction="never" />
     <item
         android:id="@+id/menu_item_session_edit"
         android:orderInCategory="101"
-        android:title="Edit"
+        android:title="@string/edit"
         app:showAsAction="never" />
     <item
         android:id="@+id/menu_item_session_delete"
         android:orderInCategory="102"
-        android:title="Delete"
+        android:title="@string/delete"
         app:showAsAction="never" />
 </menu>

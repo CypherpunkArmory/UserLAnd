@@ -32,7 +32,7 @@
             android:id="@+id/text_input_session_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Session Name" />
+            android:hint="@string/hint_session_name" />
 
     </android.support.design.widget.TextInputLayout>
 
@@ -41,7 +41,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="Filesystem: "
+        android:text="@string/prompt_filesystem"
         app:layout_constraintBaseline_toBaselineOf="@id/spinner_filesystem_list"
         app:layout_constraintEnd_toStartOf="@id/spinner_filesystem_list"
         app:layout_constraintStart_toStartOf="parent"
@@ -62,7 +62,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="Type: "
+        android:text="@string/prompt_type"
         app:layout_constraintBaseline_toBaselineOf="@id/spinner_session_type"
         app:layout_constraintTop_toBottomOf="@id/text_filesystem"
         app:layout_constraintStart_toStartOf="parent"
@@ -91,7 +91,7 @@
             android:id="@+id/text_input_username"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Username" />
+            android:hint="@string/hint_username" />
 
     </android.support.design.widget.TextInputLayout>
 
@@ -108,7 +108,7 @@
             android:id="@+id/text_input_password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Password" />
+            android:hint="@string/hint_password" />
 
     </android.support.design.widget.TextInputLayout>
 

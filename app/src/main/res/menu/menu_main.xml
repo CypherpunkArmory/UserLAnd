@@ -5,16 +5,16 @@
     <item
         android:id="@+id/menu_item_file_system_management"
         android:orderInCategory="101"
-        android:title="Filesystems"
+        android:title="@string/filesystems"
         app:showAsAction="never" />
     <item
         android:id="@+id/menu_item_settings"
         android:orderInCategory="101"
-        android:title="@string/action_settings"
+        android:title="@string/settings"
         app:showAsAction="never" />
     <item
         android:id="@+id/menu_item_help"
         android:orderInCategory="102"
-        android:title="Help"
+        android:title="@string/help"
         app:showAsAction="never" />
 </menu>

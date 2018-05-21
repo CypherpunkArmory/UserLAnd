@@ -5,6 +5,6 @@
         android:id="@+id/menu_item_add"
         android:orderInCategory="100"
         android:icon="@drawable/ic_save_white_24dp"
-        android:title="Save"
-        app:showAsAction="always" /> <!-- TODO string res -->
+        android:title="@string/save"
+        app:showAsAction="always" />
 </menu>

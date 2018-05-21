@@ -1,8 +1,24 @@
 <resources>
     <string name="app_name">UserLAnd</string>
-    <string name="action_settings">Settings</string>
-    <string name="action_help">Help</string>
-    <string name="text_welcome">Welcome to UserLAnd!</string>
-    <string name="button_hints">Hints</string>
-    <string name="button_toc">Terms &amp; Conditions</string>
+    <string name="settings">Settings</string>
+    <string name="help">Help</string>
+    <string name="welcome">Welcome to UserLAnd!</string>
+    <string name="hints">Hints</string>
+    <string name="toc">Terms &amp; Conditions</string>
+
+    <string name="disconnect">Disconnect</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="save">Save</string>
+    <string name="add">Add</string>
+
+    <string name="filesystems">Filesystems</string>
+
+    <string name="hint_filesystem_name">Filesystem name</string>
+    <string name="hint_session_name">Session Name</string>
+    <string name="hint_username">Username</string>
+    <string name="hint_password">Password</string>
+
+    <string name="prompt_filesystem">Filesystem:</string>
+    <string name="prompt_type">Type:</string>
 </resources>

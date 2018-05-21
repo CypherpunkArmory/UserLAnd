@@ -26,7 +26,7 @@
             android:id="@+id/input_filesystem_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Name" />
+            android:hint="@string/hint_filesystem_name" />
 
     </android.support.design.widget.TextInputLayout>
 
@@ -35,7 +35,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="Type: "
+        android:text="@string/prompt_type"
         app:layout_constraintBaseline_toBaselineOf="@id/spinner_filesystem_type"
         app:layout_constraintTop_toBottomOf="@id/text_input_layout"
         app:layout_constraintStart_toStartOf="parent"
