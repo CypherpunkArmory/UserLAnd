@@ -134,6 +134,7 @@ class SessionListActivity : AppCompatActivity() {
 
     private fun sessionInstallAndStartStub() {
         launchAsync {
+            progress_bar_session_list.progress = 0
             text_session_list_progress_update.text = "Downloading required assets..."
             asyncAwait { delay(2000) }
             progress_bar_session_list.progress = 25
