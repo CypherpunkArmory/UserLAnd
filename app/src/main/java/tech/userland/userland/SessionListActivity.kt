@@ -11,6 +11,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
 import kotlinx.android.synthetic.main.activity_session_list.*
+import kotlinx.android.synthetic.main.list_item_session.view.*
 import kotlinx.coroutines.experimental.*
 import org.jetbrains.anko.toast
 import tech.userland.userland.database.models.Session
@@ -92,8 +93,12 @@ class SessionListActivity : AppCompatActivity() {
     }
 
     fun disconnectSession(session: Session): Boolean {
-        session.active = false
-        sessionViewModel.updateSession(session)
+        if(session.active) {
+            session.active = false
+            sessionViewModel.updateSession(session)
+            val view = list_sessions.getChildAt(sessionList.indexOf(session))
+            view.image_list_item_active.setImageResource(R.drawable.ic_block_white_24dp)
+        }
         return true
     }
 
