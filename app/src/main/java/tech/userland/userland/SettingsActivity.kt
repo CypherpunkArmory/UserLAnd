@@ -15,7 +15,7 @@ class SettingsActivity : AppCompatActivity() {
 
         genStubSettingsList()
 
-        list_settings.adapter = ArrayAdapter(this, R.layout.list_item_session, settingsList)
+        list_settings.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, settingsList)
 
     }
 
