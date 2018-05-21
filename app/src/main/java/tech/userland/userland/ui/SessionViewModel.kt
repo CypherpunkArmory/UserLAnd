@@ -2,8 +2,10 @@ package tech.userland.userland.ui
 
 import android.app.Application
 import android.arch.lifecycle.*
+import kotlinx.coroutines.experimental.launch
 import tech.userland.userland.database.AppDatabase
 import tech.userland.userland.database.models.Session
+import tech.userland.userland.utils.async
 
 class SessionViewModel(application: Application) : AndroidViewModel(application) {
     private val appDatabase: AppDatabase by lazy {
@@ -18,19 +20,15 @@ class SessionViewModel(application: Application) : AndroidViewModel(application)
         return sessions
     }
 
-    fun getSessionByName(name: String): Session {
-        return appDatabase.sessionDao().getSessionByName(name)
-    }
-
     fun insertSession(session: Session) {
-        appDatabase.sessionDao().insertSession(session)
+        launch { async { appDatabase.sessionDao().insertSession(session) } }
     }
 
     fun deleteSessionById(id: Long) {
-        appDatabase.sessionDao().deleteSessionById(id)
+        launch { async { appDatabase.sessionDao().deleteSessionById(id) } }
     }
 
     fun updateSession(session: Session) {
-        appDatabase.sessionDao().updateSession(session)
+        launch { async { appDatabase.sessionDao().updateSession(session) } }
     }
 }

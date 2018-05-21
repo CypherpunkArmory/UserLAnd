@@ -10,7 +10,7 @@ import tech.userland.userland.database.repositories.FilesystemDao
 import tech.userland.userland.database.repositories.SessionDao
 
 // TODO export schema appropriately
-@Database(entities = arrayOf(Session::class, Filesystem::class), version = 1, exportSchema = false)
+@Database(entities = [Session::class, Filesystem::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun sessionDao(): SessionDao
@@ -30,7 +30,6 @@ abstract class AppDatabase : RoomDatabase() {
         private fun buildDatabase(context: Context) =
                 Room.databaseBuilder(context.applicationContext,
                         AppDatabase::class.java, "Data.db")
-                        .allowMainThreadQueries() //TODO disallow main thread queries https://developer.android.com/training/data-storage/room/accessing-data
                         .build()
     }
 }

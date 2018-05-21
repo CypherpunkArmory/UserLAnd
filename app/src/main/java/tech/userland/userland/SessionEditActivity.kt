@@ -93,7 +93,7 @@ class SessionEditActivity: AppCompatActivity() {
                 }
                 else {
                     filesystemName = data.toString()
-                    filesystemId = filesystemViewModel.getFilesystemByName(filesystemName).id
+                    filesystemId = filesystemList.find { filesystem -> filesystem.name == filesystemName }!!.id
                 }
             }
         }

@@ -8,11 +8,11 @@ import kotlinx.android.parcel.Parcelize
 
 @Parcelize
 @Entity(tableName = "session",
-        foreignKeys = arrayOf(ForeignKey(
+        foreignKeys = [ForeignKey(
                 entity = Filesystem::class,
                 parentColumns = arrayOf("id"),
                 childColumns = arrayOf("filesystemId"),
-                onDelete = ForeignKey.CASCADE)))
+                onDelete = ForeignKey.CASCADE)])
 data class Session(
         @PrimaryKey(autoGenerate = true)
         val id: Long,
