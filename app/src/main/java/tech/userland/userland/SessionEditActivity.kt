@@ -48,7 +48,6 @@ class SessionEditActivity: AppCompatActivity() {
             filesystemList = it
             val filesystemNameList = ArrayList(filesystemList.map { filesystem -> filesystem.name })
             filesystemNameList.add("New")
-            filesystemNameList.add("static test")
 
             val filesystemAdapter = ArrayAdapter(this,  android.R.layout.simple_spinner_item, filesystemNameList)
             filesystemAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -93,7 +92,13 @@ class SessionEditActivity: AppCompatActivity() {
                 }
                 else {
                     filesystemName = data.toString()
+                    // TODO adapter to associate filesystem structure with list items?
                     filesystemId = filesystemList.find { filesystem -> filesystem.name == filesystemName }!!.id
+//                    launch(UI) {
+//                        filesystemId = async(CommonPool) {
+//                            filesystemViewModel.getFilesystemByName(filesystemName)
+//                        }.await().id
+//                    }
                 }
             }
         }

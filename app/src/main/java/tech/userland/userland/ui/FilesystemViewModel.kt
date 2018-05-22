@@ -3,10 +3,10 @@ package tech.userland.userland.ui
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
 import tech.userland.userland.database.AppDatabase
 import tech.userland.userland.database.models.Filesystem
-import tech.userland.userland.utils.async
 
 class FilesystemViewModel(application: Application) : AndroidViewModel(application) {
     private val appDatabase: AppDatabase by lazy {
@@ -26,6 +26,6 @@ class FilesystemViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun deleteFilesystemById(id: Long) {
-        appDatabase.filesystemDao().deleteFilesystemById(id)
+        launch { async { appDatabase.filesystemDao().deleteFilesystemById(id) } }
     }
 }
