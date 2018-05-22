@@ -5,6 +5,7 @@ import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.TextInputEditText
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
@@ -47,9 +48,11 @@ class SessionEditActivity: AppCompatActivity() {
         it?.let {
             filesystemList = it
             val filesystemNameList = ArrayList(filesystemList.map { filesystem -> filesystem.name })
-            filesystemNameList.add("New")
-
-            val filesystemAdapter = ArrayAdapter(this,  android.R.layout.simple_spinner_item, filesystemNameList)
+            filesystemNameList.add("Create new")
+            if(it.isEmpty()) {
+                filesystemNameList.add("")
+            }
+            val filesystemAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, filesystemNameList)
             filesystemAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             filesystemName = session.filesystemName
             val filesystemNamePosition = filesystemAdapter.getPosition(filesystemName)
@@ -86,19 +89,16 @@ class SessionEditActivity: AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val data = parent?.getItemAtPosition(position) ?: ""
-                if(data == "New") {
+                val filesystemName = parent?.getItemAtPosition(position).toString()
+                if(filesystemName == "Create new") {
                     navigateToFilesystemEdit("")
+
                 }
                 else {
-                    filesystemName = data.toString()
                     // TODO adapter to associate filesystem structure with list items?
-                    filesystemId = filesystemList.find { filesystem -> filesystem.name == filesystemName }!!.id
-//                    launch(UI) {
-//                        filesystemId = async(CommonPool) {
-//                            filesystemViewModel.getFilesystemByName(filesystemName)
-//                        }.await().id
-//                    }
+                    filesystemId = filesystemList.find {
+                        filesystem -> filesystem.name == filesystemName
+                    }?.id ?: -1  //TODO quit hacking
                 }
             }
         }

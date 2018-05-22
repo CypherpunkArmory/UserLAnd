@@ -2,6 +2,7 @@ package tech.userland.userland.database.models
 
 import android.arch.persistence.room.Entity
 import android.arch.persistence.room.ForeignKey
+import android.arch.persistence.room.Index
 import android.arch.persistence.room.PrimaryKey
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
@@ -12,7 +13,11 @@ import kotlinx.android.parcel.Parcelize
                 entity = Filesystem::class,
                 parentColumns = arrayOf("id"),
                 childColumns = arrayOf("filesystemId"),
-                onDelete = ForeignKey.CASCADE)])
+                onDelete = ForeignKey.CASCADE)],
+        indices = [
+            Index(value = ["name"], unique = true),
+            Index(value = ["filesystemId"])
+        ])
 data class Session(
         @PrimaryKey(autoGenerate = true)
         val id: Long,
