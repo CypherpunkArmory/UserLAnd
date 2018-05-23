@@ -1,7 +1,9 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="tech.userland.userland.SessionListActivity">
+
     <item
         android:id="@+id/menu_item_file_system_management"
         android:orderInCategory="101"
@@ -17,4 +19,5 @@
         android:orderInCategory="102"
         android:title="@string/help"
         app:showAsAction="never" />
+
 </menu>
