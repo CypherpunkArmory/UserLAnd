@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TODO real settings -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="Test preferences"
+        android:key="pref_test_category" >
+        <CheckBoxPreference
+            android:key="pref_test1"
+            android:title="test1"
+            android:summary="test1"
+            android:defaultValue="true" />
+        <CheckBoxPreference
+            android:key="pref_test2"
+            android:title="test2"
+            android:summary="test2"
+            android:defaultValue="true" />
+    </PreferenceCategory>
+</PreferenceScreen>
