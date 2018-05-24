@@ -1,10 +1,23 @@
 package tech.userland.userland
 
+import android.Manifest
+import android.app.Activity
+import android.app.DownloadManager
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
+import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.ContextMenu
 import android.view.Menu
 import android.view.MenuItem
@@ -37,6 +50,19 @@ class SessionListActivity : AppCompatActivity() {
         }
     }
 
+    private val downloadManager: DownloadManager by lazy {
+        getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+    }
+
+    private val downloadList: ArrayList<Long> = ArrayList()
+
+    private val downloadBroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val downloadId = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+            downloadList.remove(downloadId)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_session_list)
@@ -55,10 +81,35 @@ class SessionListActivity : AppCompatActivity() {
             }
         }
 
+        registerReceiver(downloadBroadcastReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE), 0)
+        }
         fab.setOnClickListener { navigateToSessionEdit(Session(0, filesystemId = 0)) }
 
         progress_bar_session_list.visibility = View.VISIBLE
         fileCreationStub()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(downloadBroadcastReceiver)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when(requestCode) {
+            0 -> {
+                if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    toast("yay!")
+                }
+                else {
+                    toast("boo!")
+                }
+                return
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -136,7 +187,13 @@ class SessionListActivity : AppCompatActivity() {
         launchAsync {
             progress_bar_session_list.progress = 0
             text_session_list_progress_update.text = "Downloading required assets..."
-            asyncAwait { delay(2000) }
+            asyncAwait {
+                downloadList.addAll(downloadManager.checkAndDownloadRequirements(this@SessionListActivity))
+                while(downloadList.isNotEmpty()) {
+                    delay(500)
+                }
+                moveDownloadedAssetsToSupportDirectory(this@SessionListActivity)
+            }
             progress_bar_session_list.progress = 25
 
             text_session_list_progress_update.text = "Setting up file system..."
