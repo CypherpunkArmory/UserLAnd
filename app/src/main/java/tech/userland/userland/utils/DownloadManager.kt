@@ -6,16 +6,17 @@ import android.net.Uri
 import android.os.Environment
 import java.io.File
 
+// Prefix file name with OS type to move it into the correct folder
 val assetEndpoints = listOf(
-    "proot" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/armhf/proot",
-    "busybox" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/armhf/busybox",
-    "libtalloc.so.2" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/armhf/libtalloc.so.2",
-    "execInProot" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/main/execInProot",
-    "startDBServer.sh" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/main/startDBServer.sh",
-    "busybox" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/armhf/busybox",
-    "libdisableselinux.so" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/armhf/libdisableselinux.so",
-    "ld.so.preload" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/main/ld.so.preload",
-    "rootfs.tar.gz" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/armhf/rootfs.tar.gz"
+    "support:proot" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/armhf/proot",
+    "support:busybox" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/armhf/busybox",
+    "support:libtalloc.so.2" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/armhf/libtalloc.so.2",
+    "support:execInProot" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/main/execInProot",
+    "debian:startDBServer.sh" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/main/startDBServer.sh",
+    "debian:busybox" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/armhf/busybox",
+    "debian:libdisableselinux.so" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/armhf/libdisableselinux.so",
+    "debian:ld.so.preload" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/main/ld.so.preload",
+    "debian:rootfs.tar.gz" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/armhf/rootfs.tar.gz"
 )
 
 private fun download(downloadManager: DownloadManager, type: String, url: String): Long {
@@ -32,8 +33,8 @@ private fun download(downloadManager: DownloadManager, type: String, url: String
 }
 
 private fun assetNeedsToUpdated(context: Context, type: String): Boolean {
-    val appFilesDirectoryPath = context.filesDir.path
-    val asset = File("$appFilesDirectoryPath/support/$type")
+    val (subdirectory, filename) = type.split(":")
+    val asset = File("${context.filesDir.path}/$subdirectory/$filename")
     // TODO more sophisticated version checking
     return !asset.exists()
 }
@@ -45,7 +46,7 @@ fun DownloadManager.checkAndDownloadRequirements(context: Context): List<Long> {
                 assetNeedsToUpdated(context, type)
             }
             .map {
-                    (type, endpoint) ->
-                    download(this, type, endpoint)
-                }
+                (type, endpoint) ->
+                download(this, type, endpoint)
+            }
 }

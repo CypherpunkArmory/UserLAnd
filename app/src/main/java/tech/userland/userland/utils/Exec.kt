@@ -27,15 +27,9 @@ class Exec {
 //        return execLocalAsync(commandDir, command, env, listener)
 //    }
 
-    fun execLocal(executionDirectoryPath: String, command: String, env: HashMap<String, String> = hashMapOf(), listener: (String) -> Int = NOOP_CONSUMER): String {
+    fun execLocal(executionDirectory: File, command: ArrayList<String>, env: HashMap<String, String> = hashMapOf(), listener: (String) -> Int = NOOP_CONSUMER): String {
         try {
-            val executionDirectory = File(executionDirectoryPath)
-            val commands = ArrayList<String>()
-            commands.add("sh")
-            commands.add("-c")
-            commands.add(command)
-
-            val pb = ProcessBuilder(commands)
+            val pb = ProcessBuilder(command)
             pb.directory(executionDirectory)
             pb.redirectErrorStream(true)
             pb.environment().putAll(env)
@@ -45,9 +39,9 @@ class Exec {
             val result = collectOutput(process.inputStream, listener)
 
             if (process.waitFor() != 0) {
-                Log.e("UserLAnd","Failed to execute command ${pb.command()}\nstdout: $result")
+                Log.e("Exec","Failed to execute command ${pb.command()}\nstdout: $result")
             } else {
-                Log.i("UserLAnd", "stdout: $result")
+                Log.i("Exec", "stdout: $result")
             }
             return result
         } catch (e: IOException) {
