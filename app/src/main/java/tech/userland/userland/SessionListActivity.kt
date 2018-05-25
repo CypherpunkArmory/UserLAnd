@@ -203,7 +203,7 @@ class SessionListActivity : AppCompatActivity() {
 
             text_session_list_progress_update.text = "Setting up file system..."
             asyncAwait {
-                fileManager.extractFilesystem("debian", "test")
+                fileManager.extractFilesystem("debian", "orange")
                 delay(20000)
             }
             progress_bar_session_list.progress = 50

@@ -59,11 +59,11 @@ class FileManager(private val context: Context) {
         val commandToRun = arrayListOf("../support/busybox", "sh", "-c")
         commandToRun.add("../support/execInProot /support/busybox tar -xzvf /support/rootfs.tar.gz")
 
-        val env = hashMapOf("LD_LIBRARY_PATH" to (getSupportDirPath()),
-                "ROOT_PATH" to getFilesDirPath(),
-                "ROOTFS_PATH" to "${getFilesDirPath()}/$targetDirectoryName",
-                "PROOT_DEBUG_LEVEL" to "9")
+//        val env = hashMapOf("LD_LIBRARY_PATH" to (getSupportDirPath()),
+//                "ROOT_PATH" to getFilesDirPath(),
+//                "ROOTFS_PATH" to "${getFilesDirPath()}/$targetDirectoryName",
+//                "PROOT_DEBUG_LEVEL" to "9")
 
-        Exec().execLocal(executionDirectory, commandToRun, env, Exec.EXEC_INFO_LOGGER)
+        Exec().execLocal(executionDirectory, commandToRun, listener = Exec.EXEC_INFO_LOGGER)
     }
 }
