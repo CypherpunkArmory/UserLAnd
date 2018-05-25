@@ -41,24 +41,11 @@ private fun assetNeedsToUpdated(context: Context, type: String): Boolean {
 fun DownloadManager.checkAndDownloadRequirements(context: Context): List<Long> {
         return assetEndpoints
             .filter {
-                val (type, _) = it
+                (type, _) ->
                 assetNeedsToUpdated(context, type)
             }
             .map {
-                val (type, endpoint) = it
-                download(this, type, endpoint)
-            }
-}
-
-fun moveDownloadedAssetsToSupportDirectory(context: Context) {
-    val downloadDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-    val appFilesDirectoryPath = context.filesDir.path
-    downloadDirectory.walkBottomUp().
-            filter { it.name.contains("UserLAnd:") }
-            .forEach {
-                val type = it.name.substringAfterLast(":")
-                val targetDestination = File("$appFilesDirectoryPath/support/$type")
-                it.copyTo(targetDestination)
-                it.delete()
-            }
+                    (type, endpoint) ->
+                    download(this, type, endpoint)
+                }
 }

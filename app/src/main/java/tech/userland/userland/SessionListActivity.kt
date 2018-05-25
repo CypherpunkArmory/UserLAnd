@@ -63,6 +63,10 @@ class SessionListActivity : AppCompatActivity() {
         }
     }
 
+    private val fileManager by lazy {
+        FileManager(this)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_session_list)
@@ -192,7 +196,8 @@ class SessionListActivity : AppCompatActivity() {
                 while(downloadList.isNotEmpty()) {
                     delay(500)
                 }
-                moveDownloadedAssetsToSupportDirectory(this@SessionListActivity)
+                fileManager.moveDownloadedAssetsToSupportDirectory()
+                fileManager.correctFilePermissions()
             }
             progress_bar_session_list.progress = 25
 
