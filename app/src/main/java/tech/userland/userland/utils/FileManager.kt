@@ -22,7 +22,7 @@ class FileManager(private val context: Context) {
 
     // TODO stop running this repeatedly
     // Filename takes form of UserLAnd:<directory to place in>:<filename>
-    fun moveDownloadedAssetsToSupportDirectory() {
+    fun moveDownloadedAssetsToSharedSupportDirectory() {
         val downloadDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         downloadDirectory.walkBottomUp().filter { it.name.contains("UserLAnd:") }
                 .forEach {
@@ -31,6 +31,18 @@ class FileManager(private val context: Context) {
                     it.copyTo(targetDestination, overwrite = true)
                     it.delete()
                 }
+    }
+
+    fun copySupportAssetsToFilesystem(targetFilesystemName: String) {
+        val sharedDirectory = File(getSupportDirPath())
+        val targetDirectory = createAndGetDirectory("$targetFilesystemName/support")
+        sharedDirectory.copyRecursively(targetDirectory, overwrite = true)
+        targetDirectory.walkBottomUp().forEach {
+            if(it.name == "support") {
+                return
+            }
+            changePermission(it.name, "$targetFilesystemName/support", "0777")
+        }
     }
 
     fun correctFilePermissions() {
@@ -52,18 +64,17 @@ class FileManager(private val context: Context) {
         Exec().execLocal(executionDirectory, commandToRun, listener = Exec.EXEC_INFO_LOGGER)
     }
 
-    fun extractFilesystem(type: String, targetDirectoryName: String) {
+    fun extractFilesystem(targetDirectoryName: String) {
         val executionDirectory = createAndGetDirectory(targetDirectoryName)
 
-        // TODO type should eventually be debian, ubuntu, etc
         val commandToRun = arrayListOf("../support/busybox", "sh", "-c")
         commandToRun.add("../support/execInProot /support/busybox tar -xzvf /support/rootfs.tar.gz")
 
-//        val env = hashMapOf("LD_LIBRARY_PATH" to (getSupportDirPath()),
-//                "ROOT_PATH" to getFilesDirPath(),
-//                "ROOTFS_PATH" to "${getFilesDirPath()}/$targetDirectoryName",
-//                "PROOT_DEBUG_LEVEL" to "9")
+        val env = hashMapOf("LD_LIBRARY_PATH" to (getSupportDirPath()),
+                "ROOT_PATH" to getFilesDirPath(),
+                "ROOTFS_PATH" to "${getFilesDirPath()}/$targetDirectoryName",
+                "PROOT_DEBUG_LEVEL" to "9")
 
-        Exec().execLocal(executionDirectory, commandToRun, listener = Exec.EXEC_INFO_LOGGER)
+        Exec().execLocal(executionDirectory, commandToRun, env, listener = Exec.EXEC_INFO_LOGGER)
     }
 }

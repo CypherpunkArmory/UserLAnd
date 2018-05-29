@@ -81,7 +81,7 @@ class SessionListActivity : AppCompatActivity() {
             if(!session.active == true) {
                 session.active = true
                 sessionViewModel.updateSession(session)
-                sessionInstallAndStartStub()
+                sessionInstallAndStartStub(session)
             }
         }
 
@@ -187,7 +187,7 @@ class SessionListActivity : AppCompatActivity() {
         return true
     }
 
-    private fun sessionInstallAndStartStub() {
+    private fun sessionInstallAndStartStub(session: Session) {
         launchAsync {
             progress_bar_session_list.progress = 0
             text_session_list_progress_update.text = "Downloading required assets..."
@@ -196,14 +196,17 @@ class SessionListActivity : AppCompatActivity() {
                 while(downloadList.isNotEmpty()) {
                     delay(500)
                 }
-                fileManager.moveDownloadedAssetsToSupportDirectory()
+                fileManager.moveDownloadedAssetsToSharedSupportDirectory()
                 fileManager.correctFilePermissions()
+
             }
             progress_bar_session_list.progress = 25
 
             text_session_list_progress_update.text = "Setting up file system..."
             asyncAwait {
-                fileManager.extractFilesystem("debian", "orange")
+                val filesystemDirectoryName = session.filesystemId.toString()
+                fileManager.copySupportAssetsToFilesystem(filesystemDirectoryName)
+                fileManager.extractFilesystem(filesystemDirectoryName)
                 delay(20000)
             }
             progress_bar_session_list.progress = 50
