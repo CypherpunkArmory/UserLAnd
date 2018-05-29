@@ -2,6 +2,7 @@ package tech.userland.userland
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.app.DownloadManager
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
@@ -10,6 +11,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -61,6 +63,11 @@ class SessionListActivity : AppCompatActivity() {
             val downloadId = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
             downloadList.remove(downloadId)
         }
+    }
+
+    private val wifiEnabled by lazy {
+        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        connectivityManager.activeNetworkInfo.type == ConnectivityManager.TYPE_WIFI
     }
 
     private val fileManager by lazy {
@@ -187,10 +194,26 @@ class SessionListActivity : AppCompatActivity() {
         return true
     }
 
+    private fun displayWifiAlert() {
+        var alert: AlertDialog? = null
+        val builder = AlertDialog.Builder(this@SessionListActivity)
+        builder.setMessage(R.string.alert_wifi_disabled_message)
+                .setTitle(R.string.alert_wifi_disabled_title)
+                .setPositiveButton(R.string.alert_wifi_disabled_positive_button, {
+                    _, _ ->
+                    alert?.dismiss()
+                })
+        alert = builder.create()
+        alert.show()
+    }
+
     private fun sessionInstallAndStartStub(session: Session) {
         launchAsync {
             progress_bar_session_list.progress = 0
             text_session_list_progress_update.text = "Downloading required assets..."
+            if(!wifiEnabled) {
+                displayWifiAlert()
+            }
             asyncAwait {
                 downloadList.addAll(downloadManager.checkAndDownloadRequirements(this@SessionListActivity))
                 while(downloadList.isNotEmpty()) {
@@ -205,18 +228,18 @@ class SessionListActivity : AppCompatActivity() {
             text_session_list_progress_update.text = "Setting up file system..."
             asyncAwait {
                 val filesystemDirectoryName = session.filesystemId.toString()
-                fileManager.copySupportAssetsToFilesystem(filesystemDirectoryName)
+                // TODO support multiple distribution types
+                fileManager.copyDistributionAssetsToFilesystem(filesystemDirectoryName, "debian")
                 fileManager.extractFilesystem(filesystemDirectoryName)
-                delay(20000)
             }
             progress_bar_session_list.progress = 50
 
             text_session_list_progress_update.text = "Starting service..."
-            asyncAwait { delay(2000) }
+            asyncAwait { fileManager.startDropbearServer(session.filesystemId.toString()) }
             progress_bar_session_list.progress = 75
 
             text_session_list_progress_update.text = "Connecting to service..."
-            asyncAwait { delay(2000) }
+            asyncAwait { fireConnectBotIntent() }
             progress_bar_session_list.progress = 100
 
             text_session_list_progress_update.text = "Session active!"
@@ -236,5 +259,12 @@ class SessionListActivity : AppCompatActivity() {
             }
             toast("File created")
         }
+    }
+
+    fun fireConnectBotIntent() {
+        val connectBotIntent = Intent()
+        connectBotIntent.action = "android.intent.action.VIEW"
+        connectBotIntent.data = Uri.parse("ssh://non-root@localhost:2022")
+        startActivity(connectBotIntent)
     }
 }

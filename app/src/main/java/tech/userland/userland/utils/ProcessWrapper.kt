@@ -1,4 +1,4 @@
-package tech.userland.intentexplorer
+package tech.userland.userland
 
 import android.util.Log
 import java.io.BufferedReader

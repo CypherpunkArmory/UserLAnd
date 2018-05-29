@@ -21,4 +21,8 @@
 
     <string name="prompt_filesystem">Filesystem:</string>
     <string name="prompt_type">Type:</string>
+
+    <string name="alert_wifi_disabled_title">No wifi!</string>
+    <string name="alert_wifi_disabled_message">Please enable wifi to continue.</string>
+    <string name="alert_wifi_disabled_positive_button">Ok</string>
 </resources>

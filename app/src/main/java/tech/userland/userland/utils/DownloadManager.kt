@@ -12,7 +12,7 @@ val assetEndpoints = listOf(
     "support:busybox" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/armhf/busybox",
     "support:libtalloc.so.2" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/armhf/libtalloc.so.2",
     "support:execInProot" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/main/execInProot",
-    "debian:startDBServer.sh" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/main/startDBServer.sh",
+    "debian:startDBServer.sh" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/armhf_next/startDBServer.sh",
     "debian:busybox" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/armhf/busybox",
     "debian:libdisableselinux.so" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/armhf/libdisableselinux.so",
     "debian:ld.so.preload" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/main/ld.so.preload",
@@ -20,6 +20,7 @@ val assetEndpoints = listOf(
 )
 
 private fun download(downloadManager: DownloadManager, type: String, url: String): Long {
+    //TODO notify user if wifi not available
     val uri = Uri.parse(url)
     val request = DownloadManager.Request(uri)
     request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI)

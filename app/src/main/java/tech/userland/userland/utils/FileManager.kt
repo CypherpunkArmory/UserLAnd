@@ -33,8 +33,8 @@ class FileManager(private val context: Context) {
                 }
     }
 
-    fun copySupportAssetsToFilesystem(targetFilesystemName: String) {
-        val sharedDirectory = File(getSupportDirPath())
+    fun copyDistributionAssetsToFilesystem(targetFilesystemName: String, distributionType: String) {
+        val sharedDirectory = File("${getFilesDirPath()}/$distributionType")
         val targetDirectory = createAndGetDirectory("$targetFilesystemName/support")
         sharedDirectory.copyRecursively(targetDirectory, overwrite = true)
         targetDirectory.walkBottomUp().forEach {
@@ -73,8 +73,22 @@ class FileManager(private val context: Context) {
         val env = hashMapOf("LD_LIBRARY_PATH" to (getSupportDirPath()),
                 "ROOT_PATH" to getFilesDirPath(),
                 "ROOTFS_PATH" to "${getFilesDirPath()}/$targetDirectoryName",
+                "PROOT_DEBUG_LEVEL" to "-1")
+
+        Exec().execLocal(executionDirectory, commandToRun, env, Exec.EXEC_INFO_LOGGER)
+    }
+
+    fun startDropbearServer(targetDirectoryName: String) {
+        val executionDirectory = createAndGetDirectory(targetDirectoryName)
+
+        val commandToRun = arrayListOf("../support/busybox", "sh", "-c")
+        commandToRun.add("../support/execInProot /bin/bash -c /support/startDBServer.sh &> /mnt/sdcard/Download/test")
+
+        val env = hashMapOf("LD_LIBRARY_PATH" to (getSupportDirPath()),
+                "ROOT_PATH" to getFilesDirPath(),
+                "ROOTFS_PATH" to "${getFilesDirPath()}/$targetDirectoryName",
                 "PROOT_DEBUG_LEVEL" to "9")
 
-        Exec().execLocal(executionDirectory, commandToRun, env, listener = Exec.EXEC_INFO_LOGGER)
+        Exec().execLocalAsync(executionDirectory, commandToRun, env, Exec.EXEC_INFO_LOGGER)
     }
 }

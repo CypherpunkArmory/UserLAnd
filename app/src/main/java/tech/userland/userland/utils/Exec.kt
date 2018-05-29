@@ -1,6 +1,7 @@
 package tech.userland.userland.utils
 
 import android.util.Log
+import tech.userland.userland.ProcessWrapper
 import java.io.BufferedReader
 import java.io.File
 import java.io.IOException
@@ -65,19 +66,14 @@ class Exec {
         return out.toString()
     }
 
-//    fun execLocalAsync(commandDir: File, command: String, env: HashMap<String, String>, listener: (String) -> Int): ProcessWrapper {
-//        val commands = ArrayList<String>()
-//        commands.add("sh")
-//        commands.add("-c")
-//        commands.add(command)
-//
-//        val pb = ProcessBuilder(commands)
-//        pb.redirectErrorStream(true)
-//        pb.environment().putAll(env)
-//        pb.directory(commandDir)
-//
-//        Log.i("ExecUtils","Running: ${pb.command()} \n with env $env")
-//        return ProcessWrapper(pb, listener)
-//    }
+    fun execLocalAsync(commandDir: File, command: ArrayList<String>, env: HashMap<String, String>, listener: (String) -> Int): ProcessWrapper {
+        val pb = ProcessBuilder(command)
+        pb.redirectErrorStream(true)
+        pb.environment().putAll(env)
+        pb.directory(commandDir)
+
+        Log.i("ExecUtils","Running: ${pb.command()} \n with env $env")
+        return ProcessWrapper(pb, listener)
+    }
 
 }
