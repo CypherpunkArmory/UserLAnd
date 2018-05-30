@@ -23,6 +23,8 @@
     <string name="prompt_type">Type:</string>
 
     <string name="alert_wifi_disabled_title">No wifi!</string>
-    <string name="alert_wifi_disabled_message">Please enable wifi to continue.</string>
-    <string name="alert_wifi_disabled_positive_button">Ok</string>
+    <string name="alert_wifi_disabled_message">A large asset (~80mb) needs to be downloaded.</string>
+    <string name="alert_wifi_disabled_force_button">Force</string>
+    <string name="alert_wifi_disabled_turn_on_wifi_button">Turn On Wifi</string>
+    <string name="alert_wifi_disabled_cancel_button">Cancel</string>
 </resources>

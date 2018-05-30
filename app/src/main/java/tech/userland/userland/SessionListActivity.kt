@@ -13,6 +13,7 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.Uri
+import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.os.Environment
 import android.support.v4.app.ActivityCompat
@@ -28,6 +29,7 @@ import android.widget.AdapterView
 import kotlinx.android.synthetic.main.activity_session_list.*
 import kotlinx.android.synthetic.main.list_item_session.view.*
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.android.UI
 import org.jetbrains.anko.toast
 import tech.userland.userland.database.models.Session
 import tech.userland.userland.ui.SessionListAdapter
@@ -52,10 +54,6 @@ class SessionListActivity : AppCompatActivity() {
         }
     }
 
-    private val downloadManager: DownloadManager by lazy {
-        getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-    }
-
     private val downloadList: ArrayList<Long> = ArrayList()
 
     private val downloadBroadcastReceiver = object : BroadcastReceiver() {
@@ -65,13 +63,8 @@ class SessionListActivity : AppCompatActivity() {
         }
     }
 
-    private val wifiEnabled by lazy {
-        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        connectivityManager.activeNetworkInfo.type == ConnectivityManager.TYPE_WIFI
-    }
-
     private val fileManager by lazy {
-        FileManager(this)
+        FileUtility(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -87,8 +80,12 @@ class SessionListActivity : AppCompatActivity() {
             val session = sessionList[position]
             if(!session.active == true) {
                 session.active = true
-                sessionViewModel.updateSession(session)
-                sessionInstallAndStartStub(session)
+                try {
+                    startSession(session)
+                }
+                catch(err: Exception) {
+
+                }
             }
         }
 
@@ -100,7 +97,6 @@ class SessionListActivity : AppCompatActivity() {
         fab.setOnClickListener { navigateToSessionEdit(Session(0, filesystemId = 0)) }
 
         progress_bar_session_list.visibility = View.VISIBLE
-        fileCreationStub()
     }
 
     override fun onDestroy() {
@@ -194,28 +190,31 @@ class SessionListActivity : AppCompatActivity() {
         return true
     }
 
-    private fun displayWifiAlert() {
-        var alert: AlertDialog? = null
-        val builder = AlertDialog.Builder(this@SessionListActivity)
-        builder.setMessage(R.string.alert_wifi_disabled_message)
-                .setTitle(R.string.alert_wifi_disabled_title)
-                .setPositiveButton(R.string.alert_wifi_disabled_positive_button, {
-                    _, _ ->
-                    alert?.dismiss()
-                })
-        alert = builder.create()
-        alert.show()
-    }
-
-    private fun sessionInstallAndStartStub(session: Session) {
+    private fun startSession(session: Session) {
         launchAsync {
             progress_bar_session_list.progress = 0
             text_session_list_progress_update.text = "Downloading required assets..."
-            if(!wifiEnabled) {
-                displayWifiAlert()
+            val downloadManager = DownloadUtility(this@SessionListActivity)
+            // TODO adjust requirements dynamically
+            downloadManager.addRequirements("debian")
+            if(downloadManager.checkIfLargeRequirement()) {
+                val result = downloadManager.displayWifiChoices()
+                when (result) {
+                    DownloadUtility.TURN_ON_WIFI -> {
+                        text_session_list_progress_update.text = ""
+                        startActivity(Intent(WifiManager.ACTION_PICK_WIFI_NETWORK))
+                        return@launchAsync
+                    }
+                    DownloadUtility.CANCEL -> {
+                        text_session_list_progress_update.text = ""
+                        return@launchAsync
+                    }
+
+                }
             }
+            downloadManager.downloadRequirements()
             asyncAwait {
-                downloadList.addAll(downloadManager.checkAndDownloadRequirements(this@SessionListActivity))
+                downloadList.addAll(downloadManager.downloadRequirements())
                 while(downloadList.isNotEmpty()) {
                     delay(500)
                 }
@@ -243,21 +242,6 @@ class SessionListActivity : AppCompatActivity() {
             progress_bar_session_list.progress = 100
 
             text_session_list_progress_update.text = "Session active!"
-        }
-    }
-
-    private fun fileCreationStub() {
-        val installDir = File(packageManager.getApplicationInfo("tech.userland.userland", 0).dataDir)
-        val testFile = File(installDir.absolutePath + "/coroutine")
-        launchAsync {
-            launch {
-                delay(10000)
-                Runtime.getRuntime().exec(arrayOf("touch", "coroutine"), arrayOf<String>(), installDir)
-            }
-            while(!testFile.exists()) {
-                asyncAwait { delay(100) }
-            }
-            toast("File created")
         }
     }
 

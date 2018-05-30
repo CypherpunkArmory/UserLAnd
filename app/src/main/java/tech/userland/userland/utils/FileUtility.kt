@@ -4,7 +4,7 @@ import android.content.Context
 import android.os.Environment
 import java.io.File
 
-class FileManager(private val context: Context) {
+class FileUtility(private val context: Context) {
 
     fun getSupportDirPath(): String {
         return "${context.filesDir.path}/support"
