@@ -1,8 +1,6 @@
 package tech.userland.userland
 
 import android.Manifest
-import android.app.Activity
-import android.app.AlertDialog
 import android.app.DownloadManager
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
@@ -11,16 +9,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.net.ConnectivityManager
 import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Bundle
-import android.os.Environment
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
-import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.view.ContextMenu
 import android.view.Menu
 import android.view.MenuItem
@@ -29,13 +23,11 @@ import android.widget.AdapterView
 import kotlinx.android.synthetic.main.activity_session_list.*
 import kotlinx.android.synthetic.main.list_item_session.view.*
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.android.UI
 import org.jetbrains.anko.toast
 import tech.userland.userland.database.models.Session
 import tech.userland.userland.ui.SessionListAdapter
 import tech.userland.userland.ui.SessionViewModel
 import tech.userland.userland.utils.*
-import java.io.File
 
 class SessionListActivity : AppCompatActivity() {
 
@@ -79,13 +71,7 @@ class SessionListActivity : AppCompatActivity() {
             parent, view, position, id ->
             val session = sessionList[position]
             if(!session.active == true) {
-                session.active = true
-                try {
-                    startSession(session)
-                }
-                catch(err: Exception) {
-
-                }
+                startSession(session)
             }
         }
 
@@ -242,6 +228,7 @@ class SessionListActivity : AppCompatActivity() {
             progress_bar_session_list.progress = 100
 
             text_session_list_progress_update.text = "Session active!"
+            session.active = true
         }
     }
 

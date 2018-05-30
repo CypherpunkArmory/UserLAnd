@@ -21,8 +21,6 @@ class DownloadUtility(val uiContext: Context) {
         uiContext.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
     }
 
-    private var allowForceLargeDownload = false
-
     companion object {
         val CONTINUE = 0
         val TURN_ON_WIFI = 1
