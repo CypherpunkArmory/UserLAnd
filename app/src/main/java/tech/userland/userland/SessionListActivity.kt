@@ -71,7 +71,7 @@ class SessionListActivity : AppCompatActivity() {
             parent, view, position, id ->
             val session = sessionList[position]
             if(!session.active == true) {
-                startSession(session)
+                startSession(session, view)
             }
         }
 
@@ -92,6 +92,7 @@ class SessionListActivity : AppCompatActivity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        //TODO handle cases appropriately
         when(requestCode) {
             0 -> {
                 if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -176,7 +177,9 @@ class SessionListActivity : AppCompatActivity() {
         return true
     }
 
-    private fun startSession(session: Session) {
+    private fun startSession(session: Session, view: View) {
+        val filesystemDirectoryName = session.filesystemId.toString()
+        var assetsWereDownloaded = false
         launchAsync {
             progress_bar_session_list.progress = 0
             text_session_list_progress_update.text = "Downloading required assets..."
@@ -202,6 +205,7 @@ class SessionListActivity : AppCompatActivity() {
             asyncAwait {
                 downloadList.addAll(downloadManager.downloadRequirements())
                 while(downloadList.isNotEmpty()) {
+                    assetsWereDownloaded = true
                     delay(500)
                 }
                 fileManager.moveDownloadedAssetsToSharedSupportDirectory()
@@ -212,15 +216,19 @@ class SessionListActivity : AppCompatActivity() {
 
             text_session_list_progress_update.text = "Setting up file system..."
             asyncAwait {
-                val filesystemDirectoryName = session.filesystemId.toString()
                 // TODO support multiple distribution types
-                fileManager.copyDistributionAssetsToFilesystem(filesystemDirectoryName, "debian")
-                fileManager.extractFilesystem(filesystemDirectoryName)
+                if(assetsWereDownloaded) {
+                    fileManager.copyDistributionAssetsToFilesystem(filesystemDirectoryName, "debian")
+                }
+                if(!fileManager.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")) {
+                    fileManager.extractFilesystem(filesystemDirectoryName)
+                }
             }
             progress_bar_session_list.progress = 50
 
             text_session_list_progress_update.text = "Starting service..."
-            asyncAwait { fileManager.startDropbearServer(session.filesystemId.toString()) }
+            // TODO some check to determine if service is started
+            asyncAwait { fileManager.startDropbearServer(filesystemDirectoryName) }
             progress_bar_session_list.progress = 75
 
             text_session_list_progress_update.text = "Connecting to service..."
@@ -229,13 +237,14 @@ class SessionListActivity : AppCompatActivity() {
 
             text_session_list_progress_update.text = "Session active!"
             session.active = true
+            sessionViewModel.updateSession(session)
         }
     }
 
     fun fireConnectBotIntent() {
         val connectBotIntent = Intent()
         connectBotIntent.action = "android.intent.action.VIEW"
-        connectBotIntent.data = Uri.parse("ssh://non-root@localhost:2022")
+        connectBotIntent.data = Uri.parse("ssh://user@localhost:2022/#userland")
         startActivity(connectBotIntent)
     }
 }

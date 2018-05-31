@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Environment
 import java.io.File
 
+// TODO refactor this class with a better name
 class FileUtility(private val context: Context) {
 
     fun getSupportDirPath(): String {
@@ -18,6 +19,11 @@ class FileUtility(private val context: Context) {
         val file = File("${getFilesDirPath()}/$directory")
         if(!file.exists()) file.mkdirs()
         return file
+    }
+
+    fun statusFileExists(filesystemName: String, filename: String): Boolean {
+        val file = File("${getFilesDirPath()}/$filesystemName/support/$filename")
+        return file.exists()
     }
 
     // TODO stop running this repeatedly
@@ -68,7 +74,7 @@ class FileUtility(private val context: Context) {
         val executionDirectory = createAndGetDirectory(targetDirectoryName)
 
         val commandToRun = arrayListOf("../support/busybox", "sh", "-c")
-        commandToRun.add("../support/execInProot /support/busybox tar -xzvf /support/rootfs.tar.gz")
+        commandToRun.add("../support/execInProot /support/extractFilesystem.sh")
 
         val env = hashMapOf("LD_LIBRARY_PATH" to (getSupportDirPath()),
                 "ROOT_PATH" to getFilesDirPath(),
@@ -82,12 +88,12 @@ class FileUtility(private val context: Context) {
         val executionDirectory = createAndGetDirectory(targetDirectoryName)
 
         val commandToRun = arrayListOf("../support/busybox", "sh", "-c")
-        commandToRun.add("../support/execInProot /bin/bash -c /support/startDBServer.sh &> /mnt/sdcard/Download/test")
+        commandToRun.add("../support/execInProot /bin/bash -c /support/startDBServer.sh ")
 
         val env = hashMapOf("LD_LIBRARY_PATH" to (getSupportDirPath()),
                 "ROOT_PATH" to getFilesDirPath(),
                 "ROOTFS_PATH" to "${getFilesDirPath()}/$targetDirectoryName",
-                "PROOT_DEBUG_LEVEL" to "9")
+                "PROOT_DEBUG_LEVEL" to "-1")
 
         Exec().execLocalAsync(executionDirectory, commandToRun, env, Exec.EXEC_INFO_LOGGER)
     }

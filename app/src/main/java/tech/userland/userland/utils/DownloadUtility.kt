@@ -37,13 +37,12 @@ class DownloadUtility(val uiContext: Context) {
 
     val debianAssets = listOf(
             "debian:startDBServer.sh" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/armhf_next/startDBServer.sh",
+            "debian:extractFilesystem.sh" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/main/extractFilesystem.sh"
             "debian:busybox" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/armhf/busybox",
             "debian:libdisableselinux.so" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/armhf/libdisableselinux.so",
             "debian:ld.so.preload" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/main/ld.so.preload",
             "debian:rootfs.tar.gz" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/armhf/rootfs.tar.gz"
     )
-
-    val requirements = ArrayList<Pair<String, String>>()
 
     fun addRequirements(filesystemType: String) {
         when(filesystemType) {
@@ -90,8 +89,9 @@ class DownloadUtility(val uiContext: Context) {
         return suspendCoroutine { continuation -> result = continuation }
     }
 
-    private fun downloadRequirement(type: String, url: String): Long {
-        //TODO notify user if wifi not available
+    private fun download(type: String, url: String): Long {
+        // TODO Dynamically adjust allowed network types to ensure no mobile use
+        // Currently just assuming the dialog choices succeed in some way
         val uri = Uri.parse(url)
         val request = DownloadManager.Request(uri)
         request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
@@ -113,14 +113,14 @@ class DownloadUtility(val uiContext: Context) {
 
 
     fun downloadRequirements(): List<Long> {
-        return requirements
+        return assets
                 .filter {
                     (type, _) ->
                     assetNeedsToUpdated(type)
                 }
                 .map {
                     (type, endpoint) ->
-                    downloadRequirement(type, endpoint)
+                    download(type, endpoint)
                 }
     }
 
