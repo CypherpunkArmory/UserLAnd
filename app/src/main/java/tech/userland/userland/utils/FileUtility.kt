@@ -26,7 +26,6 @@ class FileUtility(private val context: Context) {
         return file.exists()
     }
 
-    // TODO stop running this repeatedly
     // Filename takes form of UserLAnd:<directory to place in>:<filename>
     fun moveDownloadedAssetsToSharedSupportDirectory() {
         val downloadDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)

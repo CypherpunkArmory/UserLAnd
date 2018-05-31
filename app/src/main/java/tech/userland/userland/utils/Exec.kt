@@ -20,14 +20,6 @@ class Exec {
         val NOOP_CONSUMER: (line: String) -> Int = {0}
     }
 
-//    fun executeCommand(commandDir: File, command: String, env: HashMap<String, String> = hashMapOf(), listener: (String) -> Int = NOOP_CONSUMER): String {
-//        return execLocal(commandDir, command, env, listener)
-//    }
-
-//    fun executeCommandAsync(commandDir: File, command: String, env: HashMap<String, String>, listener: (String) -> Int): ProcessWrapper {
-//        return execLocalAsync(commandDir, command, env, listener)
-//    }
-
     fun execLocal(executionDirectory: File, command: ArrayList<String>, env: HashMap<String, String> = hashMapOf(), listener: (String) -> Int = NOOP_CONSUMER): String {
         try {
             val pb = ProcessBuilder(command)

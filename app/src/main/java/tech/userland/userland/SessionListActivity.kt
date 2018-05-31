@@ -201,15 +201,17 @@ class SessionListActivity : AppCompatActivity() {
 
                 }
             }
+
             asyncAwait {
                 downloadList.addAll(downloadManager.downloadRequirements())
                 while(downloadList.isNotEmpty()) {
                     assetsWereDownloaded = true
                     delay(500)
                 }
-                fileManager.moveDownloadedAssetsToSharedSupportDirectory()
-                fileManager.correctFilePermissions()
-
+                if(assetsWereDownloaded) {
+                    fileManager.moveDownloadedAssetsToSharedSupportDirectory()
+                    fileManager.correctFilePermissions()
+                }
             }
             progress_bar_session_list.progress = 25
 
@@ -245,7 +247,7 @@ class SessionListActivity : AppCompatActivity() {
         val connectBotIntent = Intent()
         connectBotIntent.action = "android.intent.action.VIEW"
         // TODO use db data here
-        connectBotIntent.data = Uri.parse("ssh://user@localhost:2022/#userland")
+        connectBotIntent.data = Uri.parse("ssh://non-root@localhost:2022/#userland")
         startActivity(connectBotIntent)
     }
 }
