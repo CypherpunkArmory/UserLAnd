@@ -218,6 +218,7 @@ class SessionListActivity : AppCompatActivity() {
             asyncAwait {
                 // TODO support multiple distribution types
                 if(assetsWereDownloaded) {
+                    // TODO more granular replacement
                     fileManager.copyDistributionAssetsToFilesystem(filesystemDirectoryName, "debian")
                 }
                 if(!fileManager.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")) {
@@ -244,6 +245,7 @@ class SessionListActivity : AppCompatActivity() {
     fun fireConnectBotIntent() {
         val connectBotIntent = Intent()
         connectBotIntent.action = "android.intent.action.VIEW"
+        // TODO use db data here
         connectBotIntent.data = Uri.parse("ssh://user@localhost:2022/#userland")
         startActivity(connectBotIntent)
     }
