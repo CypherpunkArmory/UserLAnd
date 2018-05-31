@@ -201,7 +201,6 @@ class SessionListActivity : AppCompatActivity() {
 
                 }
             }
-            downloadManager.downloadRequirements()
             asyncAwait {
                 downloadList.addAll(downloadManager.downloadRequirements())
                 while(downloadList.isNotEmpty()) {
