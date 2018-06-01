@@ -1,6 +1,7 @@
 package tech.userland.userland
 
 import android.Manifest
+import android.app.ActivityManager
 import android.app.DownloadManager
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
@@ -15,6 +16,7 @@ import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.ContextMenu
 import android.view.Menu
 import android.view.MenuItem
@@ -33,6 +35,14 @@ class SessionListActivity : AppCompatActivity() {
 
     lateinit var sessionList: List<Session>
     lateinit var sessionAdapter: SessionListAdapter
+
+//    private val runningServices = ArrayList<Pair<Long, ProcessWrapper>>()
+//    private val runningServices = ArrayList<Pair<Long, Process>>()
+    lateinit var runningService: Process
+
+    fun Process.pid(): Long {
+        return this.toString().substringAfter("=").substringBefore(",").toLong()
+    }
 
     private val sessionViewModel: SessionViewModel by lazy {
         ViewModelProviders.of(this).get(SessionViewModel::class.java)
@@ -72,6 +82,9 @@ class SessionListActivity : AppCompatActivity() {
             val session = sessionList[position]
             if(!session.active == true) {
                 startSession(session, view)
+            }
+            else {
+                fireConnectBotIntent()
             }
         }
 
@@ -130,19 +143,37 @@ class SessionListActivity : AppCompatActivity() {
         val position = menuInfo.position
         val session = sessionList[position]
         return when(item.itemId) {
-            R.id.menu_item_session_disconnect -> disconnectSession(session)
+            R.id.menu_item_session_kill_service -> killSessionService(session)
             R.id.menu_item_session_edit -> navigateToSessionEdit(session)
             R.id.menu_item_session_delete -> deleteSession(session)
             else -> super.onContextItemSelected(item)
         }
     }
 
-    fun disconnectSession(session: Session): Boolean {
+    fun killSessionService(session: Session): Boolean {
+        // TODO update all sessions relying on service
+        // TODO more granular service killing
         if(session.active) {
             session.active = false
             sessionViewModel.updateSession(session)
             val view = list_sessions.getChildAt(sessionList.indexOf(session))
             view.image_list_item_active.setImageResource(R.drawable.ic_block_white_24dp)
+//            runningService.destroyForcibly()
+//            while(runningService.isAlive) {
+//                Log.e("killSession", "Still alive")
+//            }
+//            runningServices.forEach {
+//                if(it.first == session.pid) {
+//                    try {
+//                        it.second.destroy()
+//                    }
+//                    catch(err: Exception) {
+//                        Log.e("Kill session", err.toString())
+//                    }
+//                }
+//                runningServices.remove(it)
+//            }
+            fileManager.killService(session.filesystemId.toString(), runningService.pid())
         }
         return true
     }
@@ -230,11 +261,21 @@ class SessionListActivity : AppCompatActivity() {
 
             text_session_list_progress_update.text = "Starting service..."
             // TODO some check to determine if service is started
-            asyncAwait { fileManager.startDropbearServer(filesystemDirectoryName) }
+            asyncAwait {
+//                val processWrapper = fileManager.startDropbearServer(filesystemDirectoryName)
+//                runningServices.add(processWrapper.pid to processWrapper)
+//                session.pid = processWrapper.pid
+//                val process = fileManager.startDropbearServer(filesystemDirectoryName)
+//                runningServices.add(process.pid() to process)
+//                session.pid = process.pid()
+                runningService = fileManager.startDropbearServer(filesystemDirectoryName)
+            }
             progress_bar_session_list.progress = 75
 
             text_session_list_progress_update.text = "Connecting to service..."
-            asyncAwait { fireConnectBotIntent() }
+//            asyncAwait {
+//                fireConnectBotIntent()
+//            }
             progress_bar_session_list.progress = 100
 
             text_session_list_progress_update.text = "Session active!"

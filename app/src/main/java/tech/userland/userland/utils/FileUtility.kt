@@ -2,6 +2,7 @@ package tech.userland.userland.utils
 
 import android.content.Context
 import android.os.Environment
+import tech.userland.userland.ProcessWrapper
 import java.io.File
 
 // TODO refactor this class with a better name
@@ -83,17 +84,40 @@ class FileUtility(private val context: Context) {
         Exec().execLocal(executionDirectory, commandToRun, env, Exec.EXEC_INFO_LOGGER)
     }
 
-    fun startDropbearServer(targetDirectoryName: String) {
+    fun startDropbearServer(targetDirectoryName: String): Process {
         val executionDirectory = createAndGetDirectory(targetDirectoryName)
 
-        val commandToRun = arrayListOf("../support/busybox", "sh", "-c")
-        commandToRun.add("../support/execInProot /bin/bash -c /support/startDBServer.sh ")
+//        val commandToRun = arrayListOf("../support/busybox", "sh", "-c")
+//        commandToRun.add("../support/execInProot /bin/bash -c /support/startDBServer.sh")
+//
+//        val env = hashMapOf("LD_LIBRARY_PATH" to (getSupportDirPath()),
+//                "ROOT_PATH" to getFilesDirPath(),
+//                "ROOTFS_PATH" to "${getFilesDirPath()}/$targetDirectoryName",
+//                "PROOT_DEBUG_LEVEL" to "-1")
+//
+//        return Exec().execLocalAsync(executionDirectory, commandToRun, env, Exec.EXEC_INFO_LOGGER)
+        val command = arrayOf("../support/busybox", "sh", "-c",
+                "../support/execInProot /bin/bash -c /support/startDBServer.sh")
+        val env = arrayOf("LD_LIBRARY_PATH=${getSupportDirPath()}",
+                "ROOT_PATH=${getFilesDirPath()}",
+                "ROOTFS_PATH=${getFilesDirPath()}/$targetDirectoryName",
+                "PROOT_DEBUG_LEVEL=-1")
+        return Runtime.getRuntime().exec(command, env, executionDirectory)
+    }
 
-        val env = hashMapOf("LD_LIBRARY_PATH" to (getSupportDirPath()),
-                "ROOT_PATH" to getFilesDirPath(),
-                "ROOTFS_PATH" to "${getFilesDirPath()}/$targetDirectoryName",
-                "PROOT_DEBUG_LEVEL" to "-1")
+    fun killService(filesystemDirectoryName: String, sessionPid: Long) {
+        val executionDirectory = createAndGetDirectory(filesystemDirectoryName)
+        //val commandToRun = arrayListOf("../support/busybox", "sh", "-c")
+        //commandToRun.add("kill -9 $sessionPid")
+        //Exec().execLocal(executionDirectory, commandToRun)
 
-        Exec().execLocalAsync(executionDirectory, commandToRun, env, Exec.EXEC_INFO_LOGGER)
+//        Runtime.getRuntime().exec(arrayOf("kill", "-9", sessionPid.toString()))
+//        val command = arrayListOf("../support/busybox",
+//                "sh", "-c",
+//                "ls")
+//                "pkill -9 -p $sessionPid")
+//                "kill -- -$(ps -o pgid=$sessionPid) | grep -o [0-9]*")
+                val command = arrayListOf("pkill", "dropbear")
+        Exec().execLocal(executionDirectory, command, listener = Exec.EXEC_INFO_LOGGER)
     }
 }

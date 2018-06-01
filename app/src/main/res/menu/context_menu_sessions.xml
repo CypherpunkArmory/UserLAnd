@@ -5,9 +5,9 @@
     tools:context="tech.userland.userland.SessionListActivity">
 
     <item
-        android:id="@+id/menu_item_session_disconnect"
+        android:id="@+id/menu_item_session_kill_service"
         android:orderInCategory="100"
-        android:title="@string/disconnect"
+        android:title="@string/kill_service"
         app:showAsAction="never" />
     <item
         android:id="@+id/menu_item_session_edit"

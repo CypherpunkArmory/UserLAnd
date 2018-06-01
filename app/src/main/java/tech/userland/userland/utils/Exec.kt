@@ -20,6 +20,10 @@ class Exec {
         val NOOP_CONSUMER: (line: String) -> Int = {0}
     }
 
+    fun Process.pid(): String {
+        return this.toString().substringAfter("=")
+    }
+
     fun execLocal(executionDirectory: File, command: ArrayList<String>, env: HashMap<String, String> = hashMapOf(), listener: (String) -> Int = NOOP_CONSUMER): String {
         try {
             val pb = ProcessBuilder(command)
@@ -47,14 +51,19 @@ class Exec {
     private fun collectOutput(inputStream: InputStream, listener: (String) -> Int): String {
         val out = StringBuilder()
         val buf: BufferedReader = inputStream.bufferedReader(UTF_8)
-        var line: String? = buf.readLine()
-        do {
-            if (line != null) {
-                out.append(line).append("\n")
-                listener(line)
-            }
-            line = buf.readLine()
-        } while (line != null)
+
+        val allText = buf.use(BufferedReader::readText)
+        listener(allText)
+        out.append(allText)
+
+//        var line: String? = buf.readLine()
+//        do {
+//            if (line != null) {
+//                out.append(line).append("\n")
+//                listener(line)
+//            }
+//            line = buf.readLine()
+//        } while (line != null)
         return out.toString()
     }
 

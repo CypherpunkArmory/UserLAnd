@@ -32,5 +32,5 @@ data class Session(
         val initialCommand: String = "",
         val runAtDeviceStartup: String = "",
         val startupScript: String = "",
-        val pid: Long = 0
+        var pid: Long = 0
 ) : Parcelable
