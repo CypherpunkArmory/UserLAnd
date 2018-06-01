@@ -163,12 +163,13 @@ class SessionEditActivity: AppCompatActivity() {
         return true
     }
 
-    fun insertSession() {
+    private fun insertSession() {
         if(session.name == "" || session.username == "" || session.password == "") {
             toast("Each field must be answered.")
         }
         else {
             sessionViewModel.insertSession(session)
+            finish()
         }
     }
 }

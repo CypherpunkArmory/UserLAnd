@@ -91,10 +91,11 @@ class FilesystemEditActivity: AppCompatActivity() {
         }
     }
 
-    fun insertFilesystem() {
+    private fun insertFilesystem() {
         if(filesystemName != "") {
             val newFilesystem = Filesystem(0, filesystemName, filesystemType, false, "/", Date().toString())
             filesystemViewModel.insertFilesystem(newFilesystem)
+            finish()
         }
         else {
            toast("Filesystem name cannot be blank.")
