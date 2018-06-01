@@ -224,10 +224,8 @@ class SessionListActivity : AppCompatActivity() {
             text_session_list_progress_update.text = "Setting up file system..."
             asyncAwait {
                 // TODO support multiple distribution types
-                if(assetsWereDownloaded) {
-                    // TODO more granular replacement
-                    fileManager.copyDistributionAssetsToFilesystem(filesystemDirectoryName, "debian")
-                }
+                // TODO only copy when newer versions have been downloaded (and skip rootfs)
+                fileManager.copyDistributionAssetsToFilesystem(filesystemDirectoryName, "debian")
                 if(!fileManager.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")) {
                     fileManager.extractFilesystem(filesystemDirectoryName)
                 }
@@ -258,7 +256,7 @@ class SessionListActivity : AppCompatActivity() {
         val connectBotIntent = Intent()
         connectBotIntent.action = "android.intent.action.VIEW"
         // TODO use db data here
-        connectBotIntent.data = Uri.parse("ssh://non-root@localhost:2022/#userland")
+        connectBotIntent.data = Uri.parse("ssh://user@localhost:2022/#userland")
         startActivity(connectBotIntent)
     }
 }
