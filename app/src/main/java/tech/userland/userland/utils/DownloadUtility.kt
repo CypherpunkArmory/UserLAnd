@@ -98,7 +98,7 @@ class DownloadUtility(val uiContext: Context) {
         request.setAllowedOverMetered(false)
         request.setAllowedOverRoaming(false)
         request.setDescription("Downloading $type.")
-        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
         request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "UserLAnd:$type")
 
         return downloadManager.enqueue(request)
