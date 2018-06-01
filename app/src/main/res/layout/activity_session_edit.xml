@@ -31,6 +31,7 @@
             android:id="@+id/text_input_session_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inputType="text"
             android:hint="@string/hint_session_name" />
 
     </android.support.design.widget.TextInputLayout>
@@ -90,6 +91,7 @@
             android:id="@+id/text_input_username"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inputType="text"
             android:hint="@string/hint_username" />
 
     </android.support.design.widget.TextInputLayout>
@@ -107,6 +109,7 @@
             android:id="@+id/text_input_password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inputType="textPassword"
             android:hint="@string/hint_password" />
 
     </android.support.design.widget.TextInputLayout>
