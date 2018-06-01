@@ -23,9 +23,14 @@
     <string name="prompt_filesystem">Filesystem:</string>
     <string name="prompt_type">Type:</string>
 
+
+    <!-- Wifi alert -->
     <string name="alert_wifi_disabled_title">No wifi!</string>
     <string name="alert_wifi_disabled_message">A large asset (~80mb) needs to be downloaded.</string>
     <string name="alert_wifi_disabled_force_button">Force</string>
     <string name="alert_wifi_disabled_turn_on_wifi_button">Turn On Wifi</string>
     <string name="alert_wifi_disabled_cancel_button">Cancel</string>
+
+    <!-- Toasts -->
+    <string name="filesystem_delete_failure">Failed to delete!</string>
 </resources>

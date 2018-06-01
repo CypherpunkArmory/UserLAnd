@@ -11,8 +11,10 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import kotlinx.android.synthetic.main.activity_filesystem_list.*
+import org.jetbrains.anko.toast
 import tech.userland.userland.database.models.Filesystem
 import tech.userland.userland.ui.FilesystemViewModel
+import tech.userland.userland.utils.FileUtility
 
 
 class FilesystemListActivity: AppCompatActivity() {
@@ -30,6 +32,10 @@ class FilesystemListActivity: AppCompatActivity() {
 
             list_file_system_management.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, filesystemNames)
         }
+    }
+
+    private val fileManager: FileUtility by lazy {
+        FileUtility(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,6 +76,10 @@ class FilesystemListActivity: AppCompatActivity() {
 
     fun deleteFilesystem(filesystem: Filesystem): Boolean {
         fileSystemViewModel.deleteFilesystemById(filesystem.id)
+        val success = fileManager.deleteFilesystem(filesystem.id.toString())
+        if(!success) {
+            toast(R.string.filesystem_delete_failure)
+        }
         return true
     }
 }

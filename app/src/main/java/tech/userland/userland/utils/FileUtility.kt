@@ -99,4 +99,9 @@ class FileUtility(private val context: Context) {
         val command = arrayListOf("pkill", "dropbear")
         Exec().execLocal(executionDirectory, command, listener = Exec.EXEC_INFO_LOGGER)
     }
+
+    fun deleteFilesystem(filesystemDirectoryName: String): Boolean {
+        val directory = createAndGetDirectory(filesystemDirectoryName)
+        return directory.deleteRecursively()
+    }
 }
