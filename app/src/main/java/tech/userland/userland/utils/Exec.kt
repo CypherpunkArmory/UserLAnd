@@ -1,7 +1,6 @@
 package tech.userland.userland.utils
 
 import android.util.Log
-import tech.userland.userland.ProcessWrapper
 import java.io.BufferedReader
 import java.io.File
 import java.io.IOException
@@ -18,10 +17,6 @@ class Exec {
         }
 
         val NOOP_CONSUMER: (line: String) -> Int = {0}
-    }
-
-    fun Process.pid(): String {
-        return this.toString().substringAfter("=")
     }
 
     fun execLocal(executionDirectory: File, command: ArrayList<String>, env: HashMap<String, String> = hashMapOf(), listener: (String) -> Int = NOOP_CONSUMER): String {
@@ -55,26 +50,6 @@ class Exec {
         val allText = buf.use(BufferedReader::readText)
         listener(allText)
         out.append(allText)
-
-//        var line: String? = buf.readLine()
-//        do {
-//            if (line != null) {
-//                out.append(line).append("\n")
-//                listener(line)
-//            }
-//            line = buf.readLine()
-//        } while (line != null)
         return out.toString()
     }
-
-    fun execLocalAsync(commandDir: File, command: ArrayList<String>, env: HashMap<String, String>, listener: (String) -> Int): ProcessWrapper {
-        val pb = ProcessBuilder(command)
-        pb.redirectErrorStream(true)
-        pb.environment().putAll(env)
-        pb.directory(commandDir)
-
-        Log.i("ExecUtils","Running: ${pb.command()} \n with env $env")
-        return ProcessWrapper(pb, listener)
-    }
-
 }
