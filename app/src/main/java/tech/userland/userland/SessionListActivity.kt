@@ -63,7 +63,7 @@ class SessionListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_session_list)
         setSupportActionBar(toolbar)
-        getSupportActionBar()?.setTitle(R.string.sessions)
+        supportActionBar?.setTitle(R.string.sessions)
 
         sessionViewModel.getAllSessions().observe(this, sessionChangeObserver)
 
