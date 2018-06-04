@@ -1,6 +1,7 @@
 package tech.userland.userland
 
 import android.arch.lifecycle.ViewModelProviders
+import android.database.sqlite.SQLiteConstraintException
 import android.os.Bundle
 import android.support.design.widget.TextInputEditText
 import android.support.v7.app.AppCompatActivity
@@ -11,14 +12,18 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import kotlinx.android.synthetic.main.activity_filesystem_edit.*
+import org.jetbrains.anko.longToast
 import org.jetbrains.anko.toast
 import tech.userland.userland.database.models.Filesystem
 import tech.userland.userland.ui.FilesystemViewModel
+import tech.userland.userland.utils.asyncAwait
+import tech.userland.userland.utils.launchAsync
 import java.util.*
 
 class FilesystemEditActivity: AppCompatActivity() {
-    var filesystemName: String = ""
-    var filesystemType: String = ""
+    val filesystem: Filesystem by lazy {
+        intent.getParcelableExtra("filesystem") as Filesystem
+    }
 
     var editExisting = false
 
@@ -31,16 +36,15 @@ class FilesystemEditActivity: AppCompatActivity() {
         setContentView(R.layout.activity_filesystem_edit)
         setSupportActionBar(toolbar)
 
-        filesystemName = intent.getStringExtra("filesystemName")
-        if(filesystemName != "") {
+        if(filesystem.name != "") {
             editExisting = true
         }
 
         val nameInput: TextInputEditText = findViewById(R.id.input_filesystem_name)
-        nameInput.setText(filesystemName)
+        nameInput.setText(filesystem.name)
         nameInput.addTextChangedListener(object: TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
-                filesystemName = p0.toString()
+                filesystem.name = p0.toString()
             }
 
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
@@ -58,12 +62,15 @@ class FilesystemEditActivity: AppCompatActivity() {
         val filesystemTypeAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, filesystemTypeList)
         filesystemTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         filesystemTypeDropdown.adapter = filesystemTypeAdapter
+        if(editExisting) {
+            filesystemTypeDropdown.isEnabled = false
+        }
         filesystemTypeDropdown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                filesystemType = parent?.getItemAtPosition(position).toString()
+                filesystem.type = parent?.getItemAtPosition(position).toString()
             }
         }
 
@@ -92,13 +99,23 @@ class FilesystemEditActivity: AppCompatActivity() {
     }
 
     private fun insertFilesystem() {
-        if(filesystemName != "") {
-            val newFilesystem = Filesystem(0, filesystemName, filesystemType, false, "/", Date().toString())
-            filesystemViewModel.insertFilesystem(newFilesystem)
-            finish()
+        // TODO cleaner logic
+        if(filesystem.name == "") {
+            toast("Filesystem name cannot be blank.")
         }
         else {
-           toast("Filesystem name cannot be blank.")
+            if(editExisting) {
+                filesystemViewModel.updateFilesystem(filesystem)
+                finish()
+            }
+            else {
+                launchAsync {
+                    when(filesystemViewModel.insertFilesystem(filesystem)) {
+                        true -> finish()
+                        false -> longToast(R.string.filesystem_unique_name_required)
+                    }
+                }
+            }
         }
     }
 }

@@ -12,7 +12,7 @@ interface SessionDao {
     @Query("select * from session where name = :name")
     fun getSessionByName(name: String): Session
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.FAIL)
     fun insertSession(session: Session)
 
     @Query("delete from session where id = :id")

@@ -13,10 +13,12 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import kotlinx.android.synthetic.main.activity_session_edit.*
+import org.jetbrains.anko.longToast
 import org.jetbrains.anko.toast
 import tech.userland.userland.database.models.*
 import tech.userland.userland.ui.FilesystemViewModel
 import tech.userland.userland.ui.SessionViewModel
+import tech.userland.userland.utils.launchAsync
 
 class SessionEditActivity: AppCompatActivity() {
 
@@ -164,12 +166,23 @@ class SessionEditActivity: AppCompatActivity() {
     }
 
     private fun insertSession() {
+        // TODO cleaner logic
         if(session.name == "" || session.username == "" || session.password == "") {
             toast("Each field must be answered.")
         }
         else {
-            sessionViewModel.insertSession(session)
-            finish()
+            if(editExisting) {
+                sessionViewModel.updateSession(session)
+                finish()
+            }
+            else {
+                launchAsync {
+                    when(sessionViewModel.insertSession(session)) {
+                        true -> finish()
+                        false -> longToast(R.string.session_unique_name_required)
+                    }
+                }
+            }
         }
     }
 }

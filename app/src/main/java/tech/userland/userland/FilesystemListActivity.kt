@@ -47,7 +47,7 @@ class FilesystemListActivity: AppCompatActivity() {
 
         registerForContextMenu(list_file_system_management)
 
-        fab.setOnClickListener { navigateToFilesystemEdit("") }
+        fab.setOnClickListener { navigateToFilesystemEdit(Filesystem(0)) }
     }
 
     override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
@@ -61,15 +61,15 @@ class FilesystemListActivity: AppCompatActivity() {
         val filesystem = filesystemList[position]
 
         return when (item.itemId) {
-            R.id.menu_item_file_system_edit -> navigateToFilesystemEdit(filesystem.name)
+            R.id.menu_item_file_system_edit -> navigateToFilesystemEdit(filesystem)
             R.id.menu_item_file_system_delete -> deleteFilesystem(filesystem)
             else -> super.onContextItemSelected(item)
         }
     }
 
-    fun navigateToFilesystemEdit(filesystemName: String): Boolean {
+    fun navigateToFilesystemEdit(filesystem: Filesystem): Boolean {
         val intent = Intent(this, FilesystemEditActivity::class.java)
-        intent.putExtra("filesystemName", filesystemName)
+        intent.putExtra("filesystem", filesystem)
         startActivity(intent)
         return true
     }

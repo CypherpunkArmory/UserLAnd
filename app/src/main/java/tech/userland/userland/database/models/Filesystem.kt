@@ -12,8 +12,8 @@ import java.util.*
 data class Filesystem(
         @PrimaryKey(autoGenerate = true)
         val id: Long,
-        val name: String = "",
-        val type: String = "",
+        var name: String = "",
+        var type: String = "",
         val realRoot: Boolean = false,
         val location: String = "",
         val dateCreated: String = Date().toString()
