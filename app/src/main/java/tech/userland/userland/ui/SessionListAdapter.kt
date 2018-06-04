@@ -14,7 +14,7 @@ import tech.userland.userland.database.models.Session
 class SessionListAdapter(private var activity: Activity, private var items: ArrayList<Session>) : BaseAdapter() {
     private class ViewHolder(row: View) {
         var imageViewActive: ImageView = row.findViewById(R.id.image_list_item_active)
-        var textViewType: TextView = row.findViewById(R.id.text_list_item_type)
+        var textViewServiceType: TextView = row.findViewById(R.id.text_list_item_service_type)
         var textViewSessionName: TextView = row.findViewById(R.id.text_list_item_session_name)
         var textViewFilesystemName: TextView = row.findViewById(R.id.text_list_item_filesystem_name)
     }
@@ -41,7 +41,7 @@ class SessionListAdapter(private var activity: Activity, private var items: Arra
             viewHolder.imageViewActive.setImageResource(R.drawable.ic_block_white_24dp)
         }
 
-        viewHolder.textViewType.text = session.type
+        viewHolder.textViewServiceType.text = session.serviceType
         viewHolder.textViewSessionName.text = session.name
         viewHolder.textViewFilesystemName.text = session.filesystemName
 

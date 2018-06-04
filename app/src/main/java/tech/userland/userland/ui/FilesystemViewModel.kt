@@ -8,7 +8,6 @@ import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
 import tech.userland.userland.database.AppDatabase
 import tech.userland.userland.database.models.Filesystem
-import tech.userland.userland.utils.asyncAwait
 import kotlin.coroutines.experimental.Continuation
 import kotlin.coroutines.experimental.suspendCoroutine
 

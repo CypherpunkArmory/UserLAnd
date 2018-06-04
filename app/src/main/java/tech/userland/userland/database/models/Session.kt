@@ -24,13 +24,14 @@ data class Session(
         var name: String = "",
         var filesystemId: Long,
         var filesystemName: String = "",
+        var active: Boolean = false,
         var username: String = "",
         var password: String = "",
+        var serviceType: String = "",
+        var clientType: String = "",
         val port: Long = 2022,
-        var active: Boolean = false,
-        var type: String = "",
-        val initialCommand: String = "",
-        val runAtDeviceStartup: String = "",
+        var pid: Long = 0,
         val startupScript: String = "",
-        var pid: Long = 0
+        val runAtDeviceStartup: String = "",
+        val initialCommand: String = ""
 ) : Parcelable

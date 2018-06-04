@@ -29,7 +29,7 @@
         />
 
     <TextView
-        android:id="@+id/text_list_item_type"
+        android:id="@+id/text_list_item_service_type"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="16dp"
