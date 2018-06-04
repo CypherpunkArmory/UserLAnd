@@ -22,7 +22,8 @@
     <string name="hint_password">Password</string>
 
     <string name="prompt_filesystem">Filesystem:</string>
-    <string name="prompt_type">Type:</string>
+    <string name="prompt_service_type">Service Type:</string>
+    <string name="prompt_client_type">Client Type:</string>
 
 
     <!-- Wifi alert -->
