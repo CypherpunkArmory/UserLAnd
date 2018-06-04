@@ -1,7 +1,6 @@
 package tech.userland.userland
 
 import android.arch.lifecycle.ViewModelProviders
-import android.database.sqlite.SQLiteConstraintException
 import android.os.Bundle
 import android.support.design.widget.TextInputEditText
 import android.support.v7.app.AppCompatActivity
@@ -16,7 +15,6 @@ import org.jetbrains.anko.longToast
 import org.jetbrains.anko.toast
 import tech.userland.userland.database.models.Filesystem
 import tech.userland.userland.ui.FilesystemViewModel
-import tech.userland.userland.utils.asyncAwait
 import tech.userland.userland.utils.launchAsync
 import java.util.*
 
@@ -70,7 +68,7 @@ class FilesystemEditActivity: AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                filesystem.type = parent?.getItemAtPosition(position).toString()
+                filesystem.distributionType = parent?.getItemAtPosition(position).toString()
             }
         }
 

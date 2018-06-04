@@ -13,8 +13,10 @@ data class Filesystem(
         @PrimaryKey(autoGenerate = true)
         val id: Long,
         var name: String = "",
-        var type: String = "",
-        val realRoot: Boolean = false,
+        var distributionType: String = "",
+        val defaultUsername: String = "User",
+        val defaultPassword: String = "UserLAnd",
         val location: String = "",
-        val dateCreated: String = Date().toString()
+        val dateCreated: String = Date().toString(),
+        val realRoot: Boolean = false
 ) : Parcelable

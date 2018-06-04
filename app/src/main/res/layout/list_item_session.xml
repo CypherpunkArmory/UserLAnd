@@ -11,7 +11,7 @@
         android:layout_height="0dp"
         android:layout_marginLeft="8dp"
         android:src="@drawable/ic_block_white_24dp"
-        app:layout_constraintEnd_toStartOf="@id/text_list_item_type"
+        app:layout_constraintEnd_toStartOf="@id/text_list_item_service_type"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -23,13 +23,13 @@
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         app:layout_constraintStart_toEndOf="@id/image_list_item_active"
-        app:layout_constraintEnd_toStartOf="@id/text_list_item_type"
+        app:layout_constraintEnd_toStartOf="@id/text_list_item_service_type"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         />
 
     <TextView
-        android:id="@+id/text_list_item_type"
+        android:id="@+id/text_list_item_service_type"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="16dp"
@@ -47,7 +47,7 @@
         android:src="@drawable/ic_arrow_forward_white_24dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/text_list_item_filesystem_name"
-        app:layout_constraintTop_toBottomOf="@id/text_list_item_type" />
+        app:layout_constraintTop_toBottomOf="@id/text_list_item_service_type" />
 
     <TextView
         android:id="@+id/text_list_item_filesystem_name"
@@ -57,7 +57,7 @@
         android:textSize="32sp"
         android:textAppearance="?android:attr/textAppearanceListItemSmall"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/text_list_item_type"
+        app:layout_constraintStart_toEndOf="@id/text_list_item_service_type"
         app:layout_constraintTop_toTopOf="parent" />
 
 </android.support.constraint.ConstraintLayout>

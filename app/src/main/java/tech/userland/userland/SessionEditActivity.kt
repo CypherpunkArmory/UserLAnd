@@ -108,7 +108,7 @@ class SessionEditActivity: AppCompatActivity() {
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val data = parent?.getItemAtPosition(position) ?: ""
-                session.type = data.toString()
+                session.serviceType = data.toString()
             }
         }
 
