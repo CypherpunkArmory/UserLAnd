@@ -19,7 +19,7 @@ class Exec {
         val NOOP_CONSUMER: (line: String) -> Int = {0}
     }
 
-    fun execLocal(executionDirectory: File, command: ArrayList<String>, env: HashMap<String, String> = hashMapOf(), listener: (String) -> Int = NOOP_CONSUMER): String {
+    fun execLocal(executionDirectory: File, command: ArrayList<String>, env: HashMap<String, String> = hashMapOf(), listener: (String) -> Int = NOOP_CONSUMER): Process {
         try {
             val pb = ProcessBuilder(command)
             pb.directory(executionDirectory)
@@ -35,7 +35,7 @@ class Exec {
             } else {
                 Log.i("Exec", "stdout: $result")
             }
-            return result
+            return process
         } catch (e: IOException) {
             throw RuntimeException(e)
         } catch (e: InterruptedException) {
