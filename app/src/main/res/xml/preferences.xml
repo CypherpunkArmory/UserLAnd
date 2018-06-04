@@ -5,12 +5,12 @@
         android:title="@string/pref_proot_category"
         android:key="pref_proot_category" >
         <CheckBoxPreference
-            android:key="pref_proot_debug_checkbox"
+            android:key="pref_proot_debug_enabled"
             android:title="@string/pref_proot_debugging_enabled_title"
             android:summary="@string/pref_proot_debugging_enabled_summary"
             android:defaultValue="false" />
         <ListPreference
-            android:dependency="pref_proot_debug_checkbox"
+            android:dependency="pref_proot_debug_enabled"
             android:key="pref_proot_debug_level"
             android:title="@string/pref_proot_debugging_level_title"
             android:summary="@string/pref_proot_debugging_level_summary"

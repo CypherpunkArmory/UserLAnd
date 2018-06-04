@@ -2,6 +2,7 @@ package tech.userland.userland.utils
 
 import android.content.Context
 import android.os.Environment
+import android.preference.PreferenceManager
 import java.io.File
 
 // TODO refactor this class with a better name
@@ -69,29 +70,39 @@ class FileUtility(private val context: Context) {
         Exec().execLocal(executionDirectory, commandToRun, listener = Exec.EXEC_INFO_LOGGER)
     }
 
-    fun extractFilesystem(targetDirectoryName: String) {
+    private fun wrapWithBusyboxAndExecute(targetDirectoryName: String, commandToWrap: String): Process {
         val executionDirectory = createAndGetDirectory(targetDirectoryName)
 
-        val commandToRun = arrayListOf("../support/busybox", "sh", "-c")
-        commandToRun.add("../support/execInProot /support/extractFilesystem.sh")
+        val preferences = PreferenceManager.getDefaultSharedPreferences(context)
+        val prootDebuggingEnabled = preferences.getBoolean("pref_proot_debug_enabled", false)
+        val prootDebuggingLevel =
+                if(prootDebuggingEnabled) preferences.getString("pref_proot_debug_level", "-1")
+                else "-1"
+
+        val command = arrayListOf("../support/busybox", "sh", "-c")
+
+        val commandToAdd =
+                if(prootDebuggingEnabled) "$commandToWrap &> /mnt/sdcard/PRoot_Debug_Log"
+                else commandToWrap
+
+        command.add(commandToAdd)
 
         val env = hashMapOf("LD_LIBRARY_PATH" to (getSupportDirPath()),
                 "ROOT_PATH" to getFilesDirPath(),
                 "ROOTFS_PATH" to "${getFilesDirPath()}/$targetDirectoryName",
-                "PROOT_DEBUG_LEVEL" to "-1")
+                "PROOT_DEBUG_LEVEL" to prootDebuggingLevel)
 
-        Exec().execLocal(executionDirectory, commandToRun, env, Exec.EXEC_INFO_LOGGER)
+        return Exec().execLocal(executionDirectory, command, env)
+    }
+
+    fun extractFilesystem(targetDirectoryName: String) {
+        val command = "../support/execInProot /support/extractFilesystem.sh"
+        wrapWithBusyboxAndExecute(targetDirectoryName, command)
     }
 
     fun startDropbearServer(targetDirectoryName: String): Process {
-        val executionDirectory = createAndGetDirectory(targetDirectoryName)
-        val command = arrayOf("../support/busybox", "sh", "-c",
-                "../support/execInProot /bin/bash -c /support/startDBServer.sh")
-        val env = arrayOf("LD_LIBRARY_PATH=${getSupportDirPath()}",
-                "ROOT_PATH=${getFilesDirPath()}",
-                "ROOTFS_PATH=${getFilesDirPath()}/$targetDirectoryName",
-                "PROOT_DEBUG_LEVEL=-1")
-        return Runtime.getRuntime().exec(command, env, executionDirectory)
+        val command = "../support/execInProot /bin/bash -c /support/startDBServer.sh"
+        return wrapWithBusyboxAndExecute(targetDirectoryName, command)
     }
 
     fun killService(filesystemDirectoryName: String) {
