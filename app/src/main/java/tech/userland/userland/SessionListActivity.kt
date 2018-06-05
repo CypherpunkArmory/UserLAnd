@@ -34,6 +34,12 @@ class SessionListActivity : AppCompatActivity() {
     lateinit var sessionList: List<Session>
     lateinit var sessionAdapter: SessionListAdapter
 
+    lateinit var runningService: Process
+
+    fun Process.pid(): Long {
+        return this.toString().substringAfter("=").substringBefore(",").toLong()
+    }
+
     private val sessionViewModel: SessionViewModel by lazy {
         ViewModelProviders.of(this).get(SessionViewModel::class.java)
     }
@@ -149,7 +155,7 @@ class SessionListActivity : AppCompatActivity() {
             sessionViewModel.updateSession(session)
             val view = list_sessions.getChildAt(sessionList.indexOf(session))
             view.image_list_item_active.setImageResource(R.drawable.ic_block_white_24dp)
-            fileManager.killService(session.filesystemId.toString())
+            fileManager.killService(session.filesystemId.toString(), runningService.pid())
         }
         return true
     }
@@ -236,7 +242,7 @@ class SessionListActivity : AppCompatActivity() {
             text_session_list_progress_update.text = "Starting service..."
             // TODO some check to determine if service is started
             asyncAwait {
-                fileManager.startDropbearServer(filesystemDirectoryName)
+                runningService = fileManager.startDropbearServer(filesystemDirectoryName)
                 delay(500)
             }
             progress_bar_session_list.progress = 75
