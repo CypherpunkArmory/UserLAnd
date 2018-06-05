@@ -148,7 +148,7 @@ class SessionListActivity : AppCompatActivity() {
             session.active = false
             sessionViewModel.updateSession(session)
             val view = list_sessions.getChildAt(sessionList.indexOf(session))
-            view.image_list_item_active.setImageResource(R.drawable.ic_block_white_24dp)
+            view.image_list_item_active.setImageResource(R.drawable.ic_block_red_24dp)
             fileManager.killService(session.filesystemId.toString())
         }
         return true

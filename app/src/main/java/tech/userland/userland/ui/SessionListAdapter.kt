@@ -35,10 +35,10 @@ class SessionListAdapter(private var activity: Activity, private var items: Arra
         val session = items[position]
 
         if(session.active) {
-            viewHolder.imageViewActive.setImageResource(R.drawable.ic_check_white_24dp)
+            viewHolder.imageViewActive.setImageResource(R.drawable.ic_check_circle_green_24dp)
         }
         else {
-            viewHolder.imageViewActive.setImageResource(R.drawable.ic_block_white_24dp)
+            viewHolder.imageViewActive.setImageResource(R.drawable.ic_block_red_24dp)
         }
 
         viewHolder.textViewServiceType.text = session.serviceType
