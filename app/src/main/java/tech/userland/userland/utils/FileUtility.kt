@@ -54,6 +54,7 @@ class FileUtility(private val context: Context) {
     fun correctFilePermissions() {
         val filePermissions = listOf(
                 Triple("proot", "support", "0777"),
+                Triple("killProcTree.sh", "support", "0777"),
                 Triple("busybox", "support", "0777"),
                 Triple("libtalloc.so.2", "support", "0777"),
                 Triple("execInProot", "support", "0777"),
@@ -92,7 +93,7 @@ class FileUtility(private val context: Context) {
                 "ROOTFS_PATH" to "${getFilesDirPath()}/$targetDirectoryName",
                 "PROOT_DEBUG_LEVEL" to prootDebuggingLevel)
 
-        return Exec().execLocal(executionDirectory, command, env)
+        return Exec().execLocal(executionDirectory, command, env, Exec.EXEC_INFO_LOGGER)
     }
 
     fun extractFilesystem(targetDirectoryName: String) {
@@ -105,10 +106,10 @@ class FileUtility(private val context: Context) {
         return wrapWithBusyboxAndExecute(targetDirectoryName, command)
     }
 
-    fun killService(filesystemDirectoryName: String) {
+    fun killService(filesystemDirectoryName: String, pid: Long) {
         val executionDirectory = createAndGetDirectory(filesystemDirectoryName)
-        val command = arrayListOf("pkill", "dropbear")
-        Exec().execLocal(executionDirectory, command, listener = Exec.EXEC_INFO_LOGGER)
+        val command = "/data/user/0/tech.userland.userland/files/support/killProcTree.sh " + pid.toString()
+        wrapWithBusyboxAndExecute(filesystemDirectoryName, command)
     }
 
     fun deleteFilesystem(filesystemDirectoryName: String): Boolean {
