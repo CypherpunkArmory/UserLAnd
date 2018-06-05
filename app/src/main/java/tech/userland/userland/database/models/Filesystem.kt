@@ -14,8 +14,8 @@ data class Filesystem(
         val id: Long,
         var name: String = "",
         var distributionType: String = "",
-        val defaultUsername: String = "User",
-        val defaultPassword: String = "UserLAnd",
+        val defaultUsername: String = "user",
+        val defaultPassword: String = "userland",
         val location: String = "",
         val dateCreated: String = Date().toString(),
         val realRoot: Boolean = false
