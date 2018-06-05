@@ -36,6 +36,12 @@ class SessionListActivity : AppCompatActivity() {
     lateinit var sessionList: List<Session>
     lateinit var sessionAdapter: SessionListAdapter
 
+    lateinit var runningService: Process
+
+    fun Process.pid(): Long {
+        return this.toString().substringAfter("=").substringBefore(",").toLong()
+    }
+
     private val sessionViewModel: SessionViewModel by lazy {
         ViewModelProviders.of(this).get(SessionViewModel::class.java)
     }
@@ -238,7 +244,7 @@ class SessionListActivity : AppCompatActivity() {
             // TODO some check to determine if service is started
             text_session_list_progress_update.setText(R.string.progress_starting)
             asyncAwait {
-                fileManager.startDropbearServer(filesystemDirectoryName)
+                runningService = fileManager.startDropbearServer(filesystemDirectoryName)
                 delay(500)
             }
 

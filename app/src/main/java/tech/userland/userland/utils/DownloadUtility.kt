@@ -32,7 +32,8 @@ class DownloadUtility(val uiContext: Context) {
             "support:proot" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/armhf/proot",
             "support:busybox" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/armhf/busybox",
             "support:libtalloc.so.2" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/armhf/libtalloc.so.2",
-            "support:execInProot" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/main/execInProot"
+            "support:execInProot" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/main/execInProot",
+            "support:killProcTree.sh" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/main/killProcTree.sh"
     )
 
     val debianAssets = listOf(
