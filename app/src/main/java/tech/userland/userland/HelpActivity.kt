@@ -16,7 +16,7 @@ class HelpActivity : AppCompatActivity() {
 
         help_toc_button.setOnClickListener { navigateToToc() }
         github_logo.setOnClickListener {
-            val intent = Intent("android.intent.action.VIEW", Uri.parse("https://github.com/CypherpunkArmory/UserLAnd"))
+            val intent = Intent("android.intent.action.VIEW", Uri.parse("https://github.com/CypherpunkArmory/UserLAnd/issues"))
             startActivity(intent)
         }
     }
