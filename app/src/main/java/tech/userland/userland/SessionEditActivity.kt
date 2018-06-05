@@ -62,12 +62,12 @@ class SessionEditActivity: AppCompatActivity() {
         filesystemViewModel.getAllFilesystems().observe(this, filesystemChangeObserver)
 
         // Session name input
-        if(session.name != "") {
+        if (session.name != "") {
             editExisting = true
         }
         val sessionNameInput: TextInputEditText = findViewById(R.id.text_input_session_name)
         sessionNameInput.setText(session.name)
-        sessionNameInput.addTextChangedListener(object: TextWatcher {
+        sessionNameInput.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
                 session.name = p0.toString()
             }
@@ -87,22 +87,26 @@ class SessionEditActivity: AppCompatActivity() {
                     "" -> return
                     else -> {
                         // TODO adapter to associate filesystem structure with list items?
-                        session.filesystemName = filesystemName
-                        session.filesystemId = filesystemList.find { it.name == filesystemName }!!.id
+                        val filesystem = filesystemList.find { it.name == filesystemName }
+                        session.filesystemName = filesystem!!.name
+                        session.filesystemId = filesystem.id
+                        text_input_username.setText(filesystem.defaultUsername)
                     }
                 }
             }
         }
 
-        // Session type dropdown
-        val sessionTypeList = ArrayList<String>()
-        sessionTypeList.add("ssh")
+        // Session service type dropdown
+        // TODO reenable this dropdown
+        val sessionServiceTypeList = ArrayList<String>()
+        sessionServiceTypeList.add("ssh")
 
-        val sessionTypeDropdown: Spinner = findViewById(R.id.spinner_session_type)
-        val sessionTypeAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, sessionTypeList)
-        sessionTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        sessionTypeDropdown.adapter = sessionTypeAdapter
-        sessionTypeDropdown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        val sessionServiceTypeDropdown: Spinner = findViewById(R.id.spinner_session_service_type)
+        val sessionServiceTypeAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, sessionServiceTypeList)
+        sessionServiceTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        sessionServiceTypeDropdown.adapter = sessionServiceTypeAdapter
+        sessionServiceTypeDropdown.isEnabled = false
+        sessionServiceTypeDropdown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
@@ -112,24 +116,31 @@ class SessionEditActivity: AppCompatActivity() {
             }
         }
 
+        // Session client type dropdown
+        // TODO reenable this dropdown
+        val sessionClientTypeList = ArrayList<String>()
+        sessionClientTypeList.add("ConnectBot")
+
+        val sessionClientTypeDropdown: Spinner = findViewById(R.id.spinner_session_client_type)
+        val sessionClientTypeAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, sessionClientTypeList)
+        sessionClientTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        sessionClientTypeDropdown.adapter = sessionClientTypeAdapter
+        sessionClientTypeDropdown.isEnabled = false
+        sessionClientTypeDropdown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val data = parent?.getItemAtPosition(position) ?: ""
+                session.clientType = data.toString()
+            }
+        }
+
         // Username input
-        val usernameInput: TextInputEditText = findViewById(R.id.text_input_username)
-        usernameInput.setText(session.username)
-        usernameInput.addTextChangedListener(object: TextWatcher {
+        text_input_username.isEnabled = false
+        text_input_username.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
                 session.username = p0.toString()
-            }
-
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
-        })
-
-        // Password input
-        val passwordInput: TextInputEditText = findViewById(R.id.text_input_password)
-        passwordInput.setText(session.password)
-        passwordInput.addTextChangedListener(object: TextWatcher {
-            override fun afterTextChanged(p0: Editable?) {
-                session.password = p0.toString()
             }
 
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
@@ -167,7 +178,7 @@ class SessionEditActivity: AppCompatActivity() {
 
     private fun insertSession() {
         // TODO cleaner logic
-        if(session.name == "" || session.username == "" || session.password == "") {
+        if(session.name == "" || session.username == "") {
             toast("Each field must be answered.")
         }
         else {
