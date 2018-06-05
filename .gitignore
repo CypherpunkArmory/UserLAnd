@@ -40,6 +40,7 @@ captures/
 .idea/dictionaries
 .idea/libraries
 .idea/caches
+.idea/assetWizardSettings.xml
 
 # Keystore files
 *.jks
