@@ -111,7 +111,6 @@ class DownloadUtility(val uiContext: Context) {
         return !asset.exists()
     }
 
-
     fun downloadRequirements(): List<Long> {
         return assets
                 .filter {
