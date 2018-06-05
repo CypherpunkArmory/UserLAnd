@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter
 import kotlinx.android.synthetic.main.activity_filesystem_list.*
 import org.jetbrains.anko.toast
 import tech.userland.userland.database.models.Filesystem
+import tech.userland.userland.ui.FilesystemListAdapter
 import tech.userland.userland.ui.FilesystemViewModel
 import tech.userland.userland.utils.FileUtility
 
@@ -30,7 +31,7 @@ class FilesystemListActivity: AppCompatActivity() {
             filesystemList = it
             val filesystemNames = filesystemList.map { filesystem -> filesystem.name }
 
-            list_file_system_management.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, filesystemNames)
+            list_file_system_management.adapter = FilesystemListAdapter(this, filesystemList)
         }
     }
 

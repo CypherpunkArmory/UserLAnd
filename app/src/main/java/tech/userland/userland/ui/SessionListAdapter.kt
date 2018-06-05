@@ -11,7 +11,7 @@ import android.widget.TextView
 import tech.userland.userland.R
 import tech.userland.userland.database.models.Session
 
-class SessionListAdapter(private var activity: Activity, private var items: ArrayList<Session>) : BaseAdapter() {
+class SessionListAdapter(private var activity: Activity, private var items: List<Session>) : BaseAdapter() {
     private class ViewHolder(row: View) {
         var imageViewActive: ImageView = row.findViewById(R.id.image_list_item_active)
         var textViewServiceType: TextView = row.findViewById(R.id.text_list_item_service_type)
