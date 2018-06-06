@@ -34,6 +34,8 @@ class SessionListActivity : AppCompatActivity() {
     lateinit var sessionList: List<Session>
     lateinit var sessionAdapter: SessionListAdapter
 
+    private var activeSessions = false
+
     private val sessionViewModel: SessionViewModel by lazy {
         ViewModelProviders.of(this).get(SessionViewModel::class.java)
     }
@@ -41,7 +43,14 @@ class SessionListActivity : AppCompatActivity() {
     private val sessionChangeObserver = Observer<List<Session>> {
         it?.let {
             sessionList = it
+
+            activeSessions = sessionList.any { it.active }
+            if(!activeSessions) {
+                notificationManager.killPersistentServiceNotification()
+            }
+
             sessionAdapter = SessionListAdapter(this, sessionList)
+            sessionAdapter.setSessionsActive(activeSessions)
             list_sessions.adapter = sessionAdapter
         }
     }
@@ -163,9 +172,6 @@ class SessionListActivity : AppCompatActivity() {
             sessionViewModel.updateSession(session)
             val view = list_sessions.getChildAt(sessionList.indexOf(session))
             view.image_list_item_active.setImageResource(R.drawable.ic_block_red_24dp)
-
-            notificationManager.killPersistentServiceNotification()
-            sessionAdapter.disableActiveSession()
             serverUtility.stopService(session)
         }
         return true
@@ -265,7 +271,6 @@ class SessionListActivity : AppCompatActivity() {
 
             session.active = true
             sessionViewModel.updateSession(session)
-            sessionAdapter.setActiveSession(session)
 
             val outAnimation = AlphaAnimation(1f, 0f)
             outAnimation.duration = 200

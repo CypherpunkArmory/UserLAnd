@@ -28,10 +28,14 @@ class ServerUtility(private val context: Context) {
     }
 
     private fun startSSHServer(session: Session): Long {
-        val targetDirectoryName = session.filesystemId.toString()
-        val command = "../support/execInProot /bin/bash -c /support/startSSHServer.sh"
-        val proc = fileManager.wrapWithBusyboxAndExecute(targetDirectoryName, command)
-        return proc.pid()
+//        val targetDirectoryName = session.filesystemId.toString()
+//        val command = "../support/execInProot /bin/bash -c /support/startSSHServer.sh"
+//        val proc = fileManager.wrapWithBusyboxAndExecute(targetDirectoryName, command)
+//        return proc.pid()
+        val command = arrayOf("../support/execInProot", "/bin/bash", "-c", "/support/startSSHServer.sh")
+        val env = arrayOf<String>()
+        val dir = fileManager.createAndGetDirectory(session.filesystemId.toString())
+        return Runtime.getRuntime().exec(command, env, dir).pid()
     }
 
     fun stopService(session: Session) {
