@@ -21,9 +21,18 @@
     <string name="hint_username">Username</string>
     <string name="hint_password">Password</string>
 
+
+    <!-- Prompts -->
     <string name="prompt_filesystem">Filesystem:</string>
     <string name="prompt_service_type">Service Type:</string>
     <string name="prompt_client_type">Client Type:</string>
+
+    <!-- Notification strings -->
+    <string name="services_notification_channel_id">UserLAndServices</string>
+    <string name="services_notification_channel_name">Services</string>
+    <string name="services_notification_channel_description">Persistent services</string>
+    <string name="service_notification_title">UserLAnd</string>
+    <string name="service_notification_description">UserLAnd is running a background service.</string>
 
     <!-- Progress bar messages -->
     <string name="progress_downloading">Downloading required assets&#8230;</string>

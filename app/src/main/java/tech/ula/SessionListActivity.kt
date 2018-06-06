@@ -2,6 +2,7 @@ package tech.ula
 
 import android.Manifest
 import android.app.DownloadManager
+import android.app.Notification
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.BroadcastReceiver
@@ -28,10 +29,7 @@ import org.jetbrains.anko.toast
 import tech.ula.database.models.Session
 import tech.ula.ui.SessionListAdapter
 import tech.ula.ui.SessionViewModel
-import tech.ula.utils.DownloadUtility
-import tech.ula.utils.FileUtility
-import tech.ula.utils.asyncAwait
-import tech.ula.utils.launchAsync
+import tech.ula.utils.*
 
 class SessionListActivity : AppCompatActivity() {
 
@@ -69,11 +67,17 @@ class SessionListActivity : AppCompatActivity() {
         FileUtility(this)
     }
 
+    private val notificationManager by lazy {
+        NotificationUtility(this)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_session_list)
         setSupportActionBar(toolbar)
         supportActionBar?.setTitle(R.string.sessions)
+        notificationManager.createServiceNotificationChannel() // Android O requirement
+
 
         sessionViewModel.getAllSessions().observe(this, sessionChangeObserver)
 
@@ -90,6 +94,7 @@ class SessionListActivity : AppCompatActivity() {
         }
 
         registerReceiver(downloadBroadcastReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE), 0)
@@ -247,6 +252,7 @@ class SessionListActivity : AppCompatActivity() {
             text_session_list_progress_update.setText(R.string.progress_starting)
             asyncAwait {
                 runningService = fileManager.startDropbearServer(filesystemDirectoryName)
+                notificationManager.startPersistentServiceNotification()
                 delay(500)
             }
 
