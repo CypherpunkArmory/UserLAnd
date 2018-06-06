@@ -112,11 +112,6 @@ class SessionListActivity : AppCompatActivity() {
         progress_bar_session_list.visibility = View.VISIBLE
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        unregisterReceiver(downloadBroadcastReceiver)
-    }
-
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         //TODO handle cases appropriately

@@ -9,12 +9,9 @@ import android.os.Build
 import android.support.v4.app.NotificationCompat
 import tech.ula.R
 import tech.ula.SessionListActivity
-import java.util.*
 
 class NotificationUtility(val context: Context) {
-    private val serviceNotificationId: Int by lazy {
-        Random().nextInt()
-    }
+    private val serviceNotificationId = 1000
     private val serviceNotificationChannelId = context.getString(R.string.services_notification_channel_id)
 
     private val serviceNotificationTitle = context.getString(R.string.service_notification_title)
@@ -38,7 +35,6 @@ class NotificationUtility(val context: Context) {
 
     fun startPersistentServiceNotification() {
         val sessionListIntent = Intent(context, SessionListActivity::class.java)
-        sessionListIntent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT )
         val pendingSessionListIntent = PendingIntent
                 .getActivity(context, 0, sessionListIntent, 0)
 
