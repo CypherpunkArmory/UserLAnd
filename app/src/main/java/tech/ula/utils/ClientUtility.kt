@@ -15,12 +15,12 @@ class ClientUtility(private val context: Context) {
             return startConnectBotClient(session)
         } else if (session.clientType == "bVNC") {
             //TODO: support vnc server
-            return;
+            return
         } else if (session.serviceType == "xsdl") {
             //TODO: support xsdl server
-            return;
+            return
         }
-        return;
+        return
     }
 
     private fun startConnectBotClient(session: Session) {

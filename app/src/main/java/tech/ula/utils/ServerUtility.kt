@@ -7,7 +7,7 @@ import tech.ula.utils.*
 class ServerUtility(private val context: Context) {
 
     fun Process.pid(): Long {
-        return this.toString().substringAfter("=").substringBefore(",").toLong()
+        return this.toString().substringAfter("=").substringBefore(",").trim().toLong()
     }
 
     private val fileManager by lazy {
@@ -19,12 +19,12 @@ class ServerUtility(private val context: Context) {
             return startSSHServer(session)
         } else if (session.serviceType == "vnc") {
             //TODO: support vnc server
-            return 0;
+            return 0
         } else if (session.serviceType == "xsdl") {
             //TODO: support xsdl server
-            return 0;
+            return 0
         }
-        return 0;
+        return 0
     }
 
     private fun startSSHServer(session: Session): Long {
