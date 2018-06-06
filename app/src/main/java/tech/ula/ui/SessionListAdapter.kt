@@ -21,6 +21,14 @@ class SessionListAdapter(private var activity: Activity, private var items: List
 
     private var activeSession: Session? = null
 
+    fun setActiveSession(session: Session) {
+        activeSession = session
+    }
+
+    fun disableActiveSession() {
+        activeSession = null
+    }
+
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val view: View?
         val viewHolder: ViewHolder
@@ -51,7 +59,11 @@ class SessionListAdapter(private var activity: Activity, private var items: List
     }
 
     override fun isEnabled(position: Int): Boolean {
-        
+        activeSession?.let {
+            if(items[position] == it)
+                return true
+            return false
+        }
         return super.isEnabled(position)
     }
 

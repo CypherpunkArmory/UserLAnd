@@ -165,6 +165,7 @@ class SessionListActivity : AppCompatActivity() {
             view.image_list_item_active.setImageResource(R.drawable.ic_block_red_24dp)
             fileManager.killService(session.filesystemId.toString(), runningService.pid())
             notificationManager.killPersistentServiceNotification()
+            sessionAdapter.disableActiveSession()
         }
         return true
     }
@@ -263,6 +264,7 @@ class SessionListActivity : AppCompatActivity() {
 
             session.active = true
             sessionViewModel.updateSession(session)
+            sessionAdapter.setActiveSession(session)
 
             val outAnimation = AlphaAnimation(1f, 0f)
             outAnimation.duration = 200
