@@ -58,7 +58,7 @@ class FileUtility(private val context: Context) {
                 Triple("busybox", "support", "0777"),
                 Triple("libtalloc.so.2", "support", "0777"),
                 Triple("execInProot", "support", "0777"),
-                Triple("startDBServer.sh", "debian", "0777"),
+                Triple("startSSHServer.sh", "debian", "0777"),
                 Triple("busybox", "debian","0777"),
                 Triple("libdisableselinux.so", "debian", "0777")
         )
@@ -71,7 +71,7 @@ class FileUtility(private val context: Context) {
         Exec().execLocal(executionDirectory, commandToRun, listener = Exec.EXEC_INFO_LOGGER)
     }
 
-    private fun wrapWithBusyboxAndExecute(targetDirectoryName: String, commandToWrap: String): Process {
+    fun wrapWithBusyboxAndExecute(targetDirectoryName: String, commandToWrap: String): Process {
         val executionDirectory = createAndGetDirectory(targetDirectoryName)
 
         val preferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -99,17 +99,6 @@ class FileUtility(private val context: Context) {
     fun extractFilesystem(targetDirectoryName: String) {
         val command = "../support/execInProot /support/extractFilesystem.sh"
         wrapWithBusyboxAndExecute(targetDirectoryName, command)
-    }
-
-    fun startDropbearServer(targetDirectoryName: String): Process {
-        val command = "../support/execInProot /bin/bash -c /support/startDBServer.sh"
-        return wrapWithBusyboxAndExecute(targetDirectoryName, command)
-    }
-
-    fun killService(filesystemDirectoryName: String, pid: Long) {
-        val executionDirectory = createAndGetDirectory(filesystemDirectoryName)
-        val command = "/data/user/0/tech.userland.userland/files/support/killProcTree.sh " + pid.toString()
-        wrapWithBusyboxAndExecute(filesystemDirectoryName, command)
     }
 
     fun deleteFilesystem(filesystemDirectoryName: String): Boolean {

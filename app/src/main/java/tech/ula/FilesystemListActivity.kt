@@ -28,7 +28,6 @@ class FilesystemListActivity: AppCompatActivity() {
     private val filesystemChangeObserver = Observer<List<Filesystem>> {
         it?.let {
             filesystemList = it
-            val filesystemNames = filesystemList.map { filesystem -> filesystem.name }
 
             list_file_system_management.adapter = FilesystemListAdapter(this, filesystemList)
         }

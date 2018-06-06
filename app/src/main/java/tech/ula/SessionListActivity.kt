@@ -2,7 +2,6 @@ package tech.ula
 
 import android.Manifest
 import android.app.DownloadManager
-import android.app.Notification
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.BroadcastReceiver
@@ -10,7 +9,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
@@ -35,12 +33,6 @@ class SessionListActivity : AppCompatActivity() {
 
     lateinit var sessionList: List<Session>
     lateinit var sessionAdapter: SessionListAdapter
-
-    lateinit var runningService: Process
-
-    fun Process.pid(): Long {
-        return this.toString().substringAfter("=").substringBefore(",").toLong()
-    }
 
     private val sessionViewModel: SessionViewModel by lazy {
         ViewModelProviders.of(this).get(SessionViewModel::class.java)
@@ -71,6 +63,14 @@ class SessionListActivity : AppCompatActivity() {
         NotificationUtility(this)
     }
 
+    private val serverUtility by lazy {
+        ServerUtility(this)
+    }
+
+    private val clientUtility by lazy {
+        ClientUtility(this)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_session_list)
@@ -88,7 +88,7 @@ class SessionListActivity : AppCompatActivity() {
                 startSession(session, view)
             }
             else {
-                fireConnectBotIntent()
+                clientUtility.startClient(session)
             }
         }
 
@@ -148,14 +148,14 @@ class SessionListActivity : AppCompatActivity() {
         val position = menuInfo.position
         val session = sessionList[position]
         return when(item.itemId) {
-            R.id.menu_item_session_kill_service -> killSessionService(session)
+            R.id.menu_item_session_kill_service -> stopService(session)
             R.id.menu_item_session_edit -> navigateToSessionEdit(session)
             R.id.menu_item_session_delete -> deleteSession(session)
             else -> super.onContextItemSelected(item)
         }
     }
 
-    fun killSessionService(session: Session): Boolean {
+    fun stopService(session: Session): Boolean {
         // TODO update all sessions relying on service
         // TODO more granular service killing
         if(session.active) {
@@ -163,9 +163,10 @@ class SessionListActivity : AppCompatActivity() {
             sessionViewModel.updateSession(session)
             val view = list_sessions.getChildAt(sessionList.indexOf(session))
             view.image_list_item_active.setImageResource(R.drawable.ic_block_red_24dp)
-            fileManager.killService(session.filesystemId.toString(), runningService.pid())
+
             notificationManager.killPersistentServiceNotification()
             sessionAdapter.disableActiveSession()
+            serverUtility.stopService(session)
         }
         return true
     }
@@ -252,14 +253,14 @@ class SessionListActivity : AppCompatActivity() {
             // TODO some check to determine if service is started
             text_session_list_progress_update.setText(R.string.progress_starting)
             asyncAwait {
-                runningService = fileManager.startDropbearServer(filesystemDirectoryName)
                 notificationManager.startPersistentServiceNotification()
+                session.pid = serverUtility.startServer(session)
                 delay(500)
             }
 
             text_session_list_progress_update.setText(R.string.progress_connecting)
             asyncAwait {
-                fireConnectBotIntent()
+                clientUtility.startClient(session)
             }
 
             session.active = true
@@ -271,13 +272,5 @@ class SessionListActivity : AppCompatActivity() {
             layout_progress.animation = outAnimation
             layout_progress.visibility = View.GONE
         }
-    }
-
-    fun fireConnectBotIntent() {
-        val connectBotIntent = Intent()
-        connectBotIntent.action = "android.intent.action.VIEW"
-        // TODO use db data here
-        connectBotIntent.data = Uri.parse("ssh://user@localhost:2022/#userland")
-        startActivity(connectBotIntent)
     }
 }
