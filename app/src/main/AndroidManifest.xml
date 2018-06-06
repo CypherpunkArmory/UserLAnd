@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
-    package="tech.userland.userland">
+    package="tech.ula">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -19,7 +19,7 @@
         android:launchMode="singleTask">
 
         <activity
-            android:name=".SessionListActivity"
+            android:name="tech.ula.SessionListActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -29,27 +29,27 @@
         </activity>
 
         <activity
-            android:name=".SessionEditActivity"
+            android:name="tech.ula.SessionEditActivity"
             android:label="Edit Session" />
 
         <activity
-            android:name=".FilesystemListActivity"
+            android:name="tech.ula.FilesystemListActivity"
             android:label="Filesystems" />
 
         <activity
-            android:name=".FilesystemEditActivity"
+            android:name="tech.ula.FilesystemEditActivity"
             android:label="Edit Filesystem" />
 
         <activity
-            android:name=".SettingsActivity"
+            android:name="tech.ula.SettingsActivity"
             android:label="Settings" />
 
         <activity
-            android:name=".HelpActivity"
+            android:name="tech.ula.HelpActivity"
             android:label="Help" />
 
         <activity
-            android:name=".TermsAndConditionsActivity"
+            android:name="tech.ula.TermsAndConditionsActivity"
             android:label="Terms And Conditions" />
 
     </application>

@@ -16,7 +16,7 @@
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
 
     <fragment
-        android:name="tech.userland.userland.ui.SettingsFragment"
+        android:name="tech.ula.ui.SettingsFragment"
         android:id="@+id/fragment_settings"
         android:layout_marginTop="?attr/actionBarSize"
         android:layout_width="0dp"
