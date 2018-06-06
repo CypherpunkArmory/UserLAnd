@@ -19,8 +19,10 @@ import android.view.ContextMenu
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.animation.AlphaAnimation
 import android.widget.AdapterView
 import kotlinx.android.synthetic.main.activity_session_list.*
+import kotlinx.android.synthetic.main.activity_session_list.view.*
 import kotlinx.android.synthetic.main.list_item_session.view.*
 import kotlinx.coroutines.experimental.*
 import org.jetbrains.anko.toast
@@ -47,7 +49,7 @@ class SessionListActivity : AppCompatActivity() {
     private val sessionChangeObserver = Observer<List<Session>> {
         it?.let {
             sessionList = it
-            sessionAdapter = SessionListAdapter(this, ArrayList(sessionList))
+            sessionAdapter = SessionListAdapter(this, sessionList)
             list_sessions.adapter = sessionAdapter
         }
     }
@@ -154,8 +156,8 @@ class SessionListActivity : AppCompatActivity() {
             session.active = false
             sessionViewModel.updateSession(session)
             val view = list_sessions.getChildAt(sessionList.indexOf(session))
-            view.image_list_item_active.setImageResource(R.drawable.ic_block_white_24dp)
-            fileManager.killService(session.filesystemId.toString(), runningService.pid())
+            view.image_list_item_active.setImageResource(R.drawable.ic_block_red_24dp)
+            fileManager.killService(session.filesystemId.toString())
         }
         return true
     }
@@ -194,8 +196,11 @@ class SessionListActivity : AppCompatActivity() {
         val filesystemDirectoryName = session.filesystemId.toString()
         var assetsWereDownloaded = false
         launchAsync {
-            progress_bar_session_list.progress = 0
-            text_session_list_progress_update.text = "Downloading required assets..."
+            val inAnimation = AlphaAnimation(0f, 1f)
+            inAnimation.duration = 200
+            layout_progress.animation = inAnimation
+            layout_progress.visibility = View.VISIBLE
+
             val downloadManager = DownloadUtility(this@SessionListActivity)
             // TODO adjust requirements dynamically
             downloadManager.addRequirements("debian")
@@ -203,18 +208,17 @@ class SessionListActivity : AppCompatActivity() {
                 val result = downloadManager.displayWifiChoices()
                 when (result) {
                     DownloadUtility.TURN_ON_WIFI -> {
-                        text_session_list_progress_update.text = ""
                         startActivity(Intent(WifiManager.ACTION_PICK_WIFI_NETWORK))
                         return@launchAsync
                     }
                     DownloadUtility.CANCEL -> {
-                        text_session_list_progress_update.text = ""
                         return@launchAsync
                     }
 
                 }
             }
 
+            text_session_list_progress_update.setText(R.string.progress_downloading)
             asyncAwait {
                 downloadList.addAll(downloadManager.downloadRequirements())
                 while(downloadList.isNotEmpty()) {
@@ -226,9 +230,8 @@ class SessionListActivity : AppCompatActivity() {
                     fileManager.correctFilePermissions()
                 }
             }
-            progress_bar_session_list.progress = 25
 
-            text_session_list_progress_update.text = "Setting up file system..."
+            text_session_list_progress_update.setText(R.string.progress_setting_up)
             asyncAwait {
                 // TODO support multiple distribution types
                 // TODO only copy when newer versions have been downloaded (and skip rootfs)
@@ -237,25 +240,26 @@ class SessionListActivity : AppCompatActivity() {
                     fileManager.extractFilesystem(filesystemDirectoryName)
                 }
             }
-            progress_bar_session_list.progress = 50
 
-            text_session_list_progress_update.text = "Starting service..."
             // TODO some check to determine if service is started
+            text_session_list_progress_update.setText(R.string.progress_starting)
             asyncAwait {
                 runningService = fileManager.startDropbearServer(filesystemDirectoryName)
                 delay(500)
             }
-            progress_bar_session_list.progress = 75
 
-            text_session_list_progress_update.text = "Connecting to service..."
+            text_session_list_progress_update.setText(R.string.progress_connecting)
             asyncAwait {
                 fireConnectBotIntent()
             }
-            progress_bar_session_list.progress = 100
 
-            text_session_list_progress_update.text = "Session active!"
             session.active = true
             sessionViewModel.updateSession(session)
+
+            val outAnimation = AlphaAnimation(1f, 0f)
+            outAnimation.duration = 200
+            layout_progress.animation = outAnimation
+            layout_progress.visibility = View.GONE
         }
     }
 

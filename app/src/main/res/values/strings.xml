@@ -25,6 +25,13 @@
     <string name="prompt_service_type">Service Type:</string>
     <string name="prompt_client_type">Client Type:</string>
 
+    <!-- Progress bar messages -->
+    <string name="progress_downloading">Downloading required assets&#8230;</string>
+    <string name="progress_setting_up">Setting up filesystem&#8230;</string>
+    <string name="progress_starting">Starting service&#8230;</string>
+    <string name="progress_connecting">Connecting to service&#8230;</string>
+
+
     <!-- Preferences -->
     <string name="pref_proot_category">PRoot Preferences</string>
     <string name="pref_proot_debugging_enabled_title">PRoot Debugging Enabled</string>

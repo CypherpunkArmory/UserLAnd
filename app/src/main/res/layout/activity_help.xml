@@ -51,7 +51,7 @@
         app:layout_constraintTop_toBottomOf="@id/help_toc_button"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:src="@drawable/ic_github_logo" />
+        app:srcCompat="@drawable/ic_github_logo"/>
 
     <TextView
         android:id="@+id/beta_message"

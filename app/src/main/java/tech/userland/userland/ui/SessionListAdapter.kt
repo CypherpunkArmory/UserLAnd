@@ -11,7 +11,7 @@ import android.widget.TextView
 import tech.userland.userland.R
 import tech.userland.userland.database.models.Session
 
-class SessionListAdapter(private var activity: Activity, private var items: ArrayList<Session>) : BaseAdapter() {
+class SessionListAdapter(private var activity: Activity, private var items: List<Session>) : BaseAdapter() {
     private class ViewHolder(row: View) {
         var imageViewActive: ImageView = row.findViewById(R.id.image_list_item_active)
         var textViewServiceType: TextView = row.findViewById(R.id.text_list_item_service_type)
@@ -35,10 +35,10 @@ class SessionListAdapter(private var activity: Activity, private var items: Arra
         val session = items[position]
 
         if(session.active) {
-            viewHolder.imageViewActive.setImageResource(R.drawable.ic_check_white_24dp)
+            viewHolder.imageViewActive.setImageResource(R.drawable.ic_check_circle_green_24dp)
         }
         else {
-            viewHolder.imageViewActive.setImageResource(R.drawable.ic_block_white_24dp)
+            viewHolder.imageViewActive.setImageResource(R.drawable.ic_block_red_24dp)
         }
 
         viewHolder.textViewServiceType.text = session.serviceType
