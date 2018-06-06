@@ -38,11 +38,12 @@ class NotificationUtility(val context: Context) {
 
     fun startPersistentServiceNotification() {
         val sessionListIntent = Intent(context, SessionListActivity::class.java)
+        sessionListIntent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT )
         val pendingSessionListIntent = PendingIntent
                 .getActivity(context, 0, sessionListIntent, 0)
 
         val builder = NotificationCompat.Builder(context, serviceNotificationChannelId)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle(serviceNotificationTitle)
                 .setContentText(serviceNotificationDescription)
                 .setPriority(NotificationCompat.PRIORITY_MAX)
