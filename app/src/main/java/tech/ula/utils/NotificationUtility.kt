@@ -9,9 +9,12 @@ import android.os.Build
 import android.support.v4.app.NotificationCompat
 import tech.ula.R
 import tech.ula.SessionListActivity
+import java.util.*
 
 class NotificationUtility(val context: Context) {
-    private val serviceNotificationId = 1000
+    private val serviceNotificationId: Int by lazy {
+        Random().nextInt()
+    }
     private val serviceNotificationChannelId = context.getString(R.string.services_notification_channel_id)
 
     private val serviceNotificationTitle = context.getString(R.string.service_notification_title)
@@ -33,7 +36,7 @@ class NotificationUtility(val context: Context) {
         }
     }
 
-    fun startPersistentServiceNotification {
+    fun startPersistentServiceNotification() {
         val sessionListIntent = Intent(context, SessionListActivity::class.java)
         val pendingSessionListIntent = PendingIntent
                 .getActivity(context, 0, sessionListIntent, 0)
@@ -42,12 +45,14 @@ class NotificationUtility(val context: Context) {
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentTitle(serviceNotificationTitle)
                 .setContentText(serviceNotificationDescription)
-                .setStyle(NotificationCompat.BigTextStyle()
-                        .bigText("UserLAnd is currently running a background service."))
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setAutoCancel(false)
                 .setContentIntent(pendingSessionListIntent)
 
         notificationManager.notify(serviceNotificationId, builder.build())
+    }
+
+    fun killPersistentServiceNotification() {
+        notificationManager.cancel(serviceNotificationId)
     }
 }

@@ -78,12 +78,11 @@ class SessionListActivity : AppCompatActivity() {
         supportActionBar?.setTitle(R.string.sessions)
         notificationManager.createServiceNotificationChannel() // Android O requirement
 
-
         sessionViewModel.getAllSessions().observe(this, sessionChangeObserver)
 
         registerForContextMenu(list_sessions)
         list_sessions.onItemClickListener = AdapterView.OnItemClickListener {
-            parent, view, position, id ->
+            _, view, position, _ ->
             val session = sessionList[position]
             if(!session.active == true) {
                 startSession(session, view)
@@ -165,6 +164,7 @@ class SessionListActivity : AppCompatActivity() {
             val view = list_sessions.getChildAt(sessionList.indexOf(session))
             view.image_list_item_active.setImageResource(R.drawable.ic_block_red_24dp)
             fileManager.killService(session.filesystemId.toString(), runningService.pid())
+            notificationManager.killPersistentServiceNotification()
         }
         return true
     }
