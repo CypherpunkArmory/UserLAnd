@@ -28,21 +28,12 @@ import org.jetbrains.anko.toast
 import tech.ula.database.models.Session
 import tech.ula.ui.SessionListAdapter
 import tech.ula.ui.SessionViewModel
-import tech.ula.utils.DownloadUtility
-import tech.ula.utils.FileUtility
-import tech.ula.utils.asyncAwait
-import tech.ula.utils.launchAsync
+import tech.ula.utils.*
 
 class SessionListActivity : AppCompatActivity() {
 
     lateinit var sessionList: List<Session>
     lateinit var sessionAdapter: SessionListAdapter
-
-    lateinit var runningService: Process
-
-    fun Process.pid(): Long {
-        return this.toString().substringAfter("=").substringBefore(",").toLong()
-    }
 
     private val sessionViewModel: SessionViewModel by lazy {
         ViewModelProviders.of(this).get(SessionViewModel::class.java)
@@ -69,6 +60,14 @@ class SessionListActivity : AppCompatActivity() {
         FileUtility(this)
     }
 
+    private val serverUtility by lazy {
+        ServerUtility(this)
+    }
+
+    private val clientUtility by lazy {
+        ClientUtility(this)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_session_list)
@@ -85,7 +84,7 @@ class SessionListActivity : AppCompatActivity() {
                 startSession(session, view)
             }
             else {
-                fireConnectBotIntent()
+                clientUtility.startClient(session)
             }
         }
 
@@ -144,14 +143,14 @@ class SessionListActivity : AppCompatActivity() {
         val position = menuInfo.position
         val session = sessionList[position]
         return when(item.itemId) {
-            R.id.menu_item_session_kill_service -> killSessionService(session)
+            R.id.menu_item_session_kill_service -> stopService(session)
             R.id.menu_item_session_edit -> navigateToSessionEdit(session)
             R.id.menu_item_session_delete -> deleteSession(session)
             else -> super.onContextItemSelected(item)
         }
     }
 
-    fun killSessionService(session: Session): Boolean {
+    fun stopService(session: Session): Boolean {
         // TODO update all sessions relying on service
         // TODO more granular service killing
         if(session.active) {
@@ -159,7 +158,7 @@ class SessionListActivity : AppCompatActivity() {
             sessionViewModel.updateSession(session)
             val view = list_sessions.getChildAt(sessionList.indexOf(session))
             view.image_list_item_active.setImageResource(R.drawable.ic_block_red_24dp)
-            fileManager.killService(session.filesystemId.toString(), runningService.pid())
+            serverUtility.stopService(session)
         }
         return true
     }
@@ -246,13 +245,13 @@ class SessionListActivity : AppCompatActivity() {
             // TODO some check to determine if service is started
             text_session_list_progress_update.setText(R.string.progress_starting)
             asyncAwait {
-                runningService = fileManager.startDropbearServer(filesystemDirectoryName)
+                session.pid = serverUtility.startServer(session)
                 delay(500)
             }
 
             text_session_list_progress_update.setText(R.string.progress_connecting)
             asyncAwait {
-                fireConnectBotIntent()
+                clientUtility.startClient(session)
             }
 
             session.active = true
@@ -265,11 +264,4 @@ class SessionListActivity : AppCompatActivity() {
         }
     }
 
-    fun fireConnectBotIntent() {
-        val connectBotIntent = Intent()
-        connectBotIntent.action = "android.intent.action.VIEW"
-        // TODO use db data here
-        connectBotIntent.data = Uri.parse("ssh://user@localhost:2022/#userland")
-        startActivity(connectBotIntent)
-    }
 }
