@@ -84,7 +84,7 @@ class SessionEditActivity: AppCompatActivity() {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val filesystemName = parent?.getItemAtPosition(position).toString()
                 when (filesystemName) {
-                    "Create new" -> navigateToFilesystemEdit("")
+                    "Create new" -> navigateToFilesystemEdit()
                     "" -> return
                     else -> {
                         // TODO adapter to associate filesystem structure with list items?
@@ -170,9 +170,9 @@ class SessionEditActivity: AppCompatActivity() {
     }
 
 
-    fun navigateToFilesystemEdit(filesystemName: String): Boolean {
+    fun navigateToFilesystemEdit(): Boolean {
         val intent = Intent(this, FilesystemEditActivity::class.java)
-        intent.putExtra("filesystemName", filesystemName)
+        intent.putExtra("filesystem", Filesystem(0))
         startActivity(intent)
         return true
     }
