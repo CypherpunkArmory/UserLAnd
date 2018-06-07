@@ -36,13 +36,13 @@ class ServerUtility(private val context: Context) {
 
     fun stopService(session: Session) {
         val targetDirectoryName = session.filesystemId.toString()
-        val command = "/data/user/0/tech.userland.userland/files/support/killProcTree.sh " + session.pid.toString()
+        val command = "/data/data/tech.ula/files/support/killProcTree.sh " + session.pid.toString()
         execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command)
     }
 
     fun isServerRunning(session: Session): Boolean {
         val targetDirectoryName = session.filesystemId.toString()
-        val command = "/data/user/0/tech.userland.userland/files/support/isServerInProcTree.sh " + session.pid.toString()
+        val command = "/data/data/tech.ula/files/support/isServerInProcTree.sh " + session.pid.toString()
         val proc = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command)
         if (proc.exitValue() == 1)  //isServerInProcTree returns a 1 if it did't find a server
             return false
