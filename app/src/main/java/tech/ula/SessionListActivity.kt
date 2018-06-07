@@ -46,9 +46,6 @@ class SessionListActivity : AppCompatActivity() {
             sessionList = it
 
             activeSessions = sessionList.any { it.active }
-            if(!activeSessions) {
-                // TODO stop service
-            }
 
             sessionAdapter = SessionListAdapter(this, sessionList)
             list_sessions.adapter = sessionAdapter
@@ -171,7 +168,12 @@ class SessionListActivity : AppCompatActivity() {
             sessionViewModel.updateSession(session)
             val view = list_sessions.getChildAt(sessionList.indexOf(session))
             view.image_list_item_active.setImageResource(R.drawable.ic_block_red_24dp)
-            serverUtility.stopService(session)
+
+            val serviceIntent = Intent(this, ServerService::class.java)
+            serviceIntent.putExtra("type", "kill")
+            serviceIntent.putExtra("session", session)
+
+            startService(serviceIntent)
         }
         return true
     }
