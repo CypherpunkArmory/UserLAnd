@@ -32,18 +32,18 @@ class DownloadUtility(val uiContext: Context) {
             "support:proot" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/armhf/proot",
             "support:busybox" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/armhf/busybox",
             "support:libtalloc.so.2" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/armhf/libtalloc.so.2",
-            "support:execInProot" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/armhf_next/execInProot",
+            "support:execInProot.sh" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/main/execInProot.sh",
             "support:killProcTree.sh" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/main/killProcTree.sh",
             "support:isServerInProcTree.sh" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/main/isServerInProcTree.sh"
     )
 
     val debianAssets = listOf(
-            "debian:startSSHServer.sh" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/armhf_next/startSSHServer.sh",
+            "debian:startSSHServer.sh" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/main/startSSHServer.sh",
             "debian:extractFilesystem.sh" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/main/extractFilesystem.sh",
             "debian:busybox" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/armhf/busybox",
             "debian:libdisableselinux.so" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/armhf/libdisableselinux.so",
             "debian:ld.so.preload" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/main/ld.so.preload",
-            "debian:rootfs.tar.gz" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/mainSupport/armhf_next/rootfs.tar.gz"
+            "debian:rootfs.tar.gz" to "https://s3-us-west-2.amazonaws.com/tech.userland.us.west.oregon/debianSupport/armhf/rootfs.tar.gz"
     )
 
     fun addRequirements(filesystemType: String) {

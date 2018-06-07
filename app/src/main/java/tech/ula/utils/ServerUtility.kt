@@ -29,7 +29,7 @@ class ServerUtility(private val context: Context) {
 
     private fun startSSHServer(session: Session): Long {
         val targetDirectoryName = session.filesystemId.toString()
-        val command = "../support/execInProot /bin/bash -c /support/startSSHServer.sh"
+        val command = "../support/execInProot.sh /bin/bash -c /support/startSSHServer.sh"
         val proc = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, false)
         return proc.pid()
     }

@@ -14,7 +14,7 @@ class FilesystemUtility(private val context: Context) {
     }
 
     fun extractFilesystem(targetDirectoryName: String) {
-        val command = "../support/execInProot /support/extractFilesystem.sh"
+        val command = "../support/execInProot.sh /support/extractFilesystem.sh"
         execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command)
     }
 
