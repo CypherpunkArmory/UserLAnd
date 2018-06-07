@@ -9,7 +9,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
@@ -66,6 +65,10 @@ class SessionListActivity : AppCompatActivity() {
 
     private val clientUtility by lazy {
         ClientUtility(this)
+    }
+
+    private val filesystemUtility by lazy {
+        FilesystemUtility(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -238,7 +241,7 @@ class SessionListActivity : AppCompatActivity() {
                 // TODO only copy when newer versions have been downloaded (and skip rootfs)
                 fileManager.copyDistributionAssetsToFilesystem(filesystemDirectoryName, "debian")
                 if (!fileManager.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")) {
-                    fileManager.extractFilesystem(filesystemDirectoryName)
+                    filesystemUtility.extractFilesystem(filesystemDirectoryName)
                 }
             }
 
@@ -246,7 +249,9 @@ class SessionListActivity : AppCompatActivity() {
             text_session_list_progress_update.setText(R.string.progress_starting)
             asyncAwait {
                 session.pid = serverUtility.startServer(session)
-                delay(500)
+                while (!serverUtility.isServerRunning(session)) {
+                    delay(500)
+                }
             }
 
             text_session_list_progress_update.setText(R.string.progress_connecting)

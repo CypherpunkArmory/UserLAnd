@@ -14,7 +14,7 @@ import org.jetbrains.anko.toast
 import tech.ula.database.models.Filesystem
 import tech.ula.ui.FilesystemListAdapter
 import tech.ula.ui.FilesystemViewModel
-import tech.ula.utils.FileUtility
+import tech.ula.utils.*
 
 
 class FilesystemListActivity: AppCompatActivity() {
@@ -34,8 +34,12 @@ class FilesystemListActivity: AppCompatActivity() {
         }
     }
 
-    private val fileManager: FileUtility by lazy {
+    private val fileManager by lazy {
         FileUtility(this)
+    }
+
+    private val filesystemUtility by lazy {
+        FilesystemUtility(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,7 +80,7 @@ class FilesystemListActivity: AppCompatActivity() {
 
     fun deleteFilesystem(filesystem: Filesystem): Boolean {
         fileSystemViewModel.deleteFilesystemById(filesystem.id)
-        val success = fileManager.deleteFilesystem(filesystem.id.toString())
+        val success = filesystemUtility.deleteFilesystem(filesystem.id.toString())
         if(!success) {
             toast(R.string.filesystem_delete_failure)
         }
