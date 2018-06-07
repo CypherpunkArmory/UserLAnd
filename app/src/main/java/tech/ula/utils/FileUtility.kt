@@ -3,6 +3,7 @@ package tech.ula.utils
 import android.content.Context
 import android.os.Environment
 import android.preference.PreferenceManager
+import android.util.Log
 import java.io.File
 
 // TODO refactor this class with a better name
@@ -34,12 +35,14 @@ class FileUtility(private val context: Context) {
     // Filename takes form of UserLAnd:<directory to place in>:<filename>
     fun moveDownloadedAssetsToSharedSupportDirectory() {
         val downloadDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        downloadDirectory.walkBottomUp().filter { it.name.contains("UserLAnd:") }
+        downloadDirectory.walkBottomUp()
+                .filter { it.name.contains("UserLAnd:") }
                 .forEach {
                     val contents = it.name.split(":")
                     val targetDestination = File("${getFilesDirPath()}/${contents[1]}/${contents[2]}")
                     it.copyTo(targetDestination, overwrite = true)
-                    it.delete()
+                    if(!it.delete())
+                        Log.e("FileUtility", "Could not delete downloaded file: ${it.name}")
                 }
     }
 
@@ -73,7 +76,7 @@ class FileUtility(private val context: Context) {
     private fun changePermission(filename: String, subdirectory: String, permissions: String) {
         val executionDirectory = createAndGetDirectory(subdirectory)
         val commandToRun = arrayListOf("chmod", permissions, filename)
-        execUtility.execLocal(executionDirectory, commandToRun, listener = ExecUtility.EXEC_INFO_LOGGER)
+        execUtility.execLocal(executionDirectory, commandToRun, listener = ExecUtility.EXEC_DEBUG_LOGGER)
     }
 
 }

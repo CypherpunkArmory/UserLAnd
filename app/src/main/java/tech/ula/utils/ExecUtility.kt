@@ -14,8 +14,8 @@ import kotlin.text.Charsets.UTF_8
 class ExecUtility(private val context: Context) {
 
     companion object {
-        val EXEC_INFO_LOGGER = { line: String -> Unit
-            Log.i("EXEC_INFO_LOGGER", line)
+        val EXEC_DEBUG_LOGGER = { line: String -> Unit
+            Log.d("EXEC_DEBUG_LOGGER", line)
         }
 
         val NOOP_CONSUMER: (line: String) -> Int = {0}
@@ -85,7 +85,7 @@ class ExecUtility(private val context: Context) {
                 "ROOTFS_PATH" to "${fileManager.getFilesDirPath()}/$targetDirectoryName",
                 "PROOT_DEBUG_LEVEL" to prootDebuggingLevel)
 
-        return execLocal(executionDirectory, command, env, EXEC_INFO_LOGGER, doWait)
+        return execLocal(executionDirectory, command, env, EXEC_DEBUG_LOGGER, doWait)
     }
 
 }

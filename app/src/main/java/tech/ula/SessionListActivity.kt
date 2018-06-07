@@ -45,6 +45,9 @@ class SessionListActivity : AppCompatActivity() {
         it?.let {
             sessionList = it
 
+            for(session in sessionList) {
+                session.active = serverUtility.isServerRunning(session)
+            }
             activeSessions = sessionList.any { it.active }
 
             sessionAdapter = SessionListAdapter(this, sessionList)
@@ -173,9 +176,11 @@ class SessionListActivity : AppCompatActivity() {
             val view = list_sessions.getChildAt(sessionList.indexOf(session))
             view.image_list_item_active.setImageResource(R.drawable.ic_block_red_24dp)
 
+            serverUtility.stopService(session)
+
             val serviceIntent = Intent(this, ServerService::class.java)
             serviceIntent.putExtra("type", "kill")
-            serviceIntent.putExtra("session", session)
+            serviceIntent.putExtra("pid", session.pid)
 
             startService(serviceIntent)
         }
@@ -261,17 +266,20 @@ class SessionListActivity : AppCompatActivity() {
                 }
             }
 
-            // TODO some check to determine if service is started
             text_session_list_progress_update.setText(R.string.progress_starting)
-            val serviceIntent = Intent(this@SessionListActivity, ServerService::class.java)
-            serviceIntent.putExtra("type", "start")
-            serviceIntent.putExtra("session", session)
-            startService(serviceIntent)
-//            asyncAwait {
-//                notificationManager.startPersistentServiceNotification()
-//                session.pid = serverUtility.startServer(session)
-//                delay(500)
-//            }
+            asyncAwait {
+
+                session.pid = serverUtility.startServer(session)
+
+                val serviceIntent = Intent(this@SessionListActivity, ServerService::class.java)
+                serviceIntent.putExtra("type", "start")
+                serviceIntent.putExtra("pid", session.pid)
+                startService(serviceIntent)
+
+                while (!serverUtility.isServerRunning(session)) {
+                    delay(500)
+                }
+            }
 
             text_session_list_progress_update.setText(R.string.progress_connecting)
             asyncAwait {
