@@ -77,6 +77,10 @@ class SessionListActivity : AppCompatActivity() {
         ClientUtility(this)
     }
 
+    private val filesystemUtility by lazy {
+        FilesystemUtility(this)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_session_list)
@@ -253,7 +257,7 @@ class SessionListActivity : AppCompatActivity() {
                 // TODO only copy when newer versions have been downloaded (and skip rootfs)
                 fileManager.copyDistributionAssetsToFilesystem(filesystemDirectoryName, "debian")
                 if (!fileManager.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")) {
-                    fileManager.extractFilesystem(filesystemDirectoryName)
+                    filesystemUtility.extractFilesystem(filesystemDirectoryName)
                 }
             }
 
