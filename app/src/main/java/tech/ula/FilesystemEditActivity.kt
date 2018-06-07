@@ -23,6 +23,10 @@ class FilesystemEditActivity: AppCompatActivity() {
         intent.getParcelableExtra("filesystem") as Filesystem
     }
 
+    val archType: String by lazy {
+        System.getProperty("os.arch")
+    }
+
     var editExisting = false
 
     private val filesystemViewModel: FilesystemViewModel by lazy {
@@ -107,6 +111,7 @@ class FilesystemEditActivity: AppCompatActivity() {
                 finish()
             }
             else {
+                filesystem.archType = archType
                 launchAsync {
                     when (filesystemViewModel.insertFilesystem(filesystem)) {
                         true -> finish()
