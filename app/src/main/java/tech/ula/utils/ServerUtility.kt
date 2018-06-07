@@ -14,37 +14,37 @@ class ServerUtility(private val context: Context) {
         ExecUtility(context)
     }
 
+    private val fileUtility by lazy {
+        FileUtility(context)
+    }
+
     fun startServer(session: Session): Long {
-        if (session.serviceType == "ssh") {
-            return startSSHServer(session)
-        } else if (session.serviceType == "vnc") {
-            //TODO: support vnc server
-            return 0
-        } else if (session.serviceType == "xsdl") {
-            //TODO: support xsdl server
-            return 0
+        return when(session.serviceType) {
+            "ssh" -> startSSHServer(session)
+            "vnc" -> 0 // TODO
+            "xsdl" -> 0 // TODO
+            else -> 0
         }
-        return 0
     }
 
     private fun startSSHServer(session: Session): Long {
         val targetDirectoryName = session.filesystemId.toString()
         val command = "../support/execInProot.sh /bin/bash -c /support/startSSHServer.sh"
-        val proc = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, false)
-        return proc.pid()
+        val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, false)
+        return process.pid()
     }
 
     fun stopService(session: Session) {
         val targetDirectoryName = session.filesystemId.toString()
-        val command = "/data/data/tech.ula/files/support/killProcTree.sh " + session.pid.toString()
+        val command = "${fileUtility.getSupportDirPath()}/killProcTree.sh ${session.pid}"
         execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command)
     }
 
     fun isServerRunning(session: Session): Boolean {
         val targetDirectoryName = session.filesystemId.toString()
-        val command = "/data/data/tech.ula/files/support/isServerInProcTree.sh " + session.pid.toString()
-        val proc = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command)
-        if (proc.exitValue() == 1)  //isServerInProcTree returns a 1 if it did't find a server
+        val command = "${fileUtility.getSupportDirPath()}/isServerInProcTree.sh ${session.pid}"
+        val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command)
+        if (process.exitValue() == 1)  //isServerInProcTree returns a 1 if it did't find a server
             return false
         return true
     }

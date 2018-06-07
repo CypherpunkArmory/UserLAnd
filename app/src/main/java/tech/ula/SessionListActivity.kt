@@ -45,6 +45,9 @@ class SessionListActivity : AppCompatActivity() {
         it?.let {
             sessionList = it
 
+            for(session in sessionList) {
+                session.active = serverUtility.isServerRunning(session)
+            }
             activeSessions = sessionList.any { it.active }
 
             sessionAdapter = SessionListAdapter(this, sessionList)
