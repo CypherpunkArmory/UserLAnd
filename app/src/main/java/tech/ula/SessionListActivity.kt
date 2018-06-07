@@ -23,6 +23,7 @@ import android.widget.AdapterView
 import kotlinx.android.synthetic.main.activity_session_list.*
 import kotlinx.android.synthetic.main.list_item_session.view.*
 import kotlinx.coroutines.experimental.*
+import org.jetbrains.anko.longToast
 import org.jetbrains.anko.toast
 import tech.ula.database.models.Session
 import tech.ula.ui.SessionListAdapter
@@ -31,8 +32,10 @@ import tech.ula.utils.*
 
 class SessionListActivity : AppCompatActivity() {
 
-    lateinit var sessionList: List<Session>
-    lateinit var sessionAdapter: SessionListAdapter
+    private lateinit var sessionList: List<Session>
+    private lateinit var sessionAdapter: SessionListAdapter
+
+    private var activeSessions = false
 
     private val sessionViewModel: SessionViewModel by lazy {
         ViewModelProviders.of(this).get(SessionViewModel::class.java)
@@ -41,6 +44,9 @@ class SessionListActivity : AppCompatActivity() {
     private val sessionChangeObserver = Observer<List<Session>> {
         it?.let {
             sessionList = it
+
+            activeSessions = sessionList.any { it.active }
+
             sessionAdapter = SessionListAdapter(this, sessionList)
             list_sessions.adapter = sessionAdapter
         }
@@ -57,6 +63,10 @@ class SessionListActivity : AppCompatActivity() {
 
     private val fileManager by lazy {
         FileUtility(this)
+    }
+
+    private val notificationManager by lazy {
+        NotificationUtility(this)
     }
 
     private val serverUtility by lazy {
@@ -76,15 +86,20 @@ class SessionListActivity : AppCompatActivity() {
         setContentView(R.layout.activity_session_list)
         setSupportActionBar(toolbar)
         supportActionBar?.setTitle(R.string.sessions)
+        notificationManager.createServiceNotificationChannel() // Android O requirement
 
         sessionViewModel.getAllSessions().observe(this, sessionChangeObserver)
 
         registerForContextMenu(list_sessions)
         list_sessions.onItemClickListener = AdapterView.OnItemClickListener {
-            parent, view, position, id ->
+            _, view, position, _ ->
             val session = sessionList[position]
-            if(!session.active == true) {
-                startSession(session, view)
+            if(!session.active) {
+                if (!activeSessions) {
+                    startSession(session, view)
+                } else {
+                    longToast(R.string.single_session_supported)
+                }
             }
             else {
                 clientUtility.startClient(session)
@@ -92,6 +107,7 @@ class SessionListActivity : AppCompatActivity() {
         }
 
         registerReceiver(downloadBroadcastReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE), 0)
@@ -99,11 +115,6 @@ class SessionListActivity : AppCompatActivity() {
         fab.setOnClickListener { navigateToSessionEdit(Session(0, filesystemId = 0)) }
 
         progress_bar_session_list.visibility = View.VISIBLE
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        unregisterReceiver(downloadBroadcastReceiver)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -161,7 +172,12 @@ class SessionListActivity : AppCompatActivity() {
             sessionViewModel.updateSession(session)
             val view = list_sessions.getChildAt(sessionList.indexOf(session))
             view.image_list_item_active.setImageResource(R.drawable.ic_block_red_24dp)
-            serverUtility.stopService(session)
+
+            val serviceIntent = Intent(this, ServerService::class.java)
+            serviceIntent.putExtra("type", "kill")
+            serviceIntent.putExtra("session", session)
+
+            startService(serviceIntent)
         }
         return true
     }
@@ -247,12 +263,15 @@ class SessionListActivity : AppCompatActivity() {
 
             // TODO some check to determine if service is started
             text_session_list_progress_update.setText(R.string.progress_starting)
-            asyncAwait {
-                session.pid = serverUtility.startServer(session)
-                while (!serverUtility.isServerRunning(session)) {
-                    delay(500)
-                }
-            }
+            val serviceIntent = Intent(this@SessionListActivity, ServerService::class.java)
+            serviceIntent.putExtra("type", "start")
+            serviceIntent.putExtra("session", session)
+            startService(serviceIntent)
+//            asyncAwait {
+//                notificationManager.startPersistentServiceNotification()
+//                session.pid = serverUtility.startServer(session)
+//                delay(500)
+//            }
 
             text_session_list_progress_update.setText(R.string.progress_connecting)
             asyncAwait {
@@ -268,5 +287,4 @@ class SessionListActivity : AppCompatActivity() {
             layout_progress.visibility = View.GONE
         }
     }
-
 }

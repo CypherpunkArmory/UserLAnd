@@ -9,24 +9,18 @@ import tech.ula.utils.*
 class ClientUtility(private val context: Context) {
 
     fun startClient(session: Session) {
-        if (session.clientType == "none") {
-            return
-        } else if (session.clientType == "ConnectBot") {
-            return startConnectBotClient(session)
-        } else if (session.clientType == "bVNC") {
-            //TODO: support vnc server
-            return
-        } else if (session.serviceType == "xsdl") {
-            //TODO: support xsdl server
-            return
+        when(session.clientType) {
+            "ConnectBot" -> startConnectBotClient(session)
+            "bVNC" -> return // TODO
+            "xsdl" -> return // TODO
+            else -> return
         }
-        return
     }
 
     private fun startConnectBotClient(session: Session) {
         val connectBotIntent = Intent()
         connectBotIntent.action = "android.intent.action.VIEW"
-        connectBotIntent.data = Uri.parse("ssh://" + session.username + "@localhost:" + session.port.toString() + "/#userland")
+        connectBotIntent.data = Uri.parse("ssh://${session.username}@localhost:${session.port}/#userland")
         context.startActivity(connectBotIntent)
     }
 

@@ -15,12 +15,12 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
-        android:launchMode="singleTask">
+        android:theme="@style/AppTheme" >
 
         <activity
             android:name="tech.ula.SessionListActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -51,6 +51,8 @@
         <activity
             android:name="tech.ula.TermsAndConditionsActivity"
             android:label="Terms And Conditions" />
+
+        <service android:name=".ServerService" />
 
     </application>
 
