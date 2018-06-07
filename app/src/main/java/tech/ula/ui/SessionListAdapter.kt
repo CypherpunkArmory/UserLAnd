@@ -19,12 +19,6 @@ class SessionListAdapter(private var activity: Activity, private var items: List
         var textViewFilesystemName: TextView = row.findViewById(R.id.text_list_item_filesystem_name)
     }
 
-    private var isSessionActive = false
-
-    fun setSessionsActive(isActive: Boolean) {
-        isSessionActive = isActive
-    }
-
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val view: View?
         val viewHolder: ViewHolder
@@ -52,13 +46,6 @@ class SessionListAdapter(private var activity: Activity, private var items: List
         viewHolder.textViewFilesystemName.text = session.filesystemName
 
         return view as View
-    }
-
-    override fun isEnabled(position: Int): Boolean {
-        if(isSessionActive) {
-            return items[position].active
-        }
-        return super.isEnabled(position)
     }
 
     override fun getItem(position: Int): Session {

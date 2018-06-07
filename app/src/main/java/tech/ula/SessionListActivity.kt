@@ -23,6 +23,7 @@ import android.widget.AdapterView
 import kotlinx.android.synthetic.main.activity_session_list.*
 import kotlinx.android.synthetic.main.list_item_session.view.*
 import kotlinx.coroutines.experimental.*
+import org.jetbrains.anko.longToast
 import org.jetbrains.anko.toast
 import tech.ula.database.models.Session
 import tech.ula.ui.SessionListAdapter
@@ -31,8 +32,8 @@ import tech.ula.utils.*
 
 class SessionListActivity : AppCompatActivity() {
 
-    lateinit var sessionList: List<Session>
-    lateinit var sessionAdapter: SessionListAdapter
+    private lateinit var sessionList: List<Session>
+    private lateinit var sessionAdapter: SessionListAdapter
 
     private var activeSessions = false
 
@@ -50,7 +51,6 @@ class SessionListActivity : AppCompatActivity() {
             }
 
             sessionAdapter = SessionListAdapter(this, sessionList)
-            sessionAdapter.setSessionsActive(activeSessions)
             list_sessions.adapter = sessionAdapter
         }
     }
@@ -93,8 +93,12 @@ class SessionListActivity : AppCompatActivity() {
         list_sessions.onItemClickListener = AdapterView.OnItemClickListener {
             _, view, position, _ ->
             val session = sessionList[position]
-            if(!session.active == true) {
-                startSession(session, view)
+            if(!session.active) {
+                if (!activeSessions) {
+                    startSession(session, view)
+                } else {
+                    longToast(R.string.single_session_supported)
+                }
             }
             else {
                 clientUtility.startClient(session)
