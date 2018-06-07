@@ -47,7 +47,7 @@ class SessionListActivity : AppCompatActivity() {
 
             activeSessions = sessionList.any { it.active }
             if(!activeSessions) {
-                notificationManager.killPersistentServiceNotification()
+                // TODO stop service
             }
 
             sessionAdapter = SessionListAdapter(this, sessionList)
@@ -257,11 +257,15 @@ class SessionListActivity : AppCompatActivity() {
 
             // TODO some check to determine if service is started
             text_session_list_progress_update.setText(R.string.progress_starting)
-            asyncAwait {
-                notificationManager.startPersistentServiceNotification()
-                session.pid = serverUtility.startServer(session)
-                delay(500)
-            }
+            val serviceIntent = Intent(this@SessionListActivity, ServerService::class.java)
+            serviceIntent.putExtra("type", "start")
+            serviceIntent.putExtra("session", session)
+            startService(serviceIntent)
+//            asyncAwait {
+//                notificationManager.startPersistentServiceNotification()
+//                session.pid = serverUtility.startServer(session)
+//                delay(500)
+//            }
 
             text_session_list_progress_update.setText(R.string.progress_connecting)
             asyncAwait {

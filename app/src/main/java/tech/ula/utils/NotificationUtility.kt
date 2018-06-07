@@ -1,5 +1,6 @@
 package tech.ula.utils
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -11,7 +12,12 @@ import tech.ula.R
 import tech.ula.SessionListActivity
 
 class NotificationUtility(val context: Context) {
-    private val serviceNotificationId = 1000
+
+    companion object {
+        val serviceNotificationId = 1000
+    }
+
+//    private val serviceNotificationId = 1000
     private val serviceNotificationChannelId = context.getString(R.string.services_notification_channel_id)
 
     private val serviceNotificationTitle = context.getString(R.string.service_notification_title)
@@ -33,7 +39,7 @@ class NotificationUtility(val context: Context) {
         }
     }
 
-    fun startPersistentServiceNotification() {
+    fun buildPersistentServiceNotification(): Notification {
         val sessionListIntent = Intent(context, SessionListActivity::class.java)
         val pendingSessionListIntent = PendingIntent
                 .getActivity(context, 0, sessionListIntent, 0)
@@ -46,10 +52,6 @@ class NotificationUtility(val context: Context) {
                 .setAutoCancel(false)
                 .setContentIntent(pendingSessionListIntent)
 
-        notificationManager.notify(serviceNotificationId, builder.build())
-    }
-
-    fun killPersistentServiceNotification() {
-        notificationManager.cancel(serviceNotificationId)
+        return builder.build()
     }
 }

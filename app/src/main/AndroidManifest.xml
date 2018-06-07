@@ -52,6 +52,8 @@
             android:name="tech.ula.TermsAndConditionsActivity"
             android:label="Terms And Conditions" />
 
+        <service android:name=".ServerService" />
+
     </application>
 
 </manifest>
