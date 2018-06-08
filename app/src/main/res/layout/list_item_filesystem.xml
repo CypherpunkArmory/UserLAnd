@@ -11,6 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_margin="8dp"
+        android:contentDescription="@string/desc_filesystem_type"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"/>

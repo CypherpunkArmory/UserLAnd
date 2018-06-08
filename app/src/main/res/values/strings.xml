@@ -77,4 +77,10 @@
     <string name="filesystem_unique_name_required">Filesystems require a unique name!</string>
     <!-- TODO remove this once multisession support is implemented -->
     <string name="single_session_supported">UserLAnd currently only supports a single active session!</string>
+
+    <!-- Content descriptions -->
+    <string name="desc_inactive">Image: session inactive</string>
+    <string name="desc_active">Image: session active</string>
+    <string name="desc_arrow">Image: Arrow denoting connection between session and filesystem.</string>
+    <string name="desc_filesystem_type">Image: Distribution logo</string>
 </resources>

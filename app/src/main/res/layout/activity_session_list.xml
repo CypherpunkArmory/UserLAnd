@@ -39,7 +39,8 @@
         android:alpha="0.4"
         android:background="#000000"
         android:visibility="gone"
-        android:clickable="true">
+        android:clickable="true"
+        android:focusable="true">
 
         <ProgressBar
             style="@style/Widget.AppCompat.ProgressBar"
@@ -59,8 +60,7 @@
             android:layout_margin="8dp"
             app:layout_constraintTop_toBottomOf="@id/progress_bar_session_list"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:text="test"/>
+            app:layout_constraintEnd_toEndOf="parent" />
 
 
     </android.support.constraint.ConstraintLayout>
