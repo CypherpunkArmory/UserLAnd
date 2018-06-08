@@ -16,7 +16,6 @@ import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.view.ContextMenu
 import android.view.Menu
 import android.view.MenuItem
@@ -27,7 +26,6 @@ import kotlinx.android.synthetic.main.activity_session_list.*
 import kotlinx.android.synthetic.main.list_item_session.view.*
 import kotlinx.coroutines.experimental.*
 import org.jetbrains.anko.longToast
-import org.jetbrains.anko.toast
 import tech.ula.database.models.Session
 import tech.ula.ui.SessionListAdapter
 import tech.ula.ui.SessionViewModel
