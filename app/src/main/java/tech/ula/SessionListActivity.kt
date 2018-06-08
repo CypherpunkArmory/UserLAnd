@@ -1,6 +1,7 @@
 package tech.ula
 
 import android.Manifest
+import android.app.AlertDialog
 import android.app.DownloadManager
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
@@ -9,6 +10,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
@@ -46,7 +48,7 @@ class SessionListActivity : AppCompatActivity() {
             sessionList = it
 
             for(session in sessionList) {
-                session.active = serverUtility.isServerRunning(session)
+                if(session.active) session.active = serverUtility.isServerRunning(session)
             }
             activeSessions = sessionList.any { it.active }
 
@@ -84,6 +86,8 @@ class SessionListActivity : AppCompatActivity() {
         FilesystemUtility(this)
     }
 
+    private val permissionRequestCode = 1000
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_session_list)
@@ -91,11 +95,22 @@ class SessionListActivity : AppCompatActivity() {
         supportActionBar?.setTitle(R.string.sessions)
         notificationManager.createServiceNotificationChannel() // Android O requirement
 
+        if(!arePermissionsGranted()) {
+            ActivityCompat.requestPermissions(this, arrayOf(
+                    Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                    permissionRequestCode)
+        }
+
         sessionViewModel.getAllSessions().observe(this, sessionChangeObserver)
 
         registerForContextMenu(list_sessions)
         list_sessions.onItemClickListener = AdapterView.OnItemClickListener {
             _, view, position, _ ->
+            if(!arePermissionsGranted()) {
+                showPermissionsNecessaryDialog()
+                return@OnItemClickListener
+            }
+
             val session = sessionList[position]
             if(!session.active) {
                 if (!activeSessions) {
@@ -111,10 +126,6 @@ class SessionListActivity : AppCompatActivity() {
 
         registerReceiver(downloadBroadcastReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
 
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE), 0)
-        }
         fab.setOnClickListener { navigateToSessionEdit(Session(0, filesystemId = 0)) }
 
         progress_bar_session_list.visibility = View.VISIBLE
@@ -124,12 +135,11 @@ class SessionListActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         //TODO handle cases appropriately
         when(requestCode) {
-            0 -> {
-                if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    toast("yay!")
-                }
-                else {
-                    toast("boo!")
+            permissionRequestCode -> {
+                if(!(grantResults.isNotEmpty() &&
+                        grantResults[0] == PackageManager.PERMISSION_GRANTED &&
+                        grantResults[1] == PackageManager.PERMISSION_GRANTED)) {
+                    showPermissionsNecessaryDialog()
                 }
                 return
             }
@@ -165,6 +175,40 @@ class SessionListActivity : AppCompatActivity() {
             R.id.menu_item_session_delete -> deleteSession(session)
             else -> super.onContextItemSelected(item)
         }
+    }
+
+    private fun arePermissionsGranted(): Boolean {
+        return (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+
+                ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
+    }
+
+    private fun showPermissionsNecessaryDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setMessage(R.string.alert_permissions_necessary_message)
+                .setTitle(R.string.alert_permissions_necessary_title)
+                .setPositiveButton(R.string.alert_permissions_necessary_request_button, {
+                    dialog, _ ->
+                    ActivityCompat.requestPermissions(this, arrayOf(
+                            Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                            permissionRequestCode)
+                    dialog.dismiss()
+                })
+                .setNegativeButton(R.string.alert_permissions_necessary_settings_button, {
+                    dialog, _ ->
+                    val settingsIntent = Intent(
+                            android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            Uri.parse("package:${BuildConfig.APPLICATION_ID}"))
+                    startActivity(settingsIntent)
+                    dialog.dismiss()
+                })
+                .setNeutralButton(R.string.alert_permissions_necessary_cancel_button, {
+                    dialog, _ ->
+                    dialog.dismiss()
+                })
+        builder.create().show()
     }
 
     fun stopService(session: Session): Boolean {

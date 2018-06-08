@@ -33,10 +33,6 @@ class FilesystemListActivity: AppCompatActivity() {
         }
     }
 
-    private val fileManager by lazy {
-        FileUtility(this)
-    }
-
     private val filesystemUtility by lazy {
         FilesystemUtility(this)
     }
