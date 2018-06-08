@@ -1,6 +1,7 @@
 package tech.ula
 
 import android.arch.lifecycle.ViewModelProviders
+import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.TextInputEditText
 import android.support.v7.app.AppCompatActivity
@@ -24,7 +25,46 @@ class FilesystemEditActivity: AppCompatActivity() {
         intent.getParcelableExtra("filesystem") as Filesystem
     }
 
-    var editExisting = false
+    private fun getArchType(): String {
+        if(Build.VERSION.SDK_INT >= 21) {
+            val supportedABIS = Build.SUPPORTED_ABIS.map {
+                translateABI(it)
+            }
+            supportedABIS.filter {
+                isSupported(it)
+            }
+            if(supportedABIS.size == 1 && supportedABIS[0] == "") {
+                throw Exception("No supported ABI!")
+            }
+            else {
+                return supportedABIS[0]
+            }
+        }
+        else {
+            if(isSupported(Build.CPU_ABI)) return Build.CPU_ABI
+            else if(isSupported(Build.CPU_ABI2)) return Build.CPU_ABI2
+            else {
+                throw Exception("No supported ABI!")
+            }
+        }
+    }
+
+    private fun isSupported(abi: String): Boolean {
+        val supportedABIs = listOf(/*"arm64", */"armhf"/*, "x86_64", "x86"*/)
+        return supportedABIs.contains(abi)
+    }
+
+    private fun translateABI(abi: String): String {
+        return when(abi) {
+            "arm64-v8a" -> "arm64"
+            "armeabi-v7a" -> "armhf"
+            "x86_64" -> "x86_64"
+            "x86" -> "x86"
+            else -> ""
+        }
+    }
+
+    private var editExisting = false
 
     private val filesystemViewModel: FilesystemViewModel by lazy {
         ViewModelProviders.of(this).get(FilesystemViewModel::class.java)
@@ -108,6 +148,8 @@ class FilesystemEditActivity: AppCompatActivity() {
                 finish()
             }
             else {
+                // TODO some checking
+                filesystem.archType = getArchType()
                 launchAsync {
                     when (filesystemViewModel.insertFilesystem(filesystem)) {
                         true -> finish()
