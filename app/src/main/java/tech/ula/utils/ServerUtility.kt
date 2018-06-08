@@ -2,7 +2,6 @@ package tech.ula.utils
 
 import android.content.Context
 import tech.ula.database.models.Session
-import tech.ula.utils.*
 
 class ServerUtility(private val context: Context) {
 

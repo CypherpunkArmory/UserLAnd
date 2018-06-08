@@ -41,8 +41,8 @@ class FilesystemEditActivity: AppCompatActivity() {
             }
         }
         else {
-            if(isSupported(Build.CPU_ABI)) return Build.CPU_ABI
-            else if(isSupported(Build.CPU_ABI2)) return Build.CPU_ABI2
+            return if(isSupported(Build.CPU_ABI)) Build.CPU_ABI
+            else if(isSupported(Build.CPU_ABI2)) Build.CPU_ABI2
             else {
                 throw Exception("No supported ABI!")
             }
