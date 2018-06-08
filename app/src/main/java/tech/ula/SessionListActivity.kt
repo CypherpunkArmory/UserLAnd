@@ -16,6 +16,7 @@ import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.ContextMenu
 import android.view.Menu
 import android.view.MenuItem
@@ -57,12 +58,15 @@ class SessionListActivity : AppCompatActivity() {
         }
     }
 
-    private val downloadList: ArrayList<Long> = ArrayList()
+    private val downloadList = ArrayList<Long>()
+
+    private val downloadedList = ArrayList<Long>()
 
     private val downloadBroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            val downloadId = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-            downloadList.remove(downloadId)
+            val downloadedId = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+            if (downloadedId != null)
+                downloadedList.add(downloadedId)
         }
     }
 
@@ -289,9 +293,13 @@ class SessionListActivity : AppCompatActivity() {
 
             text_session_list_progress_update.setText(R.string.progress_downloading)
             asyncAwait {
+                downloadList.clear()
+                downloadedList.clear()
                 downloadList.addAll(downloadManager.downloadRequirements())
-                while (downloadList.isNotEmpty()) {
+                if (downloadList.isNotEmpty())
                     assetsWereDownloaded = true
+
+                while (downloadList.size != downloadedList.size) {
                     delay(500)
                 }
                 if (assetsWereDownloaded) {

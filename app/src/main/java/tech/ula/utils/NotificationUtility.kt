@@ -45,7 +45,7 @@ class NotificationUtility(val context: Context) {
                 .getActivity(context, 0, sessionListIntent, 0)
 
         val builder = NotificationCompat.Builder(context, serviceNotificationChannelId)
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.drawable.ic_stat_icon)
                 .setContentTitle(serviceNotificationTitle)
                 .setContentText(serviceNotificationDescription)
                 .setPriority(NotificationCompat.PRIORITY_MAX)
