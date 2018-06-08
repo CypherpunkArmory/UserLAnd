@@ -98,7 +98,7 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
-        android:id="@+id/text_default_passowrd"
+        android:id="@+id/text_default_password"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/default_password"
