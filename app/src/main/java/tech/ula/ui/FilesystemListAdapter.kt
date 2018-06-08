@@ -35,7 +35,7 @@ class FilesystemListAdapter(private var activity: Activity, private var items: L
 
         when(filesystem.distributionType) {
             "debian" -> viewHolder.imageViewType.setImageResource(R.drawable.ic_debian_logo)
-            else -> viewHolder.imageViewType.setImageResource(R.drawable.ic_launcher_foreground)
+            else -> viewHolder.imageViewType.setImageResource(R.mipmap.ic_launcher_foreground)
         }
         viewHolder.textViewName.text = filesystem.name
 
