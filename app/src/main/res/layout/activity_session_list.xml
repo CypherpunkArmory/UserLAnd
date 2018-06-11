@@ -62,15 +62,13 @@
             app:layout_constraintEnd_toEndOf="parent" />
 
         <TextView
-            android:id="@+id/text_session_list_default_password"
+            android:id="@+id/text_session_list_default_password_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/default_password_explanation"
+            android:text="@string/default_password_message"
             app:layout_constraintTop_toBottomOf="@id/text_session_list_progress_update"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
-
-
 
     </android.support.constraint.ConstraintLayout>
 
