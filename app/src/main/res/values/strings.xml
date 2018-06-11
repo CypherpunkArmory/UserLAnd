@@ -55,7 +55,7 @@
     Bugs will be present, but please report them to us!</string>
     <string name="supported_services">Currently supported services:</string>
     <string name="supported_clients">Currently supported clients</string>
-    <string name="default_password">The default session password is: userland</string>
+    <string name="default_password_explanation">The default session password is: userland</string>
 
     <!-- Permissions necessary alert -->
     <string name="alert_permissions_necessary_title">UserLAnd requires permissions!</string>
