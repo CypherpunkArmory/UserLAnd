@@ -9,6 +9,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.net.wifi.WifiManager
@@ -267,6 +268,8 @@ class SessionListActivity : AppCompatActivity() {
         val filesystemDirectoryName = session.filesystemId.toString()
         var assetsWereDownloaded = false
         launchAsync {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_NOSENSOR
+
             val inAnimation = AlphaAnimation(0f, 1f)
             inAnimation.duration = 200
             layout_progress.animation = inAnimation
@@ -332,6 +335,7 @@ class SessionListActivity : AppCompatActivity() {
             }
 
             text_session_list_progress_update.setText(R.string.progress_connecting)
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
             asyncAwait {
                 clientUtility.startClient(session)
             }
