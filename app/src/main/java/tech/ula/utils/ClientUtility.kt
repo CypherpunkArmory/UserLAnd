@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import tech.ula.database.models.Session
-import tech.ula.utils.*
 
 class ClientUtility(private val context: Context) {
 

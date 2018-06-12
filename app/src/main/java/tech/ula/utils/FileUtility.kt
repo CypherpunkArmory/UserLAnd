@@ -2,7 +2,6 @@ package tech.ula.utils
 
 import android.content.Context
 import android.os.Environment
-import android.preference.PreferenceManager
 import android.util.Log
 import java.io.File
 

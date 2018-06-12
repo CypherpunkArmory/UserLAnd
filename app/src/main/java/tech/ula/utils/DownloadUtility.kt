@@ -13,12 +13,9 @@ import kotlin.coroutines.experimental.Continuation
 import kotlin.coroutines.experimental.suspendCoroutine
 
 class DownloadUtility(val uiContext: Context) {
+
     private val downloadManager: DownloadManager by lazy {
         uiContext.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-    }
-
-    private val wifiManager: WifiManager by lazy {
-        uiContext.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
     }
 
     companion object {

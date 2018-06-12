@@ -31,7 +31,7 @@ class ExecUtility(private val context: Context) {
             pb.directory(executionDirectory)
             pb.redirectErrorStream(true)
             pb.environment().putAll(env)
-            Log.i("ExecUtils","Running: ${pb.command()} \n with env $env")
+            listener("Running: ${pb.command()} \n with env $env")
 
             val process = pb.start()
 
@@ -41,7 +41,7 @@ class ExecUtility(private val context: Context) {
                 if (process.waitFor() != 0) {
                     Log.e("Exec", "Failed to execute command ${pb.command()}\nstdout: $result")
                 } else {
-                    Log.i("Exec", "stdout: $result")
+                    listener("stdout: $result")
                 }
             }
             return process
