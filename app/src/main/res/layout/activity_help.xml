@@ -98,10 +98,10 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
-        android:id="@+id/text_default_password"
+        android:id="@+id/text_default_password_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/default_password"
+        android:text="@string/default_password_message"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/list_supported_clients" />
 

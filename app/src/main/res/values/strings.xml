@@ -40,6 +40,8 @@
 
 
     <!-- Preferences -->
+    <string name="pref_app_category">App Preferences</string>
+    <string name="pref_enable_default_password_message">Default Password Message Enabled</string>
     <string name="pref_proot_category">PRoot Preferences</string>
     <string name="pref_proot_debugging_enabled_title">PRoot Debugging Enabled</string>
     <string name="pref_proot_debugging_enabled_summary">Allow PRoot debugging logs to be generated.</string>
@@ -52,7 +54,7 @@
     Bugs will be present, but please report them to us!</string>
     <string name="supported_services">Currently supported services:</string>
     <string name="supported_clients">Currently supported clients</string>
-    <string name="default_password">The default session password is: userland</string>
+    <string name="default_password_message">The default session password is: userland</string>
 
     <!-- Permissions necessary alert -->
     <string name="alert_permissions_necessary_title">UserLAnd requires permissions!</string>

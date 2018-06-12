@@ -13,7 +13,9 @@ import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.net.wifi.WifiManager
+import android.opengl.Visibility
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
@@ -102,6 +104,12 @@ class SessionListActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, arrayOf(
                     Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),
                     permissionRequestCode)
+        }
+
+        val preferences = PreferenceManager.getDefaultSharedPreferences(this)
+        val defaultPasswordMessageEnabled = preferences.getBoolean("pref_default_password_message_enabled", true)
+        if(!defaultPasswordMessageEnabled) {
+            text_session_list_default_password_message.visibility = View.GONE
         }
 
         sessionViewModel.getAllSessions().observe(this, sessionChangeObserver)

@@ -2,6 +2,14 @@
 <!-- TODO real settings -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
+        android:title="@string/pref_app_category"
+        android:key="pref_app_category" >
+        <CheckBoxPreference
+            android:key="pref_default_password_message_enabled"
+            android:title="@string/pref_enable_default_password_message"
+            android:defaultValue="true" />
+    </PreferenceCategory>
+    <PreferenceCategory
         android:title="@string/pref_proot_category"
         android:key="pref_proot_category" >
         <CheckBoxPreference
