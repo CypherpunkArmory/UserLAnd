@@ -27,6 +27,9 @@ class SessionEditActivity: AppCompatActivity() {
         intent.getParcelableExtra("session") as Session
     }
 
+    private var sessionServiceTypeList = ArrayList<String>()
+    private var sessionClientTypeList = ArrayList<String>()
+
     var editExisting = false
 
     lateinit var filesystemList: List<Filesystem>
@@ -66,9 +69,8 @@ class SessionEditActivity: AppCompatActivity() {
         if (session.name != "") {
             editExisting = true
         }
-        val sessionNameInput: TextInputEditText = findViewById(R.id.text_input_session_name)
-        sessionNameInput.setText(session.name)
-        sessionNameInput.addTextChangedListener(object : TextWatcher {
+        text_input_session_name.setText(session.name)
+        text_input_session_name.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
                 session.name = p0.toString()
             }
@@ -97,43 +99,30 @@ class SessionEditActivity: AppCompatActivity() {
             }
         }
 
-        // Session service type dropdown
-        // TODO reenable this dropdown
-        val sessionServiceTypeList = ArrayList<String>()
-        sessionServiceTypeList.add("ssh")
+        sessionServiceTypeList = getSupportedServiceTypes()
 
-        val sessionServiceTypeDropdown: Spinner = findViewById(R.id.spinner_session_service_type)
-        val sessionServiceTypeAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, sessionServiceTypeList)
-        sessionServiceTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        sessionServiceTypeDropdown.adapter = sessionServiceTypeAdapter
-        sessionServiceTypeDropdown.isEnabled = false
-        sessionServiceTypeDropdown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        spinner_session_service_type.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, sessionServiceTypeList)
+        spinner_session_service_type.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val data = parent?.getItemAtPosition(position) ?: ""
-                session.serviceType = data.toString()
+                val selectedServiceType = parent?.getItemAtPosition(position).toString()
+                session.serviceType = selectedServiceType
+
+                sessionClientTypeList = getSupportedClientTypes(selectedServiceType)
+                spinner_session_client_type.adapter = ArrayAdapter(this@SessionEditActivity, android.R.layout.simple_spinner_dropdown_item, sessionClientTypeList)
             }
         }
 
         // Session client type dropdown
-        // TODO reenable this dropdown
-        val sessionClientTypeList = ArrayList<String>()
-        sessionClientTypeList.add("ConnectBot")
-
-        val sessionClientTypeDropdown: Spinner = findViewById(R.id.spinner_session_client_type)
-        val sessionClientTypeAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, sessionClientTypeList)
-        sessionClientTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        sessionClientTypeDropdown.adapter = sessionClientTypeAdapter
-        sessionClientTypeDropdown.isEnabled = false
-        sessionClientTypeDropdown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        spinner_session_client_type.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val data = parent?.getItemAtPosition(position) ?: ""
-                session.clientType = data.toString()
+                val selectedClientType = parent?.getItemAtPosition(position).toString()
+                session.clientType = selectedClientType
             }
         }
 
@@ -195,6 +184,18 @@ class SessionEditActivity: AppCompatActivity() {
                     }
                 }
             }
+        }
+    }
+
+    private fun getSupportedServiceTypes(): ArrayList<String> {
+        return arrayListOf("ssh", "vnc")
+    }
+
+    private fun getSupportedClientTypes(selectedServiceType: String): ArrayList<String> {
+        return when(selectedServiceType) {
+            "ssh" -> arrayListOf("ConnectBot")
+            "vnc" -> arrayListOf("bVNC")
+            else -> arrayListOf()
         }
     }
 }

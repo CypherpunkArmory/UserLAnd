@@ -43,7 +43,7 @@ class ClientUtility(private val context: Context) {
     }
 
     private fun clientIsPresent(intent: Intent): Boolean {
-        val activities = context.packageManager.queryIntentActivities(connectBotIntent, 0)
+        val activities = context.packageManager.queryIntentActivities(intent, 0)
         return(activities.size > 0)
     }
 
