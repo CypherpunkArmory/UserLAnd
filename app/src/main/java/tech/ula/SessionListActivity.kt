@@ -283,9 +283,10 @@ class SessionListActivity : AppCompatActivity() {
             layout_progress.animation = inAnimation
             layout_progress.visibility = View.VISIBLE
 
-            val downloadManager = DownloadUtility(this@SessionListActivity)
+            val archType = filesystemUtility.getArchType()
             // TODO adjust requirements dynamically
-            downloadManager.addRequirements("debian")
+            val distType = "debian"
+            val downloadManager = DownloadUtility(this@SessionListActivity, archType, distType)
             if (downloadManager.checkIfLargeRequirement()) {
                 val result = downloadManager.displayWifiChoices()
                 when (result) {
