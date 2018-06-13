@@ -38,7 +38,7 @@ class ClientUtility(private val context: Context) {
             context.startActivity(bVncIntent)
         }
         else {
-            getClient("com.iiordanov.bVNC")
+            getClient("com.iiordanov.freebVNC")
         }
     }
 
