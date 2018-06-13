@@ -114,7 +114,13 @@ class FilesystemEditActivity: AppCompatActivity() {
                 finish()
             }
             else {
-                filesystem.archType = filesystemUtility.getArchType()
+                try {
+                    filesystem.archType = filesystemUtility.getArchType()
+                }
+                catch(err: Exception) {
+                    longToast(R.string.no_supported_architecture)
+                    return
+                }
                 launchAsync {
                     when (filesystemViewModel.insertFilesystem(filesystem)) {
                         true -> finish()
