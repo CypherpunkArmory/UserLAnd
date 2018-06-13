@@ -12,7 +12,7 @@ import java.io.File
 import kotlin.coroutines.experimental.Continuation
 import kotlin.coroutines.experimental.suspendCoroutine
 
-class DownloadUtility(val uiContext: Context, val archType: String) {
+class DownloadUtility(val uiContext: Context, val archType: String, val distType: String) {
 
     private val downloadManager: DownloadManager by lazy {
         uiContext.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
@@ -25,30 +25,20 @@ class DownloadUtility(val uiContext: Context, val archType: String) {
     }
 
     // Prefix file name with OS type to move it into the correct folder
-    val assets = arrayListOf(
+    private val assets = arrayListOf(
             "support:proot" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/$archType/proot",
             "support:busybox" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/$archType/busybox",
             "support:libtalloc.so.2" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/$archType/libtalloc.so.2",
             "support:execInProot.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/main/execInProot.sh",
             "support:killProcTree.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/main/killProcTree.sh",
-            "support:isServerInProcTree.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/main/isServerInProcTree.sh"
+            "support:isServerInProcTree.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/main/isServerInProcTree.sh",
+            "$distType:startSSHServer.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/main/startSSHServer.sh",
+            "$distType:extractFilesystem.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/main/extractFilesystem.sh",
+            "$distType:busybox" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/$archType/busybox",
+            "$distType:libdisableselinux.so" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/$archType/libdisableselinux.so",
+            "$distType:ld.so.preload" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/main/ld.so.preload",
+            "$distType:rootfs.tar.gz" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/$archType/rootfs.tar.gz"
     )
-
-    val debianAssets = listOf(
-            "debian:startSSHServer.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/debianSupport/main/startSSHServer.sh",
-            "debian:extractFilesystem.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/debianSupport/main/extractFilesystem.sh",
-            "debian:busybox" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/debianSupport/$archType/busybox",
-            "debian:libdisableselinux.so" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/debianSupport/$archType/libdisableselinux.so",
-            "debian:ld.so.preload" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/debianSupport/main/ld.so.preload",
-            "debian:rootfs.tar.gz" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/debianSupport/$archType/rootfs.tar.gz"
-    )
-
-    fun addRequirements(filesystemType: String) {
-        when(filesystemType) {
-            "debian" -> assets.addAll(debianAssets)
-            else -> return
-        }
-    }
 
     fun checkIfLargeRequirement(): Boolean {
         if(!isWifiEnabled()) {
