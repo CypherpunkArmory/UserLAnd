@@ -55,7 +55,7 @@ class FilesystemUtility(private val context: Context) {
     private fun translateABI(abi: String): String {
         return when(abi) {
             "arm64-v8a" -> "arm64"
-            "armeabi-v7a" -> "armhf"
+            "armeabi-v7a" -> "arm"
             "x86_64" -> "x86_64"
             "x86" -> "x86"
             else -> ""
