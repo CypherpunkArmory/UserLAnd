@@ -283,7 +283,8 @@ class SessionListActivity : AppCompatActivity() {
             layout_progress.animation = inAnimation
             layout_progress.visibility = View.VISIBLE
 
-            val downloadManager = DownloadUtility(this@SessionListActivity)
+            val archType = filesystemUtility.getArchType()
+            val downloadManager = DownloadUtility(this@SessionListActivity, archType)
             // TODO adjust requirements dynamically
             downloadManager.addRequirements("debian")
             if (downloadManager.checkIfLargeRequirement()) {

@@ -12,7 +12,7 @@ import java.io.File
 import kotlin.coroutines.experimental.Continuation
 import kotlin.coroutines.experimental.suspendCoroutine
 
-class DownloadUtility(val uiContext: Context) {
+class DownloadUtility(val uiContext: Context, val archType: String) {
 
     private val downloadManager: DownloadManager by lazy {
         uiContext.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
@@ -26,9 +26,9 @@ class DownloadUtility(val uiContext: Context) {
 
     // Prefix file name with OS type to move it into the correct folder
     val assets = arrayListOf(
-            "support:proot" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/arm/proot",
-            "support:busybox" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/arm/busybox",
-            "support:libtalloc.so.2" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/arm/libtalloc.so.2",
+            "support:proot" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/$archType/proot",
+            "support:busybox" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/$archType/busybox",
+            "support:libtalloc.so.2" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/$archType/libtalloc.so.2",
             "support:execInProot.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/main/execInProot.sh",
             "support:killProcTree.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/main/killProcTree.sh",
             "support:isServerInProcTree.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/main/isServerInProcTree.sh"
@@ -37,10 +37,10 @@ class DownloadUtility(val uiContext: Context) {
     val debianAssets = listOf(
             "debian:startSSHServer.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/debianSupport/main/startSSHServer.sh",
             "debian:extractFilesystem.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/debianSupport/main/extractFilesystem.sh",
-            "debian:busybox" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/debianSupport/arm/busybox",
-            "debian:libdisableselinux.so" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/debianSupport/arm/libdisableselinux.so",
+            "debian:busybox" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/debianSupport/$archType/busybox",
+            "debian:libdisableselinux.so" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/debianSupport/$archType/libdisableselinux.so",
             "debian:ld.so.preload" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/debianSupport/main/ld.so.preload",
-            "debian:rootfs.tar.gz" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/debianSupport/arm/rootfs.tar.gz"
+            "debian:rootfs.tar.gz" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/debianSupport/$archType/rootfs.tar.gz"
     )
 
     fun addRequirements(filesystemType: String) {
