@@ -56,9 +56,13 @@ class ExecUtility(private val context: Context) {
         val out = StringBuilder()
         val buf: BufferedReader = inputStream.bufferedReader(UTF_8)
 
-        val allText = buf.use(BufferedReader::readText)
-        listener(allText)
-        out.append(allText)
+        buf.useLines {
+            it.map {
+                line ->
+                listener(line)
+                out.append(line)
+            }
+        }
         return out.toString()
     }
 
@@ -71,10 +75,13 @@ class ExecUtility(private val context: Context) {
         val prootDebuggingLevel =
                 if(prootDebuggingEnabled) preferences.getString("pref_proot_debug_level", "-1")
                 else "-1"
+        /* val prootFileLogging = preferences.getBoolean("pref_proot_local_file_enabled", false) */
 
         val command = arrayListOf("../support/busybox", "sh", "-c")
 
         val commandToAdd =
+                // TODO Fix this bug. If logging is enabled and it doesn't write to a file, isServerInProcTree can't find dropbear.
+                /*if(prootDebuggingEnabled && prootFileLogging) "$commandToWrap &> /mnt/sdcard/PRoot_Debug_Log"*/
                 if(prootDebuggingEnabled) "$commandToWrap &> /mnt/sdcard/PRoot_Debug_Log"
                 else commandToWrap
 

@@ -41,11 +41,14 @@
 
     <!-- Preferences -->
     <string name="pref_proot_category">PRoot Preferences</string>
-    <string name="pref_proot_debugging_enabled_title">PRoot Debugging Enabled</string>
-    <string name="pref_proot_debugging_enabled_summary">Allow PRoot debugging logs to be generated.</string>
+    <string name="pref_proot_debugging_enabled_title">PRoot Debugging Logs Enabled</string>
+    <string name="pref_proot_debugging_enabled_summary">Only necessary if having problems with the app. \nLog file stored at /mnt/sdcard/PRoot_Debug_Log</string>
     <string name="pref_proot_debugging_level_title">Debug Verbosity Level</string>
     <string name="pref_proot_debugging_level_summary">The higher the number, the greater the verbosity.</string>
     <string name="pref_proot_debugging_level_default">-1</string>
+    <string name="pref_proot_local_file_enabled_title">Log To Local File</string>
+    <string name="pref_proot_local_file_enabled_summary">Store (potentially large) file at /mnt/sdcard/PRoot_Debug_Log</string>
+    <string name="pref_proot_delete_debug_file_title">Delete Debug File</string>
 
     <!-- Help Activity -->
     <string name="beta_message">UserLAnd is currently in beta! Not all features will be available yet.
