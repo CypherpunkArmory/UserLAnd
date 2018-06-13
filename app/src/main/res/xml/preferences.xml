@@ -25,5 +25,17 @@
             android:entries="@array/proot_debug_levels"
             android:entryValues="@array/proot_debug_levels"
             android:defaultValue="@string/pref_proot_debugging_level_default" />
+        <!-- TODO Re-enable this preference once bug is fixed.
+        <CheckBoxPreference
+            android:dependency="pref_proot_debug_enabled"
+            android:key="pref_proot_local_file_enabled"
+            android:title="@string/pref_proot_local_file_enabled_title"
+            android:summary="@string/pref_proot_local_file_enabled_summary"
+            android:defaultValue="true" />
+        -->
+        <Preference
+            android:dependency="pref_proot_debug_enabled"
+            android:key="pref_proot_delete_debug_file"
+            android:title="@string/pref_proot_delete_debug_file_title" />
     </PreferenceCategory>
 </PreferenceScreen>
