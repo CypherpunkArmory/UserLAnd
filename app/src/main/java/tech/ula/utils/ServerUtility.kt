@@ -33,7 +33,7 @@ class ServerUtility(private val context: Context) {
         return process.pid()
     }
 
-    private fun startVNCServer(session: Session) {
+    private fun startVNCServer(session: Session): Long {
         val targetDirectoryName = session.filesystemId.toString()
         val command = "../support/execInProot.sh /bin/bash -c /support/startVNCServer.sh"
         val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command)
