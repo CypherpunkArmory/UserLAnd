@@ -32,7 +32,7 @@ class ClientUtility(private val context: Context) {
         val bVncIntent = Intent()
         bVncIntent.action = "android.intent.action.VIEW"
         bVncIntent.type = "application/vnd.vnc"
-        bVncIntent.data = Uri.parse("vnc://127.0.0.1:5951/?VncPassword${session.password}")
+        bVncIntent.data = Uri.parse("vnc://127.0.0.1:5951/?VncPassword=${session.password}")
 
         if(clientIsPresent(bVncIntent)) {
             context.startActivity(bVncIntent)
