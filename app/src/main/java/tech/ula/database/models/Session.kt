@@ -29,7 +29,7 @@ data class Session(
         var password: String = "",
         var serviceType: String = "",
         var clientType: String = "",
-        val port: Long = 2022,
+        var port: Long = 2022,
         var pid: Long = 0,
         val startupScript: String = "",
         val runAtDeviceStartup: Boolean = false,

@@ -108,6 +108,7 @@ class SessionEditActivity: AppCompatActivity() {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val selectedServiceType = parent?.getItemAtPosition(position).toString()
                 session.serviceType = selectedServiceType
+                session.port = getDefaultServicePort(selectedServiceType)
 
                 sessionClientTypeList = getSupportedClientTypes(selectedServiceType)
                 spinner_session_client_type.adapter = ArrayAdapter(this@SessionEditActivity, android.R.layout.simple_spinner_dropdown_item, sessionClientTypeList)
@@ -195,6 +196,13 @@ class SessionEditActivity: AppCompatActivity() {
             "ssh" -> arrayListOf("ConnectBot")
             "vnc" -> arrayListOf("bVNC")
             else -> arrayListOf()
+        }
+    }
+
+    private fun getDefaultServicePort(selectedServiceType: String): Long {
+        return when(selectedServiceType) {
+            "vnc" -> 51
+            else -> 2022
         }
     }
 }
