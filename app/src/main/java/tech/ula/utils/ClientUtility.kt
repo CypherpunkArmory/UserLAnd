@@ -10,29 +10,45 @@ class ClientUtility(private val context: Context) {
     fun startClient(session: Session) {
         when(session.clientType) {
             "ConnectBot" -> startConnectBotClient(session)
-            "bVNC" -> return // TODO
+            "bVNC" -> startBVncClient(session)
             "xsdl" -> return // TODO
             else -> return
         }
     }
 
     private fun startConnectBotClient(session: Session) {
-        // Build the intent
         val connectBotIntent = Intent()
         connectBotIntent.action = "android.intent.action.VIEW"
         connectBotIntent.data = Uri.parse("ssh://${session.username}@localhost:${session.port}/#userland")
 
-        // Verify it resolves
-        val activities = context.packageManager.queryIntentActivities(connectBotIntent, 0)
-        val isIntentSafe = activities.size > 0
-
-        // Start an activity if it's safe
-        if (isIntentSafe) {
+        if (clientIsPresent(connectBotIntent)) {
             context.startActivity(connectBotIntent)
         } else {
-            val appPackageName = "org.connectbot"
-            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName")))
+            getClient("org.connectbot")
         }
+    }
+
+    private fun startBVncClient(session: Session) {
+        val bVncIntent = Intent()
+        bVncIntent.action = "android.intent.action.VIEW"
+        bVncIntent.type = "application/vnd.vnc"
+        bVncIntent.data = Uri.parse("vnc://127.0.0.1:5951/?VncPassword${session.password}")
+
+        if(clientIsPresent(bVncIntent)) {
+            context.startActivity(bVncIntent)
+        }
+        else {
+            getClient("com.iiordanov.freebVNC")
+        }
+    }
+
+    private fun clientIsPresent(intent: Intent): Boolean {
+        val activities = context.packageManager.queryIntentActivities(intent, 0)
+        return(activities.size > 0)
+    }
+
+    private fun getClient(appPackageName: String) {
+        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName")))
     }
 
 

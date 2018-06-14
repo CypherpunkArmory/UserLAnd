@@ -25,12 +25,13 @@ class FilesystemUtility(private val context: Context) {
 
     fun getArchType(): String {
         if(Build.VERSION.SDK_INT >= 21) {
-            val supportedABIS = Build.SUPPORTED_ABIS.map {
-                translateABI(it)
-            }
-            supportedABIS.filter {
-                isSupported(it)
-            }
+            val supportedABIS = Build.SUPPORTED_ABIS
+                    .map {
+                        translateABI(it)
+                    }
+                    .filter {
+                        isSupported(it)
+                    }
             if(supportedABIS.size == 1 && supportedABIS[0] == "") {
                 throw Exception("No supported ABI!")
             }
@@ -47,8 +48,9 @@ class FilesystemUtility(private val context: Context) {
         }
     }
 
+
     private fun isSupported(abi: String): Boolean {
-        val supportedABIs = listOf("arm64", "armhf", "x86_64", "x86")
+        val supportedABIs = listOf("arm64", "arm", "x86_64", "x86")
         return supportedABIs.contains(abi)
     }
 

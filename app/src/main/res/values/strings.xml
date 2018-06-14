@@ -79,6 +79,7 @@
     <string name="filesystem_unique_name_required">Filesystems require a unique name!</string>
     <!-- TODO remove this once multisession support is implemented -->
     <string name="single_session_supported">UserLAnd currently only supports a single active session!</string>
+    <string name="no_supported_architecture">UserLAnd does not currently support your devices architecture.</string>
 
     <!-- Content descriptions -->
     <string name="desc_inactive">Image: session inactive</string>

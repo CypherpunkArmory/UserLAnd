@@ -20,7 +20,7 @@ class ServerUtility(private val context: Context) {
     fun startServer(session: Session): Long {
         return when(session.serviceType) {
             "ssh" -> startSSHServer(session)
-            "vnc" -> 0 // TODO
+            "vnc" -> startVNCServer(session)
             "xsdl" -> 0 // TODO
             else -> 0
         }
@@ -30,6 +30,13 @@ class ServerUtility(private val context: Context) {
         val targetDirectoryName = session.filesystemId.toString()
         val command = "../support/execInProot.sh /bin/bash -c /support/startSSHServer.sh"
         val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, false)
+        return process.pid()
+    }
+
+    private fun startVNCServer(session: Session) {
+        val targetDirectoryName = session.filesystemId.toString()
+        val command = "../support/execInProot.sh /bin/bash -c /support/startVNCServer.sh"
+        val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command)
         return process.pid()
     }
 
