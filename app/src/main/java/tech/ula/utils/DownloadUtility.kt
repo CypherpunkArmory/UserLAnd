@@ -33,6 +33,8 @@ class DownloadUtility(val uiContext: Context, val archType: String, val distType
             "support:killProcTree.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/main/killProcTree.sh",
             "support:isServerInProcTree.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/main/isServerInProcTree.sh",
             "$distType:startSSHServer.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/main/startSSHServer.sh",
+            "$distType:startVNCServer.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/main/startVNCServer.sh",
+            "$distType:startVNCServerStep2.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/main/startVNCServerStep2.sh",
             "$distType:extractFilesystem.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/main/extractFilesystem.sh",
             "$distType:busybox" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/$archType/busybox",
             "$distType:libdisableselinux.so" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/$archType/libdisableselinux.so",
