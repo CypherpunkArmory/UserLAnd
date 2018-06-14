@@ -265,9 +265,10 @@ class SessionListActivity : AppCompatActivity() {
         return true
     }
 
-    private fun navigateToSessionEdit(session: Session?): Boolean {
+    private fun navigateToSessionEdit(session: Session): Boolean {
         val intent = Intent(this, SessionEditActivity::class.java)
-        session?.let { intent.putExtra("session", session) }
+        intent.putExtra("session", session)
+        intent.putExtra("editExisting", session.name != "")
         startActivity(intent)
         return true
     }

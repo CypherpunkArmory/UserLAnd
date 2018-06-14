@@ -27,10 +27,12 @@ class SessionEditActivity: AppCompatActivity() {
         intent.getParcelableExtra("session") as Session
     }
 
+    private val editExisting: Boolean by lazy {
+        intent.getBooleanExtra("editExisting", false)
+    }
+
     private var sessionServiceTypeList = ArrayList<String>()
     private var sessionClientTypeList = ArrayList<String>()
-
-    var editExisting = false
 
     lateinit var filesystemList: List<Filesystem>
 
@@ -66,9 +68,6 @@ class SessionEditActivity: AppCompatActivity() {
         filesystemViewModel.getAllFilesystems().observe(this, filesystemChangeObserver)
 
         // Session name input
-        if (session.name != "") {
-            editExisting = true
-        }
         text_input_session_name.setText(session.name)
         text_input_session_name.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {

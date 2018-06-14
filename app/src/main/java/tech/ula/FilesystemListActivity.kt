@@ -69,6 +69,7 @@ class FilesystemListActivity: AppCompatActivity() {
     fun navigateToFilesystemEdit(filesystem: Filesystem): Boolean {
         val intent = Intent(this, FilesystemEditActivity::class.java)
         intent.putExtra("filesystem", filesystem)
+        intent.putExtra("editExisting", filesystem.name != "")
         startActivity(intent)
         return true
     }

@@ -26,7 +26,9 @@ class FilesystemEditActivity: AppCompatActivity() {
         intent.getParcelableExtra("filesystem") as Filesystem
     }
 
-    private var editExisting = false
+    private val editExisting: Boolean by lazy {
+        intent.getBooleanExtra("editExisting", false)
+    }
 
     private val filesystemViewModel: FilesystemViewModel by lazy {
         ViewModelProviders.of(this).get(FilesystemViewModel::class.java)
@@ -41,13 +43,8 @@ class FilesystemEditActivity: AppCompatActivity() {
         setContentView(R.layout.activity_filesystem_edit)
         setSupportActionBar(toolbar)
 
-        if(filesystem.name != "") {
-            editExisting = true
-        }
-
-        val nameInput: TextInputEditText = findViewById(R.id.input_filesystem_name)
-        nameInput.setText(filesystem.name)
-        nameInput.addTextChangedListener(object: TextWatcher {
+        input_filesystem_name.setText(filesystem.name)
+        input_filesystem_name.addTextChangedListener(object: TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
                 filesystem.name = p0.toString()
             }
@@ -63,14 +60,14 @@ class FilesystemEditActivity: AppCompatActivity() {
         val filesystemTypeList = ArrayList<String>()
         filesystemTypeList.add("debian")
 
-        val filesystemTypeDropdown: Spinner = findViewById(R.id.spinner_filesystem_type)
         val filesystemTypeAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, filesystemTypeList)
         filesystemTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        filesystemTypeDropdown.adapter = filesystemTypeAdapter
+
+        spinner_filesystem_type.adapter = filesystemTypeAdapter
         if(editExisting) {
-            filesystemTypeDropdown.isEnabled = false
+            spinner_filesystem_type.isEnabled = false
         }
-        filesystemTypeDropdown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        spinner_filesystem_type.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
@@ -78,9 +75,6 @@ class FilesystemEditActivity: AppCompatActivity() {
                 filesystem.distributionType = parent?.getItemAtPosition(position).toString()
             }
         }
-
-        if(editExisting) filesystemTypeDropdown.isEnabled = false
-
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
