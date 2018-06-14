@@ -48,7 +48,7 @@ class FilesystemUtility(private val context: Context) {
     }
 
     private fun isSupported(abi: String): Boolean {
-        val supportedABIs = listOf(/*"arm64", */"armhf"/*, "x86_64", "x86"*/)
+        val supportedABIs = listOf("arm64", "armhf", "x86_64", "x86")
         return supportedABIs.contains(abi)
     }
 

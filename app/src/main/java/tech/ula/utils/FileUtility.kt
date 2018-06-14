@@ -66,6 +66,8 @@ class FileUtility(private val context: Context) {
                 Triple("libtalloc.so.2", "support", "0777"),
                 Triple("execInProot.sh", "support", "0777"),
                 Triple("startSSHServer.sh", "debian", "0777"),
+                Triple("startVNCServer.sh", "debian", "0777"),
+                Triple("startVNCServerStep2.sh", "debian", "0777"),
                 Triple("busybox", "debian","0777"),
                 Triple("libdisableselinux.so", "debian", "0777")
         )
