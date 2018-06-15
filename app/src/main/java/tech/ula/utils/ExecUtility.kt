@@ -56,13 +56,12 @@ class ExecUtility(private val context: Context) {
         val out = StringBuilder()
         val buf: BufferedReader = inputStream.bufferedReader(UTF_8)
 
-        buf.useLines {
-            it.map {
-                line ->
-                listener(line)
-                out.append(line)
-            }
+        buf.forEachLine {
+            listener(it)
+            out.append(it)
         }
+
+        buf.close()
         return out.toString()
     }
 

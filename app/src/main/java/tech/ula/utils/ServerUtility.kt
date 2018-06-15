@@ -7,7 +7,7 @@ import java.io.File
 class ServerUtility(private val context: Context) {
 
     fun Process.pid(): Long {
-        return this.toString().substringAfter("=").substringBefore(",").trim().toLong()
+        return this.toString().substringAfter("pid=").substringBefore(",").substringBefore("]").trim().toLong()
     }
 
     fun Session.pidRelativeFilePath(): String {
@@ -73,13 +73,14 @@ class ServerUtility(private val context: Context) {
 
     fun stopService(session: Session) {
         val targetDirectoryName = session.filesystemId.toString()
-        val command = "${fileUtility.getSupportDirPath()}/killProcTree.sh ${session.pid} ${session.pid()}"
+
+        val command = "../support/killProcTree.sh ${session.pid} ${session.pid()}"
         execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command)
     }
 
     fun isServerRunning(session: Session): Boolean {
         val targetDirectoryName = session.filesystemId.toString()
-        val command = "${fileUtility.getSupportDirPath()}/isServerInProcTree.sh ${session.pid()}"
+        val command = "../support/isServerInProcTree.sh ${session.pid()}"
         val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command)
         if (process.exitValue() != 0)  //isServerInProcTree returns a 1 if it did't find a server
             return false

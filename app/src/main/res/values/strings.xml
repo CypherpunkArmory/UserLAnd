@@ -77,9 +77,11 @@
     <string name="filesystem_delete_failure">Failed to delete!</string>
     <string name="session_unique_name_required">Sessions require a unique name!</string>
     <string name="filesystem_unique_name_required">Filesystems require a unique name!</string>
+    <string name="download_client_app">Please download the associated client app and try again.</string>
     <!-- TODO remove this once multisession support is implemented -->
     <string name="single_session_supported">UserLAnd currently only supports a single active session!</string>
     <string name="no_supported_architecture">UserLAnd does not currently support your devices architecture.</string>
+
 
     <!-- Content descriptions -->
     <string name="desc_inactive">Image: session inactive</string>
