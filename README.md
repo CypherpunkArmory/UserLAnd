@@ -1,3 +1,3 @@
 ## Welcome to UserLAnd
 
-This is the public UserLAnd repository
+This is the main UserLAnd repository
