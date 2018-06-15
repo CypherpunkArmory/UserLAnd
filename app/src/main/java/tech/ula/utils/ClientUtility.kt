@@ -3,6 +3,9 @@ package tech.ula.utils
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import org.jetbrains.anko.longToast
+import org.jetbrains.anko.runOnUiThread
+import tech.ula.R
 import tech.ula.database.models.Session
 
 class ClientUtility(private val context: Context) {
@@ -48,6 +51,7 @@ class ClientUtility(private val context: Context) {
     }
 
     private fun getClient(appPackageName: String) {
+        context.runOnUiThread{longToast(R.string.download_client_app)}
         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName")))
     }
 
