@@ -56,7 +56,7 @@
     <string name="beta_message">UserLAnd is currently in beta! Not all features will be available yet.
     Bugs will be present, but please report them to us!</string>
     <string name="supported_services">Currently supported services:</string>
-    <string name="supported_clients">Currently supported clients</string>
+    <string name="supported_clients">Currently supported clients:</string>
     <string name="default_password_message">The default session password is: userland</string>
 
     <!-- Permissions necessary alert -->
@@ -69,7 +69,7 @@
     <!-- Wifi alert -->
     <string name="alert_wifi_disabled_title">No wifi!</string>
     <string name="alert_wifi_disabled_message">A large asset (~80mb) needs to be downloaded.</string>
-    <string name="alert_wifi_disabled_force_button">Force</string>
+    <string name="alert_wifi_disabled_force_button">Continue</string>
     <string name="alert_wifi_disabled_turn_on_wifi_button">Turn On Wifi</string>
     <string name="alert_wifi_disabled_cancel_button">Cancel</string>
 
