@@ -74,6 +74,9 @@ class DownloadUtility(val uiContext: Context, val archType: String, val distType
                     dialog.dismiss()
                     result.resume(CANCEL)
                 })
+                .setOnCancelListener {
+                    result.resume(CANCEL)
+                }
                 .create()
                 .show()
 
@@ -86,8 +89,6 @@ class DownloadUtility(val uiContext: Context, val archType: String, val distType
         val uri = Uri.parse(url)
         val request = DownloadManager.Request(uri)
         request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
-        request.setAllowedOverMetered(false)
-        request.setAllowedOverRoaming(false)
         request.setDescription("Downloading $type.")
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
         request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "UserLAnd:$type")

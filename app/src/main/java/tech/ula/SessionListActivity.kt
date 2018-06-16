@@ -293,9 +293,11 @@ class SessionListActivity : AppCompatActivity() {
                 when (result) {
                     DownloadUtility.TURN_ON_WIFI -> {
                         startActivity(Intent(WifiManager.ACTION_PICK_WIFI_NETWORK))
+                        endProgressBar()
                         return@launchAsync
                     }
                     DownloadUtility.CANCEL -> {
+                        endProgressBar()
                         return@launchAsync
                     }
 
@@ -353,10 +355,14 @@ class SessionListActivity : AppCompatActivity() {
             session.active = true
             sessionViewModel.updateSession(session)
 
-            val outAnimation = AlphaAnimation(1f, 0f)
-            outAnimation.duration = 200
-            layout_progress.animation = outAnimation
-            layout_progress.visibility = View.GONE
+            endProgressBar()
         }
+    }
+
+    private fun endProgressBar() {
+        val outAnimation = AlphaAnimation(1f, 0f)
+        outAnimation.duration = 200
+        layout_progress.animation = outAnimation
+        layout_progress.visibility = View.GONE
     }
 }
