@@ -33,8 +33,8 @@
     <string name="service_notification_description">UserLAnd is running a background service.</string>
 
     <!-- Progress bar messages -->
-    <string name="progress_downloading">Downloading required assets&#8230;</string>
-    <string name="progress_setting_up">Setting up filesystem&#8230;</string>
+    <string name="progress_downloading">Downloading required assets&#8230;\nThis could take a few minutes.</string>
+    <string name="progress_setting_up">Setting up filesystem&#8230;\nThis could take several minutes.</string>
     <string name="progress_starting">Starting service&#8230;</string>
     <string name="progress_connecting">Connecting to service&#8230;</string>
 
