@@ -4,9 +4,11 @@ import android.app.AlertDialog
 import android.app.DownloadManager
 import android.content.Context
 import android.net.ConnectivityManager
+import android.net.NetworkInfo
 import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Environment
+import android.util.Log
 import tech.ula.R
 import java.io.File
 import kotlin.coroutines.experimental.Continuation
@@ -62,7 +64,7 @@ class DownloadUtility(val uiContext: Context, val archType: String, val distType
                 .setPositiveButton(R.string.alert_wifi_disabled_force_button, {
                     dialog, _ ->
                     dialog.dismiss()
-                    result.resume(CONTINUE)
+                    result.resume(if (isNetworkAvailable()) CONTINUE else CANCEL)
                 })
                 .setNegativeButton(R.string.alert_wifi_disabled_turn_on_wifi_button, {
                     dialog, _ ->
@@ -92,7 +94,7 @@ class DownloadUtility(val uiContext: Context, val archType: String, val distType
         request.setDescription("Downloading $type.")
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
         request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "UserLAnd:$type")
-
+        deletePreviousDownload("UserLAnd:$type")
         return downloadManager.enqueue(request)
     }
 
@@ -116,8 +118,27 @@ class DownloadUtility(val uiContext: Context, val archType: String, val distType
     }
 
     private fun isWifiEnabled(): Boolean {
-        val connectivityManager = uiContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        return connectivityManager.activeNetworkInfo.type == ConnectivityManager.TYPE_WIFI
+        val connectivityManager = uiContext.getSystemService(Context.CONNECTIVITY_SERVICE)
+        return if (connectivityManager is ConnectivityManager) {
+            val networkInfo: NetworkInfo? = connectivityManager.activeNetworkInfo
+            networkInfo?.type == ConnectivityManager.TYPE_WIFI
+        } else false
     }
+
+    private fun isNetworkAvailable(): Boolean {
+        val connectivityManager = uiContext.getSystemService(Context.CONNECTIVITY_SERVICE)
+        return if (connectivityManager is ConnectivityManager) {
+            val networkInfo: NetworkInfo? = connectivityManager.activeNetworkInfo
+            networkInfo?.isConnected ?: false
+        } else false
+    }
+
+    private fun deletePreviousDownload(type: String) {
+        val downloadDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val downloadFile = File(downloadDirectory,type)
+        if (downloadFile.exists())
+            downloadFile.delete()
+    }
+
 }
 
