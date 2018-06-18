@@ -29,7 +29,9 @@ import kotlinx.android.synthetic.main.activity_session_list.*
 import kotlinx.android.synthetic.main.list_item_session.view.*
 import kotlinx.coroutines.experimental.*
 import org.jetbrains.anko.longToast
+import tech.ula.database.models.Filesystem
 import tech.ula.database.models.Session
+import tech.ula.ui.FilesystemViewModel
 import tech.ula.ui.SessionListAdapter
 import tech.ula.ui.SessionViewModel
 import tech.ula.utils.*
@@ -56,6 +58,18 @@ class SessionListActivity : AppCompatActivity() {
 
             sessionAdapter = SessionListAdapter(this, sessionList)
             list_sessions.adapter = sessionAdapter
+        }
+    }
+
+    private lateinit var filesystemList: List<Filesystem>
+
+    private val filesystemViewModel: FilesystemViewModel by lazy {
+        ViewModelProviders.of(this).get(FilesystemViewModel::class.java)
+    }
+
+    private val filesystemChangeObserver = Observer<List<Filesystem>> {
+        it?.let {
+            filesystemList = it
         }
     }
 
@@ -133,7 +147,10 @@ class SessionListActivity : AppCompatActivity() {
             else {
                 clientUtility.startClient(session)
             }
+
         }
+
+        filesystemViewModel.getAllFilesystems().observe(this, filesystemChangeObserver)
 
         registerReceiver(downloadBroadcastReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
 
@@ -285,8 +302,8 @@ class SessionListActivity : AppCompatActivity() {
             layout_progress.visibility = View.VISIBLE
 
             val archType = filesystemUtility.getArchType()
-            // TODO adjust requirements dynamically
-            val distType = "debian"
+            val filesystem = filesystemList.find { it.name == session.filesystemName }
+            val distType = filesystem!!.distributionType
             val downloadManager = DownloadUtility(this@SessionListActivity, archType, distType)
             if (downloadManager.checkIfLargeRequirement()) {
                 val result = downloadManager.displayWifiChoices()
@@ -323,9 +340,8 @@ class SessionListActivity : AppCompatActivity() {
 
             text_session_list_progress_update.setText(R.string.progress_setting_up)
             asyncAwait {
-                // TODO support multiple distribution types
                 // TODO only copy when newer versions have been downloaded (and skip rootfs)
-                fileManager.copyDistributionAssetsToFilesystem(filesystemDirectoryName, "debian")
+                fileManager.copyDistributionAssetsToFilesystem(filesystemDirectoryName, distType)
                 if (!fileManager.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")) {
                     filesystemUtility.extractFilesystem(filesystemDirectoryName)
                 }
