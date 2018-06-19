@@ -60,7 +60,8 @@ class FilesystemEditActivity: AppCompatActivity() {
         //TODO: I think the list of distributions supported could just be a array resource
         val filesystemTypeList = ArrayList<String>()
         filesystemTypeList.add("debian")
-        filesystemTypeList.add("ubuntu")
+        //TODO: uncomment next line after a little more cleanup
+        //filesystemTypeList.add("ubuntu")
 
         val filesystemTypeAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, filesystemTypeList)
         filesystemTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
