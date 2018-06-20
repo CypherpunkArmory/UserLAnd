@@ -3,6 +3,7 @@ package tech.ula.ui
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.text.Editable
@@ -20,6 +21,9 @@ import tech.ula.model.entities.Session
 import tech.ula.viewmodel.FilesystemViewModel
 import tech.ula.viewmodel.SessionViewModel
 import tech.ula.utils.launchAsync
+import android.widget.TextView
+
+
 
 class SessionEditActivity: AppCompatActivity() {
 
@@ -167,9 +171,19 @@ class SessionEditActivity: AppCompatActivity() {
     }
 
     private fun insertSession() {
-        // TODO cleaner logic
-        if(session.name == "" || session.username == "") {
-            toast("Each field must be answered.")
+
+        if (session.name == "") text_input_session_name.error = getString(R.string.error_session_name)
+        //TODO: Uncomment when we support unique usernames
+        // /if (session.username == "") text_input_username.error = getString(R.string.error_username)
+        if (session.filesystemName == "") {
+            val errorText = spinner_filesystem_list.getSelectedView() as TextView
+            errorText.error = ""
+            errorText.setTextColor(Color.RED)
+            errorText.text = getString(R.string.error_filesystem_name)
+        }
+
+        if(session.name == "" || session.username == "" || session.filesystemName == "") {
+            toast(R.string.error_empty_field)
         }
         else {
             if(editExisting) {

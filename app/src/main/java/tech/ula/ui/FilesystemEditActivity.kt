@@ -1,6 +1,7 @@
 package tech.ula.ui
 
 import android.arch.lifecycle.ViewModelProviders
+import android.graphics.Color
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.text.Editable
@@ -101,8 +102,9 @@ class FilesystemEditActivity: AppCompatActivity() {
 
     private fun insertFilesystem() {
         // TODO cleaner logic
+        if (filesystem.name == "") input_filesystem_name.error = getString(R.string.error_filesystem_name)
         if(filesystem.name == "") {
-            toast("Filesystem name cannot be blank.")
+            toast(R.string.error_empty_field)
         }
         else {
             if(editExisting) {
