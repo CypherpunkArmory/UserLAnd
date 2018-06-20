@@ -1,8 +1,9 @@
-package tech.ula
+package tech.ula.ui
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_terms_and_conditions.*
+import tech.ula.R
 
 class TermsAndConditionsActivity: AppCompatActivity() {
 

@@ -9,7 +9,7 @@ import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.TextView
 import tech.ula.R
-import tech.ula.database.models.Session
+import tech.ula.model.entities.Session
 
 class SessionListAdapter(private var activity: Activity, private var items: List<Session>) : BaseAdapter() {
     private class ViewHolder(row: View) {

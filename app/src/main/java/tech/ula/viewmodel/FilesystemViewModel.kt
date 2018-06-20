@@ -1,4 +1,4 @@
-package tech.ula.ui
+package tech.ula.viewmodel
 
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
@@ -6,8 +6,8 @@ import android.arch.lifecycle.LiveData
 import android.database.sqlite.SQLiteConstraintException
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
-import tech.ula.database.AppDatabase
-import tech.ula.database.models.Filesystem
+import tech.ula.model.AppDatabase
+import tech.ula.model.entities.Filesystem
 import kotlin.coroutines.experimental.Continuation
 import kotlin.coroutines.experimental.suspendCoroutine
 

@@ -6,7 +6,7 @@ import android.net.Uri
 import org.jetbrains.anko.longToast
 import org.jetbrains.anko.runOnUiThread
 import tech.ula.R
-import tech.ula.database.models.Session
+import tech.ula.model.entities.Session
 
 class ClientUtility(private val context: Context) {
 

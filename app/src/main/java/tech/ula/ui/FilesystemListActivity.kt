@@ -1,4 +1,4 @@
-package tech.ula
+package tech.ula.ui
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
@@ -11,9 +11,9 @@ import android.view.View
 import android.widget.AdapterView
 import kotlinx.android.synthetic.main.activity_filesystem_list.*
 import org.jetbrains.anko.toast
-import tech.ula.database.models.Filesystem
-import tech.ula.ui.FilesystemListAdapter
-import tech.ula.ui.FilesystemViewModel
+import tech.ula.R
+import tech.ula.model.entities.Filesystem
+import tech.ula.viewmodel.FilesystemViewModel
 import tech.ula.utils.*
 
 

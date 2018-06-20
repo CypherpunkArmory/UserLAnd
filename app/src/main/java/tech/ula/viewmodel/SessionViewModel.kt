@@ -1,11 +1,11 @@
-package tech.ula.ui
+package tech.ula.viewmodel
 
 import android.app.Application
 import android.arch.lifecycle.*
 import android.database.sqlite.SQLiteConstraintException
 import kotlinx.coroutines.experimental.launch
-import tech.ula.database.AppDatabase
-import tech.ula.database.models.Session
+import tech.ula.model.AppDatabase
+import tech.ula.model.entities.Session
 import tech.ula.utils.async
 import kotlin.coroutines.experimental.Continuation
 import kotlin.coroutines.experimental.suspendCoroutine
