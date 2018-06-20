@@ -24,13 +24,14 @@ import android.view.MenuItem
 import android.view.View
 import android.view.animation.AlphaAnimation
 import android.widget.AdapterView
+import kotlinx.android.synthetic.main.activity_session_list.*
+import kotlinx.android.synthetic.main.list_item_session.view.*
 import kotlinx.coroutines.experimental.*
 import org.jetbrains.anko.longToast
 import tech.ula.BuildConfig
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.viewmodel.FilesystemViewModel
 import tech.ula.viewmodel.SessionListViewModel
 import tech.ula.utils.*
 

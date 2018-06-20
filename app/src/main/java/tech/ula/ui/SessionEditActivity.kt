@@ -11,13 +11,13 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
+import kotlinx.android.synthetic.main.activity_session_edit.*
 import org.jetbrains.anko.longToast
 import org.jetbrains.anko.toast
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.viewmodel.FilesystemViewModel
-import tech.ula.viewmodel.SessionListViewModel
+import tech.ula.viewmodel.FilesystemListViewModel
 import tech.ula.utils.launchAsync
 import tech.ula.viewmodel.SessionEditViewModel
 
@@ -38,10 +38,6 @@ class SessionEditActivity: AppCompatActivity() {
 
     private val sessionEditViewModel: SessionEditViewModel by lazy {
         ViewModelProviders.of(this).get(SessionEditViewModel::class.java)
-    }
-
-    private val filesystemViewModel: FilesystemViewModel by lazy {
-        ViewModelProviders.of(this).get(FilesystemViewModel::class.java)
     }
 
     private val filesystemChangeObserver = Observer<List<Filesystem>> {
@@ -65,7 +61,7 @@ class SessionEditActivity: AppCompatActivity() {
         setContentView(R.layout.activity_session_edit)
         setSupportActionBar(toolbar)
 
-        filesystemViewModel.getAllFilesystems().observe(this, filesystemChangeObserver)
+        sessionEditViewModel.getAllFilesystems().observe(this, filesystemChangeObserver)
 
         // Session name input
         text_input_session_name.setText(session.name)
