@@ -14,9 +14,9 @@ import org.jetbrains.anko.longToast
 import org.jetbrains.anko.toast
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
-import tech.ula.viewmodel.FilesystemViewModel
 import tech.ula.utils.FilesystemUtility
 import tech.ula.utils.launchAsync
+import tech.ula.viewmodel.FilesystemEditViewModel
 import java.util.*
 
 class FilesystemEditActivity: AppCompatActivity() {
@@ -29,8 +29,8 @@ class FilesystemEditActivity: AppCompatActivity() {
         intent.getBooleanExtra("editExisting", false)
     }
 
-    private val filesystemViewModel: FilesystemViewModel by lazy {
-        ViewModelProviders.of(this).get(FilesystemViewModel::class.java)
+    private val filesystemEditViewModel: FilesystemEditViewModel by lazy {
+        ViewModelProviders.of(this).get(FilesystemEditViewModel::class.java)
     }
 
     private val filesystemUtility: FilesystemUtility by lazy {
@@ -106,7 +106,7 @@ class FilesystemEditActivity: AppCompatActivity() {
         }
         else {
             if(editExisting) {
-                filesystemViewModel.updateFilesystem(filesystem)
+                filesystemEditViewModel.updateFilesystem(filesystem)
                 finish()
             }
             else {
@@ -118,7 +118,7 @@ class FilesystemEditActivity: AppCompatActivity() {
                     return
                 }
                 launchAsync {
-                    when (filesystemViewModel.insertFilesystem(filesystem)) {
+                    when (filesystemEditViewModel.insertFilesystem(filesystem)) {
                         true -> finish()
                         false -> longToast(R.string.filesystem_unique_name_required)
                     }
