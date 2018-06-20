@@ -17,7 +17,6 @@ import org.jetbrains.anko.toast
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.viewmodel.FilesystemListViewModel
 import tech.ula.utils.launchAsync
 import tech.ula.viewmodel.SessionEditViewModel
 
