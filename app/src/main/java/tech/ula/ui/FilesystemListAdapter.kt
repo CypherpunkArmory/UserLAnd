@@ -9,7 +9,7 @@ import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.TextView
 import tech.ula.R
-import tech.ula.database.models.Filesystem
+import tech.ula.model.entities.Filesystem
 
 class FilesystemListAdapter(private var activity: Activity, private var items: List<Filesystem>) : BaseAdapter() {
     private class ViewHolder(row: View) {

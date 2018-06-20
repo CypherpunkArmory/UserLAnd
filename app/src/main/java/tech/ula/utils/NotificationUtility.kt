@@ -9,7 +9,7 @@ import android.content.Intent
 import android.os.Build
 import android.support.v4.app.NotificationCompat
 import tech.ula.R
-import tech.ula.SessionListActivity
+import tech.ula.ui.SessionListActivity
 
 class NotificationUtility(val context: Context) {
 

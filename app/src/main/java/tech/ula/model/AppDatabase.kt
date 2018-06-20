@@ -1,13 +1,13 @@
-package tech.ula.database
+package tech.ula.model
 
 import android.arch.persistence.room.Database
 import android.arch.persistence.room.Room
 import android.arch.persistence.room.RoomDatabase
 import android.content.Context
-import tech.ula.database.models.Filesystem
-import tech.ula.database.models.Session
-import tech.ula.database.repositories.FilesystemDao
-import tech.ula.database.repositories.SessionDao
+import tech.ula.model.entities.Filesystem
+import tech.ula.model.entities.Session
+import tech.ula.model.daos.FilesystemDao
+import tech.ula.model.daos.SessionDao
 
 // TODO export schema appropriately
 @Database(entities = [Session::class, Filesystem::class], version = 1, exportSchema = false)

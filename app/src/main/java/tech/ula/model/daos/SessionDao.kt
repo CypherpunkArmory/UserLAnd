@@ -1,8 +1,8 @@
-package tech.ula.database.repositories
+package tech.ula.model.daos
 
 import android.arch.lifecycle.LiveData
 import android.arch.persistence.room.*
-import tech.ula.database.models.Session
+import tech.ula.model.entities.Session
 
 @Dao
 interface SessionDao {

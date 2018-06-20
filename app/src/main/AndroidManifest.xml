@@ -19,7 +19,7 @@
         android:theme="@style/AppTheme" >
 
         <activity
-            android:name="tech.ula.SessionListActivity"
+            android:name="tech.ula.ui.SessionListActivity"
             android:label="@string/app_name"
             android:launchMode="singleTask">
             <intent-filter>
@@ -30,31 +30,31 @@
         </activity>
 
         <activity
-            android:name="tech.ula.SessionEditActivity"
+            android:name="tech.ula.ui.SessionEditActivity"
             android:label="Edit Session" />
 
         <activity
-            android:name="tech.ula.FilesystemListActivity"
+            android:name="tech.ula.ui.FilesystemListActivity"
             android:label="Filesystems" />
 
         <activity
-            android:name="tech.ula.FilesystemEditActivity"
+            android:name="tech.ula.ui.FilesystemEditActivity"
             android:label="Edit Filesystem" />
 
         <activity
-            android:name="tech.ula.SettingsActivity"
+            android:name="tech.ula.ui.SettingsActivity"
             android:label="Settings" />
 
         <activity
-            android:name="tech.ula.HelpActivity"
+            android:name="tech.ula.ui.HelpActivity"
             android:label="Help" />
 
         <activity
-            android:name="tech.ula.TermsAndConditionsActivity"
+            android:name="tech.ula.ui.TermsAndConditionsActivity"
             android:label="Terms And Conditions" />
 
         <service
-            android:name=".ServerService"
+            android:name=".ui.ServerService"
             android:stopWithTask="true" />
 
     </application>

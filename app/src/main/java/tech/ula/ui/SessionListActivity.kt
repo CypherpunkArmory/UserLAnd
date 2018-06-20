@@ -1,4 +1,4 @@
-package tech.ula
+package tech.ula.ui
 
 import android.Manifest
 import android.app.AlertDialog
@@ -13,7 +13,6 @@ import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.net.wifi.WifiManager
-import android.opengl.Visibility
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.v4.app.ActivityCompat
@@ -29,11 +28,12 @@ import kotlinx.android.synthetic.main.activity_session_list.*
 import kotlinx.android.synthetic.main.list_item_session.view.*
 import kotlinx.coroutines.experimental.*
 import org.jetbrains.anko.longToast
-import tech.ula.database.models.Filesystem
-import tech.ula.database.models.Session
-import tech.ula.ui.FilesystemViewModel
-import tech.ula.ui.SessionListAdapter
-import tech.ula.ui.SessionViewModel
+import tech.ula.BuildConfig
+import tech.ula.R
+import tech.ula.model.entities.Filesystem
+import tech.ula.model.entities.Session
+import tech.ula.viewmodel.FilesystemViewModel
+import tech.ula.viewmodel.SessionViewModel
 import tech.ula.utils.*
 
 class SessionListActivity : AppCompatActivity() {

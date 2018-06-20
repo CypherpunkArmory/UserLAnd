@@ -1,9 +1,7 @@
-package tech.ula
+package tech.ula.ui
 
 import android.arch.lifecycle.ViewModelProviders
-import android.os.Build
 import android.os.Bundle
-import android.support.design.widget.TextInputEditText
 import android.support.v7.app.AppCompatActivity
 import android.text.Editable
 import android.text.TextWatcher
@@ -14,8 +12,9 @@ import android.widget.*
 import kotlinx.android.synthetic.main.activity_filesystem_edit.*
 import org.jetbrains.anko.longToast
 import org.jetbrains.anko.toast
-import tech.ula.database.models.Filesystem
-import tech.ula.ui.FilesystemViewModel
+import tech.ula.R
+import tech.ula.model.entities.Filesystem
+import tech.ula.viewmodel.FilesystemViewModel
 import tech.ula.utils.FilesystemUtility
 import tech.ula.utils.launchAsync
 import java.util.*
