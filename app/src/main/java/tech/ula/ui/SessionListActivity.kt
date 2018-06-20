@@ -86,7 +86,7 @@ class SessionListActivity : AppCompatActivity() {
     }
 
     private val FILESYSTEM_EXTRACT_LOGGER = { line: String -> Int
-        this@SessionListActivity.runOnUiThread({text_session_list_progress_update_line_2.text = getString(R.string.progress_setting_up_extract_text,line)})
+        this.runOnUiThread({text_session_list_progress_details.text = getString(R.string.progress_setting_up_extract_text,line)})
         0
     }
 
@@ -327,8 +327,8 @@ class SessionListActivity : AppCompatActivity() {
                 }
             }
 
-            text_session_list_progress_update.setText(R.string.progress_downloading)
-            text_session_list_progress_update_line_2.text = ""
+            text_session_list_progress_step.setText(R.string.progress_downloading)
+            text_session_list_progress_details.text = ""
             asyncAwait {
                 downloadList.clear()
                 downloadedList.clear()
@@ -338,7 +338,7 @@ class SessionListActivity : AppCompatActivity() {
                     assetsWereDownloaded = true
 
                 while (downloadList.size != downloadedList.size) {
-                    this@SessionListActivity.runOnUiThread({text_session_list_progress_update_line_2.text = getString(R.string.progress_downloading_out_of,downloadedList.size,downloadList.size)})
+                    this@SessionListActivity.runOnUiThread({text_session_list_progress_details.text = getString(R.string.progress_downloading_out_of,downloadedList.size,downloadList.size)})
                     delay(500)
                 }
                 if (assetsWereDownloaded) {
@@ -346,9 +346,9 @@ class SessionListActivity : AppCompatActivity() {
                     fileManager.correctFilePermissions()
                 }
             }
-            text_session_list_progress_update_line_2.text = ""
+            text_session_list_progress_details.text = ""
 
-            text_session_list_progress_update.setText(R.string.progress_setting_up)
+            text_session_list_progress_step.setText(R.string.progress_setting_up)
             asyncAwait {
                 // TODO only copy when newer versions have been downloaded (and skip rootfs)
                 fileManager.copyDistributionAssetsToFilesystem(filesystemDirectoryName, distType)
@@ -357,8 +357,8 @@ class SessionListActivity : AppCompatActivity() {
                 }
             }
 
-            text_session_list_progress_update.setText(R.string.progress_starting)
-            text_session_list_progress_update_line_2.text = ""
+            text_session_list_progress_step.setText(R.string.progress_starting)
+            text_session_list_progress_details.text = ""
             asyncAwait {
 
                 session.pid = serverUtility.startServer(session)
@@ -373,7 +373,7 @@ class SessionListActivity : AppCompatActivity() {
                 }
             }
 
-            text_session_list_progress_update.setText(R.string.progress_connecting)
+            text_session_list_progress_step.setText(R.string.progress_connecting)
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
             asyncAwait {
                 clientUtility.startClient(session)
