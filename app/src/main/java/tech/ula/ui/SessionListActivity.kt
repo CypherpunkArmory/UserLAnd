@@ -260,6 +260,7 @@ class SessionListActivity : AppCompatActivity() {
     }
 
     fun deleteSession(session: Session): Boolean {
+        stopService(session)
         sessionViewModel.deleteSessionById(session.id)
         return true
     }
