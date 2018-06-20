@@ -32,8 +32,7 @@ import tech.ula.BuildConfig
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.viewmodel.FilesystemViewModel
-import tech.ula.viewmodel.SessionViewModel
+import tech.ula.viewmodel.SessionListViewModel
 import tech.ula.utils.*
 
 class SessionListActivity : AppCompatActivity() {
@@ -42,9 +41,10 @@ class SessionListActivity : AppCompatActivity() {
     private lateinit var sessionAdapter: SessionListAdapter
 
     private var activeSessions = false
+    private lateinit var filesystemList: List<Filesystem>
 
-    private val sessionViewModel: SessionViewModel by lazy {
-        ViewModelProviders.of(this).get(SessionViewModel::class.java)
+    private val sessionListViewModel: SessionListViewModel by lazy {
+        ViewModelProviders.of(this).get(SessionListViewModel::class.java)
     }
 
     private val sessionChangeObserver = Observer<List<Session>> {
@@ -59,12 +59,6 @@ class SessionListActivity : AppCompatActivity() {
             sessionAdapter = SessionListAdapter(this, sessionList)
             list_sessions.adapter = sessionAdapter
         }
-    }
-
-    private lateinit var filesystemList: List<Filesystem>
-
-    private val filesystemViewModel: FilesystemViewModel by lazy {
-        ViewModelProviders.of(this).get(FilesystemViewModel::class.java)
     }
 
     private val filesystemChangeObserver = Observer<List<Filesystem>> {
@@ -86,7 +80,7 @@ class SessionListActivity : AppCompatActivity() {
     }
 
     private val FILESYSTEM_EXTRACT_LOGGER = { line: String -> Int
-        this@SessionListActivity.runOnUiThread({text_session_list_progress_update_line_2.text = getString(R.string.progress_setting_up_extract_text,line)})
+        this.runOnUiThread({text_session_list_progress_details.text = getString(R.string.progress_setting_up_extract_text,line)})
         0
     }
 
@@ -131,7 +125,8 @@ class SessionListActivity : AppCompatActivity() {
             text_session_list_default_password_message.visibility = View.GONE
         }
 
-        sessionViewModel.getAllSessions().observe(this, sessionChangeObserver)
+        sessionListViewModel.getAllSessions().observe(this, sessionChangeObserver)
+        sessionListViewModel.getAllFilesystems().observe(this, filesystemChangeObserver)
 
         registerForContextMenu(list_sessions)
         list_sessions.onItemClickListener = AdapterView.OnItemClickListener {
@@ -154,8 +149,6 @@ class SessionListActivity : AppCompatActivity() {
             }
 
         }
-
-        filesystemViewModel.getAllFilesystems().observe(this, filesystemChangeObserver)
 
         registerReceiver(downloadBroadcastReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
 
@@ -249,7 +242,7 @@ class SessionListActivity : AppCompatActivity() {
         // TODO more granular service killing
         if(session.active) {
             session.active = false
-            sessionViewModel.updateSession(session)
+            sessionListViewModel.updateSession(session)
             val view = list_sessions.getChildAt(sessionList.indexOf(session))
             view.image_list_item_active.setImageResource(R.drawable.ic_block_red_24dp)
 
@@ -266,7 +259,7 @@ class SessionListActivity : AppCompatActivity() {
 
     fun deleteSession(session: Session): Boolean {
         stopService(session)
-        sessionViewModel.deleteSessionById(session.id)
+        sessionListViewModel.deleteSessionById(session.id)
         return true
     }
 
@@ -327,8 +320,8 @@ class SessionListActivity : AppCompatActivity() {
                 }
             }
 
-            text_session_list_progress_update.setText(R.string.progress_downloading)
-            text_session_list_progress_update_line_2.text = ""
+            text_session_list_progress_step.setText(R.string.progress_downloading)
+            text_session_list_progress_details.text = ""
             asyncAwait {
                 downloadList.clear()
                 downloadedList.clear()
@@ -338,7 +331,7 @@ class SessionListActivity : AppCompatActivity() {
                     assetsWereDownloaded = true
 
                 while (downloadList.size != downloadedList.size) {
-                    this@SessionListActivity.runOnUiThread({text_session_list_progress_update_line_2.text = getString(R.string.progress_downloading_out_of,downloadedList.size,downloadList.size)})
+                    this@SessionListActivity.runOnUiThread({text_session_list_progress_details.text = getString(R.string.progress_downloading_out_of,downloadedList.size,downloadList.size)})
                     delay(500)
                 }
                 if (assetsWereDownloaded) {
@@ -346,9 +339,9 @@ class SessionListActivity : AppCompatActivity() {
                     fileManager.correctFilePermissions()
                 }
             }
-            text_session_list_progress_update_line_2.text = ""
+            text_session_list_progress_details.text = ""
 
-            text_session_list_progress_update.setText(R.string.progress_setting_up)
+            text_session_list_progress_step.setText(R.string.progress_setting_up)
             asyncAwait {
                 // TODO only copy when newer versions have been downloaded (and skip rootfs)
                 fileManager.copyDistributionAssetsToFilesystem(filesystemDirectoryName, distType)
@@ -357,8 +350,8 @@ class SessionListActivity : AppCompatActivity() {
                 }
             }
 
-            text_session_list_progress_update.setText(R.string.progress_starting)
-            text_session_list_progress_update_line_2.text = ""
+            text_session_list_progress_step.setText(R.string.progress_starting)
+            text_session_list_progress_details.text = ""
             asyncAwait {
 
                 session.pid = serverUtility.startServer(session)
@@ -373,14 +366,14 @@ class SessionListActivity : AppCompatActivity() {
                 }
             }
 
-            text_session_list_progress_update.setText(R.string.progress_connecting)
+            text_session_list_progress_step.setText(R.string.progress_connecting)
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
             asyncAwait {
                 clientUtility.startClient(session)
             }
 
             session.active = true
-            sessionViewModel.updateSession(session)
+            sessionListViewModel.updateSession(session)
 
             endProgressBar()
         }

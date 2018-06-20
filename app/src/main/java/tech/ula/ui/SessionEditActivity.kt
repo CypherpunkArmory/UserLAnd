@@ -18,12 +18,9 @@ import org.jetbrains.anko.toast
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.viewmodel.FilesystemViewModel
-import tech.ula.viewmodel.SessionViewModel
 import tech.ula.utils.launchAsync
 import android.widget.TextView
-
-
+import tech.ula.viewmodel.SessionEditViewModel
 
 class SessionEditActivity: AppCompatActivity() {
 
@@ -40,12 +37,8 @@ class SessionEditActivity: AppCompatActivity() {
 
     lateinit var filesystemList: List<Filesystem>
 
-    private val sessionViewModel: SessionViewModel by lazy {
-        ViewModelProviders.of(this).get(SessionViewModel::class.java)
-    }
-
-    private val filesystemViewModel: FilesystemViewModel by lazy {
-        ViewModelProviders.of(this).get(FilesystemViewModel::class.java)
+    private val sessionEditViewModel: SessionEditViewModel by lazy {
+        ViewModelProviders.of(this).get(SessionEditViewModel::class.java)
     }
 
     private val filesystemChangeObserver = Observer<List<Filesystem>> {
@@ -69,7 +62,7 @@ class SessionEditActivity: AppCompatActivity() {
         setContentView(R.layout.activity_session_edit)
         setSupportActionBar(toolbar)
 
-        filesystemViewModel.getAllFilesystems().observe(this, filesystemChangeObserver)
+        sessionEditViewModel.getAllFilesystems().observe(this, filesystemChangeObserver)
 
         // Session name input
         text_input_session_name.setText(session.name)
@@ -187,12 +180,12 @@ class SessionEditActivity: AppCompatActivity() {
         }
         else {
             if(editExisting) {
-                sessionViewModel.updateSession(session)
+                sessionEditViewModel.updateSession(session)
                 finish()
             }
             else {
                 launchAsync {
-                    when (sessionViewModel.insertSession(session)) {
+                    when (sessionEditViewModel.insertSession(session)) {
                         true -> finish()
                         false -> longToast(R.string.session_unique_name_required)
                     }

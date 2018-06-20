@@ -13,7 +13,7 @@ import kotlinx.android.synthetic.main.activity_filesystem_list.*
 import org.jetbrains.anko.toast
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
-import tech.ula.viewmodel.FilesystemViewModel
+import tech.ula.viewmodel.FilesystemListViewModel
 import tech.ula.utils.*
 
 
@@ -21,8 +21,8 @@ class FilesystemListActivity: AppCompatActivity() {
 
     private lateinit var filesystemList: List<Filesystem>
 
-    private val fileSystemViewModel: FilesystemViewModel by lazy {
-        ViewModelProviders.of(this).get(FilesystemViewModel::class.java)
+    private val fileSystemListViewModel: FilesystemListViewModel by lazy {
+        ViewModelProviders.of(this).get(FilesystemListViewModel::class.java)
     }
 
     private val filesystemChangeObserver = Observer<List<Filesystem>> {
@@ -42,7 +42,7 @@ class FilesystemListActivity: AppCompatActivity() {
         setContentView(R.layout.activity_filesystem_list)
         setSupportActionBar(toolbar)
 
-        fileSystemViewModel.getAllFilesystems().observe(this, filesystemChangeObserver)
+        fileSystemListViewModel.getAllFilesystems().observe(this, filesystemChangeObserver)
 
         registerForContextMenu(list_file_system_management)
 
@@ -75,7 +75,7 @@ class FilesystemListActivity: AppCompatActivity() {
     }
 
     fun deleteFilesystem(filesystem: Filesystem): Boolean {
-        fileSystemViewModel.deleteFilesystemById(filesystem.id)
+        fileSystemListViewModel.deleteFilesystemById(filesystem.id)
         val success = filesystemUtility.deleteFilesystem(filesystem.id.toString())
         if(!success) {
             toast(R.string.filesystem_delete_failure)
