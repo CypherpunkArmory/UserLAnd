@@ -36,12 +36,10 @@ class ExecUtility(private val context: Context) {
             val process = pb.start()
 
             if (doWait) {
-                val result = collectOutput(process.inputStream, listener)
+                collectOutput(process.inputStream, listener)
 
                 if (process.waitFor() != 0) {
-                    Log.e("Exec", "Failed to execute command ${pb.command()}\nstdout: $result")
-                } else {
-                    listener("stdout: $result")
+                    Log.e("Exec", "Failed to execute command ${pb.command()}")
                 }
             }
             return process
@@ -52,21 +50,18 @@ class ExecUtility(private val context: Context) {
         }
     }
 
-    private fun collectOutput(inputStream: InputStream, listener: (String) -> Int): String {
-        val out = StringBuilder()
+    private fun collectOutput(inputStream: InputStream, listener: (String) -> Int) {
         val buf: BufferedReader = inputStream.bufferedReader(UTF_8)
 
         buf.forEachLine {
             listener(it)
-            out.append(it)
         }
 
         buf.close()
-        return out.toString()
     }
 
 
-    fun wrapWithBusyboxAndExecute(targetDirectoryName: String, commandToWrap: String, doWait: Boolean = true): Process {
+    fun wrapWithBusyboxAndExecute(targetDirectoryName: String, commandToWrap: String, listener: (String) -> Int = NOOP_CONSUMER, doWait: Boolean = true): Process {
         val executionDirectory = fileManager.createAndGetDirectory(targetDirectoryName)
 
         val preferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -91,7 +86,7 @@ class ExecUtility(private val context: Context) {
                 "ROOTFS_PATH" to "${fileManager.getFilesDirPath()}/$targetDirectoryName",
                 "PROOT_DEBUG_LEVEL" to prootDebuggingLevel)
 
-        return execLocal(executionDirectory, command, env, EXEC_DEBUG_LOGGER, doWait)
+        return execLocal(executionDirectory, command, env, listener, doWait)
     }
 
 }
