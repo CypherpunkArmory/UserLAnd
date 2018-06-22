@@ -101,8 +101,9 @@ class FilesystemEditActivity: AppCompatActivity() {
 
     private fun insertFilesystem() {
         // TODO cleaner logic
+        if (filesystem.name == "") input_filesystem_name.error = getString(R.string.error_filesystem_name)
         if(filesystem.name == "") {
-            toast("Filesystem name cannot be blank.")
+            toast(R.string.error_empty_field)
         }
         else {
             if(editExisting) {

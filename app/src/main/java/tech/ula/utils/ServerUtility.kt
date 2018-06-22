@@ -59,7 +59,7 @@ class ServerUtility(private val context: Context) {
         val targetDirectoryName = session.filesystemId.toString()
         deletePidFile(session)
         val command = "../support/execInProot.sh /bin/bash -c /support/startSSHServer.sh"
-        val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, false)
+        val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, doWait = false)
         return process.pid()
     }
 
@@ -67,7 +67,7 @@ class ServerUtility(private val context: Context) {
         val targetDirectoryName = session.filesystemId.toString()
         deletePidFile(session)
         val command = "../support/execInProot.sh /bin/bash -c /support/startVNCServer.sh"
-        val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, false)
+        val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, doWait = false)
         return process.pid()
     }
 
