@@ -8,4 +8,10 @@
         android:name="tech.ula.ui.SessionListFragment"
         android:label="Sessions"
         tools:layout="@layout/frag_session_list"/>
+
+    <fragment
+        android:id="@+id/sessionEditFragment"
+        android:name="tech.ula.ui.SessionEditFragment"
+        android:label="Edit Session"
+        tools:layout="@layout/frag_session_edit" />
 </navigation>

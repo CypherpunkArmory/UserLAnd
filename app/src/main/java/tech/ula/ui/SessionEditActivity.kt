@@ -11,7 +11,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
-import kotlinx.android.synthetic.main.activity_session_edit.*
+import kotlinx.android.synthetic.main.frag_session_edit.*
 import org.jetbrains.anko.longToast
 import org.jetbrains.anko.toast
 import tech.ula.R
@@ -57,7 +57,7 @@ class SessionEditActivity: AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_session_edit)
+        setContentView(R.layout.frag_session_edit)
         setSupportActionBar(toolbar)
 
         sessionEditViewModel.getAllFilesystems().observe(this, filesystemChangeObserver)

@@ -24,8 +24,6 @@ import android.view.MenuItem
 import android.view.View
 import android.view.animation.AlphaAnimation
 import android.widget.AdapterView
-import androidx.navigation.Navigation
-import androidx.navigation.findNavController
 import kotlinx.android.synthetic.main.frag_session_list.*
 import kotlinx.android.synthetic.main.list_item_session.view.*
 import kotlinx.coroutines.experimental.*
@@ -106,7 +104,7 @@ class SessionListActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.frag_session_list)
-        setSupportActionBar(toolbar)
+//        setSupportActionBar(toolbar)
         supportActionBar?.setTitle(R.string.sessions)
         notificationManager.createServiceNotificationChannel() // Android O requirement
 
