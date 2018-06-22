@@ -7,11 +7,13 @@ buildscript {
     }
 
     ext {
-        kotlin_version = '1.2.41'
+        kotlin_version = '1.2.50'
         android_plugin = '3.1.2'
 
         anko_version = '0.10.5'
         kotlinx_coroutines_version = '0.22.5'
+        navigation_version = '1.0.0-alpha02'
+        room_version = '1.1.1'
     }
 
     dependencies {

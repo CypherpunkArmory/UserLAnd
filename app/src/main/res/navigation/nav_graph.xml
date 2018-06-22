@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    app:startDestination="@id/sessionListFragment">
+    <fragment
+        android:id="@+id/sessionListFragment"
+        android:name="tech.ula.ui.SessionListFragment"
+        android:label="SessionList"
+        tools:layout="@layout/frag_session_list"/>
+</navigation>

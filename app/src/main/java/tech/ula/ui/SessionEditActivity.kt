@@ -62,7 +62,7 @@ class SessionEditActivity: AppCompatActivity() {
 
         sessionEditViewModel.getAllFilesystems().observe(this, filesystemChangeObserver)
 
-        // Session name input
+//         Session name input
         text_input_session_name.setText(session.name)
         text_input_session_name.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {

@@ -24,7 +24,9 @@ import android.view.MenuItem
 import android.view.View
 import android.view.animation.AlphaAnimation
 import android.widget.AdapterView
-import kotlinx.android.synthetic.main.activity_session_list.*
+import androidx.navigation.Navigation
+import androidx.navigation.findNavController
+import kotlinx.android.synthetic.main.frag_session_list.*
 import kotlinx.android.synthetic.main.list_item_session.view.*
 import kotlinx.coroutines.experimental.*
 import org.jetbrains.anko.longToast
@@ -103,7 +105,7 @@ class SessionListActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_session_list)
+        setContentView(R.layout.frag_session_list)
         setSupportActionBar(toolbar)
         supportActionBar?.setTitle(R.string.sessions)
         notificationManager.createServiceNotificationChannel() // Android O requirement
@@ -149,7 +151,16 @@ class SessionListActivity : AppCompatActivity() {
 
         fab.setOnClickListener { navigateToSessionEdit(Session(0, filesystemId = 0)) }
 
-        progress_bar_session_list.visibility = View.VISIBLE
+//        val bundle = Bundle()
+//        bundle.putParcelable("session", Session(0, filesystemId = 0))
+//        fab.setOnClickListener(Navigation.createNavigateOnClickListener(R.id.sessionEditActivity))
+
+//        fab.setOnClickListener { view ->
+//            val bundle = Bundle()
+//            bundle.putParcelable("session", Session(0, filesystemId = 0))
+//            view.findNavController().navigate(R.id.sessionEditActivity, bundle)
+//        }
+
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
