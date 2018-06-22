@@ -93,8 +93,7 @@ class SessionListFragment : Fragment() {
         }
 
         fab.setOnClickListener { view ->
-            val bundle = Bundle()
-            bundle.putParcelable("session", Session(0, filesystemId = 0))
+            val bundle = bundleOf("session" to Session(0, filesystemId = 0)))
             view.findNavController().navigate(R.id.sessionEditFragment, bundle)
         }
     }
