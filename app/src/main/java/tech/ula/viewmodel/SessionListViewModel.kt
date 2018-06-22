@@ -6,6 +6,7 @@ import kotlinx.coroutines.experimental.launch
 import tech.ula.model.AppDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
+import tech.ula.utils.ServerUtility
 import tech.ula.utils.async
 
 class SessionListViewModel(application: Application) : AndroidViewModel(application) {
@@ -19,6 +20,10 @@ class SessionListViewModel(application: Application) : AndroidViewModel(applicat
 
     private val filesystems: LiveData<List<Filesystem>> by lazy {
         appDatabase.filesystemDao().getAllFilesystems()
+    }
+
+    private val serverUtility: ServerUtility by lazy {
+        ServerUtility(application.applicationContext)
     }
 
     fun getAllSessions(): LiveData<List<Session>> {
@@ -36,4 +41,5 @@ class SessionListViewModel(application: Application) : AndroidViewModel(applicat
     fun updateSession(session: Session) {
         launch { async { appDatabase.sessionDao().updateSession(session) } }
     }
+
 }

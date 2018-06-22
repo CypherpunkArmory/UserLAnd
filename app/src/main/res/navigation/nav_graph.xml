@@ -6,6 +6,6 @@
     <fragment
         android:id="@+id/sessionListFragment"
         android:name="tech.ula.ui.SessionListFragment"
-        android:label="SessionList"
+        android:label="Sessions"
         tools:layout="@layout/frag_session_list"/>
 </navigation>
