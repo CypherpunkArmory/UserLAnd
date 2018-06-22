@@ -7,7 +7,10 @@
         android:id="@+id/sessionListFragment"
         android:name="tech.ula.ui.SessionListFragment"
         android:label="Sessions"
-        tools:layout="@layout/frag_session_list"/>
+        tools:layout="@layout/frag_session_list" >
+        <argument android:name="session" android:defaultValue="null" />
+        <argument android:name="editExisting" android:defaultValue="false"/>
+    </fragment>
 
     <fragment
         android:id="@+id/sessionEditFragment"

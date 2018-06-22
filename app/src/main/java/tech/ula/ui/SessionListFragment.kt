@@ -2,6 +2,7 @@ package tech.ula.ui
 
 import android.Manifest
 import android.app.Activity
+import android.arch.lifecycle.LifecycleOwner
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
@@ -11,13 +12,13 @@ import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.AdapterView
 import android.widget.Toast
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_session_list.*
+import org.jetbrains.anko.bundleOf
 import tech.ula.R
 import tech.ula.model.entities.Session
 import tech.ula.utils.ServerUtility
@@ -59,6 +60,7 @@ class SessionListFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        sessionListViewModel.getAllSessions().observe(viewLifecycleOwner, sessionChangeObserver)
         return inflater.inflate(R.layout.frag_session_list, container, false)
     }
 
@@ -66,8 +68,6 @@ class SessionListFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
 
         activityContext = activity!!
-
-        sessionListViewModel.getAllSessions().observe(this, sessionChangeObserver)
 
         registerForContextMenu(list_sessions)
         list_sessions.onItemClickListener = AdapterView.OnItemClickListener {
@@ -111,5 +111,36 @@ class SessionListFragment : Fragment() {
         // TODO
         session.active = true
         sessionListViewModel.updateSession(session)
+    }
+
+    override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
+        super.onCreateContextMenu(menu, v, menuInfo)
+        activityContext.menuInflater.inflate(R.menu.context_menu_sessions, menu)
+    }
+
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        val menuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
+        val position = menuInfo.position
+        val session = sessionList[position]
+        return when(item.itemId) {
+            R.id.menu_item_session_kill_service -> stopService(session)
+            R.id.menu_item_session_edit -> editSession(session)
+            R.id.menu_item_session_delete -> deleteSession(session)
+            else -> super.onContextItemSelected(item)
+        }
+    }
+
+    private fun stopService(session: Session): Boolean {
+        return true
+    }
+
+    private fun editSession(session: Session): Boolean {
+        val bundle = bundleOf("session" to session, "editExisting" to true)
+        NavHostFragment.findNavController(this).navigate(R.id.sessionEditFragment, bundle)
+        return true
+    }
+
+    private fun deleteSession(session: Session): Boolean {
+        return true
     }
 }
