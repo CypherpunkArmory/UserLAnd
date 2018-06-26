@@ -2,9 +2,9 @@
 <navigation xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    app:startDestination="@id/sessionListFragment">
+    app:startDestination="@id/session_list_fragment">
     <fragment
-        android:id="@+id/sessionListFragment"
+        android:id="@+id/session_list_fragment"
         android:name="tech.ula.ui.SessionListFragment"
         android:label="Sessions"
         tools:layout="@layout/frag_session_list" >
@@ -13,8 +13,18 @@
     </fragment>
 
     <fragment
-        android:id="@+id/sessionEditFragment"
+        android:id="@+id/filesystem_list_fragment"
+        android:name="tech.ula.ui.FilesystemListFragment"
+        android:label="@string/filesystems" />
+
+    <fragment
+        android:id="@+id/session_edit_fragment"
         android:name="tech.ula.ui.SessionEditFragment"
         android:label="Edit Session"
         tools:layout="@layout/frag_session_edit" />
+
+    <fragment
+        android:id="@+id/settings_fragment"
+        android:name="tech.ula.ui.SettingsFragment"
+        android:label="@string/settings" />
 </navigation>

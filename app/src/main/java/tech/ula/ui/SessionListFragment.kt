@@ -6,6 +6,7 @@ import android.arch.lifecycle.LifecycleOwner
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
@@ -18,6 +19,7 @@ import android.widget.Toast
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_session_list.*
+import kotlinx.android.synthetic.main.list_item_session.view.*
 import org.jetbrains.anko.bundleOf
 import tech.ula.R
 import tech.ula.model.entities.Session
@@ -59,6 +61,16 @@ class SessionListFragment : Fragment() {
         ServerUtility(activityContext)
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.menu_create, menu)
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         sessionListViewModel.getAllSessions().observe(viewLifecycleOwner, sessionChangeObserver)
         return inflater.inflate(R.layout.frag_session_list, container, false)
@@ -92,10 +104,10 @@ class SessionListFragment : Fragment() {
             }
         }
 
-        fab.setOnClickListener { view ->
-            val bundle = bundleOf("session" to Session(0, filesystemId = 0)))
-            view.findNavController().navigate(R.id.sessionEditFragment, bundle)
-        }
+//        fab.setOnClickListener { view ->
+//            val bundle = bundleOf("session" to Session(0, filesystemId = 0))
+//            view.findNavController().navigate(R.id.session_edit_fragment, bundle)
+//        }
     }
 
     private fun arePermissionsGranted(): Boolean {
@@ -130,16 +142,32 @@ class SessionListFragment : Fragment() {
     }
 
     private fun stopService(session: Session): Boolean {
+        if(session.active) {
+            session.active = false
+            sessionListViewModel.updateSession(session)
+            val view = list_sessions.getChildAt(sessionList.indexOf(session))
+            view.image_list_item_active.setImageResource(R.drawable.ic_block_red_24dp)
+
+            serverUtility.stopService(session)
+
+            val serviceIntent = Intent(activityContext, ServerService::class.java)
+            serviceIntent.putExtra("type", "kill")
+            serviceIntent.putExtra("pid", session.pid)
+
+            activityContext.startService(serviceIntent)
+        }
         return true
     }
 
     private fun editSession(session: Session): Boolean {
         val bundle = bundleOf("session" to session, "editExisting" to true)
-        NavHostFragment.findNavController(this).navigate(R.id.sessionEditFragment, bundle)
+        NavHostFragment.findNavController(this).navigate(R.id.session_edit_fragment, bundle)
         return true
     }
 
     private fun deleteSession(session: Session): Boolean {
+        stopService(session)
+        sessionListViewModel.deleteSessionById(session.id)
         return true
     }
 }

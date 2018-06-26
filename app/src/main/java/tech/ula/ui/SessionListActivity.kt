@@ -152,7 +152,7 @@ class SessionListActivity : AppCompatActivity() {
 
         registerReceiver(downloadBroadcastReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
 
-        fab.setOnClickListener { navigateToSessionEdit(Session(0, filesystemId = 0)) }
+//        fab.setOnClickListener { navigateToSessionEdit(Session(0, filesystemId = 0)) }
 
 //        val bundle = Bundle()
 //        bundle.putParcelable("session", Session(0, filesystemId = 0))
@@ -182,13 +182,12 @@ class SessionListActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.menu_main, menu)
+        menuInflater.inflate(R.menu.menu_options, menu)
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.menu_item_file_system_management -> navigateToFilesystemManagement()
             R.id.menu_item_settings -> navigateToSettings()
             R.id.menu_item_help -> navigateToHelp()
             else -> super.onOptionsItemSelected(item)

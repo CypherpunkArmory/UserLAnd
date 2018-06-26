@@ -5,19 +5,14 @@
     tools:context="tech.ula.ui.SessionListActivity">
 
     <item
-        android:id="@+id/menu_item_file_system_management"
-        android:orderInCategory="101"
-        android:title="@string/filesystems"
-        app:showAsAction="never" />
-    <item
         android:id="@+id/menu_item_settings"
-        android:orderInCategory="101"
         android:title="@string/settings"
+        android:icon="@android:drawable/ic_menu_preferences"
         app:showAsAction="never" />
     <item
         android:id="@+id/menu_item_help"
-        android:orderInCategory="102"
         android:title="@string/help"
+        android:icon="@android:drawable/ic_menu_help"
         app:showAsAction="never" />
 
 </menu>
