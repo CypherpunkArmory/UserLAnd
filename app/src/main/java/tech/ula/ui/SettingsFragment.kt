@@ -2,16 +2,14 @@ package tech.ula.ui
 
 import android.os.Bundle
 import android.os.Environment
-import android.preference.PreferenceFragment
 import tech.ula.R
 import java.io.File
+import android.support.v7.preference.PreferenceFragmentCompat
 
 // TODO upgrade this preferencefragmentcompat when support lib v28 is stable
-class SettingsFragment : PreferenceFragment() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        addPreferencesFromResource(R.xml.preferences)
+class SettingsFragment : PreferenceFragmentCompat() {
+    override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+        setPreferencesFromResource(R.xml.preferences, rootKey)
 
         val deleteFilePreference = findPreference("pref_proot_delete_debug_file")
         deleteFilePreference.setOnPreferenceClickListener {

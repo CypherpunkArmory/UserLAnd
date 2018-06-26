@@ -3,16 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="tech.ula.ui.SessionListActivity">
-
     <item
-        android:id="@+id/menu_item_settings"
-        android:title="@string/settings"
+        android:id="@id/settings_fragment"
         android:icon="@android:drawable/ic_menu_preferences"
-        app:showAsAction="never" />
+        android:title="@string/settings" />
     <item
         android:id="@+id/menu_item_help"
-        android:title="@string/help"
         android:icon="@android:drawable/ic_menu_help"
-        app:showAsAction="never" />
-
+        android:title="@string/help" />
 </menu>
