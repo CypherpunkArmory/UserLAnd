@@ -187,11 +187,12 @@ class SessionListActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
+        return super.onOptionsItemSelected(item)
+//        return when (item.itemId) {
 //            R.id.menu_item_settings -> navigateToSettings()
-            R.id.menu_item_help -> navigateToHelp()
-            else -> super.onOptionsItemSelected(item)
-        }
+//            R.id.menu_item_help -> navigateToHelp()
+//            else -> super.onOptionsItemSelected(item)
+//        }
     }
 
     override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
@@ -284,8 +285,8 @@ class SessionListActivity : AppCompatActivity() {
     }
 
     private fun navigateToHelp(): Boolean {
-        val intent = Intent(this, HelpActivity::class.java)
-        startActivity(intent)
+//        val intent = Intent(this, HelpActivity::class.java)
+//        startActivity(intent)
         return true
     }
 

@@ -8,7 +8,7 @@
         android:icon="@android:drawable/ic_menu_preferences"
         android:title="@string/settings" />
     <item
-        android:id="@+id/menu_item_help"
+        android:id="@id/help_fragment"
         android:icon="@android:drawable/ic_menu_help"
         android:title="@string/help" />
 </menu>
