@@ -6,13 +6,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.ActivityInfo
-import android.net.wifi.WifiManager
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
-import android.view.View
-import android.view.animation.AlphaAnimation
-import kotlinx.android.synthetic.main.activity_session_list.*
 import kotlinx.coroutines.experimental.delay
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
