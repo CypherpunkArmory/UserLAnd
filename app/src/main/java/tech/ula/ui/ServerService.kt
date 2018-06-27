@@ -140,6 +140,7 @@ class ServerService : Service() {
 
                 while (downloadList.size != downloadedList.size) {
                     updateProgressBar(getString(R.string.progress_downloading),getString(R.string.progress_downloading_out_of,downloadedList.size,downloadList.size))
+                    delay(500)
                 }
                 if (assetsWereDownloaded) {
                     fileManager.moveDownloadedAssetsToSharedSupportDirectory()
