@@ -32,8 +32,7 @@ class ServerService : Service() {
     private val downloadBroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val downloadedId = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-            if (downloadedId != null)
-                downloadedList.add(downloadedId)
+            downloadedId?.let { downloadedList.add(it) }
         }
     }
 
