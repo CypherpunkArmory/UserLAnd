@@ -36,6 +36,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:spinnerMode="dropdown"
+        android:entries="@array/supported_distributions"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/text_filesystem_type"
         app:layout_constraintTop_toBottomOf="@id/text_input_layout" />

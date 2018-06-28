@@ -69,8 +69,8 @@ class FilesystemListFragment : Fragment() {
         val position = menuInfo.position
         val filesystem = filesystemList[position]
         return when(item.itemId) {
-            R.id.menu_item_file_system_edit -> editFilesystem(filesystem)
-            R.id.menu_item_file_system_delete -> deleteFilesystem(filesystem)
+            R.id.menu_item_filesystem_edit -> editFilesystem(filesystem)
+            R.id.menu_item_filesystem_delete -> deleteFilesystem(filesystem)
             else -> super.onContextItemSelected(item)
         }
     }

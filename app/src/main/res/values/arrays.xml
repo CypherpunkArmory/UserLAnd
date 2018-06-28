@@ -14,12 +14,16 @@
         <item>9</item>
     </string-array>
 
+    <string-array name="supported_distributions">
+        <item>debian</item>
+    </string-array>
+
     <string-array name="supported_services">
         <item>SSH - Dropbear</item>
         <item>VNC - TightVNC</item>
     </string-array>
 
-    <string-array name="support_clients">
+    <string-array name="supported_clients">
         <item>SSH - ConnectBot</item>
         <item>VNC - bVNC</item>
     </string-array>

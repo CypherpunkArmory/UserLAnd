@@ -92,7 +92,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:nestedScrollingEnabled="true"
-        android:entries="@array/support_clients"
+        android:entries="@array/supported_clients"
         app:layout_constraintTop_toBottomOf="@id/text_supported_clients"
         app:layout_constraintStart_toStartOf="parent" />
 

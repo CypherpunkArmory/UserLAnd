@@ -58,8 +58,8 @@ class FilesystemListActivity: AppCompatActivity() {
         val filesystem = filesystemList[position]
 
         return when (item.itemId) {
-            R.id.menu_item_file_system_edit -> navigateToFilesystemEdit(filesystem)
-            R.id.menu_item_file_system_delete -> deleteFilesystem(filesystem)
+            R.id.menu_item_filesystem_edit -> navigateToFilesystemEdit(filesystem)
+            R.id.menu_item_filesystem_delete -> deleteFilesystem(filesystem)
             else -> super.onContextItemSelected(item)
         }
     }
