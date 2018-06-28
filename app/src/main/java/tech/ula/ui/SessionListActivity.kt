@@ -279,12 +279,6 @@ class SessionListActivity : AppCompatActivity() {
         return true
     }
 
-    private fun navigateToSettings(): Boolean {
-        val intent = Intent(this, SettingsActivity::class.java)
-        startActivity(intent)
-        return true
-    }
-
     private fun navigateToHelp(): Boolean {
 //        val intent = Intent(this, HelpActivity::class.java)
 //        startActivity(intent)
