@@ -6,7 +6,10 @@ import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.*
-import kotlinx.android.synthetic.main.frag_filesystem_list.*
+import android.widget.AdapterView
+import androidx.navigation.fragment.NavHostFragment
+import kotlinx.android.synthetic.main.frag_filesystemlist.*
+import org.jetbrains.anko.bundleOf
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.viewmodel.FilesystemListViewModel
@@ -25,7 +28,7 @@ class FilesystemListFragment : Fragment() {
         it?.let {
             filesystemList = it
 
-            list_file_system_management.adapter = FilesystemListAdapter(activityContext, filesystemList)
+            list_filesystems.adapter = FilesystemListAdapter(activityContext, filesystemList)
         }
     }
 
@@ -39,18 +42,52 @@ class FilesystemListFragment : Fragment() {
         inflater.inflate(R.menu.menu_create, menu)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        fileSystemListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
-        return inflater.inflate(R.layout.frag_filesystem_list, container, false)
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return if(item.itemId == R.id.menu_item_add) editFilesystem(Filesystem(0))
+        else super.onOptionsItemSelected(item)
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        fileSystemListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
+        return inflater.inflate(R.layout.frag_filesystemlist, container, false)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
         activityContext = activity!!
+        registerForContextMenu(list_filesystems)
+    }
+
+    override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
+        super.onCreateContextMenu(menu, v, menuInfo)
+        activityContext.menuInflater.inflate(R.menu.context_menu_filesystems, menu)
+    }
+
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        val menuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
+        val position = menuInfo.position
+        val filesystem = filesystemList[position]
+        return when(item.itemId) {
+            R.id.menu_item_file_system_edit -> editFilesystem(filesystem)
+            R.id.menu_item_file_system_delete -> deleteFilesystem(filesystem)
+            else -> super.onContextItemSelected(item)
+        }
+    }
+
+    private fun editFilesystem(filesystem: Filesystem): Boolean {
+        // TODO bundle
+        val editExisting = filesystem.name != ""
+        val bundle = bundleOf("filesystem" to filesystem, "editExisting" to editExisting)
+        NavHostFragment.findNavController(this).navigate(R.id.filesystem_edit_fragment, bundle)
+        return true
+    }
+
+    private fun deleteFilesystem(filesystem: Filesystem): Boolean {
+        return true
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
     }
 }

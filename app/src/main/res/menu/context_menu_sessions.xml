@@ -7,7 +7,7 @@
         android:id="@+id/menu_item_session_kill_service"
         android:title="@string/kill_service" />
     <item
-        android:id="@id/session_edit_fragment"
+        android:id="@+id/menu_item_session_edit"
         android:title="@string/edit" />
     <item
         android:id="@+id/menu_item_session_delete"

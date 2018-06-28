@@ -2,9 +2,7 @@ package tech.ula.ui
 
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Toast
 import tech.ula.R
 import tech.ula.model.entities.Session
@@ -12,8 +10,18 @@ import tech.ula.model.entities.Session
 class SessionEditFragment : Fragment() {
     var editExisting = false
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.frag_session_edit, container, false)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.menu_edit, menu)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

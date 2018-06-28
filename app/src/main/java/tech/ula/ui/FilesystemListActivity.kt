@@ -9,7 +9,7 @@ import android.view.ContextMenu
 import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
-import kotlinx.android.synthetic.main.frag_filesystem_list.*
+import kotlinx.android.synthetic.main.frag_filesystemlist.*
 import org.jetbrains.anko.toast
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
@@ -29,7 +29,7 @@ class FilesystemListActivity: AppCompatActivity() {
         it?.let {
             filesystemList = it
 
-            list_file_system_management.adapter = FilesystemListAdapter(this, filesystemList)
+            list_filesystems.adapter = FilesystemListAdapter(this, filesystemList)
         }
     }
 
@@ -39,17 +39,17 @@ class FilesystemListActivity: AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.frag_filesystem_list)
+        setContentView(R.layout.frag_filesystemlist)
 
         fileSystemListViewModel.getAllFilesystems().observe(this, filesystemChangeObserver)
 
-        registerForContextMenu(list_file_system_management)
+        registerForContextMenu(list_filesystems)
 
     }
 
     override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
         super.onCreateContextMenu(menu, v, menuInfo)
-        menuInflater.inflate(R.menu.context_menu_file_systems, menu)
+        menuInflater.inflate(R.menu.context_menu_filesystems, menu)
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {

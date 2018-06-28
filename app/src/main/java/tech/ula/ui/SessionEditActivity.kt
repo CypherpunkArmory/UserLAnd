@@ -60,7 +60,6 @@ class SessionEditActivity: AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.frag_session_edit)
-        setSupportActionBar(toolbar)
 
         sessionEditViewModel.getAllFilesystems().observe(this, filesystemChangeObserver)
 

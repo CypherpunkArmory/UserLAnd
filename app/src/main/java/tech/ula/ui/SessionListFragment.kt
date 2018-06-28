@@ -67,6 +67,11 @@ class SessionListFragment : Fragment() {
         inflater.inflate(R.menu.menu_create, menu)
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return if(item.itemId == R.id.menu_item_add) editSession(Session(0, filesystemId = 0))
+        else super.onOptionsItemSelected(item)
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         sessionListViewModel.getAllSessions().observe(viewLifecycleOwner, sessionChangeObserver)
         return inflater.inflate(R.layout.frag_session_list, container, false)
@@ -131,7 +136,7 @@ class SessionListFragment : Fragment() {
         val session = sessionList[position]
         return when(item.itemId) {
             R.id.menu_item_session_kill_service -> stopService(session)
-//            R.id.menu_item_session_edit -> editSession(session)
+            R.id.menu_item_session_edit -> editSession(session)
             R.id.menu_item_session_delete -> deleteSession(session)
             else -> super.onContextItemSelected(item)
         }
@@ -156,7 +161,8 @@ class SessionListFragment : Fragment() {
     }
 
     private fun editSession(session: Session): Boolean {
-        val bundle = bundleOf("session" to session, "editExisting" to true)
+        val editExisting = session.name != ""
+        val bundle = bundleOf("session" to session, "editExisting" to editExisting)
         NavHostFragment.findNavController(this).navigate(R.id.session_edit_fragment, bundle)
         return true
     }
