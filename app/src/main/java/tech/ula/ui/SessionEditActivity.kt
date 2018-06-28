@@ -156,9 +156,9 @@ class SessionEditActivity: AppCompatActivity() {
 
 
     fun navigateToFilesystemEdit(): Boolean {
-        val intent = Intent(this, FilesystemEditActivity::class.java)
-        intent.putExtra("filesystem", Filesystem(0))
-        startActivity(intent)
+//        val intent = Intent(this, FilesystemEditActivity::class.java)
+//        intent.putExtra("filesystem", Filesystem(0))
+//        startActivity(intent)
         return true
     }
 

@@ -7,11 +7,13 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.*
 import android.widget.AdapterView
+import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystemlist.*
 import org.jetbrains.anko.bundleOf
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
+import tech.ula.utils.FilesystemUtility
 import tech.ula.viewmodel.FilesystemListViewModel
 
 class FilesystemListFragment : Fragment() {
@@ -30,6 +32,10 @@ class FilesystemListFragment : Fragment() {
 
             list_filesystems.adapter = FilesystemListAdapter(activityContext, filesystemList)
         }
+    }
+
+    private val filesystemUtility by lazy {
+        FilesystemUtility(activityContext)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,7 +82,6 @@ class FilesystemListFragment : Fragment() {
     }
 
     private fun editFilesystem(filesystem: Filesystem): Boolean {
-        // TODO bundle
         val editExisting = filesystem.name != ""
         val bundle = bundleOf("filesystem" to filesystem, "editExisting" to editExisting)
         NavHostFragment.findNavController(this).navigate(R.id.filesystem_edit_fragment, bundle)
@@ -84,10 +89,11 @@ class FilesystemListFragment : Fragment() {
     }
 
     private fun deleteFilesystem(filesystem: Filesystem): Boolean {
+        fileSystemListViewModel.deleteFilesystemById(filesystem.id)
+        val success = filesystemUtility.deleteFilesystem(filesystem.id.toString())
+        if(!success) {
+            Toast.makeText(activityContext, R.string.filesystem_delete_failure, Toast.LENGTH_LONG).show()
+        }
         return true
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
     }
 }
