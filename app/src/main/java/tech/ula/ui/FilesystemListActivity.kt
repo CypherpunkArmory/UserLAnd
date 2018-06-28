@@ -9,7 +9,7 @@ import android.view.ContextMenu
 import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
-import kotlinx.android.synthetic.main.activity_filesystem_list.*
+import kotlinx.android.synthetic.main.frag_filesystem_list.*
 import org.jetbrains.anko.toast
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
@@ -39,14 +39,12 @@ class FilesystemListActivity: AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_filesystem_list)
-        setSupportActionBar(toolbar)
+        setContentView(R.layout.frag_filesystem_list)
 
         fileSystemListViewModel.getAllFilesystems().observe(this, filesystemChangeObserver)
 
         registerForContextMenu(list_file_system_management)
 
-        fab.setOnClickListener { navigateToFilesystemEdit(Filesystem(0)) }
     }
 
     override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {

@@ -30,6 +30,7 @@ import kotlinx.coroutines.experimental.*
 import org.jetbrains.anko.longToast
 import tech.ula.BuildConfig
 import tech.ula.R
+import tech.ula.ServerService
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.viewmodel.SessionListViewModel
@@ -206,7 +207,7 @@ class SessionListActivity : AppCompatActivity() {
         val session = sessionList[position]
         return when(item.itemId) {
             R.id.menu_item_session_kill_service -> stopService(session)
-            R.id.menu_item_session_edit -> navigateToSessionEdit(session)
+//            R.id.menu_item_session_edit -> navigateToSessionEdit(session)
             R.id.menu_item_session_delete -> deleteSession(session)
             else -> super.onContextItemSelected(item)
         }

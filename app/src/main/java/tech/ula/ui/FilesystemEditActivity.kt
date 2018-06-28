@@ -9,7 +9,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
-import kotlinx.android.synthetic.main.activity_filesystem_edit.*
+import kotlinx.android.synthetic.main.frag_filesystem_edit.*
 import org.jetbrains.anko.longToast
 import org.jetbrains.anko.toast
 import tech.ula.R
@@ -39,8 +39,7 @@ class FilesystemEditActivity: AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_filesystem_edit)
-        setSupportActionBar(toolbar)
+        setContentView(R.layout.frag_filesystem_edit)
 
         input_filesystem_name.setText(filesystem.name)
         input_filesystem_name.addTextChangedListener(object: TextWatcher {

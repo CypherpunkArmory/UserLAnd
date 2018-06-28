@@ -1,4 +1,4 @@
-package tech.ula.ui
+package tech.ula
 
 import android.app.Service
 import android.content.Intent

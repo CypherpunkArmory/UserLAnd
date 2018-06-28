@@ -2,26 +2,22 @@ package tech.ula.ui
 
 import android.Manifest
 import android.app.Activity
-import android.arch.lifecycle.LifecycleOwner
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
-import android.support.v7.app.AppCompatActivity
 import android.view.*
 import android.widget.AdapterView
 import android.widget.Toast
-import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_session_list.*
 import kotlinx.android.synthetic.main.list_item_session.view.*
 import org.jetbrains.anko.bundleOf
 import tech.ula.R
+import tech.ula.ServerService
 import tech.ula.model.entities.Session
 import tech.ula.utils.ServerUtility
 import tech.ula.viewmodel.SessionListViewModel
@@ -135,7 +131,7 @@ class SessionListFragment : Fragment() {
         val session = sessionList[position]
         return when(item.itemId) {
             R.id.menu_item_session_kill_service -> stopService(session)
-            R.id.menu_item_session_edit -> editSession(session)
+//            R.id.menu_item_session_edit -> editSession(session)
             R.id.menu_item_session_delete -> deleteSession(session)
             else -> super.onContextItemSelected(item)
         }

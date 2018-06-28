@@ -7,12 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import tech.ula.R
 
-class FilesystemListFragment : Fragment() {
+class TocFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.frag_filesystem_list, container, false)
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+        return inflater.inflate(R.layout.frag_toc, container, false)
     }
 }
