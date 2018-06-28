@@ -2,7 +2,6 @@ package tech.ula.ui
 
 import android.Manifest
 import android.app.AlertDialog
-import android.app.DownloadManager
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.BroadcastReceiver
@@ -17,6 +16,7 @@ import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
+import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
 import android.view.ContextMenu
 import android.view.Menu
@@ -27,6 +27,7 @@ import android.widget.AdapterView
 import kotlinx.android.synthetic.main.frag_session_list.*
 import kotlinx.android.synthetic.main.list_item_session.view.*
 import kotlinx.coroutines.experimental.*
+import kotlinx.android.synthetic.main.activity_session_list.*
 import org.jetbrains.anko.longToast
 import tech.ula.BuildConfig
 import tech.ula.R
@@ -68,29 +69,29 @@ class SessionListActivity : AppCompatActivity() {
         }
     }
 
-    private val downloadList = ArrayList<Long>()
-
-    private val downloadedList = ArrayList<Long>()
-
-    private val downloadBroadcastReceiver = object : BroadcastReceiver() {
+    private val serverServiceBroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            val downloadedId = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-            if (downloadedId != null)
-                downloadedList.add(downloadedId)
+            this@SessionListActivity.runOnUiThread({
+                if (intent != null) {
+                    val type = intent.getStringExtra("type")
+                    when (type) {
+                        "startProgressBar" -> startProgressBar()
+                        "updateProgressBar" -> updateProgressBar(intent)
+                        "killProgressBar" -> killProgressBar()
+                        "updateSession" -> updateSession(intent)
+                        "displayWifiChoices" -> displayWifiChoices(intent)
+                    }
+                }
+            })
         }
-    }
-
-    private val FILESYSTEM_EXTRACT_LOGGER = { line: String -> Int
-        this.runOnUiThread({text_session_list_progress_details.text = getString(R.string.progress_setting_up_extract_text,line)})
-        0
-    }
-
-    private val fileManager by lazy {
-        FileUtility(this)
     }
 
     private val notificationManager by lazy {
         NotificationUtility(this)
+    }
+
+    private val filesystemUtility by lazy {
+        FilesystemUtility(this)
     }
 
     private val serverUtility by lazy {
@@ -99,10 +100,6 @@ class SessionListActivity : AppCompatActivity() {
 
     private val clientUtility by lazy {
         ClientUtility(this)
-    }
-
-    private val filesystemUtility by lazy {
-        FilesystemUtility(this)
     }
 
     private val permissionRequestCode = 1000
@@ -131,7 +128,7 @@ class SessionListActivity : AppCompatActivity() {
 
         registerForContextMenu(list_sessions)
         list_sessions.onItemClickListener = AdapterView.OnItemClickListener {
-            _, view, position, _ ->
+            _, _, position, _ ->
             if(!arePermissionsGranted()) {
                 showPermissionsNecessaryDialog()
                 return@OnItemClickListener
@@ -140,7 +137,7 @@ class SessionListActivity : AppCompatActivity() {
             val session = sessionList[position]
             if(!session.active) {
                 if (!activeSessions) {
-                    startSession(session, view)
+                    startSession(session)
                 } else {
                     longToast(R.string.single_session_supported)
                 }
@@ -151,20 +148,16 @@ class SessionListActivity : AppCompatActivity() {
 
         }
 
-        registerReceiver(downloadBroadcastReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+    }
 
-//        fab.setOnClickListener { navigateToSessionEdit(Session(0, filesystemId = 0)) }
+    override fun onStart() {
+        super.onStart()
+        LocalBroadcastManager.getInstance(this).registerReceiver(serverServiceBroadcastReceiver, IntentFilter(ServerService.SERVER_SERVICE_RESULT))
+    }
 
-//        val bundle = Bundle()
-//        bundle.putParcelable("session", Session(0, filesystemId = 0))
-//        fab.setOnClickListener(Navigation.createNavigateOnClickListener(R.id.sessionEditActivity))
-
-//        fab.setOnClickListener { view ->
-//            val bundle = Bundle()
-//            bundle.putParcelable("session", Session(0, filesystemId = 0))
-//            view.findNavController().navigate(R.id.sessionEditActivity, bundle)
-//        }
-
+    override fun onStop() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(serverServiceBroadcastReceiver)
+        super.onStop()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -206,8 +199,8 @@ class SessionListActivity : AppCompatActivity() {
         val position = menuInfo.position
         val session = sessionList[position]
         return when(item.itemId) {
-            R.id.menu_item_session_kill_service -> stopService(session)
-//            R.id.menu_item_session_edit -> navigateToSessionEdit(session)
+            R.id.menu_item_session_kill_service -> killSession(session)
+            R.id.menu_item_session_edit -> navigateToSessionEdit(session)
             R.id.menu_item_session_delete -> deleteSession(session)
             else -> super.onContextItemSelected(item)
         }
@@ -247,28 +240,9 @@ class SessionListActivity : AppCompatActivity() {
         builder.create().show()
     }
 
-    fun stopService(session: Session): Boolean {
-        // TODO update all sessions relying on service
-        // TODO more granular service killing
-        if(session.active) {
-            session.active = false
-            sessionListViewModel.updateSession(session)
-            val view = list_sessions.getChildAt(sessionList.indexOf(session))
-            view.image_list_item_active.setImageResource(R.drawable.ic_block_red_24dp)
 
-            serverUtility.stopService(session)
-
-            val serviceIntent = Intent(this, ServerService::class.java)
-            serviceIntent.putExtra("type", "kill")
-            serviceIntent.putExtra("pid", session.pid)
-
-            startService(serviceIntent)
-        }
-        return true
-    }
-
-    fun deleteSession(session: Session): Boolean {
-        stopService(session)
+    private fun deleteSession(session: Session): Boolean {
+        killSession(session)
         sessionListViewModel.deleteSessionById(session.id)
         return true
     }
@@ -293,100 +267,83 @@ class SessionListActivity : AppCompatActivity() {
         return true
     }
 
-    private fun startSession(session: Session, view: View) {
-        val filesystemDirectoryName = session.filesystemId.toString()
-        var assetsWereDownloaded = false
-        launchAsync {
-            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_NOSENSOR
-
-            val inAnimation = AlphaAnimation(0f, 1f)
-            inAnimation.duration = 200
-            layout_progress.animation = inAnimation
-            layout_progress.visibility = View.VISIBLE
-
-            val archType = filesystemUtility.getArchType()
-            val filesystem = filesystemList.find { it.name == session.filesystemName }
-            val distType = filesystem!!.distributionType
-            val downloadManager = DownloadUtility(this@SessionListActivity, archType, distType)
-            if (downloadManager.checkIfLargeRequirement()) {
-                val result = downloadManager.displayWifiChoices()
-                when (result) {
-                    DownloadUtility.TURN_ON_WIFI -> {
-                        startActivity(Intent(WifiManager.ACTION_PICK_WIFI_NETWORK))
-                        endProgressBar()
-                        return@launchAsync
-                    }
-                    DownloadUtility.CANCEL -> {
-                        endProgressBar()
-                        return@launchAsync
-                    }
-
-                }
-            }
-
-            text_session_list_progress_step.setText(R.string.progress_downloading)
-            text_session_list_progress_details.text = ""
-            asyncAwait {
-                downloadList.clear()
-                downloadedList.clear()
-                downloadList.addAll(downloadManager.downloadRequirements())
-
-                if (downloadList.isNotEmpty())
-                    assetsWereDownloaded = true
-
-                while (downloadList.size != downloadedList.size) {
-                    this@SessionListActivity.runOnUiThread({text_session_list_progress_details.text = getString(R.string.progress_downloading_out_of,downloadedList.size,downloadList.size)})
-                    delay(500)
-                }
-                if (assetsWereDownloaded) {
-                    fileManager.moveDownloadedAssetsToSharedSupportDirectory()
-                    fileManager.correctFilePermissions()
-                }
-            }
-            text_session_list_progress_details.text = ""
-
-            text_session_list_progress_step.setText(R.string.progress_setting_up)
-            asyncAwait {
-                // TODO only copy when newer versions have been downloaded (and skip rootfs)
-                fileManager.copyDistributionAssetsToFilesystem(filesystemDirectoryName, distType)
-                if (!fileManager.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")) {
-                    filesystemUtility.extractFilesystem(filesystemDirectoryName,FILESYSTEM_EXTRACT_LOGGER)
-                }
-            }
-
-            text_session_list_progress_step.setText(R.string.progress_starting)
-            text_session_list_progress_details.text = ""
-            asyncAwait {
-
-                session.pid = serverUtility.startServer(session)
-
-                val serviceIntent = Intent(this@SessionListActivity, ServerService::class.java)
-                serviceIntent.putExtra("type", "start")
-                serviceIntent.putExtra("pid", session.pid)
-                startService(serviceIntent)
-
-                while (!serverUtility.isServerRunning(session)) {
-                    delay(500)
-                }
-            }
-
-            text_session_list_progress_step.setText(R.string.progress_connecting)
-            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
-            asyncAwait {
-                clientUtility.startClient(session)
-            }
-
-            session.active = true
-            sessionListViewModel.updateSession(session)
-
-            endProgressBar()
-        }
+    private fun startSession(session: Session) {
+        val filesystem = filesystemList.find { it.name == session.filesystemName }
+        val serviceIntent = Intent(this@SessionListActivity, ServerService::class.java)
+        serviceIntent.putExtra("session", session)
+        serviceIntent.putExtra("filesystem", filesystem)
+        serviceIntent.putExtra("type", "start")
+        startService(serviceIntent)
     }
 
-    private fun endProgressBar() {
+    private fun continueStartSession(session: Session) {
+        val filesystem = filesystemList.find { it.name == session.filesystemName }
+        val serviceIntent = Intent(this@SessionListActivity, ServerService::class.java)
+        serviceIntent.putExtra("continue", session)
+        serviceIntent.putExtra("filesystem", filesystem)
+        serviceIntent.putExtra("type", "start")
+        startService(serviceIntent)
+    }
+
+    private fun killSession(session: Session): Boolean {
+        if(session.active) {
+            val serviceIntent = Intent(this@SessionListActivity, ServerService::class.java)
+            serviceIntent.putExtra("session", session)
+            serviceIntent.putExtra("type", "kill")
+            startService(serviceIntent)
+        }
+        return true
+    }
+
+    private fun startProgressBar() {
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_NOSENSOR
+        val inAnimation = AlphaAnimation(0f, 1f)
+        inAnimation.duration = 200
+        layout_progress.animation = inAnimation
+        layout_progress.visibility = View.VISIBLE
+    }
+
+    private fun killProgressBar() {
         val outAnimation = AlphaAnimation(1f, 0f)
         outAnimation.duration = 200
         layout_progress.animation = outAnimation
         layout_progress.visibility = View.GONE
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
     }
+
+    private fun updateProgressBar(intent: Intent) {
+        val step = intent.getStringExtra("step")
+        val details = intent.getStringExtra("details")
+        text_session_list_progress_step.text = step
+        text_session_list_progress_details.text = details
+    }
+
+    private fun updateSession(intent: Intent) {
+        val session = intent.getParcelableExtra<Session>("session")
+        sessionListViewModel.updateSession(session)
+    }
+
+    private fun displayWifiChoices(intent: Intent) {
+        var session = intent.getParcelableExtra<Session>("session")
+        val filesystem = filesystemList.find { it.name == session.filesystemName }
+        val archType = filesystemUtility.getArchType()
+        val distType = filesystem!!.distributionType
+        val downloadManager = DownloadUtility(this@SessionListActivity, archType, distType)
+        launchAsync {
+            val result = downloadManager.displayWifiChoices()
+            when (result) {
+                DownloadUtility.TURN_ON_WIFI -> {
+                    startActivity(Intent(WifiManager.ACTION_PICK_WIFI_NETWORK))
+                    killProgressBar()
+                }
+                DownloadUtility.CANCEL -> {
+                    killProgressBar()
+                }
+                else -> {
+                    continueStartSession(session)
+                }
+            }
+        }
+    }
+
 }

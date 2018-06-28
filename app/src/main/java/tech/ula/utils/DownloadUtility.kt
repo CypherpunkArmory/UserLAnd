@@ -6,18 +6,16 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
-import android.net.wifi.WifiManager
 import android.os.Environment
-import android.util.Log
 import tech.ula.R
 import java.io.File
 import kotlin.coroutines.experimental.Continuation
 import kotlin.coroutines.experimental.suspendCoroutine
 
-class DownloadUtility(val uiContext: Context, val archType: String, val distType: String) {
+class DownloadUtility(val context: Context, val archType: String, val distType: String) {
 
     private val downloadManager: DownloadManager by lazy {
-        uiContext.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
     }
 
     companion object {
@@ -58,7 +56,7 @@ class DownloadUtility(val uiContext: Context, val archType: String, val distType
 
     suspend fun displayWifiChoices(): Int {
         lateinit var result: Continuation<Int>
-        val builder = AlertDialog.Builder(uiContext)
+        val builder = AlertDialog.Builder(context)
         builder.setMessage(R.string.alert_wifi_disabled_message)
                 .setTitle(R.string.alert_wifi_disabled_title)
                 .setPositiveButton(R.string.alert_wifi_disabled_force_button, {
@@ -100,7 +98,7 @@ class DownloadUtility(val uiContext: Context, val archType: String, val distType
 
     private fun assetNeedsToUpdated(type: String): Boolean {
         val (subdirectory, filename) = type.split(":")
-        val asset = File("${uiContext.filesDir.path}/$subdirectory/$filename")
+        val asset = File("${context.filesDir.path}/$subdirectory/$filename")
         // TODO more sophisticated version checking
         return !asset.exists()
     }
@@ -118,7 +116,7 @@ class DownloadUtility(val uiContext: Context, val archType: String, val distType
     }
 
     private fun isWifiEnabled(): Boolean {
-        val connectivityManager = uiContext.getSystemService(Context.CONNECTIVITY_SERVICE)
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE)
         return if (connectivityManager is ConnectivityManager) {
             val networkInfo: NetworkInfo? = connectivityManager.activeNetworkInfo
             networkInfo?.type == ConnectivityManager.TYPE_WIFI
@@ -126,7 +124,7 @@ class DownloadUtility(val uiContext: Context, val archType: String, val distType
     }
 
     private fun isNetworkAvailable(): Boolean {
-        val connectivityManager = uiContext.getSystemService(Context.CONNECTIVITY_SERVICE)
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE)
         return if (connectivityManager is ConnectivityManager) {
             val networkInfo: NetworkInfo? = connectivityManager.activeNetworkInfo
             networkInfo?.isConnected ?: false
