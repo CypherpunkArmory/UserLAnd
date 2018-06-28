@@ -22,7 +22,7 @@ class FilesystemListFragment : Fragment() {
 
     private lateinit var filesystemList: List<Filesystem>
 
-    private val fileSystemListViewModel: FilesystemListViewModel by lazy {
+    private val filesystemListViewModel: FilesystemListViewModel by lazy {
         ViewModelProviders.of(this).get(FilesystemListViewModel::class.java)
     }
 
@@ -54,7 +54,7 @@ class FilesystemListFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        fileSystemListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
+        filesystemListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
         return inflater.inflate(R.layout.frag_filesystemlist, container, false)
     }
 
@@ -89,7 +89,7 @@ class FilesystemListFragment : Fragment() {
     }
 
     private fun deleteFilesystem(filesystem: Filesystem): Boolean {
-        fileSystemListViewModel.deleteFilesystemById(filesystem.id)
+        filesystemListViewModel.deleteFilesystemById(filesystem.id)
         val success = filesystemUtility.deleteFilesystem(filesystem.id.toString())
         if(!success) {
             Toast.makeText(activityContext, R.string.filesystem_delete_failure, Toast.LENGTH_LONG).show()

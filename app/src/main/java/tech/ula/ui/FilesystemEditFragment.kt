@@ -21,8 +21,13 @@ class FilesystemEditFragment : Fragment() {
 
     private lateinit var activityContext: Activity
 
-    private lateinit var filesystem: Filesystem
-    private var editExisting = false
+    private val filesystem: Filesystem by lazy {
+        arguments?.getParcelable("filesystem") as Filesystem
+    }
+
+    private val editExisting: Boolean by lazy {
+        arguments?.getBoolean("editExisting") ?: false
+    }
 
     private val filesystemEditViewModel: FilesystemEditViewModel by lazy {
         ViewModelProviders.of(this).get(FilesystemEditViewModel::class.java)
@@ -58,8 +63,6 @@ class FilesystemEditFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        filesystem = arguments?.getParcelable("filesystem") as Filesystem
-        editExisting = arguments?.getBoolean("editExisting") ?: false
 
         input_filesystem_name.setText(filesystem.name)
         input_filesystem_name.addTextChangedListener(object: TextWatcher {
