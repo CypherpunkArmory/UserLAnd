@@ -23,6 +23,7 @@ class ClientUtility(private val context: Context) {
         val connectBotIntent = Intent()
         connectBotIntent.action = "android.intent.action.VIEW"
         connectBotIntent.data = Uri.parse("ssh://${session.username}@localhost:${session.port}/#userland")
+        connectBotIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
 
         if (clientIsPresent(connectBotIntent)) {
             context.startActivity(connectBotIntent)
@@ -36,6 +37,7 @@ class ClientUtility(private val context: Context) {
         bVncIntent.action = "android.intent.action.VIEW"
         bVncIntent.type = "application/vnd.vnc"
         bVncIntent.data = Uri.parse("vnc://127.0.0.1:5951/?VncPassword=${session.password}")
+        bVncIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
 
         if(clientIsPresent(bVncIntent)) {
             context.startActivity(bVncIntent)
