@@ -218,12 +218,8 @@ class SessionListFragment : Fragment() {
 
     private fun stopService(session: Session): Boolean {
         if(session.active) {
-            session.active = false
-            sessionListViewModel.updateSession(session)
             val view = list_sessions.getChildAt(sessionList.indexOf(session))
             view.image_list_item_active.setImageResource(R.drawable.ic_block_red_24dp)
-
-            serverUtility.stopService(session)
 
             val serviceIntent = Intent(activityContext, ServerService::class.java)
             serviceIntent.putExtra("session", session)
