@@ -10,6 +10,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.NavigationUI.setupWithNavController
 import kotlinx.android.synthetic.main.activity_main.*
+import tech.ula.utils.NotificationUtility
 
 class MainActivity : AppCompatActivity() {
 
@@ -17,10 +18,15 @@ class MainActivity : AppCompatActivity() {
         findNavController(R.id.nav_host_fragment)
     }
 
+    private val notificationManager by lazy {
+        NotificationUtility(this)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
+        notificationManager.createServiceNotificationChannel() // Android O requirement
 
         setupWithNavController(bottom_nav_view, navController)
     }

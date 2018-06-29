@@ -21,6 +21,8 @@ class ServerService : Service() {
     }
 
     private val activeSessions: ArrayList<Long> = ArrayList()
+    private lateinit var lastActivatedSession: Session
+    private lateinit var lastActivatedFilesystem: Filesystem
 
     private lateinit var broadcaster: LocalBroadcastManager
 
@@ -35,6 +37,8 @@ class ServerService : Service() {
             downloadedId?.let { downloadedList.add(it) }
         }
     }
+
+    private lateinit var downloadManager: DownloadUtility
 
     private val notificationManager: NotificationUtility by lazy {
         NotificationUtility(this)
@@ -82,7 +86,7 @@ class ServerService : Service() {
         val intentType = intent.getStringExtra("type")
         when (intentType) {
             "start" -> startSession(intent)
-            "continue" -> continueStartSession(intent)
+            "continue" -> continueStartSession()
             "kill" -> killSession(intent)
         }
         return Service.START_STICKY
@@ -115,19 +119,35 @@ class ServerService : Service() {
         removeSession(session.pid)
         session.active = false
         updateSession(session)
-
     }
 
-    private fun continueStartSession(intent: Intent) {
-        var session = intent.getParcelableExtra<Session>("session")
-        val filesystem = intent.getParcelableExtra<Filesystem>("filesystem")
+    private fun startSession(intent: Intent) {
+        lastActivatedSession = intent.getParcelableExtra("session")
+        lastActivatedFilesystem = intent.getParcelableExtra("filesystem")
         val archType = filesystemUtility.getArchType()
-        val distType = filesystem!!.distributionType
-        val downloadManager = DownloadUtility(this@ServerService, archType, distType)
+        val distType = lastActivatedFilesystem.distributionType
+
+        downloadManager = DownloadUtility(this@ServerService, archType, distType)
+        if(!downloadManager.isNetworkAvailable()) {
+            val resultIntent = Intent(SERVER_SERVICE_RESULT)
+            resultIntent.putExtra("type", "networkUnavailable")
+            return
+        }
+
+        if (downloadManager.checkIfLargeRequirement()) {
+            displayNetworkChoices()
+        } else {
+            continueStartSession()
+        }
+    }
+
+    private fun continueStartSession() {
         var assetsWereDownloaded = false
-        val filesystemDirectoryName = session.filesystemId.toString()
+        val filesystemDirectoryName = lastActivatedSession.filesystemId.toString()
+
         launchAsync {
             startProgressBar()
+
             updateProgressBar(getString(R.string.progress_downloading),"")
             asyncAwait {
                 downloadList.clear()
@@ -138,52 +158,48 @@ class ServerService : Service() {
                     assetsWereDownloaded = true
 
                 while (downloadList.size != downloadedList.size) {
-                    updateProgressBar(getString(R.string.progress_downloading),getString(R.string.progress_downloading_out_of,downloadedList.size,downloadList.size))
+                    updateProgressBar(getString(R.string.progress_downloading),
+                            getString(R.string.progress_downloading_out_of,
+                                    downloadedList.size,
+                                    downloadList.size))
                     delay(500)
                 }
+
                 if (assetsWereDownloaded) {
                     fileManager.moveDownloadedAssetsToSharedSupportDirectory()
                     fileManager.correctFilePermissions()
                 }
             }
+
             updateProgressBar(getString(R.string.progress_setting_up),"")
             asyncAwait {
                 // TODO only copy when newer versions have been downloaded (and skip rootfs)
+                val distType = lastActivatedFilesystem.distributionType
                 fileManager.copyDistributionAssetsToFilesystem(filesystemDirectoryName, distType)
                 if (!fileManager.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")) {
                     filesystemUtility.extractFilesystem(filesystemDirectoryName,FILESYSTEM_EXTRACT_LOGGER)
                 }
             }
+
             updateProgressBar(getString(R.string.progress_starting),"")
             asyncAwait {
 
-                session.pid = serverUtility.startServer(session)
-                addSession(session.pid)
+                lastActivatedSession.pid = serverUtility.startServer(lastActivatedSession)
+                addSession(lastActivatedSession.pid)
 
-                while (!serverUtility.isServerRunning(session)) {
+                while (!serverUtility.isServerRunning(lastActivatedSession)) {
                     delay(500)
                 }
             }
+
             asyncAwait {
-                clientUtility.startClient(session)
+                clientUtility.startClient(lastActivatedSession)
             }
-            session.active = true
-            updateSession(session)
+
+            lastActivatedSession.active = true
+            updateSession(lastActivatedSession)
 
             killProgressBar()
-        }
-    }
-
-    private fun startSession(intent: Intent) {
-        var session = intent.getParcelableExtra<Session>("session")
-        val filesystem = intent.getParcelableExtra<Filesystem>("filesystem")
-        val archType = filesystemUtility.getArchType()
-        val distType = filesystem!!.distributionType
-        val downloadManager = DownloadUtility(this@ServerService, archType, distType)
-        if (downloadManager.checkIfLargeRequirement()) {
-            displayWifiChoices(session)
-        } else {
-            continueStartSession(intent)
         }
     }
 
@@ -214,10 +230,9 @@ class ServerService : Service() {
         broadcaster.sendBroadcast(intent)
     }
 
-    private fun displayWifiChoices(session: Session) {
+    private fun displayNetworkChoices() {
         val intent = Intent(SERVER_SERVICE_RESULT)
-        intent.putExtra("type", "displayWifiChoices")
-        intent.putExtra("session", session)
+        intent.putExtra("type", "displayNetworkChoices")
         broadcaster.sendBroadcast(intent)
     }
 
