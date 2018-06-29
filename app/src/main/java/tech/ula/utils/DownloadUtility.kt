@@ -1,18 +1,14 @@
 package tech.ula.utils
 
-import android.app.AlertDialog
 import android.app.DownloadManager
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
 import android.os.Environment
-import tech.ula.R
 import java.io.File
-import kotlin.coroutines.experimental.Continuation
-import kotlin.coroutines.experimental.suspendCoroutine
 
-class DownloadUtility(val context: Context, val archType: String, val distType: String) {
+class DownloadUtility(val context: Context, val archType: String, distType: String) {
 
     private val downloadManager: DownloadManager by lazy {
         context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager

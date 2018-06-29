@@ -9,7 +9,6 @@ import android.content.IntentFilter
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
 import kotlinx.coroutines.experimental.delay
-import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.utils.*
@@ -17,7 +16,7 @@ import tech.ula.utils.*
 class ServerService : Service() {
 
     companion object {
-        val SERVER_SERVICE_RESULT = "tech.ula.ServerService.RESULT"
+        const val SERVER_SERVICE_RESULT = "tech.ula.ServerService.RESULT"
     }
 
     private val activeSessions: ArrayList<Long> = ArrayList()
@@ -61,7 +60,7 @@ class ServerService : Service() {
         ClientUtility(this)
     }
 
-    private val FILESYSTEM_EXTRACT_LOGGER = { line: String -> Int
+    private val filesystemExtractLogger = { line: String -> Int
         updateProgressBar(getString(R.string.progress_setting_up),getString(R.string.progress_setting_up_extract_text,line))
         0
     }
@@ -177,7 +176,7 @@ class ServerService : Service() {
                 val distType = lastActivatedFilesystem.distributionType
                 fileManager.copyDistributionAssetsToFilesystem(filesystemDirectoryName, distType)
                 if (!fileManager.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")) {
-                    filesystemUtility.extractFilesystem(filesystemDirectoryName,FILESYSTEM_EXTRACT_LOGGER)
+                    filesystemUtility.extractFilesystem(filesystemDirectoryName, filesystemExtractLogger)
                 }
             }
 

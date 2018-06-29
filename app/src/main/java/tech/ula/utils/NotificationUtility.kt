@@ -14,7 +14,7 @@ import tech.ula.R
 class NotificationUtility(val context: Context) {
 
     companion object {
-        val serviceNotificationId = 1000
+        const val serviceNotificationId = 1000
     }
 
     private val serviceNotificationChannelId = context.getString(R.string.services_notification_channel_id)

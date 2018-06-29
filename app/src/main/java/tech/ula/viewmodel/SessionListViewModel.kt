@@ -22,10 +22,6 @@ class SessionListViewModel(application: Application) : AndroidViewModel(applicat
         appDatabase.filesystemDao().getAllFilesystems()
     }
 
-    private val serverUtility: ServerUtility by lazy {
-        ServerUtility(application.applicationContext)
-    }
-
     fun getAllSessions(): LiveData<List<Session>> {
         return sessions
     }
