@@ -25,7 +25,6 @@ class ClientUtility(private val context: Context) {
         connectBotIntent.data = Uri.parse("ssh://${session.username}@localhost:${session.port}/#userland")
 
         if (clientIsPresent(connectBotIntent)) {
-            connectBotIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
             context.startActivity(connectBotIntent)
         } else {
             getClient("org.connectbot")
@@ -52,8 +51,10 @@ class ClientUtility(private val context: Context) {
     }
 
     private fun getClient(appPackageName: String) {
-        context.runOnUiThread {longToast(R.string.download_client_app)}
-        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName")))
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName"))
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        context.runOnUiThread { longToast(R.string.download_client_app) }
+        context.startActivity(intent)
     }
 
 
