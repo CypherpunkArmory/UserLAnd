@@ -21,8 +21,10 @@ import android.support.v4.content.LocalBroadcastManager
 import android.view.*
 import android.view.animation.AlphaAnimation
 import android.widget.AdapterView
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.frag_session_list.*
 import kotlinx.android.synthetic.main.list_item_session.view.*
 import org.jetbrains.anko.bundleOf
