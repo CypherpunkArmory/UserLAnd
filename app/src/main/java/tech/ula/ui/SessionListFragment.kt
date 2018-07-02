@@ -9,7 +9,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.net.wifi.WifiManager
@@ -64,7 +63,19 @@ class SessionListFragment : Fragment() {
     }
 
     private val filesystemChangeObserver = Observer<List<Filesystem>> {
-        it?.let { filesystemList = it }
+        it?.let {
+            filesystemList = it
+
+            if (::sessionList.isInitialized) {
+                for(filesystem in filesystemList) {
+                    sessionList.filter { it.filesystemId == filesystem.id }
+                            .map {
+                                it.filesystemName = filesystem.name
+                                sessionListViewModel.updateSession(it)
+                            }
+                }
+            }
+        }
     }
 
     private val serverServiceBroadcastReceiver = object : BroadcastReceiver() {
