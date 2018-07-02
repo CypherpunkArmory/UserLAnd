@@ -81,8 +81,6 @@ class SessionEditFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         activityContext = activity!!
-        if(editExisting) Toast.makeText(activity!!, "editExisting", Toast.LENGTH_LONG).show()
-        else Toast.makeText(activity!!, "not existing", Toast.LENGTH_LONG).show()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
