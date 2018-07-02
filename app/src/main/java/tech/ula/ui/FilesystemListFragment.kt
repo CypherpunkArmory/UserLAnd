@@ -3,6 +3,7 @@ package tech.ula.ui
 import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.*
@@ -12,6 +13,7 @@ import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_list.*
 import org.jetbrains.anko.bundleOf
 import tech.ula.R
+import tech.ula.ServerService
 import tech.ula.model.entities.Filesystem
 import tech.ula.utils.FilesystemUtility
 import tech.ula.viewmodel.FilesystemListViewModel
@@ -90,10 +92,17 @@ class FilesystemListFragment : Fragment() {
 
     private fun deleteFilesystem(filesystem: Filesystem): Boolean {
         filesystemListViewModel.deleteFilesystemById(filesystem.id)
+
         val success = filesystemUtility.deleteFilesystem(filesystem.id.toString())
         if(!success) {
             Toast.makeText(activityContext, R.string.filesystem_delete_failure, Toast.LENGTH_LONG).show()
         }
+
+        val serviceIntent = Intent(activityContext, ServerService::class.java)
+        serviceIntent.putExtra("type", "filesystemIsBeingDeleted")
+        serviceIntent.putExtra("filesystemId", filesystem.id)
+        activityContext.startService(serviceIntent)
+
         return true
     }
 }
