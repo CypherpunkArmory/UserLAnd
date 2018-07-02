@@ -77,6 +77,7 @@ class SessionListFragment : Fragment() {
                         "updateProgressBar" -> updateProgressBar(it)
                         "killProgressBar" -> killProgressBar()
                         "updateSession" -> updateSession(it)
+                        "isProgressBarActive" -> displayProgressBarIfActive(it)
                         "networkUnavailable" -> displayNetworkUnavailableDialog()
                         "displayNetworkChoices" -> displayNetworkChoicesDialog()
                     }
@@ -163,6 +164,13 @@ class SessionListFragment : Fragment() {
                 clientUtility.startClient(session)
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val intent = Intent(activityContext, ServerService::class.java)
+        intent.putExtra("type", "isProgressBarActive")
+        activityContext.startService(intent)
     }
 
     private fun arePermissionsGranted(): Boolean {
@@ -272,6 +280,11 @@ class SessionListFragment : Fragment() {
         val details = intent.getStringExtra("details")
         text_session_list_progress_step.text = step
         text_session_list_progress_details.text = details
+    }
+
+    private fun displayProgressBarIfActive(intent: Intent) {
+        val isActive = intent.getBooleanExtra("isProgressBarActive", false)
+        if(isActive) startProgressBar()
     }
 
     private fun updateSession(intent: Intent) {

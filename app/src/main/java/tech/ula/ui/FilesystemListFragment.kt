@@ -9,7 +9,7 @@ import android.view.*
 import android.widget.AdapterView
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
-import kotlinx.android.synthetic.main.frag_filesystemlist.*
+import kotlinx.android.synthetic.main.frag_filesystem_list.*
 import org.jetbrains.anko.bundleOf
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
@@ -55,7 +55,7 @@ class FilesystemListFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         filesystemListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
-        return inflater.inflate(R.layout.frag_filesystemlist, container, false)
+        return inflater.inflate(R.layout.frag_filesystem_list, container, false)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {

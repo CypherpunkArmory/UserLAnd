@@ -20,11 +20,11 @@ class ServerService : Service() {
     }
 
     private val activeSessions: ArrayList<Long> = ArrayList()
+    private var progressBarActive = false
     private lateinit var lastActivatedSession: Session
     private lateinit var lastActivatedFilesystem: Filesystem
 
     private lateinit var broadcaster: LocalBroadcastManager
-
 
     private val downloadList = ArrayList<Long>()
 
@@ -87,6 +87,7 @@ class ServerService : Service() {
             "start" -> startSession(intent)
             "continue" -> continueStartSession()
             "kill" -> killSession(intent)
+            "isProgressBarActive" -> isProgressBarActive()
         }
         return Service.START_STICKY
     }
@@ -206,12 +207,16 @@ class ServerService : Service() {
         val intent = Intent(SERVER_SERVICE_RESULT)
         intent.putExtra("type", "startProgressBar")
         broadcaster.sendBroadcast(intent)
+
+        progressBarActive = true
     }
 
     private fun killProgressBar() {
         val intent = Intent(SERVER_SERVICE_RESULT)
         intent.putExtra("type", "killProgressBar")
         broadcaster.sendBroadcast(intent)
+
+        progressBarActive = false
     }
 
     private fun updateProgressBar(step: String, details: String) {
@@ -219,6 +224,13 @@ class ServerService : Service() {
         intent.putExtra("type", "updateProgressBar")
         intent.putExtra("step", step)
         intent.putExtra("details", details)
+        broadcaster.sendBroadcast(intent)
+    }
+
+    private fun isProgressBarActive() {
+        val intent = Intent(SERVER_SERVICE_RESULT)
+        intent.putExtra("type", "isProgressBarActive")
+        intent.putExtra("isProgressBarActive", progressBarActive)
         broadcaster.sendBroadcast(intent)
     }
 
