@@ -40,14 +40,13 @@ class FilesystemUtility(private val context: Context) {
             }
         }
         else {
-            return if(isSupported(Build.CPU_ABI)) Build.CPU_ABI
-            else if(isSupported(Build.CPU_ABI2)) Build.CPU_ABI2
-            else {
-                throw Exception("No supported ABI!")
+            return when {
+                isSupported(Build.CPU_ABI) -> Build.CPU_ABI
+                isSupported(Build.CPU_ABI2) -> Build.CPU_ABI2
+                else -> throw Exception("No supported ABI!")
             }
         }
     }
-
 
     private fun isSupported(abi: String): Boolean {
         val supportedABIs = listOf("arm64", "arm", "x86_64", "x86")

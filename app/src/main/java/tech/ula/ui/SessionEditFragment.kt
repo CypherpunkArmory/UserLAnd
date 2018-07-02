@@ -1,41 +1,42 @@
 package tech.ula.ui
 
+import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
-import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+import android.support.v4.app.Fragment
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
-import android.widget.*
-import kotlinx.android.synthetic.main.activity_session_edit.*
-import org.jetbrains.anko.longToast
-import org.jetbrains.anko.toast
+import android.view.*
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.TextView
+import android.widget.Toast
+import androidx.navigation.fragment.NavHostFragment
+import kotlinx.android.synthetic.main.frag_session_edit.*
+import org.jetbrains.anko.bundleOf
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.utils.launchAsync
-import android.widget.TextView
 import tech.ula.viewmodel.SessionEditViewModel
 
-class SessionEditActivity: AppCompatActivity() {
+class SessionEditFragment : Fragment() {
 
-    val session: Session by lazy {
-        intent.getParcelableExtra("session") as Session
+    private lateinit var activityContext: Activity
+
+    private val session: Session by lazy {
+        arguments?.getParcelable("session") as Session
     }
 
     private val editExisting: Boolean by lazy {
-        intent.getBooleanExtra("editExisting", false)
+        arguments?.getBoolean("editExisting") ?: false
     }
 
-    private var sessionServiceTypeList = ArrayList<String>()
     private var sessionClientTypeList = ArrayList<String>()
 
-    lateinit var filesystemList: List<Filesystem>
+    private lateinit var filesystemList: List<Filesystem>
 
     private val sessionEditViewModel: SessionEditViewModel by lazy {
         ViewModelProviders.of(this).get(SessionEditViewModel::class.java)
@@ -49,7 +50,7 @@ class SessionEditActivity: AppCompatActivity() {
             if(it.isEmpty()) {
                 filesystemNameList.add("")
             }
-            val filesystemAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, filesystemNameList)
+            val filesystemAdapter = ArrayAdapter(activityContext, android.R.layout.simple_spinner_item, filesystemNameList)
             filesystemAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             val filesystemNamePosition = filesystemAdapter.getPosition(session.filesystemName)
             spinner_filesystem_list.adapter = filesystemAdapter
@@ -59,12 +60,32 @@ class SessionEditActivity: AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_session_edit)
-        setSupportActionBar(toolbar)
+        setHasOptionsMenu(true)
+    }
 
-        sessionEditViewModel.getAllFilesystems().observe(this, filesystemChangeObserver)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        sessionEditViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
+        return inflater.inflate(R.layout.frag_session_edit, container, false)
+    }
 
-        // Session name input
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.menu_edit, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return if(item.itemId == R.id.menu_item_add) insertSession()
+        else super.onOptionsItemSelected(item)
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        activityContext = activity!!
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
         text_input_session_name.setText(session.name)
         text_input_session_name.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
@@ -75,14 +96,16 @@ class SessionEditActivity: AppCompatActivity() {
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
         })
 
-        // Filesystem name dropdown
         spinner_filesystem_list.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val filesystemName = parent?.getItemAtPosition(position).toString()
                 when (filesystemName) {
-                    "Create new" -> navigateToFilesystemEdit()
+                    "Create new" -> {
+                        val bundle = bundleOf("filesystem" to Filesystem(0), "editExisting" to false)
+                        NavHostFragment.findNavController(this@SessionEditFragment).navigate(R.id.filesystem_edit_fragment, bundle)
+                    }
                     "" -> return
                     else -> {
                         // TODO adapter to associate filesystem structure with list items?
@@ -95,9 +118,6 @@ class SessionEditActivity: AppCompatActivity() {
             }
         }
 
-        sessionServiceTypeList = getSupportedServiceTypes()
-
-        spinner_session_service_type.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, sessionServiceTypeList)
         spinner_session_service_type.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
@@ -108,11 +128,10 @@ class SessionEditActivity: AppCompatActivity() {
                 session.port = getDefaultServicePort(selectedServiceType)
 
                 sessionClientTypeList = getSupportedClientTypes(selectedServiceType)
-                spinner_session_client_type.adapter = ArrayAdapter(this@SessionEditActivity, android.R.layout.simple_spinner_dropdown_item, sessionClientTypeList)
+                spinner_session_client_type.adapter = ArrayAdapter(activityContext, android.R.layout.simple_spinner_dropdown_item, sessionClientTypeList)
             }
         }
 
-        // Session client type dropdown
         spinner_session_client_type.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
@@ -123,7 +142,6 @@ class SessionEditActivity: AppCompatActivity() {
             }
         }
 
-        // Username input
         text_input_username.isEnabled = false
         text_input_username.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
@@ -135,73 +153,43 @@ class SessionEditActivity: AppCompatActivity() {
         })
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        if(editExisting) {
-            menuInflater.inflate(R.menu.menu_edit, menu)
-        }
-        else {
-            menuInflater.inflate(R.menu.menu_create, menu)
-        }
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when(item.itemId) {
-            R.id.menu_item_add -> {
-                insertSession()
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
-
-
-    fun navigateToFilesystemEdit(): Boolean {
-        val intent = Intent(this, FilesystemEditActivity::class.java)
-        intent.putExtra("filesystem", Filesystem(0))
-        startActivity(intent)
-        return true
-    }
-
-    private fun insertSession() {
+    private fun insertSession(): Boolean {
+        val navController = NavHostFragment.findNavController(this)
 
         if (session.name == "") text_input_session_name.error = getString(R.string.error_session_name)
         //TODO: Uncomment when we support unique usernames
         // /if (session.username == "") text_input_username.error = getString(R.string.error_username)
         if (session.filesystemName == "") {
-            val errorText = spinner_filesystem_list.getSelectedView() as TextView
+            val errorText = spinner_filesystem_list.selectedView as TextView
             errorText.error = ""
             errorText.setTextColor(Color.RED)
             errorText.text = getString(R.string.error_filesystem_name)
         }
 
         if(session.name == "" || session.username == "" || session.filesystemName == "") {
-            toast(R.string.error_empty_field)
+            Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
         }
         else {
             if(editExisting) {
                 sessionEditViewModel.updateSession(session)
-                finish()
+                navController.popBackStack()
             }
             else {
                 launchAsync {
                     when (sessionEditViewModel.insertSession(session)) {
-                        true -> finish()
-                        false -> longToast(R.string.session_unique_name_required)
+                        true -> navController.popBackStack()
+                        false -> Toast.makeText(activityContext, R.string.session_unique_name_required, Toast.LENGTH_LONG).show()
                     }
                 }
             }
         }
-    }
-
-    private fun getSupportedServiceTypes(): ArrayList<String> {
-        return arrayListOf("ssh", "vnc")
+        return true
     }
 
     private fun getSupportedClientTypes(selectedServiceType: String): ArrayList<String> {
         return when(selectedServiceType) {
-            "ssh" -> arrayListOf("ConnectBot")
-            "vnc" -> arrayListOf("bVNC")
+            "ssh" -> arrayListOf(*activityContext.resources.getStringArray(R.array.supported_ssh_clients))
+            "vnc" -> arrayListOf(*activityContext.resources.getStringArray(R.array.supported_vnc_clients))
             else -> arrayListOf()
         }
     }

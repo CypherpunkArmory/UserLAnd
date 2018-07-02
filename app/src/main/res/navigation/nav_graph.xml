@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    app:startDestination="@id/session_list_fragment">
+    <fragment
+        android:id="@+id/session_list_fragment"
+        android:name="tech.ula.ui.SessionListFragment"
+        android:label="@string/sessions"
+        tools:layout="@layout/frag_session_list" >
+        <argument android:name="session" android:defaultValue="null" />
+        <argument android:name="editExisting" android:defaultValue="false"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/session_edit_fragment"
+        android:name="tech.ula.ui.SessionEditFragment"
+        android:label="@string/edit_session"
+        tools:layout="@layout/frag_session_edit" />
+
+    <fragment
+        android:id="@+id/filesystem_list_fragment"
+        android:name="tech.ula.ui.FilesystemListFragment"
+        android:label="@string/filesystems" />
+
+    <fragment
+        android:id="@+id/filesystem_edit_fragment"
+        android:name="tech.ula.ui.FilesystemEditFragment"
+        android:label="@string/edit_filesystem"
+        tools:layout="@layout/frag_filesystem_edit" />
+
+    <fragment
+        android:id="@+id/settings_fragment"
+        android:name="tech.ula.ui.SettingsFragment"
+        android:label="@string/settings" />
+
+    <fragment
+        android:id="@+id/help_fragment"
+        android:name="tech.ula.ui.HelpFragment"
+        android:label="@string/help"
+        tools:layout="@layout/frag_help" />
+
+    <fragment
+        android:id="@+id/toc_fragment"
+        android:name="tech.ula.ui.TocFragment"
+        android:label="@string/toc"
+        tools:layout="@layout/frag_toc" />
+</navigation>

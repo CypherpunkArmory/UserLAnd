@@ -14,12 +14,29 @@
         <item>9</item>
     </string-array>
 
+    <string-array name="supported_distributions">
+        <item>debian</item>
+    </string-array>
+
     <string-array name="supported_services">
+        <item>ssh</item>
+        <item>vnc</item>
+    </string-array>
+
+    <string-array name="supported_services_and_types">
         <item>SSH - Dropbear</item>
         <item>VNC - TightVNC</item>
     </string-array>
 
-    <string-array name="support_clients">
+    <string-array name="supported_ssh_clients">
+        <item>ConnectBot</item>
+    </string-array>
+
+    <string-array name="supported_vnc_clients">
+        <item>bVNC</item>
+    </string-array>
+
+    <string-array name="supported_clients_and_types">
         <item>SSH - ConnectBot</item>
         <item>VNC - bVNC</item>
     </string-array>

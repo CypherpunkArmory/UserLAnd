@@ -24,12 +24,12 @@ class ServerUtility(private val context: Context) {
     }
 
     fun Session.pid(): Long {
-        var pidFile = File(this.pidFilePath())
+        val pidFile = File(this.pidFilePath())
         if (!pidFile.exists()) return -1
-        try {
-            return pidFile.readText().trim().toLong()
+        return try {
+            pidFile.readText().trim().toLong()
         } catch(e: Exception) {
-            return -1
+            -1
         }
     }
 
@@ -51,7 +51,7 @@ class ServerUtility(private val context: Context) {
     }
 
     private fun deletePidFile(session: Session) {
-        var pidFile = File(session.pidFilePath())
+        val pidFile = File(session.pidFilePath())
         if (pidFile.exists()) pidFile.delete()
     }
 

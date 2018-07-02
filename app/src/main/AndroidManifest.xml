@@ -18,43 +18,22 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme" >
 
-        <activity
-            android:name="tech.ula.ui.SessionListActivity"
-            android:label="@string/app_name"
-            android:launchMode="singleTask">
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.VIEW" />
 
+                <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+
+            <nav-graph android:value="@navigation/nav_graph"/>
+
         </activity>
 
-        <activity
-            android:name="tech.ula.ui.SessionEditActivity"
-            android:label="Edit Session" />
-
-        <activity
-            android:name="tech.ula.ui.FilesystemListActivity"
-            android:label="Filesystems" />
-
-        <activity
-            android:name="tech.ula.ui.FilesystemEditActivity"
-            android:label="Edit Filesystem" />
-
-        <activity
-            android:name="tech.ula.ui.SettingsActivity"
-            android:label="Settings" />
-
-        <activity
-            android:name="tech.ula.ui.HelpActivity"
-            android:label="Help" />
-
-        <activity
-            android:name="tech.ula.ui.TermsAndConditionsActivity"
-            android:label="Terms And Conditions" />
-
         <service
-            android:name=".ui.ServerService"
+            android:name=".ServerService"
             android:stopWithTask="true" />
 
     </application>

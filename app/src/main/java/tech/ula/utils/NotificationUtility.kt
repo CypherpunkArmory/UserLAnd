@@ -8,16 +8,15 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.support.v4.app.NotificationCompat
+import tech.ula.MainActivity
 import tech.ula.R
-import tech.ula.ui.SessionListActivity
 
 class NotificationUtility(val context: Context) {
 
     companion object {
-        val serviceNotificationId = 1000
+        const val serviceNotificationId = 1000
     }
 
-//    private val serviceNotificationId = 1000
     private val serviceNotificationChannelId = context.getString(R.string.services_notification_channel_id)
 
     private val serviceNotificationTitle = context.getString(R.string.service_notification_title)
@@ -40,7 +39,7 @@ class NotificationUtility(val context: Context) {
     }
 
     fun buildPersistentServiceNotification(): Notification {
-        val sessionListIntent = Intent(context, SessionListActivity::class.java)
+        val sessionListIntent = Intent(context, MainActivity::class.java)
         val pendingSessionListIntent = PendingIntent
                 .getActivity(context, 0, sessionListIntent, 0)
 

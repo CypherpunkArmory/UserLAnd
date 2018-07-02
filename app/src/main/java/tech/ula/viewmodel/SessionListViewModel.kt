@@ -25,15 +25,15 @@ class SessionListViewModel(application: Application) : AndroidViewModel(applicat
         return sessions
     }
 
-    fun getAllFilesystems(): LiveData<List<Filesystem>> {
-        return filesystems
-    }
-
     fun deleteSessionById(id: Long) {
         launch { async { appDatabase.sessionDao().deleteSessionById(id) } }
     }
 
     fun updateSession(session: Session) {
         launch { async { appDatabase.sessionDao().updateSession(session) } }
+    }
+
+    fun getAllFilesystems(): LiveData<List<Filesystem>> {
+        return filesystems
     }
 }

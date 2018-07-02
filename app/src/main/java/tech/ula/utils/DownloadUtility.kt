@@ -1,27 +1,17 @@
 package tech.ula.utils
 
-import android.app.AlertDialog
 import android.app.DownloadManager
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
 import android.os.Environment
-import tech.ula.R
 import java.io.File
-import kotlin.coroutines.experimental.Continuation
-import kotlin.coroutines.experimental.suspendCoroutine
 
-class DownloadUtility(val context: Context, val archType: String, val distType: String) {
+class DownloadUtility(val context: Context, val archType: String, distType: String) {
 
     private val downloadManager: DownloadManager by lazy {
         context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-    }
-
-    companion object {
-        val CONTINUE = 0
-        val TURN_ON_WIFI = 1
-        val CANCEL = 2
     }
 
     // Prefix file name with OS type to move it into the correct folder
@@ -52,35 +42,6 @@ class DownloadUtility(val context: Context, val archType: String, val distType: 
             }
         }
         return false
-    }
-
-    suspend fun displayWifiChoices(): Int {
-        lateinit var result: Continuation<Int>
-        val builder = AlertDialog.Builder(context)
-        builder.setMessage(R.string.alert_wifi_disabled_message)
-                .setTitle(R.string.alert_wifi_disabled_title)
-                .setPositiveButton(R.string.alert_wifi_disabled_force_button, {
-                    dialog, _ ->
-                    dialog.dismiss()
-                    result.resume(if (isNetworkAvailable()) CONTINUE else CANCEL)
-                })
-                .setNegativeButton(R.string.alert_wifi_disabled_turn_on_wifi_button, {
-                    dialog, _ ->
-                    dialog.dismiss()
-                    result.resume(TURN_ON_WIFI)
-                })
-                .setNeutralButton(R.string.alert_wifi_disabled_cancel_button, {
-                    dialog, _ ->
-                    dialog.dismiss()
-                    result.resume(CANCEL)
-                })
-                .setOnCancelListener {
-                    result.resume(CANCEL)
-                }
-                .create()
-                .show()
-
-        return suspendCoroutine { continuation -> result = continuation }
     }
 
     private fun download(type: String, url: String): Long {
@@ -123,7 +84,7 @@ class DownloadUtility(val context: Context, val archType: String, val distType: 
         } else false
     }
 
-    private fun isNetworkAvailable(): Boolean {
+    fun isNetworkAvailable(): Boolean {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE)
         return if (connectivityManager is ConnectivityManager) {
             val networkInfo: NetworkInfo? = connectivityManager.activeNetworkInfo

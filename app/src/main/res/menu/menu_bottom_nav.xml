@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@id/session_list_fragment"
+        android:icon="@drawable/ic_computer_white_24dp"
+        android:title="@string/sessions" />
+    <item
+        android:id="@id/filesystem_list_fragment"
+        android:icon="@drawable/ic_storage_white_24dp"
+        android:title="@string/filesystems" />
+</menu>

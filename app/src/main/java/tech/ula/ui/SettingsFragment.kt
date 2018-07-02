@@ -1,16 +1,16 @@
 package tech.ula.ui
 
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Environment
-import android.preference.PreferenceFragment
 import tech.ula.R
 import java.io.File
+import android.support.v7.preference.PreferenceFragmentCompat
 
-// TODO upgrade this preferencefragmentcompat when support lib v28 is stable
-class SettingsFragment : PreferenceFragment() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
+class SettingsFragment : PreferenceFragmentCompat() {
+    override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.preferences)
 
         val deleteFilePreference = findPreference("pref_proot_delete_debug_file")
@@ -19,5 +19,13 @@ class SettingsFragment : PreferenceFragment() {
             if(debugFile.exists()) debugFile.delete()
             true
         }
+    }
+
+    override fun setDivider(divider: Drawable?) {
+        super.setDivider(ColorDrawable(Color.TRANSPARENT))
+    }
+
+    override fun setDividerHeight(height: Int) {
+        super.setDividerHeight(0)
     }
 }

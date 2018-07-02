@@ -1,23 +1,14 @@
 <menu
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:context="tech.ula.ui.SessionListActivity">
+    xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <item
         android:id="@+id/menu_item_session_kill_service"
-        android:orderInCategory="100"
-        android:title="@string/kill_service"
-        app:showAsAction="never" />
+        android:title="@string/kill_service" />
     <item
         android:id="@+id/menu_item_session_edit"
-        android:orderInCategory="101"
-        android:title="@string/edit"
-        app:showAsAction="never" />
+        android:title="@string/edit" />
     <item
         android:id="@+id/menu_item_session_delete"
-        android:orderInCategory="102"
-        android:title="@string/delete"
-        app:showAsAction="never" />
+        android:title="@string/delete" />
 
 </menu>
