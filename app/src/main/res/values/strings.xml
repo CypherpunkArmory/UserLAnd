@@ -54,7 +54,7 @@
     <string name="pref_enable_default_password_message">Default Password Message Enabled</string>
     <string name="pref_proot_category">PRoot Preferences</string>
     <string name="pref_proot_debugging_enabled_title">PRoot Debugging Logs Enabled</string>
-    <string name="pref_proot_debugging_enabled_summary">Only necessary if having problems with the app. \nLog file stored at /mnt/sdcard/PRoot_Debug_Log</string>
+    <string name="pref_proot_debugging_enabled_summary">Only necessary if having problems with the app. Log file stored at\n/mnt/sdcard/PRoot_Debug_Log</string>
     <string name="pref_proot_debugging_level_title">Debug Verbosity Level</string>
     <string name="pref_proot_debugging_level_summary">The higher the number, the greater the verbosity.</string>
     <string name="pref_proot_debugging_level_default">-1</string>

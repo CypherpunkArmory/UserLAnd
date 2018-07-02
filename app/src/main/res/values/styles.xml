@@ -12,7 +12,6 @@
 
     <style name="PreferenceTheme" parent="PreferenceThemeOverlay">
         <item name="android:textSize">14sp</item>
-        <item name="android:divider">@null</item>
     </style>
 
 </resources>

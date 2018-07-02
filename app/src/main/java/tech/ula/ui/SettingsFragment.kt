@@ -21,12 +21,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-
-        listView.setPadding(0, 0, 0, 0)
-    }
-
     override fun setDivider(divider: Drawable?) {
         super.setDivider(ColorDrawable(Color.TRANSPARENT))
     }
