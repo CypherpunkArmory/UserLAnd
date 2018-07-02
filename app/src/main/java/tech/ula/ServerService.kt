@@ -8,7 +8,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
-import androidx.navigation.fragment.NavHostFragment
 import kotlinx.coroutines.experimental.delay
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
