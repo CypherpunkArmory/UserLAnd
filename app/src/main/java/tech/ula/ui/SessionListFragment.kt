@@ -260,7 +260,6 @@ class SessionListFragment : Fragment() {
     }
 
     private fun startProgressBar() {
-        activityContext.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_NOSENSOR
         val inAnimation = AlphaAnimation(0f, 1f)
         inAnimation.duration = 200
         layout_progress.animation = inAnimation
@@ -272,7 +271,6 @@ class SessionListFragment : Fragment() {
         outAnimation.duration = 200
         layout_progress.animation = outAnimation
         layout_progress.visibility = View.GONE
-        activityContext.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
     }
 
     private fun updateProgressBar(intent: Intent) {
