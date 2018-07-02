@@ -17,7 +17,7 @@ class FilesystemEditViewModel(application: Application) : AndroidViewModel(appli
 
     suspend fun insertFilesystem(filesystem: Filesystem): Boolean {
         lateinit var result: Continuation<Boolean>
-        launch { kotlinx.coroutines.experimental.async {
+        launch { async {
             try {
                 appDatabase.filesystemDao().insertFilesystem(filesystem)
                 result.resume(true)

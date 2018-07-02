@@ -22,7 +22,7 @@ class FilesystemListAdapter(private var activity: Activity, private var items: L
         val viewHolder: ViewHolder
         if(convertView  == null) {
             val inflater = activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-            view = inflater.inflate(R.layout.list_item_filesystem, null)
+            view = inflater.inflate(R.layout.list_item_filesystem, parent, false)
             viewHolder = ViewHolder(view)
             view?.tag = viewHolder
         } else {
