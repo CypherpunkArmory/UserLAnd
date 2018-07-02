@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:android="http://schemas.android.com/tools">
     <color name="colorPrimary">#607D8B</color> <!-- Blue Gray 500 -->
     <color name="colorPrimaryDark">#455A64</color> <!-- Blue Gray 700 -->
     <color name="colorAccent">#90A4AE</color> <!-- Blue Gray 300 -->
+
+    <color name="InactiveBottomNavIconColor">#9E9E9E</color> <!-- Gray 500 -->
 </resources>

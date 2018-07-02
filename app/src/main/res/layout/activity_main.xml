@@ -12,6 +12,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:itemIconTint="@drawable/bottom_nav_icon_selector"
+        app:itemTextColor="@drawable/bottom_nav_icon_selector"
         app:menu="@menu/menu_bottom_nav" />
 
     <android.support.v7.widget.Toolbar
