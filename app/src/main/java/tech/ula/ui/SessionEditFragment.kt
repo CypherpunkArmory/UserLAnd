@@ -15,6 +15,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_session_edit.*
+import org.jetbrains.anko.bundleOf
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
@@ -103,7 +104,10 @@ class SessionEditFragment : Fragment() {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val filesystemName = parent?.getItemAtPosition(position).toString()
                 when (filesystemName) {
-                    "Create new" -> NavHostFragment.findNavController(this@SessionEditFragment).navigate(R.id.filesystem_edit_fragment)
+                    "Create new" -> {
+                        val bundle = bundleOf("filesystem" to Filesystem(0), "editExisting" to false)
+                        NavHostFragment.findNavController(this@SessionEditFragment).navigate(R.id.filesystem_edit_fragment, bundle)
+                    }
                     "" -> return
                     else -> {
                         // TODO adapter to associate filesystem structure with list items?

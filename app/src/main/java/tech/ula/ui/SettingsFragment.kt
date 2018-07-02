@@ -28,6 +28,4 @@ class SettingsFragment : PreferenceFragmentCompat() {
     override fun setDividerHeight(height: Int) {
         super.setDividerHeight(0)
     }
-
-
 }
