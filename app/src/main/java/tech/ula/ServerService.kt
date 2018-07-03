@@ -96,7 +96,7 @@ class ServerService : Service() {
             }
             "filesystemIsBeingDeleted" -> {
                 val filesystemId: Long = intent.getLongExtra("filesystemId", -1)
-                stopAllSessionsConnectedToFilesystem(filesystemId)
+                cleanUpFilesystem(filesystemId)
             }
             "isProgressBarActive" -> isProgressBarActive()
         }
@@ -213,13 +213,15 @@ class ServerService : Service() {
         updateSession(session)
     }
 
-    private fun stopAllSessionsConnectedToFilesystem(filesystemId: Long) {
+    private fun cleanUpFilesystem(filesystemId: Long) {
         if(filesystemId == (-1).toLong()) {
             throw Exception("Did not receive filesystemId")
         }
 
         activeSessions.values.filter { it.filesystemId == filesystemId }
-                .map { killSession(it) }
+                .forEach { killSession(it) }
+
+        filesystemUtility.deleteFilesystem(filesystemId)
     }
 
     private fun startProgressBar() {

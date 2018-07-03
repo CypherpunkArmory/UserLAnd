@@ -43,10 +43,9 @@ class ExecUtility(private val context: Context) {
                 }
             }
             return process
-        } catch (e: IOException) {
-            throw RuntimeException(e)
-        } catch (e: InterruptedException) {
-            throw RuntimeException(e)
+        } catch (err: Exception) {
+            Log.e("Exec", err.toString())
+            throw RuntimeException(err)
         }
     }
 
