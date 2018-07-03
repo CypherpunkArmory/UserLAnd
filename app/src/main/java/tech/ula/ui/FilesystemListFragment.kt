@@ -36,10 +36,6 @@ class FilesystemListFragment : Fragment() {
         }
     }
 
-    private val filesystemUtility by lazy {
-        FilesystemUtility(activityContext)
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
@@ -92,11 +88,6 @@ class FilesystemListFragment : Fragment() {
 
     private fun deleteFilesystem(filesystem: Filesystem): Boolean {
         filesystemListViewModel.deleteFilesystemById(filesystem.id)
-
-        val success = filesystemUtility.deleteFilesystem(filesystem.id.toString())
-        if(!success) {
-            Toast.makeText(activityContext, R.string.filesystem_delete_failure, Toast.LENGTH_LONG).show()
-        }
 
         val serviceIntent = Intent(activityContext, ServerService::class.java)
         serviceIntent.putExtra("type", "filesystemIsBeingDeleted")

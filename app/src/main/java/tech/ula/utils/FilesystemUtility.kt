@@ -18,8 +18,8 @@ class FilesystemUtility(private val context: Context) {
         execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, listener)
     }
 
-    fun deleteFilesystem(filesystemDirectoryName: String): Boolean {
-        val directory = fileManager.createAndGetDirectory(filesystemDirectoryName)
+    fun deleteFilesystem(filesystemId: Long): Boolean {
+        val directory = fileManager.createAndGetDirectory(filesystemId.toString())
         return directory.deleteRecursively()
     }
 
