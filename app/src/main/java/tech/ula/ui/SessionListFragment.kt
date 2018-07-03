@@ -196,22 +196,14 @@ class SessionListFragment : Fragment() {
         val builder = AlertDialog.Builder(activityContext)
         builder.setMessage(R.string.alert_permissions_necessary_message)
                 .setTitle(R.string.alert_permissions_necessary_title)
-                .setPositiveButton(R.string.alert_permissions_necessary_request_button) {
+                .setPositiveButton(R.string.alert_permissions_necessary_ok_button) {
                     dialog, _ ->
                     ActivityCompat.requestPermissions(activityContext, arrayOf(
                             Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),
                             permissionRequestCode)
                     dialog.dismiss()
                 }
-                .setNegativeButton(R.string.alert_permissions_necessary_settings_button) {
-                    dialog, _ ->
-                    val settingsIntent = Intent(
-                            android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                            Uri.parse("package:${BuildConfig.APPLICATION_ID}"))
-                    startActivity(settingsIntent)
-                    dialog.dismiss()
-                }
-                .setNeutralButton(R.string.alert_permissions_necessary_cancel_button) {
+                .setNegativeButton(R.string.alert_permissions_necessary_cancel_button) {
                     dialog, _ ->
                     dialog.dismiss()
                 }
