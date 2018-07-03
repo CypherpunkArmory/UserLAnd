@@ -19,7 +19,7 @@ class ServerService : Service() {
         const val SERVER_SERVICE_RESULT = "tech.ula.ServerService.RESULT"
     }
 
-    private val activeSessions: ArrayList<Long> = ArrayList()
+    private val activeSessions: MutableMap<Long, Session> = mutableMapOf()
     private var progressBarActive = false
     private lateinit var lastActivatedSession: Session
     private lateinit var lastActivatedFilesystem: Filesystem
@@ -84,9 +84,20 @@ class ServerService : Service() {
 
         val intentType = intent.getStringExtra("type")
         when (intentType) {
-            "start" -> startSession(intent)
+            "start" -> {
+                val session: Session = intent.getParcelableExtra("session")
+                val filesystem: Filesystem = intent.getParcelableExtra("filesystem")
+                startSession(session, filesystem)
+            }
             "continue" -> continueStartSession()
-            "kill" -> killSession(intent)
+            "kill" -> {
+                val session: Session = intent.getParcelableExtra("session")
+                killSession(session)
+            }
+            "filesystemIsBeingDeleted" -> {
+                val filesystemId: Long = intent.getLongExtra("filesystemId", -1)
+                stopAllSessionsConnectedToFilesystem(filesystemId)
+            }
             "isProgressBarActive" -> isProgressBarActive()
         }
         return Service.START_STICKY
@@ -100,30 +111,22 @@ class ServerService : Service() {
         stopSelf()
     }
 
-    private fun addSession(pid: Long) {
-        activeSessions.add(pid)
+    private fun addSession(session: Session) {
+        activeSessions[session.pid] = session
         startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
     }
 
-    private fun removeSession(pid: Long) {
-        activeSessions.remove(pid)
+    private fun removeSession(session: Session) {
+        activeSessions.remove(session.pid)
         if(activeSessions.isEmpty()) {
             stopForeground(true)
             stopSelf()
         }
     }
 
-    private fun killSession(intent: Intent) {
-        val session = intent.getParcelableExtra<Session>("session")
-        serverUtility.stopService(session)
-        removeSession(session.pid)
-        session.active = false
-        updateSession(session)
-    }
-
-    private fun startSession(intent: Intent) {
-        lastActivatedSession = intent.getParcelableExtra("session")
-        lastActivatedFilesystem = intent.getParcelableExtra("filesystem")
+    private fun startSession(session: Session, filesystem: Filesystem) {
+        lastActivatedSession = session
+        lastActivatedFilesystem = filesystem
         val archType = filesystemUtility.getArchType()
         val distType = lastActivatedFilesystem.distributionType
 
@@ -185,7 +188,7 @@ class ServerService : Service() {
             asyncAwait {
 
                 lastActivatedSession.pid = serverUtility.startServer(lastActivatedSession)
-                addSession(lastActivatedSession.pid)
+                addSession(lastActivatedSession)
 
                 while (!serverUtility.isServerRunning(lastActivatedSession)) {
                     delay(500)
@@ -201,6 +204,22 @@ class ServerService : Service() {
 
             killProgressBar()
         }
+    }
+
+    private fun killSession(session: Session) {
+        serverUtility.stopService(session)
+        removeSession(session)
+        session.active = false
+        updateSession(session)
+    }
+
+    private fun stopAllSessionsConnectedToFilesystem(filesystemId: Long) {
+        if(filesystemId == (-1).toLong()) {
+            throw Exception("Did not receive filesystemId")
+        }
+
+        activeSessions.values.filter { it.filesystemId == filesystemId }
+                .map { killSession(it) }
     }
 
     private fun startProgressBar() {
