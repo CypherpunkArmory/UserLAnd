@@ -70,14 +70,25 @@
         app:layout_constraintStart_toStartOf="parent" />
 
 
-    <ListView
+    <LinearLayout
         android:id="@+id/list_supported_services"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:nestedScrollingEnabled="true"
-        android:entries="@array/supported_services_and_types"
+        android:orientation="vertical"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/text_supported_services" />
+        app:layout_constraintTop_toBottomOf="@id/text_supported_services" >
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/support_dropbear"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/support_tightvnc"/>
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/text_supported_clients"
@@ -88,22 +99,36 @@
         app:layout_constraintTop_toBottomOf="@id/list_supported_services"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <ListView
+    <LinearLayout
         android:id="@+id/list_supported_clients"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:nestedScrollingEnabled="true"
-        android:entries="@array/supported_clients_and_types"
+        android:orientation="vertical"
         app:layout_constraintTop_toBottomOf="@id/text_supported_clients"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent" >
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/support_connectbot" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/support_bvnc"/>
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/text_default_password_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
         android:text="@string/default_password_message"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/list_supported_clients" />
+        app:layout_constraintTop_toBottomOf="@id/list_supported_clients"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
 </android.support.constraint.ConstraintLayout>
 </ScrollView>
