@@ -112,16 +112,6 @@ class SessionListFragment : Fragment() {
         setHasOptionsMenu(true)
     }
 
-    override fun onStart() {
-        super.onStart()
-        LocalBroadcastManager.getInstance(activityContext).registerReceiver(serverServiceBroadcastReceiver, IntentFilter(ServerService.SERVER_SERVICE_RESULT))
-    }
-
-    override fun onStop() {
-        super.onStop()
-        LocalBroadcastManager.getInstance(activityContext).unregisterReceiver(serverServiceBroadcastReceiver)
-    }
-
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.menu_create, menu)
@@ -164,6 +154,13 @@ class SessionListFragment : Fragment() {
                 clientUtility.startClient(session)
             }
         }
+
+        LocalBroadcastManager.getInstance(activityContext).registerReceiver(serverServiceBroadcastReceiver, IntentFilter(ServerService.SERVER_SERVICE_RESULT))
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        LocalBroadcastManager.getInstance(activityContext).unregisterReceiver(serverServiceBroadcastReceiver)
     }
 
     override fun onResume() {
