@@ -10,7 +10,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
@@ -25,7 +24,6 @@ import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_session_list.*
 import kotlinx.android.synthetic.main.list_item_session.view.*
 import org.jetbrains.anko.bundleOf
-import tech.ula.BuildConfig
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.Filesystem
@@ -65,16 +63,6 @@ class SessionListFragment : Fragment() {
     private val filesystemChangeObserver = Observer<List<Filesystem>> {
         it?.let {
             filesystemList = it
-
-            if (::sessionList.isInitialized) {
-                for(filesystem in filesystemList) {
-                    sessionList.filter { it.filesystemId == filesystem.id }
-                            .map {
-                                it.filesystemName = filesystem.name
-                                sessionListViewModel.updateSession(it)
-                            }
-                }
-            }
         }
     }
 
@@ -145,13 +133,14 @@ class SessionListFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        sessionListViewModel.getAllSessions().observe(viewLifecycleOwner, sessionChangeObserver)
-        sessionListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
         return inflater.inflate(R.layout.frag_session_list, container, false)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+
+        sessionListViewModel.getAllSessions().observe(viewLifecycleOwner, sessionChangeObserver)
+        sessionListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
 
         activityContext = activity!!
 

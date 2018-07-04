@@ -69,6 +69,14 @@
     <string name="supported_clients">Currently supported clients:</string>
     <string name="default_password_message">The default session password is: userland</string>
 
+    <!-- Supported Services -->
+    <string name="support_dropbear">SSH - Dropbear</string>
+    <string name="support_tightvnc">VNC - TightVNC</string>
+
+    <!-- Support Clients -->
+    <string name="support_connectbot">SSH - ConnectBot</string>
+    <string name="support_bvnc">VNC - bVNC</string>
+
     <!-- Permissions necessary alert -->
     <string name="alert_permissions_necessary_title">UserLAnd requires permissions!</string>
     <string name="alert_permissions_necessary_message">To continue, enable storage permissions to allow UserLAnd to download files and move them from external storage to app local storage.</string>

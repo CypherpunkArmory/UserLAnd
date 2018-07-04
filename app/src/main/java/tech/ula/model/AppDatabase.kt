@@ -18,7 +18,6 @@ abstract class AppDatabase : RoomDatabase() {
 
     companion object {
 
-
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
