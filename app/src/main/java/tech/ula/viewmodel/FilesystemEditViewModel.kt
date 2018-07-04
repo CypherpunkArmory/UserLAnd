@@ -30,6 +30,9 @@ class FilesystemEditViewModel(application: Application) : AndroidViewModel(appli
     }
 
     fun updateFilesystem(filesystem: Filesystem) {
-        launch { async { appDatabase.filesystemDao().updateFilesystem(filesystem) } }
+        launch { async {
+            appDatabase.filesystemDao().updateFilesystem(filesystem)
+            appDatabase.sessionDao().updateFilesystemNamesForAllSessions()
+        } }
     }
 }
