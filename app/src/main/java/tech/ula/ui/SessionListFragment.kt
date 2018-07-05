@@ -75,7 +75,6 @@ class SessionListFragment : Fragment() {
                         "startProgressBar" -> startProgressBar()
                         "updateProgressBar" -> updateProgressBar(it)
                         "killProgressBar" -> killProgressBar()
-                        "updateSession" -> updateSession(it)
                         "isProgressBarActive" -> displayProgressBarIfActive(it)
                         "networkUnavailable" -> displayNetworkUnavailableDialog()
                         "displayNetworkChoices" -> displayNetworkChoicesDialog()
@@ -154,20 +153,20 @@ class SessionListFragment : Fragment() {
                 clientUtility.startClient(session)
             }
         }
-
-        LocalBroadcastManager.getInstance(activityContext).registerReceiver(serverServiceBroadcastReceiver, IntentFilter(ServerService.SERVER_SERVICE_RESULT))
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        LocalBroadcastManager.getInstance(activityContext).unregisterReceiver(serverServiceBroadcastReceiver)
     }
 
     override fun onResume() {
         super.onResume()
+        LocalBroadcastManager.getInstance(activityContext).registerReceiver(serverServiceBroadcastReceiver, IntentFilter(ServerService.SERVER_SERVICE_RESULT))
+
         val intent = Intent(activityContext, ServerService::class.java)
         intent.putExtra("type", "isProgressBarActive")
         activityContext.startService(intent)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        LocalBroadcastManager.getInstance(activityContext).unregisterReceiver(serverServiceBroadcastReceiver)
     }
 
     private fun arePermissionsGranted(): Boolean {
@@ -272,11 +271,6 @@ class SessionListFragment : Fragment() {
     private fun displayProgressBarIfActive(intent: Intent) {
         val isActive = intent.getBooleanExtra("isProgressBarActive", false)
         if(isActive) startProgressBar()
-    }
-
-    private fun updateSession(intent: Intent) {
-        val session = intent.getParcelableExtra<Session>("session")
-        sessionListViewModel.updateSession(session)
     }
 
     private fun displayNetworkUnavailableDialog() {
