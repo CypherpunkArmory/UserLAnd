@@ -197,14 +197,14 @@ class ServerService : Service() {
                 }
             }
 
+            killProgressBar()
+
             asyncAwait {
                 clientUtility.startClient(lastActivatedSession)
             }
 
             lastActivatedSession.active = true
             updateSession(lastActivatedSession)
-
-            killProgressBar()
         }
     }
 
