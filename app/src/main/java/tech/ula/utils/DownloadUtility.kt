@@ -16,7 +16,7 @@ class DownloadUtility(val context: Context, val archType: String, distType: Stri
 
     // Prefix file name with OS type to move it into the correct folder
     private val assets = arrayListOf(
-            "support:proot" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/$archType/proot",
+            "support:proot" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/$archType/proot-next",
             "support:busybox" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/$archType/busybox",
             "support:libtalloc.so.2" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/$archType/libtalloc.so.2",
             "support:execInProot.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/main/execInProot.sh",
