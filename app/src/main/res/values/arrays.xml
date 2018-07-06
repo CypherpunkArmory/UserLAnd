@@ -16,7 +16,6 @@
 
     <string-array name="supported_distributions">
         <item>debian</item>
-        <item>ubuntu</item>
     </string-array>
 
     <string-array name="supported_services">
