@@ -75,7 +75,6 @@ class SessionListFragment : Fragment() {
                         "startProgressBar" -> startProgressBar()
                         "updateProgressBar" -> updateProgressBar(it)
                         "killProgressBar" -> killProgressBar()
-                        "updateSession" -> updateSession(it)
                         "isProgressBarActive" -> displayProgressBarIfActive(it)
                         "networkUnavailable" -> displayNetworkUnavailableDialog()
                         "displayNetworkChoices" -> displayNetworkChoicesDialog()
@@ -110,16 +109,6 @@ class SessionListFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
-    }
-
-    override fun onStart() {
-        super.onStart()
-        LocalBroadcastManager.getInstance(activityContext).registerReceiver(serverServiceBroadcastReceiver, IntentFilter(ServerService.SERVER_SERVICE_RESULT))
-    }
-
-    override fun onStop() {
-        super.onStop()
-        LocalBroadcastManager.getInstance(activityContext).unregisterReceiver(serverServiceBroadcastReceiver)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -168,9 +157,16 @@ class SessionListFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        LocalBroadcastManager.getInstance(activityContext).registerReceiver(serverServiceBroadcastReceiver, IntentFilter(ServerService.SERVER_SERVICE_RESULT))
+
         val intent = Intent(activityContext, ServerService::class.java)
         intent.putExtra("type", "isProgressBarActive")
         activityContext.startService(intent)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        LocalBroadcastManager.getInstance(activityContext).unregisterReceiver(serverServiceBroadcastReceiver)
     }
 
     private fun arePermissionsGranted(): Boolean {
@@ -275,11 +271,6 @@ class SessionListFragment : Fragment() {
     private fun displayProgressBarIfActive(intent: Intent) {
         val isActive = intent.getBooleanExtra("isProgressBarActive", false)
         if(isActive) startProgressBar()
-    }
-
-    private fun updateSession(intent: Intent) {
-        val session = intent.getParcelableExtra<Session>("session")
-        sessionListViewModel.updateSession(session)
     }
 
     private fun displayNetworkUnavailableDialog() {
