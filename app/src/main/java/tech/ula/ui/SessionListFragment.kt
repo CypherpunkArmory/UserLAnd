@@ -75,7 +75,7 @@ class SessionListFragment : Fragment() {
                         "startProgressBar" -> startProgressBar()
                         "updateProgressBar" -> updateProgressBar(it)
                         "killProgressBar" -> killProgressBar()
-                        "isProgressBarActive" -> displayProgressBarIfActive(it)
+                        "isProgressBarActive" -> syncProgressBarDisplayedWithService(it)
                         "networkUnavailable" -> displayNetworkUnavailableDialog()
                         "displayNetworkChoices" -> displayNetworkChoicesDialog()
                     }
@@ -268,9 +268,10 @@ class SessionListFragment : Fragment() {
         text_session_list_progress_details.text = details
     }
 
-    private fun displayProgressBarIfActive(intent: Intent) {
+    private fun syncProgressBarDisplayedWithService(intent: Intent) {
         val isActive = intent.getBooleanExtra("isProgressBarActive", false)
         if(isActive) startProgressBar()
+        else killProgressBar()
     }
 
     private fun displayNetworkUnavailableDialog() {
