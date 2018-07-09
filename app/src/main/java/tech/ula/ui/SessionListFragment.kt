@@ -39,7 +39,6 @@ class SessionListFragment : Fragment() {
     private lateinit var sessionList: List<Session>
     private lateinit var sessionAdapter: SessionListAdapter
     private lateinit var filesystemList: List<Filesystem>
-    private var activeSessions = false
 
     private val sessionListViewModel: SessionListViewModel by lazy {
         ViewModelProviders.of(this).get(SessionListViewModel::class.java)
@@ -48,12 +47,6 @@ class SessionListFragment : Fragment() {
     private val sessionChangeObserver = Observer<List<Session>> {
         it?.let {
             sessionList = it
-
-            for(session in sessionList) {
-                if(session.active) session.active = serverUtility.isServerRunning(session)
-            }
-
-            activeSessions = sessionList.any { it.active }
 
             sessionAdapter = SessionListAdapter(activityContext, sessionList)
             list_sessions.adapter = sessionAdapter
@@ -82,10 +75,6 @@ class SessionListFragment : Fragment() {
                 }
             }
         }
-    }
-
-    private val serverUtility by lazy {
-        ServerUtility(activityContext)
     }
 
     private val clientUtility by lazy {
@@ -143,7 +132,7 @@ class SessionListFragment : Fragment() {
 
             val session = sessionList[position]
             if(!session.active) {
-                if (!activeSessions) {
+                if (!sessionListViewModel.activeSessions) {
                     startSession(session)
                 } else {
                     Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG).show()
