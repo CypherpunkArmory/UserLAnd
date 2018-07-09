@@ -9,6 +9,8 @@ import android.content.IntentFilter
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
 import kotlinx.coroutines.experimental.delay
+import org.jetbrains.anko.doAsync
+import tech.ula.model.AppDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.utils.*
@@ -195,14 +197,14 @@ class ServerService : Service() {
                 }
             }
 
+            killProgressBar()
+
             asyncAwait {
                 clientUtility.startClient(lastActivatedSession)
             }
 
             lastActivatedSession.active = true
             updateSession(lastActivatedSession)
-
-            killProgressBar()
         }
     }
 
@@ -256,10 +258,7 @@ class ServerService : Service() {
     }
 
     private fun updateSession(session: Session) {
-        val intent = Intent(SERVER_SERVICE_RESULT)
-        intent.putExtra("type", "updateSession")
-        intent.putExtra("session", session)
-        broadcaster.sendBroadcast(intent)
+        doAsync { AppDatabase.getInstance(this@ServerService).sessionDao().updateSession(session) }
     }
 
     private fun displayNetworkChoices() {
