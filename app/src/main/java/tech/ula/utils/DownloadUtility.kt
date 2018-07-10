@@ -2,16 +2,13 @@ package tech.ula.utils
 
 import android.app.DownloadManager
 import android.content.Context
-import android.content.SharedPreferences
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
 import android.os.Environment
-import android.util.Log
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
-import java.util.*
 
 class DownloadUtility(val context: Context, val archType: String, distType: String) {
 
@@ -80,6 +77,7 @@ class DownloadUtility(val context: Context, val archType: String, distType: Stri
 
         //only download if this is a newFilesystem or it has been more than a day since we last checked
         val now = java.util.Date().time
+        //TODO: should be store last updated in the session itself
         val lastUpdated = sharedPref.getLong("lastUpdated", 0)
         if (now < (lastUpdated + 86400000L) && !newFilesystem) {
             return false
