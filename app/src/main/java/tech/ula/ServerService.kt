@@ -67,6 +67,11 @@ class ServerService : Service() {
         0
     }
 
+    fun Session.isInstalled(): Boolean {
+        val filesystemDirectoryName = this.filesystemId.toString()
+        return fileManager.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")
+    }
+
     override fun onCreate() {
         broadcaster = LocalBroadcastManager.getInstance(this)
         registerReceiver(downloadBroadcastReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
@@ -139,7 +144,7 @@ class ServerService : Service() {
             return
         }
 
-        if (downloadManager.checkIfLargeRequirement()) {
+        if (downloadManager.checkIfLargeRequirement(!lastActivatedSession.isInstalled())) {
             displayNetworkChoices()
         } else {
             continueStartSession()
@@ -153,11 +158,11 @@ class ServerService : Service() {
         launchAsync {
             startProgressBar()
 
-            updateProgressBar(getString(R.string.progress_downloading),"")
+            updateProgressBar(getString(R.string.progress_downloading),getString(R.string.progress_downloading_check_updates))
             asyncAwait {
                 downloadList.clear()
                 downloadedList.clear()
-                downloadList.addAll(downloadManager.downloadRequirements())
+                downloadList.addAll(downloadManager.downloadRequirements(!lastActivatedSession.isInstalled()))
 
                 if (downloadList.isNotEmpty())
                     assetsWereDownloaded = true
@@ -181,7 +186,7 @@ class ServerService : Service() {
                 // TODO only copy when newer versions have been downloaded (and skip rootfs)
                 val distType = lastActivatedFilesystem.distributionType
                 fileManager.copyDistributionAssetsToFilesystem(filesystemDirectoryName, distType)
-                if (!fileManager.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")) {
+                if (!lastActivatedSession.isInstalled()) {
                     filesystemUtility.extractFilesystem(filesystemDirectoryName, filesystemExtractLogger)
                 }
             }

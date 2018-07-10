@@ -23,6 +23,7 @@ class DownloadUtility(val context: Context, val archType: String, distType: Stri
         context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
     }
 
+    //TODO make this list dynamic based on a list stored in the repo or otherwise
     // Prefix file name with OS type to move it into the correct folder
     private val assets = arrayListOf(
             "support:proot" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/$archType/proot",
@@ -41,11 +42,11 @@ class DownloadUtility(val context: Context, val archType: String, distType: Stri
             "$distType:rootfs.tar.gz" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/$archType/rootfs.tar.gz"
     )
 
-    fun checkIfLargeRequirement(): Boolean {
+    fun checkIfLargeRequirement(newFilesystem: Boolean): Boolean {
         if(!isWifiEnabled()) {
             assets.forEach {
                 (type, endpoint) ->
-                if(type.contains("rootfs") && assetNeedsToUpdated(type, endpoint)) {
+                if(type.contains("rootfs") && assetNeedsToUpdated(type, endpoint, newFilesystem)) {
                     return true
                 }
             }
@@ -66,10 +67,33 @@ class DownloadUtility(val context: Context, val archType: String, distType: Stri
         return downloadManager.enqueue(request)
     }
 
-    private fun assetNeedsToUpdated(type: String, endpoint: String): Boolean {
+    private fun assetNeedsToUpdated(type: String, endpoint: String, newFilesystem: Boolean): Boolean {
+        val sharedPref = context.getSharedPreferences("file_date_stamps", Context.MODE_PRIVATE)
+
+        //TODO: make it so we download a full group of files, if any has changed (not the rootfs though, that is special)
+        //This will take care of a few possible corner cases
+
+        //only download the rootfs the first time, it cannot simply be updated like other files
+        if(type.contains("rootfs") && !newFilesystem) {
+            return false
+        }
+
+        //only download if this is a newFilesystem or it has been more than a day since we last checked
+        val now = java.util.Date().time
+        val lastUpdated = sharedPref.getLong("lastUpdated", 0)
+        if (now < (lastUpdated + 86400000L) && !newFilesystem) {
+            return false
+        } else {
+            with (sharedPref.edit()) {
+                putLong("lastUpdated", now)
+                commit()
+            }
+        }
+
         val (subdirectory, filename) = type.split(":")
         val asset = File("${context.filesDir.path}/$subdirectory/$filename")
-        val sharedPref = context.getSharedPreferences("file_date_stamps", Context.MODE_PRIVATE)
+
+        //update a file if a connection can be made and if the datestamp is different
         val currentDateStamp = sharedPref.getLong(type, 0)
         val newDateStamp = urlDateModified(endpoint)
         if ((newDateStamp != 0L) && (currentDateStamp != newDateStamp)) {
@@ -80,14 +104,15 @@ class DownloadUtility(val context: Context, val archType: String, distType: Stri
             if (asset.exists())
                 asset.delete()
         }
+
         return !asset.exists()
     }
 
-    fun downloadRequirements(): List<Long> {
+    fun downloadRequirements(newFilesystem: Boolean): List<Long> {
         return assets
                 .filter {
                     (type, endpoint) ->
-                    assetNeedsToUpdated(type, endpoint)
+                    assetNeedsToUpdated(type, endpoint, newFilesystem)
                 }
                 .map {
                     (type, endpoint) ->
