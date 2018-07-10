@@ -50,8 +50,7 @@ class SessionEditFragment : Fragment() {
             if(it.isEmpty()) {
                 filesystemNameList.add("")
             }
-            val filesystemAdapter = ArrayAdapter(activityContext, android.R.layout.simple_spinner_item, filesystemNameList)
-            filesystemAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            val filesystemAdapter = ArrayAdapter(activityContext, android.R.layout.simple_spinner_dropdown_item, filesystemNameList)
             val filesystemNamePosition = filesystemAdapter.getPosition(session.filesystemName)
             spinner_filesystem_list.adapter = filesystemAdapter
             spinner_filesystem_list.setSelection(filesystemNamePosition)
