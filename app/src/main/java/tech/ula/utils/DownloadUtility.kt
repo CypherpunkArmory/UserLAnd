@@ -2,13 +2,22 @@ package tech.ula.utils
 
 import android.app.DownloadManager
 import android.content.Context
+import android.content.SharedPreferences
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
 import android.os.Environment
+import android.util.Log
 import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.*
 
 class DownloadUtility(val context: Context, val archType: String, distType: String) {
+
+    companion object {
+        val branch = "master"
+    }
 
     private val downloadManager: DownloadManager by lazy {
         context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
@@ -16,27 +25,27 @@ class DownloadUtility(val context: Context, val archType: String, distType: Stri
 
     // Prefix file name with OS type to move it into the correct folder
     private val assets = arrayListOf(
-            "support:proot" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/$archType/proot",
-            "support:busybox" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/$archType/busybox",
-            "support:libtalloc.so.2" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/$archType/libtalloc.so.2",
-            "support:execInProot.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/main/execInProot.sh",
-            "support:killProcTree.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/main/killProcTree.sh",
-            "support:isServerInProcTree.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/main/isServerInProcTree.sh",
-            "$distType:startSSHServer.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/main/startSSHServer.sh",
-            "$distType:startVNCServer.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/main/startVNCServer.sh",
-            "$distType:startVNCServerStep2.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/main/startVNCServerStep2.sh",
-            "$distType:extractFilesystem.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/main/extractFilesystem.sh",
-            "$distType:busybox" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/$archType/busybox",
-            "$distType:libdisableselinux.so" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/$archType/libdisableselinux.so",
-            "$distType:ld.so.preload" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/main/ld.so.preload",
-            "$distType:rootfs.tar.gz" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/$archType/rootfs.tar.gz"
+            "support:proot" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/$archType/proot",
+            "support:busybox" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/$archType/busybox",
+            "support:libtalloc.so.2" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/$archType/libtalloc.so.2",
+            "support:execInProot.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/all/execInProot.sh",
+            "support:killProcTree.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/all/killProcTree.sh",
+            "support:isServerInProcTree.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/all/isServerInProcTree.sh",
+            "$distType:startSSHServer.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/all/startSSHServer.sh",
+            "$distType:startVNCServer.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/all/startVNCServer.sh",
+            "$distType:startVNCServerStep2.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/all/startVNCServerStep2.sh",
+            "$distType:extractFilesystem.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/all/extractFilesystem.sh",
+            "$distType:busybox" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/$archType/busybox",
+            "$distType:libdisableselinux.so" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/$archType/libdisableselinux.so",
+            "$distType:ld.so.preload" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/all/ld.so.preload",
+            "$distType:rootfs.tar.gz" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/$archType/rootfs.tar.gz"
     )
 
     fun checkIfLargeRequirement(): Boolean {
         if(!isWifiEnabled()) {
             assets.forEach {
-                (type, _) ->
-                if(type.contains("rootfs") && assetNeedsToUpdated(type)) {
+                (type, endpoint) ->
+                if(type.contains("rootfs") && assetNeedsToUpdated(type, endpoint)) {
                     return true
                 }
             }
@@ -57,18 +66,28 @@ class DownloadUtility(val context: Context, val archType: String, distType: Stri
         return downloadManager.enqueue(request)
     }
 
-    private fun assetNeedsToUpdated(type: String): Boolean {
+    private fun assetNeedsToUpdated(type: String, endpoint: String): Boolean {
         val (subdirectory, filename) = type.split(":")
         val asset = File("${context.filesDir.path}/$subdirectory/$filename")
-        // TODO more sophisticated version checking
+        val sharedPref = context.getSharedPreferences("file_date_stamps", Context.MODE_PRIVATE)
+        val currentDateStamp = sharedPref.getLong(type, 0)
+        val newDateStamp = urlDateModified(endpoint)
+        if ((newDateStamp != 0L) && (currentDateStamp != newDateStamp)) {
+            with (sharedPref.edit()) {
+                putLong(type, newDateStamp)
+                commit()
+            }
+            if (asset.exists())
+                asset.delete()
+        }
         return !asset.exists()
     }
 
     fun downloadRequirements(): List<Long> {
         return assets
                 .filter {
-                    (type, _) ->
-                    assetNeedsToUpdated(type)
+                    (type, endpoint) ->
+                    assetNeedsToUpdated(type, endpoint)
                 }
                 .map {
                     (type, endpoint) ->
@@ -97,6 +116,12 @@ class DownloadUtility(val context: Context, val archType: String, distType: Stri
         val downloadFile = File(downloadDirectory,type)
         if (downloadFile.exists())
             downloadFile.delete()
+    }
+
+    private fun urlDateModified(address: String): Long {
+        val url = URL(address)
+        val httpCon = url.openConnection() as HttpURLConnection
+        return httpCon.lastModified
     }
 
 }
