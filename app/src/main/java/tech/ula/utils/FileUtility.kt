@@ -32,13 +32,19 @@ class FileUtility(private val context: Context) {
     }
 
     // Filename takes form of UserLAnd:<directory to place in>:<filename>
-    fun moveDownloadedAssetsToSharedSupportDirectory() {
-        val downloadDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        downloadDirectory.walkBottomUp()
+    fun moveAssetsToCorrectSharedDirectory(sourcePath: String = "", targetPath: String = getFilesDirPath()) {
+        val source =
+                if(sourcePath == "") {
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                }
+                else {
+                    File(sourcePath)
+                }
+        source.walkBottomUp()
                 .filter { it.name.contains("UserLAnd:") }
                 .forEach {
                     val contents = it.name.split(":")
-                    val targetDestination = File("${getFilesDirPath()}/${contents[1]}/${contents[2]}")
+                    val targetDestination = File("$targetPath/${contents[1]}/${contents[2]}")
                     it.copyTo(targetDestination, overwrite = true)
                     if(!it.delete())
                         Log.e("FileUtility", "Could not delete downloaded file: ${it.name}")
@@ -79,5 +85,4 @@ class FileUtility(private val context: Context) {
         val commandToRun = arrayListOf("chmod", permissions, filename)
         execUtility.execLocal(executionDirectory, commandToRun, listener = ExecUtility.EXEC_DEBUG_LOGGER)
     }
-
 }

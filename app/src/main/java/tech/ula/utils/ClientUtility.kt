@@ -55,7 +55,7 @@ class ClientUtility(private val context: Context) {
     private fun getClient(packageName: String) {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        context.runOnUiThread { longToast(R.string.download_client_app) }
+//        context.runOnUiThread { longToast(R.string.download_client_app) }
         context.startActivity(intent)
     }
 }

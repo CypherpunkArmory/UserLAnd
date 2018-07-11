@@ -171,7 +171,7 @@ class ServerService : Service() {
                 }
 
                 if (assetsWereDownloaded) {
-                    fileManager.moveDownloadedAssetsToSharedSupportDirectory()
+                    fileManager.moveAssetsToCorrectSharedDirectory()
                     fileManager.correctFilePermissions()
                 }
             }

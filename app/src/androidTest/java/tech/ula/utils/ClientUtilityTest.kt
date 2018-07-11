@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.net.Uri
+import android.support.test.InstrumentationRegistry
 import android.support.test.espresso.intent.Intents.intended
 import android.support.test.espresso.intent.Intents.intending
 import android.support.test.espresso.intent.matcher.IntentMatchers.*
@@ -28,15 +29,7 @@ class ClientUtilityTest {
     lateinit var clientUtility: ClientUtility
 
 
-//    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-    @Mock
-    lateinit var context: Context
-
-    @Mock
-    lateinit var packageManager: PackageManager
-
-    @Mock
-    lateinit var toast: Toast
+    val context = InstrumentationRegistry.getContext()
 
     @Before
     fun setup() {
@@ -46,7 +39,7 @@ class ClientUtilityTest {
     }
 
     fun setupStubs() {
-        `when`(context.packageManager).thenReturn(packageManager)
+//        `when`(context.packageManager).thenReturn(packageManager)
 //        doNothing().`when`(toast.show())
 //        `when`(resources.getText(anyInt())).thenReturn("")
     }
@@ -57,15 +50,10 @@ class ClientUtilityTest {
         val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=org.connectbot"))
         marketIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
 
-        `when`(context.packageManager.queryIntentActivities(any(), eq(0))).thenReturn(listOf())
+//        `when`(context.packageManager.queryIntentActivities(any(), eq(0))).thenReturn(listOf())
 
         clientUtility.startClient(session)
 
-        intended(allOf(
-                hasAction(Intent.ACTION_VIEW),
-                hasData(Uri.parse("market://details?id=org.connectbot")),
-                hasFlag(Intent.FLAG_ACTIVITY_NEW_TASK)
-        ))
-//        verify(context, times(1)).startActivity(marketIntent)
+        verify(context, times(1)).startActivity(marketIntent)
     }
 }
