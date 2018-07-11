@@ -9,12 +9,13 @@ import android.os.Environment
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.concurrent.TimeUnit
+import java.util.Date
 
 class DownloadUtility(val context: Context, val archType: String, distType: String) {
 
-    companion object {
-        val branch = "master"
-    }
+    private val branch = "master"
+    private val failedConnection = 0L
 
     private val downloadManager: DownloadManager by lazy {
         context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
@@ -65,6 +66,8 @@ class DownloadUtility(val context: Context, val archType: String, distType: Stri
     }
 
     private fun assetNeedsToUpdated(type: String, endpoint: String, newFilesystem: Boolean): Boolean {
+        val (subdirectory, filename) = type.split(":")
+        val asset = File("${context.filesDir.path}/$subdirectory/$filename")
         val sharedPref = context.getSharedPreferences("file_date_stamps", Context.MODE_PRIVATE)
 
         //TODO: make it so we download a full group of files, if any has changed (not the rootfs though, that is special)
@@ -75,26 +78,23 @@ class DownloadUtility(val context: Context, val archType: String, distType: Stri
             return false
         }
 
-        //only download if this is a newFilesystem or it has been more than a day since we last checked
-        val now = java.util.Date().time
+        val now = Date().time
         //TODO: should be store last updated in the session itself
-        val lastUpdated = sharedPref.getLong("lastUpdated", 0)
-        if (now < (lastUpdated + 86400000L) && !newFilesystem) {
-            return false
-        } else {
+        val lastUpdateCheck = sharedPref.getLong("lastUpdateCheck", 0)
+        //only download if this is a newFilesystem, it has been more than a day since we last checked or the file does not exist currently
+        if(now > (lastUpdateCheck + TimeUnit.DAYS.toMillis(1)) || newFilesystem || !asset.exists()) {
             with (sharedPref.edit()) {
-                putLong("lastUpdated", now)
+                putLong("lastUpdateCheck", now)
                 commit()
             }
+        } else {
+            return false
         }
-
-        val (subdirectory, filename) = type.split(":")
-        val asset = File("${context.filesDir.path}/$subdirectory/$filename")
 
         //update a file if a connection can be made and if the datestamp is different
         val currentDateStamp = sharedPref.getLong(type, 0)
         val newDateStamp = urlDateModified(endpoint)
-        if ((newDateStamp != 0L) && (currentDateStamp != newDateStamp)) {
+        if ((newDateStamp != failedConnection) && (currentDateStamp != newDateStamp)) {
             with (sharedPref.edit()) {
                 putLong(type, newDateStamp)
                 commit()
