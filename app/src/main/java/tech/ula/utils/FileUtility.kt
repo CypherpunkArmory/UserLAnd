@@ -56,7 +56,7 @@ class FileUtility(private val context: Context) {
         }
     }
 
-    fun correctFilePermissions() {
+    fun correctFilePermissions(distributionType: String) {
         val filePermissions = listOf(
                 "proot" to "support",
                 "killProcTree.sh" to "support",
@@ -64,11 +64,11 @@ class FileUtility(private val context: Context) {
                 "busybox" to "support",
                 "libtalloc.so.2" to "support",
                 "execInProot.sh" to "support",
-                "startSSHServer.sh" to "debian",
-                "startVNCServer.sh" to "debian",
-                "startVNCServerStep2.sh" to "debian",
-                "busybox" to "debian",
-                "libdisableselinux.so" to "debian")
+                "startSSHServer.sh" to distributionType,
+                "startVNCServer.sh" to distributionType,
+                "startVNCServerStep2.sh" to distributionType,
+                "busybox" to distributionType,
+                "libdisableselinux.so" to distributionType)
         filePermissions.forEach { (file, subdirectory) -> changePermission(file, subdirectory) }
     }
 

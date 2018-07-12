@@ -172,7 +172,7 @@ class ServerService : Service() {
 
                 if (assetsWereDownloaded) {
                     fileManager.moveAssetsToCorrectSharedDirectory()
-                    fileManager.correctFilePermissions()
+                    fileManager.correctFilePermissions(lastActivatedFilesystem.distributionType)
                 }
             }
 
