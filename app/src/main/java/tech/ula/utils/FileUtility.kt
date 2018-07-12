@@ -32,19 +32,12 @@ class FileUtility(private val context: Context) {
     }
 
     // Filename takes form of UserLAnd:<directory to place in>:<filename>
-    fun moveAssetsToCorrectSharedDirectory(sourcePath: String = "", targetPath: String = getFilesDirPath()) {
-        val source =
-                if(sourcePath == "") {
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                }
-                else {
-                    File(sourcePath)
-                }
+    fun moveAssetsToCorrectSharedDirectory(source: File = Environment.getExternalStoragePublicDirectory((Environment.DIRECTORY_DOWNLOADS))) {
         source.walkBottomUp()
                 .filter { it.name.contains("UserLAnd:") }
                 .forEach {
                     val contents = it.name.split(":")
-                    val targetDestination = File("$targetPath/${contents[1]}/${contents[2]}")
+                    val targetDestination = File("${getFilesDirPath()}/${contents[1]}/${contents[2]}")
                     it.copyTo(targetDestination, overwrite = true)
                     if(!it.delete())
                         Log.e("FileUtility", "Could not delete downloaded file: ${it.name}")
@@ -59,30 +52,29 @@ class FileUtility(private val context: Context) {
             if(it.name == "support") {
                 return
             }
-            changePermission(it.name, "$targetFilesystemName/support", "0777")
+            changePermission(it.name, "$targetFilesystemName/support")
         }
     }
 
     fun correctFilePermissions() {
         val filePermissions = listOf(
-                Triple("proot", "support", "0777"),
-                Triple("killProcTree.sh", "support", "0777"),
-                Triple("isServerInProcTree.sh", "support", "0777"),
-                Triple("busybox", "support", "0777"),
-                Triple("libtalloc.so.2", "support", "0777"),
-                Triple("execInProot.sh", "support", "0777"),
-                Triple("startSSHServer.sh", "debian", "0777"),
-                Triple("startVNCServer.sh", "debian", "0777"),
-                Triple("startVNCServerStep2.sh", "debian", "0777"),
-                Triple("busybox", "debian","0777"),
-                Triple("libdisableselinux.so", "debian", "0777")
-        )
-        filePermissions.forEach { (file, subdirectory, permissions) -> changePermission(file, subdirectory, permissions) }
+                "proot" to "support",
+                "killProcTree.sh" to "support",
+                "isServerInProcTree.sh" to "support",
+                "busybox" to "support",
+                "libtalloc.so.2" to "support",
+                "execInProot.sh" to "support",
+                "startSSHServer.sh" to "debian",
+                "startVNCServer.sh" to "debian",
+                "startVNCServerStep2.sh" to "debian",
+                "busybox" to "debian",
+                "libdisableselinux.so" to "debian")
+        filePermissions.forEach { (file, subdirectory) -> changePermission(file, subdirectory) }
     }
 
-    private fun changePermission(filename: String, subdirectory: String, permissions: String) {
+    private fun changePermission(filename: String, subdirectory: String) {
         val executionDirectory = createAndGetDirectory(subdirectory)
-        val commandToRun = arrayListOf("chmod", permissions, filename)
+        val commandToRun = arrayListOf("chmod", "0777", filename)
         execUtility.execLocal(executionDirectory, commandToRun, listener = ExecUtility.EXEC_DEBUG_LOGGER)
     }
 }

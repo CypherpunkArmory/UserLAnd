@@ -10,6 +10,7 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.mockito.Mock
+import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 import java.io.File
 
@@ -25,6 +26,8 @@ class FileUtilityTest {
     @Before
     fun setup() {
         MockitoAnnotations.initMocks(this)
+        val target = tempFolder.newFolder("target")
+        `when`(context.filesDir).thenReturn(target)
         fileUtility = FileUtility(context)
     }
 
@@ -43,7 +46,7 @@ class FileUtilityTest {
         tempFolder.newFile("source/$nonUlaAsset1")
         tempFolder.newFile("source/$nonUlaAsset2")
 
-        fileUtility.moveAssetsToCorrectSharedDirectory(source.absolutePath, "${tempFolder.root}/target")
+        fileUtility.moveAssetsToCorrectSharedDirectory(source)
 
         // Appropriate files have been moved
         assertTrue(File("${tempFolder.root}/target/support/$ulaAsset1").exists())
