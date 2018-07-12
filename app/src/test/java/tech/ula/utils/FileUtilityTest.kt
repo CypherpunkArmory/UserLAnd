@@ -1,14 +1,11 @@
 package tech.ula.utils
 
 import android.content.Context
-import android.support.test.runner.AndroidJUnit4
-import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
@@ -49,13 +46,11 @@ class FileUtilityTest {
 
         fileUtility.moveAssetsToCorrectSharedDirectory(source)
 
-        // Appropriate files have been moved
         assertTrue(File("${tempFolder.root}/support/$ulaAsset1").exists())
         assertTrue(File("${tempFolder.root}/support/$ulaAsset2").exists())
         assertFalse(File("${tempFolder.root}/support/$nonUlaAsset1").exists())
         assertFalse(File("${tempFolder.root}/support/$nonUlaAsset2").exists())
 
-        // Appropriate files have been deleted
         assertFalse(toMove1.exists())
         assertFalse(toMove2.exists())
     }
