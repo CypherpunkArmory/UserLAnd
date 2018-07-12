@@ -26,7 +26,7 @@ class FileUtilityTest {
     @Before
     fun setup() {
         MockitoAnnotations.initMocks(this)
-        val target = tempFolder.newFolder("target")
+        val target = tempFolder.root
         `when`(context.filesDir).thenReturn(target)
         fileUtility = FileUtility(context)
     }
@@ -39,7 +39,7 @@ class FileUtilityTest {
         val nonUlaAsset2 = "HelloWorld.png"
 
         val source = tempFolder.newFolder("source")
-        tempFolder.newFolder("target", "support")
+        tempFolder.newFolder("support")
 
         val toMove1 = tempFolder.newFile("source/UserLAnd:support:$ulaAsset1")
         val toMove2 = tempFolder.newFile("source/UserLAnd:support:$ulaAsset2")
@@ -49,13 +49,38 @@ class FileUtilityTest {
         fileUtility.moveAssetsToCorrectSharedDirectory(source)
 
         // Appropriate files have been moved
-        assertTrue(File("${tempFolder.root}/target/support/$ulaAsset1").exists())
-        assertTrue(File("${tempFolder.root}/target/support/$ulaAsset2").exists())
-        assertFalse(File("${tempFolder.root}/target/$nonUlaAsset1").exists())
-        assertFalse(File("${tempFolder.root}/target/$nonUlaAsset2").exists())
+        assertTrue(File("${tempFolder.root}/support/$ulaAsset1").exists())
+        assertTrue(File("${tempFolder.root}/support/$ulaAsset2").exists())
+        assertFalse(File("${tempFolder.root}/support/$nonUlaAsset1").exists())
+        assertFalse(File("${tempFolder.root}/support/$nonUlaAsset2").exists())
 
         // Appropriate files have been deleted
         assertFalse(toMove1.exists())
         assertFalse(toMove2.exists())
+    }
+
+    @Test
+    fun copiesDistributionAssetsToCorrectFilesystems() {
+        val distType = "dist1"
+        tempFolder.newFolder(distType)
+        val distAsset1 = tempFolder.newFile("dist1/dist1file1")
+        val distAsset2 = tempFolder.newFile("dist1/dist1file2")
+
+        tempFolder.newFolder("dist2")
+        tempFolder.newFile("dist2/dist2file1")
+        tempFolder.newFile("dist2/dist2file2")
+
+        val targetFilesystemName = "filesystem"
+
+        fileUtility.copyDistributionAssetsToFilesystem(targetFilesystemName, distType)
+
+        assertTrue(File("${tempFolder.root}/$targetFilesystemName/support/dist1file1").exists())
+        assertTrue(File("${tempFolder.root}/$targetFilesystemName/support/dist1file2").exists())
+
+        assertTrue(distAsset1.exists())
+        assertTrue(distAsset2.exists())
+
+        assertFalse(File("${tempFolder.root}/$targetFilesystemName/support/dist2file1").exists())
+        assertFalse(File("${tempFolder.root}/$targetFilesystemName/support/dist2file1").exists())
     }
 }
