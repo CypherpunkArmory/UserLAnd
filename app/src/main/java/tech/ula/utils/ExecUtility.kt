@@ -5,13 +5,12 @@ import android.preference.PreferenceManager
 import android.util.Log
 import java.io.BufferedReader
 import java.io.File
-import java.io.IOException
 import java.io.InputStream
 import java.util.ArrayList
 import java.util.HashMap
 import kotlin.text.Charsets.UTF_8
 
-class ExecUtility(private val context: Context) {
+class ExecUtility(private val fileUtility: FileUtility) {
 
     companion object {
         val EXEC_DEBUG_LOGGER = { line: String -> Unit
@@ -19,10 +18,6 @@ class ExecUtility(private val context: Context) {
         }
 
         val NOOP_CONSUMER: (line: String) -> Int = {0}
-    }
-
-    private val fileManager by lazy {
-        FileUtility(context)
     }
 
     fun execLocal(executionDirectory: File, command: ArrayList<String>, env: HashMap<String, String> = hashMapOf(), listener: (String) -> Int = NOOP_CONSUMER, doWait: Boolean = true): Process {
@@ -61,9 +56,9 @@ class ExecUtility(private val context: Context) {
 
 
     fun wrapWithBusyboxAndExecute(targetDirectoryName: String, commandToWrap: String, listener: (String) -> Int = NOOP_CONSUMER, doWait: Boolean = true): Process {
-        val executionDirectory = fileManager.createAndGetDirectory(targetDirectoryName)
+        val executionDirectory = fileUtility.createAndGetDirectory(targetDirectoryName)
 
-        val preferences = PreferenceManager.getDefaultSharedPreferences(context)
+        val preferences = PreferenceManager.getDefaultSharedPreferences(fileUtility.context) //TODO test this
         val prootDebuggingEnabled = preferences.getBoolean("pref_proot_debug_enabled", false)
         val prootDebuggingLevel =
                 if(prootDebuggingEnabled) preferences.getString("pref_proot_debug_level", "-1")
@@ -80,9 +75,9 @@ class ExecUtility(private val context: Context) {
 
         command.add(commandToAdd)
 
-        val env = hashMapOf("LD_LIBRARY_PATH" to (fileManager.getSupportDirPath()),
-                "ROOT_PATH" to fileManager.getFilesDirPath(),
-                "ROOTFS_PATH" to "${fileManager.getFilesDirPath()}/$targetDirectoryName",
+        val env = hashMapOf("LD_LIBRARY_PATH" to (fileUtility.getSupportDirPath()),
+                "ROOT_PATH" to fileUtility.getFilesDirPath(),
+                "ROOTFS_PATH" to "${fileUtility.getFilesDirPath()}/$targetDirectoryName",
                 "PROOT_DEBUG_LEVEL" to prootDebuggingLevel)
 
         return execLocal(executionDirectory, command, env, listener, doWait)

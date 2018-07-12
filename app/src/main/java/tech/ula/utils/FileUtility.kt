@@ -6,10 +6,10 @@ import android.util.Log
 import java.io.File
 
 // TODO refactor this class with a better name
-class FileUtility(private val context: Context) {
+class FileUtility(val context: Context) {
 
     private val execUtility by lazy {
-        ExecUtility(context)
+        ExecUtility(this)
     }
 
     fun getSupportDirPath(): String {

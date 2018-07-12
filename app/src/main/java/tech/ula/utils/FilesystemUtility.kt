@@ -6,10 +6,10 @@ import android.os.Build
 class FilesystemUtility(private val context: Context) {
 
     private val execUtility by lazy {
-        ExecUtility(context)
+        ExecUtility(fileUtility)
     }
 
-    private val fileManager by lazy {
+    private val fileUtility by lazy {
         FileUtility(context)
     }
 
@@ -19,7 +19,7 @@ class FilesystemUtility(private val context: Context) {
     }
 
     fun deleteFilesystem(filesystemId: Long): Boolean {
-        val directory = fileManager.createAndGetDirectory(filesystemId.toString())
+        val directory = fileUtility.createAndGetDirectory(filesystemId.toString())
         return directory.deleteRecursively()
     }
 

@@ -34,7 +34,7 @@ class ServerUtility(private val context: Context) {
     }
 
     private val execUtility by lazy {
-        ExecUtility(context)
+        ExecUtility(fileUtility)
     }
 
     private val fileUtility by lazy {
