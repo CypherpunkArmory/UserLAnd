@@ -9,6 +9,7 @@ import org.junit.rules.TemporaryFolder
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
+import java.io.BufferedInputStream
 import java.io.File
 import kotlin.text.Charsets.UTF_8
 
@@ -80,10 +81,11 @@ class FileUtilityTest {
         assertFalse(File("${tempFolder.root}/$targetFilesystemName/support/dist2file1").exists())
 
         // TODO test that permissions are changed
-        val proc = Runtime.getRuntime().exec("stat -c %A ${tempFolder.root}/$targetFilesystemName/support/dist1file1")
         var output = ""
+        val proc = Runtime.getRuntime().exec("stat -f %A ${tempFolder.root}/$targetFilesystemName/support/dist1file1")
+
         proc.inputStream.bufferedReader(UTF_8).forEachLine { output += it }
-        assert(output == "-rwxrwxrwx")
+        assert(output == "777")
     }
 
     @Test
@@ -114,10 +116,10 @@ class FileUtilityTest {
 
         assets.forEach {
             (asset, directory) ->
-            val proc = Runtime.getRuntime().exec("stat -c %A ${tempFolder.root}/$directory/$asset")
+            val proc = Runtime.getRuntime().exec("stat -f %A ${tempFolder.root}/$directory/$asset")
             var output = ""
             proc.inputStream.bufferedReader(UTF_8).forEachLine { output += it }
-            assert(output == "-rwxrwxrwx")
+            assert(output == "777")
         }
     }
 }

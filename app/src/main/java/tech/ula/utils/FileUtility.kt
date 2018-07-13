@@ -8,10 +8,6 @@ import java.io.File
 // TODO refactor this class with a better name
 class FileUtility(val context: Context) {
 
-    private val execUtility by lazy {
-        ExecUtility(this)
-    }
-
     fun getSupportDirPath(): String {
         return "${context.filesDir.path}/support"
     }
@@ -74,7 +70,7 @@ class FileUtility(val context: Context) {
 
     private fun changePermission(filename: String, subdirectory: String) {
         val executionDirectory = createAndGetDirectory(subdirectory)
-        val commandToRun = arrayListOf("chmod", "0777", filename)
-        execUtility.execLocal(executionDirectory, commandToRun, listener = ExecUtility.EXEC_DEBUG_LOGGER)
+        val commandToRun = arrayOf("chmod", "0777", filename)
+        Runtime.getRuntime().exec(commandToRun, arrayOf<String>(), executionDirectory)
     }
 }
