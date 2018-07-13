@@ -14,7 +14,6 @@ import tech.ula.model.AppDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.utils.*
-import java.io.File
 
 class ServerService : Service() {
 
