@@ -104,7 +104,7 @@
     <!-- TODO remove this once multisession support is implemented -->
     <string name="single_session_supported">UserLAnd currently only supports a single active session!</string>
     <string name="no_supported_architecture">UserLAnd does not currently support your devices architecture.</string>
-
+    <string name="debug_log_deleted">Debug log deleted or does not exist!</string>
 
     <!-- Content descriptions -->
     <string name="desc_inactive">Image: session inactive</string>
