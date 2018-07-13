@@ -141,6 +141,7 @@ class ServerService : Service() {
         if(!downloadManager.isNetworkAvailable()) {
             val resultIntent = Intent(SERVER_SERVICE_RESULT)
             resultIntent.putExtra("type", "networkUnavailable")
+            broadcaster.sendBroadcast(resultIntent)
             return
         }
 
