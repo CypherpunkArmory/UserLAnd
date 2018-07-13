@@ -14,6 +14,7 @@ import tech.ula.model.AppDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.utils.*
+import java.io.File
 
 class ServerService : Service() {
 
@@ -65,11 +66,6 @@ class ServerService : Service() {
     private val filesystemExtractLogger = { line: String -> Int
         updateProgressBar(getString(R.string.progress_setting_up),getString(R.string.progress_setting_up_extract_text,line))
         0
-    }
-
-    fun Session.isInstalled(): Boolean {
-        val filesystemDirectoryName = this.filesystemId.toString()
-        return fileManager.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")
     }
 
     override fun onCreate() {
@@ -131,6 +127,15 @@ class ServerService : Service() {
         }
     }
 
+    fun Session.isInstalled(): Boolean {
+        val filesystemDirectoryName = this.filesystemId.toString()
+        return fileManager.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")
+    }
+
+    fun Filesystem.isDownloaded(): Boolean {
+        return fileManager.rootfsExists(this.distributionType)
+    }
+
     private fun startSession(session: Session, filesystem: Filesystem) {
         lastActivatedSession = session
         lastActivatedFilesystem = filesystem
@@ -138,7 +143,11 @@ class ServerService : Service() {
         val distType = lastActivatedFilesystem.distributionType
 
         downloadManager = DownloadUtility(this@ServerService, archType, distType)
-        if(!downloadManager.isNetworkAvailable()) {
+        if (!downloadManager.isNetworkAvailable()) {
+            if(session.isInstalled() || filesystem.isDownloaded()) {
+                continueStartSession()
+                return
+            }
             val resultIntent = Intent(SERVER_SERVICE_RESULT)
             resultIntent.putExtra("type", "networkUnavailable")
             broadcaster.sendBroadcast(resultIntent)
