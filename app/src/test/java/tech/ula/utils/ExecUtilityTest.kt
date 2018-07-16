@@ -1,6 +1,7 @@
 package tech.ula.utils
 
-import android.content.Context
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -8,10 +9,10 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
-import org.mockito.Mockito.anyString
 import org.mockito.MockitoAnnotations
 import org.mockito.junit.MockitoJUnitRunner
 import java.io.File
+import kotlin.text.Charsets.UTF_8
 
 @RunWith(MockitoJUnitRunner::class)
 class ExecUtilityTest {
@@ -23,9 +24,6 @@ class ExecUtilityTest {
     lateinit var fileUtility: FileUtility
 
     @Mock
-    lateinit var context: Context
-
-    @Mock
     lateinit var preferenceUtility: PreferenceUtility
 
     private val logCollector = ArrayList<String>()
@@ -33,7 +31,6 @@ class ExecUtilityTest {
 
     lateinit var testDirectory: File
 
-//    @InjectMocks
     lateinit var execUtility: ExecUtility
 
     @Before
@@ -42,9 +39,6 @@ class ExecUtilityTest {
         logCollector.clear()
 
         MockitoAnnotations.initMocks(this)
-
-        `when`(fileUtility.getSupportDirPath()).thenReturn(testDirectory.path)
-        `when`(fileUtility.getFilesDirPath()).thenReturn(testDirectory.path)
 
         execUtility = ExecUtility(fileUtility, preferenceUtility)
     }
@@ -68,13 +62,17 @@ class ExecUtilityTest {
 
     @Test
     fun loggingIsCapturedIfSettingIsEnabled() {
+        val debugFile = File("${testDirectory.path}/debugLog.txt")
+
         `when`(preferenceUtility.getProotDebuggingEnabled()).thenReturn(true)
         `when`(preferenceUtility.getProotDebuggingLevel()).thenReturn("9")
-        `when`(preferenceUtility.getProotDebugLogLocation()).thenReturn(testDirectory.path)
+        `when`(preferenceUtility.getProotDebugLogLocation()).thenReturn(debugFile.path)
 
         val commandToRun = arrayListOf("echo", "hello", "world")
         val doWait = true
 
         execUtility.execLocal(testDirectory, commandToRun, testLogger, doWait)
+        assertTrue(debugFile.exists())
+        assertEquals("hello world", debugFile.readText(UTF_8))
     }
 }

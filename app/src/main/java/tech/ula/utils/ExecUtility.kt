@@ -1,10 +1,13 @@
 package tech.ula.utils
 
 import android.util.Log
-import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
+import java.io.BufferedWriter
+import java.io.FileWriter
 import java.util.ArrayList
+import java.lang.ProcessBuilder
+import java.nio.file.Files
 import kotlin.text.Charsets.UTF_8
 
 class ExecUtility(val fileUtility: FileUtility, val preferenceUtility: PreferenceUtility) {
@@ -12,6 +15,9 @@ class ExecUtility(val fileUtility: FileUtility, val preferenceUtility: Preferenc
     companion object {
         val EXEC_DEBUG_LOGGER = { line: String -> Unit
             Log.d("EXEC_DEBUG_LOGGER", line)
+        }
+
+        val FILE_DEBUG_LOGGER = { line: String -> Unit
         }
 
         val NOOP_CONSUMER: (line: String) -> Int = { 0 }
@@ -28,12 +34,7 @@ class ExecUtility(val fileUtility: FileUtility, val preferenceUtility: Preferenc
                 else "-1"
         val prootDebugLogLocation = preferenceUtility.getProotDebugLogLocation()
 
-        val commandToLog =
-                // TODO Fix this bug. If logging is enabled and it doesn't write to a file, isServerInProcTree can't find dropbear.
-                /*if(prootDebuggingEnabled && prootFileLogging) "$commandToWrap &> /mnt/sdcard/PRoot_Debug_Log"*/
-                if(prootDebuggingEnabled) "${command[command.lastIndex]} &> $prootDebugLogLocation"
-                else command[command.lastIndex]
-        command[command.lastIndex] = commandToLog
+        // TODO Fix this bug. If logging is enabled and it doesn't write to a file, isServerInProcTree can't find dropbear.
 
         val env = if (wrapped) hashMapOf("LD_LIBRARY_PATH" to (fileUtility.getSupportDirPath()),
                 "ROOT_PATH" to fileUtility.getFilesDirPath(),
@@ -44,19 +45,24 @@ class ExecUtility(val fileUtility: FileUtility, val preferenceUtility: Preferenc
         try {
             val pb = ProcessBuilder(command)
             pb.directory(executionDirectory)
-            pb.redirectErrorStream(true)
             pb.environment().putAll(env)
+            pb.redirectErrorStream(true)
+
             listener("Running: ${pb.command()} \n with env $env")
 
             val process = pb.start()
 
-            if (doWait) {
-                collectOutput(process.inputStream, listener)
+            when {
+                prootDebuggingEnabled -> writeDebugLogFile(process.inputStream, prootDebugLogLocation)
+                doWait -> {
+                    collectOutput(process.inputStream, listener)
 
-                if (process.waitFor() != 0) {
-                    listener("Exec: Failed to execute command ${pb.command()}")
+                    if (process.waitFor() != 0) {
+                        listener("Exec: Failed to execute command ${pb.command()}")
+                    }
                 }
             }
+
             return process
         } catch (err: Exception) {
             listener("Exec: $err")
@@ -65,13 +71,24 @@ class ExecUtility(val fileUtility: FileUtility, val preferenceUtility: Preferenc
     }
 
     private fun collectOutput(inputStream: InputStream, listener: (String) -> Any) {
-        val buf: BufferedReader = inputStream.bufferedReader(UTF_8)
+        val buf = inputStream.bufferedReader(UTF_8)
 
         buf.forEachLine {
             listener(it)
         }
 
         buf.close()
+    }
+
+    private fun writeDebugLogFile(inputStream: InputStream, debugLogLocation: String) {
+        val reader = inputStream.bufferedReader(UTF_8)
+        val writer = File(debugLogLocation).writer(UTF_8)
+        reader.forEachLine {
+            writer.write(it)
+        }
+        reader.close()
+        writer.flush()
+        writer.close()
     }
 
     fun wrapWithBusyboxAndExecute(targetDirectoryName: String, commandToWrap: String, listener: (String) -> Any = NOOP_CONSUMER, doWait: Boolean = true): Process {
