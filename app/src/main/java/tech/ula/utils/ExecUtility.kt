@@ -1,6 +1,5 @@
 package tech.ula.utils
 
-import android.content.Context
 import android.preference.PreferenceManager
 import android.util.Log
 import java.io.BufferedReader
@@ -57,7 +56,7 @@ class ExecUtility(private val fileUtility: FileUtility) {
     fun wrapWithBusyboxAndExecute(targetDirectoryName: String, commandToWrap: String, listener: (String) -> Int = NOOP_CONSUMER, doWait: Boolean = true): Process {
         val executionDirectory = fileUtility.createAndGetDirectory(targetDirectoryName)
 
-        val preferences = PreferenceManager.getDefaultSharedPreferences(fileUtility.context) //TODO test this
+        val preferences = PreferenceManager.getDefaultSharedPreferences(fileUtility.context) // TODO test this
         val prootDebuggingEnabled = preferences.getBoolean("pref_proot_debug_enabled", false)
         val prootDebuggingLevel =
                 if (prootDebuggingEnabled) preferences.getString("pref_proot_debug_level", "-1")

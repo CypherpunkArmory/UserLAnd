@@ -11,7 +11,7 @@ import tech.ula.model.entities.Session
 class ClientUtility(private val context: Context) {
 
     fun startClient(session: Session) {
-        when(session.clientType) {
+        when (session.clientType) {
             "ConnectBot" -> startSshClient(session, "org.connectbot")
             "bVNC" -> startVncClient(session, "com.iiordanov.freebVNC")
             "xsdl" -> return // TODO
@@ -41,8 +41,7 @@ class ClientUtility(private val context: Context) {
 
         if (clientIsPresent(bVncIntent)) {
             context.startActivity(bVncIntent)
-        }
-        else {
+        } else {
             getClient(packageName)
         }
     }
