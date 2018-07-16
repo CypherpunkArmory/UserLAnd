@@ -22,7 +22,7 @@ class FileUtility(private val context: Context) {
 
     fun createAndGetDirectory(directory: String): File {
         val file = File("${getFilesDirPath()}/$directory")
-        if(!file.exists()) file.mkdirs()
+        if (!file.exists()) file.mkdirs()
         return file
     }
 
@@ -40,7 +40,7 @@ class FileUtility(private val context: Context) {
                     val contents = it.name.split(":")
                     val targetDestination = File("${getFilesDirPath()}/${contents[1]}/${contents[2]}")
                     it.copyTo(targetDestination, overwrite = true)
-                    if(!it.delete())
+                    if (!it.delete())
                         Log.e("FileUtility", "Could not delete downloaded file: ${it.name}")
                 }
     }
@@ -50,7 +50,7 @@ class FileUtility(private val context: Context) {
         val targetDirectory = createAndGetDirectory("$targetFilesystemName/support")
         sharedDirectory.copyRecursively(targetDirectory, overwrite = true)
         targetDirectory.walkBottomUp().forEach {
-            if(it.name == "support") {
+            if (it.name == "support") {
                 return
             }
             changePermission(it.name, "$targetFilesystemName/support", "0777")
@@ -68,7 +68,7 @@ class FileUtility(private val context: Context) {
                 Triple("startSSHServer.sh", "debian", "0777"),
                 Triple("startVNCServer.sh", "debian", "0777"),
                 Triple("startVNCServerStep2.sh", "debian", "0777"),
-                Triple("busybox", "debian","0777"),
+                Triple("busybox", "debian", "0777"),
                 Triple("libdisableselinux.so", "debian", "0777")
         )
         filePermissions.forEach { (file, subdirectory, permissions) -> changePermission(file, subdirectory, permissions) }
@@ -79,5 +79,4 @@ class FileUtility(private val context: Context) {
         val commandToRun = arrayListOf("chmod", permissions, filename)
         execUtility.execLocal(executionDirectory, commandToRun, listener = ExecUtility.EXEC_DEBUG_LOGGER)
     }
-
 }
