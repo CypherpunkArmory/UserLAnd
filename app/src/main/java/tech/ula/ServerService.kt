@@ -67,11 +67,6 @@ class ServerService : Service() {
         0
     }
 
-    fun Session.isInstalled(): Boolean {
-        val filesystemDirectoryName = this.filesystemId.toString()
-        return fileManager.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")
-    }
-
     override fun onCreate() {
         broadcaster = LocalBroadcastManager.getInstance(this)
         registerReceiver(downloadBroadcastReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
@@ -131,6 +126,15 @@ class ServerService : Service() {
         }
     }
 
+    fun Session.isInstalled(): Boolean {
+        val filesystemDirectoryName = this.filesystemId.toString()
+        return fileManager.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")
+    }
+
+    fun Filesystem.isDownloaded(): Boolean {
+        return fileManager.rootfsExists(this.distributionType)
+    }
+
     private fun startSession(session: Session, filesystem: Filesystem) {
         lastActivatedSession = session
         lastActivatedFilesystem = filesystem
@@ -139,8 +143,13 @@ class ServerService : Service() {
 
         downloadManager = DownloadUtility(this@ServerService, archType, distType)
         if (!downloadManager.isNetworkAvailable()) {
+            if (session.isInstalled() || filesystem.isDownloaded()) {
+                continueStartSession()
+                return
+            }
             val resultIntent = Intent(SERVER_SERVICE_RESULT)
             resultIntent.putExtra("type", "networkUnavailable")
+            broadcaster.sendBroadcast(resultIntent)
             return
         }
 
