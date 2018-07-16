@@ -149,8 +149,8 @@ class ServerService : Service() {
             }
             val resultIntent = Intent(SERVER_SERVICE_RESULT)
             resultIntent.putExtra("type", "networkUnavailable")
-            broadcaster.sendBroadcast(resultIntent)
-            return
+
+            if (!lastActivatedSession.isInstalled()) return
         }
 
         if (downloadManager.checkIfLargeRequirement(!lastActivatedSession.isInstalled())) {

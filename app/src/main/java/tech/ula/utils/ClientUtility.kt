@@ -22,7 +22,7 @@ class ClientUtility(private val context: Context) {
     private fun startSshClient(session: Session, packageName: String) {
         val connectBotIntent = Intent()
         connectBotIntent.action = "android.intent.action.VIEW"
-        connectBotIntent.data = Uri.parse("ssh://${session.username}@localhost:${session.port}")
+        connectBotIntent.data = Uri.parse("ssh://${session.username}@localhost:${session.port}/#userland")
         connectBotIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
 
         if (clientIsPresent(connectBotIntent)) {
