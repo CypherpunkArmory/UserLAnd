@@ -17,9 +17,6 @@ class ExecUtility(val fileUtility: FileUtility, val preferenceUtility: Preferenc
             Log.d("EXEC_DEBUG_LOGGER", line)
         }
 
-        val FILE_DEBUG_LOGGER = { line: String -> Unit
-        }
-
         val NOOP_CONSUMER: (line: String) -> Int = { 0 }
     }
 
@@ -34,11 +31,9 @@ class ExecUtility(val fileUtility: FileUtility, val preferenceUtility: Preferenc
                 else "-1"
         val prootDebugLogLocation = preferenceUtility.getProotDebugLogLocation()
 
-        // TODO Fix this bug. If logging is enabled and it doesn't write to a file, isServerInProcTree can't find dropbear.
-
         val env = if (wrapped) hashMapOf("LD_LIBRARY_PATH" to (fileUtility.getSupportDirPath()),
                 "ROOT_PATH" to fileUtility.getFilesDirPath(),
-                "ROOTFS_PATH" to "${fileUtility.getFilesDirPath()}/${executionDirectory.path}",
+                "ROOTFS_PATH" to "${fileUtility.getFilesDirPath()}/${executionDirectory.name}",
                 "PROOT_DEBUG_LEVEL" to prootDebuggingLevel)
         else hashMapOf()
 
@@ -81,6 +76,7 @@ class ExecUtility(val fileUtility: FileUtility, val preferenceUtility: Preferenc
     }
 
     private fun writeDebugLogFile(inputStream: InputStream, debugLogLocation: String) {
+        // TODO Fix this bug. If logging is enabled and it doesn't write to a file, isServerInProcTree can't find dropbear.
         val reader = inputStream.bufferedReader(UTF_8)
         val writer = File(debugLogLocation).writer(UTF_8)
         reader.forEachLine {
