@@ -21,7 +21,7 @@ If applicable, add screenshots to help explain your problem.
 **Device Information**
 
  - Device: [e.g. Pixel XL 2]
- - Android Version: [e.g. Oreo, 7.0]
+ - Android Version: [e.g. Oreo, 8.0]
  - UserLAnd Version [e.g. 0.1.2]
 
 **Additional context**
