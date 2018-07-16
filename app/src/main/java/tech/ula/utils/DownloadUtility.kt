@@ -21,7 +21,7 @@ class DownloadUtility(val context: Context, val archType: String, distType: Stri
         context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
     }
 
-    //TODO make this list dynamic based on a list stored in the repo or otherwise
+    // TODO make this list dynamic based on a list stored in the repo or otherwise
     // Prefix file name with OS type to move it into the correct folder
     private val assets = arrayListOf(
             "support:proot" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/$archType/proot",
@@ -30,21 +30,21 @@ class DownloadUtility(val context: Context, val archType: String, distType: Stri
             "support:execInProot.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/all/execInProot.sh",
             "support:killProcTree.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/all/killProcTree.sh",
             "support:isServerInProcTree.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/all/isServerInProcTree.sh",
-            "$distType:startSSHServer.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/all/startSSHServer.sh",
-            "$distType:startVNCServer.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/all/startVNCServer.sh",
-            "$distType:startVNCServerStep2.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/all/startVNCServerStep2.sh",
-            "$distType:extractFilesystem.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/all/extractFilesystem.sh",
-            "$distType:busybox" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/$archType/busybox",
-            "$distType:libdisableselinux.so" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/$archType/libdisableselinux.so",
-            "$distType:ld.so.preload" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/all/ld.so.preload",
-            "$distType:rootfs.tar.gz" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/$archType/rootfs.tar.gz"
+            "$distType:startSSHServer.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/$distType/all/startSSHServer.sh",
+            "$distType:startVNCServer.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/$distType/all/startVNCServer.sh",
+            "$distType:startVNCServerStep2.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/$distType/all/startVNCServerStep2.sh",
+            "$distType:extractFilesystem.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/$distType/all/extractFilesystem.sh",
+            "$distType:busybox" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/$distType/$archType/busybox",
+            "$distType:libdisableselinux.so" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/$distType/$archType/libdisableselinux.so",
+            "$distType:ld.so.preload" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/$distType/all/ld.so.preload",
+            "$distType:rootfs.tar.gz" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/$distType/$archType/rootfs.tar.gz"
     )
 
     fun checkIfLargeRequirement(newFilesystem: Boolean): Boolean {
-        if(!isWifiEnabled()) {
+        if (!isWifiEnabled()) {
             assets.forEach {
                 (type, endpoint) ->
-                if(type.contains("rootfs") && assetNeedsToUpdated(type, endpoint, newFilesystem)) {
+                if (type.contains("rootfs") && assetNeedsToUpdated(type, endpoint, newFilesystem)) {
                     return true
                 }
             }
@@ -70,20 +70,20 @@ class DownloadUtility(val context: Context, val archType: String, distType: Stri
         val asset = File("${context.filesDir.path}/$subdirectory/$filename")
         val sharedPref = context.getSharedPreferences("file_date_stamps", Context.MODE_PRIVATE)
 
-        //TODO: make it so we download a full group of files, if any has changed (not the rootfs though, that is special)
-        //This will take care of a few possible corner cases
+        // TODO: make it so we download a full group of files, if any has changed (not the rootfs though, that is special)
+        // This will take care of a few possible corner cases
 
-        //only download the rootfs the first time, it cannot simply be updated like other files
-        if(type.contains("rootfs") && !newFilesystem) {
+        // only download the rootfs the first time, it cannot simply be updated like other files
+        if (type.contains("rootfs") && !newFilesystem) {
             return false
         }
 
         val now = Date().time
-        //TODO: should be store last updated in the session itself
+        // TODO: should be store last updated in the session itself
         val lastUpdateCheck = sharedPref.getLong("lastUpdateCheck", 0)
-        //only download if this is a newFilesystem, it has been more than a day since we last checked or the file does not exist currently
-        if(now > (lastUpdateCheck + TimeUnit.DAYS.toMillis(1)) || newFilesystem || !asset.exists()) {
-            with (sharedPref.edit()) {
+        // only download if this is a newFilesystem, it has been more than a day since we last checked or the file does not exist currently
+        if (now > (lastUpdateCheck + TimeUnit.DAYS.toMillis(1)) || newFilesystem || !asset.exists()) {
+            with(sharedPref.edit()) {
                 putLong("lastUpdateCheck", now)
                 commit()
             }
@@ -91,11 +91,11 @@ class DownloadUtility(val context: Context, val archType: String, distType: Stri
             return false
         }
 
-        //update a file if a connection can be made and if the datestamp is different
+        // update a file if a connection can be made and if the datestamp is different
         val currentDateStamp = sharedPref.getLong(type, 0)
         val newDateStamp = urlDateModified(endpoint)
         if ((newDateStamp != failedConnection) && (currentDateStamp != newDateStamp)) {
-            with (sharedPref.edit()) {
+            with(sharedPref.edit()) {
                 putLong(type, newDateStamp)
                 commit()
             }
@@ -136,7 +136,7 @@ class DownloadUtility(val context: Context, val archType: String, distType: Stri
 
     private fun deletePreviousDownload(type: String) {
         val downloadDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        val downloadFile = File(downloadDirectory,type)
+        val downloadFile = File(downloadDirectory, type)
         if (downloadFile.exists())
             downloadFile.delete()
     }
@@ -146,6 +146,4 @@ class DownloadUtility(val context: Context, val archType: String, distType: Stri
         val httpCon = url.openConnection() as HttpURLConnection
         return httpCon.lastModified
     }
-
 }
-

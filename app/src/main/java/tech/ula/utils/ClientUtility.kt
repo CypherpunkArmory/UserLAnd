@@ -39,7 +39,7 @@ class ClientUtility(private val context: Context) {
         bVncIntent.data = Uri.parse("vnc://127.0.0.1:5951/?VncPassword=${session.password}")
         bVncIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
 
-        if(clientIsPresent(bVncIntent)) {
+        if (clientIsPresent(bVncIntent)) {
             context.startActivity(bVncIntent)
         }
         else {
@@ -55,7 +55,7 @@ class ClientUtility(private val context: Context) {
     private fun getClient(packageName: String) {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-//        context.runOnUiThread { longToast(R.string.download_client_app) }
+        context.runOnUiThread { longToast(R.string.download_client_app) }
         context.startActivity(intent)
     }
 }

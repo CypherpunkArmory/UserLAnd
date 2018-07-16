@@ -9,6 +9,7 @@ buildscript {
     ext {
         kotlin_version = '1.2.51'
         android_plugin = '3.1.2'
+        ktlint_version = '0.24.0'
 
         support_library_version = '28.0.0-alpha3'
         anko_version = '0.10.5'

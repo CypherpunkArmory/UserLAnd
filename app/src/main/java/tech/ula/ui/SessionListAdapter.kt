@@ -34,11 +34,10 @@ class SessionListAdapter(private var activity: Activity, private var items: List
 
         val session = items[position]
 
-        if(session.active) {
+        if (session.active) {
             viewHolder.imageViewActive.setImageResource(R.drawable.ic_check_circle_green_24dp)
             viewHolder.imageViewActive.contentDescription = activity.getString(R.string.desc_active)
-        }
-        else {
+        } else {
             viewHolder.imageViewActive.setImageResource(R.drawable.ic_block_red_24dp)
             viewHolder.imageViewActive.contentDescription = activity.getString(R.string.desc_inactive)
         }

@@ -22,12 +22,17 @@ class FileUtility(val context: Context) {
 
     fun createAndGetDirectory(directory: String): File {
         val file = File("${getFilesDirPath()}/$directory")
-        if(!file.exists()) file.mkdirs()
+        if (!file.exists()) file.mkdirs()
         return file
     }
 
     fun statusFileExists(filesystemName: String, filename: String): Boolean {
         val file = File("${getFilesDirPath()}/$filesystemName/support/$filename")
+        return file.exists()
+    }
+
+    fun rootfsExists(distributionType: String): Boolean {
+        val file = File("${getFilesDirPath()}/$distributionType/rootfs.tar.gz")
         return file.exists()
     }
 
@@ -39,7 +44,7 @@ class FileUtility(val context: Context) {
                     val contents = it.name.split(":")
                     val targetDestination = File("${getFilesDirPath()}/${contents[1]}/${contents[2]}")
                     it.copyTo(targetDestination, overwrite = true)
-                    if(!it.delete())
+                    if (!it.delete())
                         Log.e("FileUtility", "Could not delete downloaded file: ${it.name}")
                 }
     }
@@ -49,7 +54,7 @@ class FileUtility(val context: Context) {
         val targetDirectory = createAndGetDirectory("$targetFilesystemName/support")
         sharedDirectory.copyRecursively(targetDirectory, overwrite = true)
         targetDirectory.walkBottomUp().forEach {
-            if(it.name == "support") {
+            if (it.name == "support") {
                 return
             }
             changePermission(it.name, "$targetFilesystemName/support")

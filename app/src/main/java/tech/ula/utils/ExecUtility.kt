@@ -17,7 +17,7 @@ class ExecUtility(private val fileUtility: FileUtility) {
             Log.d("EXEC_DEBUG_LOGGER", line)
         }
 
-        val NOOP_CONSUMER: (line: String) -> Int = {0}
+        val NOOP_CONSUMER: (line: String) -> Int = { 0 }
     }
 
     fun execLocal(executionDirectory: File, command: ArrayList<String>, env: HashMap<String, String> = hashMapOf(), listener: (String) -> Int = NOOP_CONSUMER, doWait: Boolean = true): Process {
@@ -54,14 +54,13 @@ class ExecUtility(private val fileUtility: FileUtility) {
         buf.close()
     }
 
-
     fun wrapWithBusyboxAndExecute(targetDirectoryName: String, commandToWrap: String, listener: (String) -> Int = NOOP_CONSUMER, doWait: Boolean = true): Process {
         val executionDirectory = fileUtility.createAndGetDirectory(targetDirectoryName)
 
         val preferences = PreferenceManager.getDefaultSharedPreferences(fileUtility.context) //TODO test this
         val prootDebuggingEnabled = preferences.getBoolean("pref_proot_debug_enabled", false)
         val prootDebuggingLevel =
-                if(prootDebuggingEnabled) preferences.getString("pref_proot_debug_level", "-1")
+                if (prootDebuggingEnabled) preferences.getString("pref_proot_debug_level", "-1")
                 else "-1"
         /* val prootFileLogging = preferences.getBoolean("pref_proot_local_file_enabled", false) */
 
@@ -70,7 +69,7 @@ class ExecUtility(private val fileUtility: FileUtility) {
         val commandToAdd =
                 // TODO Fix this bug. If logging is enabled and it doesn't write to a file, isServerInProcTree can't find dropbear.
                 /*if(prootDebuggingEnabled && prootFileLogging) "$commandToWrap &> /mnt/sdcard/PRoot_Debug_Log"*/
-                if(prootDebuggingEnabled) "$commandToWrap &> /mnt/sdcard/PRoot_Debug_Log"
+                if (prootDebuggingEnabled) "$commandToWrap &> /mnt/sdcard/PRoot_Debug_Log"
                 else commandToWrap
 
         command.add(commandToAdd)
@@ -82,5 +81,4 @@ class ExecUtility(private val fileUtility: FileUtility) {
 
         return execLocal(executionDirectory, command, env, listener, doWait)
     }
-
 }
