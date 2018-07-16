@@ -6,14 +6,14 @@ import android.os.Build
 class FilesystemUtility(private val context: Context) {
 
     private val execUtility by lazy {
-        ExecUtility(fileUtility)
+        ExecUtility(fileUtility, PreferenceUtility(context))
     }
 
     private val fileUtility by lazy {
         FileUtility(context)
     }
 
-    fun extractFilesystem(targetDirectoryName: String, listener: (String) -> Int) {
+    fun extractFilesystem(targetDirectoryName: String, listener: (String) -> Any) {
         val command = "../support/execInProot.sh /support/extractFilesystem.sh"
         execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, listener)
     }

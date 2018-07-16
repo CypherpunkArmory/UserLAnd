@@ -28,7 +28,6 @@ class ClientUtilityTest {
 
     lateinit var clientUtility: ClientUtility
 
-
     val context = InstrumentationRegistry.getContext()
 
     @Before

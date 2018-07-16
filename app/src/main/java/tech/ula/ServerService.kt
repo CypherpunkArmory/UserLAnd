@@ -61,10 +61,9 @@ class ServerService : Service() {
         ClientUtility(this)
     }
 
-    private val filesystemExtractLogger = { line: String -> Int
+    private val filesystemExtractLogger = { line: String -> Unit
         updateProgressBar(getString(R.string.progress_setting_up),
                 getString(R.string.progress_setting_up_extract_text, line))
-        0
     }
 
     override fun onCreate() {
