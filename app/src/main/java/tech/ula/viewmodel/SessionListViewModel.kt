@@ -1,7 +1,9 @@
 package tech.ula.viewmodel
 
 import android.app.Application
-import android.arch.lifecycle.*
+import android.arch.lifecycle.AndroidViewModel
+import android.arch.lifecycle.LiveData
+import android.arch.lifecycle.Transformations
 import kotlinx.coroutines.experimental.launch
 import tech.ula.model.AppDatabase
 import tech.ula.model.entities.Filesystem
@@ -27,7 +29,7 @@ class SessionListViewModel(application: Application) : AndroidViewModel(applicat
     private val sessions: LiveData<List<Session>> =
             Transformations.map(internalSessions) { sessions ->
         for (session in sessions) {
-            if(session.active) session.active = serverUtility.isServerRunning(session)
+            if (session.active) session.active = serverUtility.isServerRunning(session)
         }
         activeSessions = sessions.any { it.active }
         sessions

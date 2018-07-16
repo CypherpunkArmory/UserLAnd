@@ -11,7 +11,7 @@ import tech.ula.model.entities.Session
 class ClientUtility(private val context: Context) {
 
     fun startClient(session: Session) {
-        when(session.clientType) {
+        when (session.clientType) {
             "ConnectBot" -> startConnectBotClient(session)
             "bVNC" -> startBVncClient(session)
             "xsdl" -> return // TODO
@@ -39,10 +39,9 @@ class ClientUtility(private val context: Context) {
         bVncIntent.data = Uri.parse("vnc://127.0.0.1:5951/?VncPassword=${session.password}")
         bVncIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
 
-        if(clientIsPresent(bVncIntent)) {
+        if (clientIsPresent(bVncIntent)) {
             context.startActivity(bVncIntent)
-        }
-        else {
+        } else {
             getClient("com.iiordanov.freebVNC")
         }
     }
@@ -58,6 +57,4 @@ class ClientUtility(private val context: Context) {
         context.runOnUiThread { longToast(R.string.download_client_app) }
         context.startActivity(intent)
     }
-
-
 }

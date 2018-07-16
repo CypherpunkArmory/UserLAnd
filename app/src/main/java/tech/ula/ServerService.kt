@@ -13,7 +13,7 @@ import org.jetbrains.anko.doAsync
 import tech.ula.model.AppDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.utils.*
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 
 class ServerService : Service() {
 
@@ -53,7 +53,6 @@ class ServerService : Service() {
         FileUtility(this)
     }
 
-
     private val serverUtility by lazy {
         ServerUtility(this)
     }
@@ -63,7 +62,8 @@ class ServerService : Service() {
     }
 
     private val filesystemExtractLogger = { line: String -> Int
-        updateProgressBar(getString(R.string.progress_setting_up),getString(R.string.progress_setting_up_extract_text,line))
+        updateProgressBar(getString(R.string.progress_setting_up),
+                getString(R.string.progress_setting_up_extract_text, line))
         0
     }
 
@@ -120,7 +120,7 @@ class ServerService : Service() {
 
     private fun removeSession(session: Session) {
         activeSessions.remove(session.pid)
-        if(activeSessions.isEmpty()) {
+        if (activeSessions.isEmpty()) {
             stopForeground(true)
             stopSelf()
         }
@@ -143,7 +143,7 @@ class ServerService : Service() {
 
         downloadManager = DownloadUtility(this@ServerService, archType, distType)
         if (!downloadManager.isNetworkAvailable()) {
-            if(session.isInstalled() || filesystem.isDownloaded()) {
+            if (session.isInstalled() || filesystem.isDownloaded()) {
                 continueStartSession()
                 return
             }
@@ -167,11 +167,14 @@ class ServerService : Service() {
         launchAsync {
             startProgressBar()
 
-            updateProgressBar(getString(R.string.progress_downloading),getString(R.string.progress_downloading_check_updates))
+            updateProgressBar(getString(R.string.progress_downloading),
+                    getString(R.string.progress_downloading_check_updates))
+
             asyncAwait {
                 downloadList.clear()
                 downloadedList.clear()
-                downloadList.addAll(downloadManager.downloadRequirements(!lastActivatedSession.isInstalled()))
+                downloadList.addAll(downloadManager.downloadRequirements(
+                        !lastActivatedSession.isInstalled()))
 
                 if (downloadList.isNotEmpty())
                     assetsWereDownloaded = true
@@ -190,7 +193,7 @@ class ServerService : Service() {
                 }
             }
 
-            updateProgressBar(getString(R.string.progress_setting_up),"")
+            updateProgressBar(getString(R.string.progress_setting_up), "")
             asyncAwait {
                 // TODO only copy when newer versions have been downloaded (and skip rootfs)
                 val distType = lastActivatedFilesystem.distributionType
@@ -200,7 +203,7 @@ class ServerService : Service() {
                 }
             }
 
-            updateProgressBar(getString(R.string.progress_starting),"")
+            updateProgressBar(getString(R.string.progress_starting), "")
             asyncAwait {
 
                 lastActivatedSession.pid = serverUtility.startServer(lastActivatedSession)
@@ -230,7 +233,7 @@ class ServerService : Service() {
     }
 
     private fun cleanUpFilesystem(filesystemId: Long) {
-        if(filesystemId == (-1).toLong()) {
+        if (filesystemId == (-1).toLong()) {
             throw Exception("Did not receive filesystemId")
         }
 
@@ -280,5 +283,4 @@ class ServerService : Service() {
         intent.putExtra("type", "displayNetworkChoices")
         broadcaster.sendBroadcast(intent)
     }
-
 }

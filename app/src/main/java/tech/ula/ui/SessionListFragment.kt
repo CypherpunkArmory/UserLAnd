@@ -16,19 +16,19 @@ import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.LocalBroadcastManager
-import android.view.*
+import android.view.* // ktlint-disable no-wildcard-imports
 import android.view.animation.AlphaAnimation
 import android.widget.AdapterView
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
-import kotlinx.android.synthetic.main.frag_session_list.*
-import kotlinx.android.synthetic.main.list_item_session.view.*
+import kotlinx.android.synthetic.main.frag_session_list.* // ktlint-disable no-wildcard-imports
+import kotlinx.android.synthetic.main.list_item_session.view.* // ktlint-disable no-wildcard-imports
 import org.jetbrains.anko.bundleOf
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.utils.*
+import tech.ula.utils.ClientUtility
 import tech.ula.viewmodel.SessionListViewModel
 
 class SessionListFragment : Fragment() {
@@ -83,9 +83,9 @@ class SessionListFragment : Fragment() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when(requestCode) {
+        when (requestCode) {
             permissionRequestCode -> {
-                if(!(grantResults.isNotEmpty() &&
+                if (!(grantResults.isNotEmpty() &&
                                 grantResults[0] == PackageManager.PERMISSION_GRANTED &&
                                 grantResults[1] == PackageManager.PERMISSION_GRANTED)) {
                     showPermissionsNecessaryDialog()
@@ -106,7 +106,7 @@ class SessionListFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return if(item.itemId == R.id.menu_item_add) editSession(Session(0, filesystemId = 0))
+        return if (item.itemId == R.id.menu_item_add) editSession(Session(0, filesystemId = 0))
         else super.onOptionsItemSelected(item)
     }
 
@@ -125,20 +125,19 @@ class SessionListFragment : Fragment() {
         registerForContextMenu(list_sessions)
         list_sessions.onItemClickListener = AdapterView.OnItemClickListener {
             _, _, position, _ ->
-            if(!arePermissionsGranted()) {
+            if (!arePermissionsGranted()) {
                 showPermissionsNecessaryDialog()
                 return@OnItemClickListener
             }
 
             val session = sessionList[position]
-            if(!session.active) {
+            if (!session.active) {
                 if (!sessionListViewModel.activeSessions) {
                     startSession(session)
                 } else {
                     Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG).show()
                 }
-            }
-            else {
+            } else {
                 clientUtility.startClient(session)
             }
         }
@@ -193,7 +192,7 @@ class SessionListFragment : Fragment() {
         val menuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
         val position = menuInfo.position
         val session = sessionList[position]
-        return when(item.itemId) {
+        return when (item.itemId) {
             R.id.menu_item_session_kill_service -> stopService(session)
             R.id.menu_item_session_edit -> editSession(session)
             R.id.menu_item_session_delete -> deleteSession(session)
@@ -202,7 +201,7 @@ class SessionListFragment : Fragment() {
     }
 
     private fun stopService(session: Session): Boolean {
-        if(session.active) {
+        if (session.active) {
             val view = list_sessions.getChildAt(sessionList.indexOf(session))
             view.image_list_item_active.setImageResource(R.drawable.ic_block_red_24dp)
 
@@ -259,7 +258,7 @@ class SessionListFragment : Fragment() {
 
     private fun syncProgressBarDisplayedWithService(intent: Intent) {
         val isActive = intent.getBooleanExtra("isProgressBarActive", false)
-        if(isActive) startProgressBar()
+        if (isActive) startProgressBar()
         else killProgressBar()
     }
 
