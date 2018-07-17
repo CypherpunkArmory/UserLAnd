@@ -3,6 +3,7 @@ package tech.ula.model
 import android.arch.persistence.room.Database
 import android.arch.persistence.room.Room
 import android.arch.persistence.room.RoomDatabase
+import android.arch.persistence.room.migration.Migration
 import android.content.Context
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
@@ -10,7 +11,7 @@ import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 
 // TODO export schema appropriately
-@Database(entities = [Session::class, Filesystem::class], version = 1, exportSchema = false)
+@Database(entities = [Session::class, Filesystem::class], version = 1, exportSchema = true)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun sessionDao(): SessionDao
