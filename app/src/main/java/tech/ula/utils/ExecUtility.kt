@@ -1,6 +1,7 @@
 package tech.ula.utils
 
 import android.content.Context
+import android.os.Environment
 import android.preference.PreferenceManager
 import android.util.Log
 import java.io.BufferedReader
@@ -83,7 +84,8 @@ class ExecUtility(private val context: Context) {
         val env = hashMapOf("LD_LIBRARY_PATH" to (fileManager.getSupportDirPath()),
                 "ROOT_PATH" to fileManager.getFilesDirPath(),
                 "ROOTFS_PATH" to "${fileManager.getFilesDirPath()}/$targetDirectoryName",
-                "PROOT_DEBUG_LEVEL" to prootDebuggingLevel)
+                "PROOT_DEBUG_LEVEL" to prootDebuggingLevel,
+                "EXTRA_BINDINGS" to "-b ${Environment.getExternalStorageDirectory().getAbsolutePath()}:/sdcard")
 
         return execLocal(executionDirectory, command, env, listener, doWait)
     }
