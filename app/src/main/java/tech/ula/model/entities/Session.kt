@@ -36,5 +36,6 @@ data class Session(
     val runAtDeviceStartup: Boolean = false,
     val initialCommand: String = "",
     var isExtracted: Boolean = false,
-    var lastUpdated: Long = 0
+    var lastUpdated: Long = 0,
+    var bindings: String = ""
 ) : Parcelable

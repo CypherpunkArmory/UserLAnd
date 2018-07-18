@@ -32,6 +32,7 @@ abstract class AppDatabase : RoomDatabase() {
         private fun buildDatabase(context: Context) =
                 Room.databaseBuilder(context.applicationContext,
                         AppDatabase::class.java, "Data.db")
+                        .addMigrations(Migration1To2())
                         .build()
     }
 }
@@ -42,5 +43,6 @@ class Migration1To2 : Migration(1, 2) {
 
         database.execSQL("ALTER TABLE session ADD COLUMN isExtracted INTEGER NOT NULL DEFAULT 0")
         database.execSQL("ALTER TABLE session ADD COLUMN lastUpdated INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE session ADD COLUMN bindings TEXT NOT NULL DEFAULT ''")
     }
 }

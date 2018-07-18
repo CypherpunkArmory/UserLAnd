@@ -42,6 +42,7 @@ class MigrationTest {
         assertFalse(fs.isDownloaded)
         assertFalse(session.isExtracted)
         assert(session.lastUpdated == 0L)
+        assert(session.bindings == "")
     }
 
     private fun getMigratedDatabase1To2(): AppDatabase {
