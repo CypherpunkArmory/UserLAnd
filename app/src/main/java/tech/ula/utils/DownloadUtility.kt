@@ -37,7 +37,7 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
             "$distType:startSSHServer.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/startSSHServer.sh",
             "$distType:startVNCServer.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/startVNCServer.sh",
             "$distType:startVNCServerStep2.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/startVNCServerStep2.sh",
-            "$distType:extractFilesystem.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/extractFilesystem.sh",
+            "$distType:extractFilesystem.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/test/assets/all/extractFilesystem.sh",
             "$distType:busybox" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/busybox",
             "$distType:libdisableselinux.so" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/libdisableselinux.so",
             "$distType:ld.so.preload" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/ld.so.preload"
@@ -76,7 +76,7 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
         return downloadManager.enqueue(request)
     }
 
-    private suspend fun assetNeedsToUpdated(type: String, endpoint: String, updateIsBeingForced: Boolean): Boolean {
+    private fun assetNeedsToUpdated(type: String, endpoint: String, updateIsBeingForced: Boolean): Boolean {
         val (subdirectory, filename) = type.split(":")
         val asset = File("${context.filesDir.path}/$subdirectory/$filename")
         val prefs = context.getSharedPreferences("file_date_stamps", Context.MODE_PRIVATE)
@@ -107,7 +107,7 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
         return !asset.exists()
     }
 
-    suspend fun downloadRequirements(updateIsBeingForced: Boolean = false): List<Long> {
+    fun downloadRequirements(updateIsBeingForced: Boolean = false): List<Long> {
         if (!session.isExtracted) assetEndpoints.addAll(rootfsEndpoint)
         return assetEndpoints
                 .filter {
@@ -143,10 +143,9 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
             downloadFile.delete()
     }
 
-    private suspend fun urlDateModified(address: String): Long {
+    private fun urlDateModified(address: String): Long {
         val url = URL(address)
-        val httpCon: HttpURLConnection =
-                async { url.openConnection() as HttpURLConnection }.await()
+        val httpCon = url.openConnection() as HttpURLConnection
 
         return httpCon.lastModified
     }

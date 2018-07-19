@@ -162,11 +162,11 @@ class ServerService : Service() {
         }
     }
 
-    private suspend fun downloadAssets(): Boolean {
+    private suspend fun downloadAssets(updateIsBeingForced: Boolean = false): Boolean {
         var assetsWereDownloaded = false
         downloadList.clear()
         downloadedList.clear()
-        downloadList.addAll(downloadUtility.downloadRequirements())
+        downloadList.addAll(downloadUtility.downloadRequirements(updateIsBeingForced))
 
         if (downloadList.isNotEmpty())
             assetsWereDownloaded = true
@@ -263,7 +263,7 @@ class ServerService : Service() {
         downloadUtility = DownloadUtility(this, session, filesystem)
         var assetsWereDownloaded = true
         launchAsync {
-            asyncAwait { assetsWereDownloaded = downloadAssets() }
+            asyncAwait { assetsWereDownloaded = downloadAssets(updateIsBeingForced = true) }
             killProgressBar()
             if (!assetsWereDownloaded) {
                 Toast.makeText(this@ServerService, R.string.no_assets_need_updating, Toast.LENGTH_LONG).show()
