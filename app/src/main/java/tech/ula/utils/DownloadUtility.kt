@@ -45,19 +45,12 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
 
     private val rootfsEndpoint = "$distType:rootfs.tar.gz" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/$distType/$archType/rootfs.tar.gz"
 
-    fun checkIfLargeRequirement(): Boolean {
-        if(session.isExtracted) {
-            return false
-        }
-        if (!isWifiEnabled()) {
-            return assetNeedsToUpdated(rootfsEndpoint.first, rootfsEndpoint.second, false)
-        }
-        return false
+    fun largeAssetRequiredAndNoWifi(): Boolean {
+        val filesystemIsPresent = session.isExtracted || filesystem.isDownloaded
+        return !(filesystemIsPresent || wifiIsEnabled())
     }
 
     private fun download(type: String, url: String): Long {
-        // TODO Dynamically adjust allowed network types to ensure no mobile use
-        // Currently just assuming the dialog choices succeed in some way
         val uri = Uri.parse(url)
         val request = DownloadManager.Request(uri)
         request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
@@ -78,7 +71,7 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
         return downloadManager.enqueue(request)
     }
 
-    private fun assetNeedsToUpdated(type: String, endpoint: String, updateIsBeingForced: Boolean): Boolean {
+    private suspend fun assetNeedsToUpdated(type: String, endpoint: String, updateIsBeingForced: Boolean): Boolean {
         val (subdirectory, filename) = type.split(":")
         val asset = File("${context.filesDir.path}/$subdirectory/$filename")
         val prefs = context.getSharedPreferences("file_date_stamps", Context.MODE_PRIVATE)
@@ -109,7 +102,7 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
         return !asset.exists()
     }
 
-    fun downloadRequirements(updateIsBeingForced: Boolean = false): List<Long> {
+    suspend fun downloadRequirements(updateIsBeingForced: Boolean = false): List<Long> {
         if (!session.isExtracted) assetEndpoints.add(rootfsEndpoint)
         return assetEndpoints
                 .filter {
@@ -122,7 +115,7 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
                 }
     }
 
-    private fun isWifiEnabled(): Boolean {
+    private fun wifiIsEnabled(): Boolean {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE)
         return if (connectivityManager is ConnectivityManager) {
             val networkInfo: NetworkInfo? = connectivityManager.activeNetworkInfo
@@ -130,7 +123,7 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
         } else false
     }
 
-    fun isNetworkAvailable(): Boolean {
+    fun networkIsEnabled(): Boolean {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE)
         return if (connectivityManager is ConnectivityManager) {
             val networkInfo: NetworkInfo? = connectivityManager.activeNetworkInfo
@@ -145,9 +138,11 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
             downloadFile.delete()
     }
 
-    private fun urlDateModified(address: String): Long {
+    private suspend fun urlDateModified(address: String): Long {
         val url = URL(address)
-        val httpCon = url.openConnection() as HttpURLConnection
+        val httpCon: HttpURLConnection =
+                async { url.openConnection() as HttpURLConnection }.await()
+
         return httpCon.lastModified
     }
 }

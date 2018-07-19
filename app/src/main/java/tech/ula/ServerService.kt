@@ -144,8 +144,7 @@ class ServerService : Service() {
                 lastActivatedSession,
                 lastActivatedFilesystem)
 
-        if (!downloadUtility.isNetworkAvailable()) {
-            // TODO populate these variables
+        if (!downloadUtility.networkIsEnabled()) {
             if (session.isExtracted || filesystem.isDownloaded) {
                 continueStartSession()
                 return
@@ -156,10 +155,10 @@ class ServerService : Service() {
             return
         }
 
-        if (downloadUtility.checkIfLargeRequirement()) {
-            displayNetworkChoices()
+        if (downloadUtility.largeAssetRequiredAndNoWifi()) {
+                displayNetworkChoices()
         } else {
-            continueStartSession()
+                continueStartSession()
         }
     }
 
@@ -190,6 +189,7 @@ class ServerService : Service() {
 
     private fun continueStartSession() {
         val filesystemDirectoryName = lastActivatedSession.filesystemId.toString()
+        var assetsWereDownloaded = false
 
         launchAsync {
             startProgressBar()
@@ -198,23 +198,24 @@ class ServerService : Service() {
                     getString(R.string.progress_downloading_check_updates))
 
             asyncAwait {
-                downloadAssets()
+                assetsWereDownloaded = downloadAssets()
             }
 
             updateProgressBar(getString(R.string.progress_setting_up), "")
-            asyncAwait {
-                // TODO only copy when newer versions have been downloaded (and skip rootfs)
-                val distType = lastActivatedFilesystem.distributionType
-                fileUtility.copyDistributionAssetsToFilesystem(filesystemDirectoryName, distType)
-                if (!lastActivatedSession.isExtracted) {
-                    filesystemUtility.extractFilesystem(filesystemDirectoryName, filesystemExtractLogger)
+            if(assetsWereDownloaded) {
+                asyncAwait {
+                    val distType = lastActivatedFilesystem.distributionType
+                    fileUtility.copyDistributionAssetsToFilesystem(filesystemDirectoryName, distType)
+                    if (!lastActivatedSession.isExtracted) {
+                        filesystemUtility.extractFilesystem(filesystemDirectoryName, filesystemExtractLogger)
+                    }
                 }
-            }
+                if (!fileUtility.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")) {
+                    Toast.makeText(this@ServerService, R.string.filesystem_extraction_failed, Toast.LENGTH_LONG).show()
+                    killProgressBar()
+                    return@launchAsync
+                }
 
-            if (!fileUtility.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")) {
-                Toast.makeText(this@ServerService, R.string.filesystem_extraction_failed, Toast.LENGTH_LONG).show()
-                killProgressBar()
-                return@launchAsync
             }
 
             updateProgressBar(getString(R.string.progress_starting), "")
