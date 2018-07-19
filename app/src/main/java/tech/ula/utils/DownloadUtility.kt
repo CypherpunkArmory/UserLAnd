@@ -12,7 +12,7 @@ import java.net.URL
 import java.util.concurrent.TimeUnit
 import java.util.Date
 
-class DownloadUtility(val context: Context, val archType: String, distType: String) {
+class DownloadUtility(val context: Context, val archType: String, val distType: String) {
 
     private val branch = "master"
     private val failedConnection = 0L
@@ -24,20 +24,23 @@ class DownloadUtility(val context: Context, val archType: String, distType: Stri
     //TODO make this list dynamic based on a list stored in the repo or otherwise
     // Prefix file name with OS type to move it into the correct folder
     private val assets = arrayListOf(
-            "support:proot" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/$archType/proot",
-            "support:busybox" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/$archType/busybox",
-            "support:libtalloc.so.2" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/$archType/libtalloc.so.2",
-            "support:execInProot.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/all/execInProot.sh",
-            "support:killProcTree.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/all/killProcTree.sh",
-            "support:isServerInProcTree.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/all/isServerInProcTree.sh",
-            "$distType:startSSHServer.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/all/startSSHServer.sh",
-            "$distType:startVNCServer.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/all/startVNCServer.sh",
-            "$distType:startVNCServerStep2.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/all/startVNCServerStep2.sh",
-            "$distType:extractFilesystem.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/all/extractFilesystem.sh",
-            "$distType:busybox" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/$archType/busybox",
-            "$distType:libdisableselinux.so" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/$archType/libdisableselinux.so",
-            "$distType:ld.so.preload" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/all/ld.so.preload",
-            "$distType:rootfs.tar.gz" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/${distType}/$archType/rootfs.tar.gz"
+            "support:proot" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-Core/raw/$branch/assets/$archType/proot",
+            "support:busybox" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-Core/raw/$branch/assets/$archType/busybox",
+            "support:libtalloc.so.2" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-Core/raw/$branch/assets/$archType/libtalloc.so.2",
+            "support:execInProot.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-Core/raw/$branch/assets/all/execInProot.sh",
+            "support:killProcTree.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-Core/raw/$branch/assets/all/killProcTree.sh",
+            "support:isServerInProcTree.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-Core/raw/$branch/assets/all/isServerInProcTree.sh",
+            "$distType:startSSHServer.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/startSSHServer.sh",
+            "$distType:startVNCServer.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/startVNCServer.sh",
+            "$distType:startVNCServerStep2.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/startVNCServerStep2.sh",
+            "$distType:extractFilesystem.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/extractFilesystem.sh",
+            "$distType:busybox" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/busybox",
+            "$distType:libdisableselinux.so" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/libdisableselinux.so",
+            "$distType:ld.so.preload" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/ld.so.preload",
+            "$distType:rootfs.tar.gz.part00" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/rootfs.tar.gz.part00",
+            "$distType:rootfs.tar.gz.part01" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/rootfs.tar.gz.part01",
+            "$distType:rootfs.tar.gz.part02" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/rootfs.tar.gz.part02",
+            "$distType:rootfs.tar.gz.part03" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/rootfs.tar.gz.part03"
     )
 
     fun checkIfLargeRequirement(newFilesystem: Boolean): Boolean {
