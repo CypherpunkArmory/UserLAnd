@@ -11,7 +11,6 @@ import tech.ula.model.entities.Session
 import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 
-// TODO export schema appropriately
 @Database(entities = [Session::class, Filesystem::class], version = 2, exportSchema = true)
 abstract class AppDatabase : RoomDatabase() {
 
