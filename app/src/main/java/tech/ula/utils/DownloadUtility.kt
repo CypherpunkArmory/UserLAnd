@@ -13,11 +13,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
-<<<<<<< HEAD
-class DownloadUtility(val context: Context, val archType: String, val distType: String) {
-=======
 class DownloadUtility(val context: Context, val session: Session, val filesystem: Filesystem) {
->>>>>>> a64297c57a1acaaecb2d653a3b8db8b2312f006a
 
     private val branch = "master"
     private val failedConnection = 0L
@@ -31,8 +27,7 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
 
     // TODO make this list dynamic based on a list stored in the repo or otherwise
     // Prefix file name with OS type to move it into the correct folder
-<<<<<<< HEAD
-    private val assets = arrayListOf(
+    private val assetEndpoints = arrayListOf(
             "support:proot" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-Core/raw/$branch/assets/$archType/proot",
             "support:busybox" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-Core/raw/$branch/assets/$archType/busybox",
             "support:libtalloc.so.2" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-Core/raw/$branch/assets/$archType/libtalloc.so.2",
@@ -45,30 +40,15 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
             "$distType:extractFilesystem.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/extractFilesystem.sh",
             "$distType:busybox" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/busybox",
             "$distType:libdisableselinux.so" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/libdisableselinux.so",
-            "$distType:ld.so.preload" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/ld.so.preload",
+            "$distType:ld.so.preload" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/ld.so.preload"
+    )
+
+    private val rootfsEndpoint = arrayListOf(
             "$distType:rootfs.tar.gz.part00" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/rootfs.tar.gz.part00",
             "$distType:rootfs.tar.gz.part01" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/rootfs.tar.gz.part01",
             "$distType:rootfs.tar.gz.part02" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/rootfs.tar.gz.part02",
             "$distType:rootfs.tar.gz.part03" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/rootfs.tar.gz.part03"
-=======
-    private val assetEndpoints = arrayListOf(
-            "support:proot" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/$archType/proot",
-            "support:busybox" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/$archType/busybox",
-            "support:libtalloc.so.2" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/$archType/libtalloc.so.2",
-            "support:execInProot.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/all/execInProot.sh",
-            "support:killProcTree.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/all/killProcTree.sh",
-            "support:isServerInProcTree.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/core/all/isServerInProcTree.sh",
-            "$distType:startSSHServer.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/$distType/all/startSSHServer.sh",
-            "$distType:startVNCServer.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/$distType/all/startVNCServer.sh",
-            "$distType:startVNCServerStep2.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/$distType/all/startVNCServerStep2.sh",
-            "$distType:extractFilesystem.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/$distType/all/extractFilesystem.sh",
-            "$distType:busybox" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/$distType/$archType/busybox",
-            "$distType:libdisableselinux.so" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/$distType/$archType/libdisableselinux.so",
-            "$distType:ld.so.preload" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/$distType/all/ld.so.preload"
->>>>>>> a64297c57a1acaaecb2d653a3b8db8b2312f006a
     )
-
-    private val rootfsEndpoint = "$distType:rootfs.tar.gz" to "https://github.com/CypherpunkArmory/UserLAnd-Assets/raw/$branch/distribution/$distType/$archType/rootfs.tar.gz"
 
     fun largeAssetRequiredAndNoWifi(): Boolean {
         val filesystemIsPresent = session.isExtracted || filesystem.isDownloaded
@@ -128,7 +108,7 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
     }
 
     suspend fun downloadRequirements(updateIsBeingForced: Boolean = false): List<Long> {
-        if (!session.isExtracted) assetEndpoints.add(rootfsEndpoint)
+        if (!session.isExtracted) assetEndpoints.addAll(rootfsEndpoint)
         return assetEndpoints
                 .filter {
                     (type, endpoint) ->
