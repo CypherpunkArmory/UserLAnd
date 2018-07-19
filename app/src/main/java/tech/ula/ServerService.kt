@@ -103,7 +103,8 @@ class ServerService : Service() {
             }
             "forceAssetUpdate" -> {
                 val session: Session = intent.getParcelableExtra("session")
-                forceAssetUpdate(session)
+                val filesystem: Filesystem = intent.getParcelableExtra("filesystem")
+                forceAssetUpdate(session, filesystem)
             }
             "isProgressBarActive" -> isProgressBarActive()
         }
@@ -162,8 +163,32 @@ class ServerService : Service() {
         }
     }
 
-    private fun continueStartSession() {
+    private suspend fun downloadAssets(): Boolean {
         var assetsWereDownloaded = false
+        downloadList.clear()
+        downloadedList.clear()
+        downloadList.addAll(downloadUtility.downloadRequirements())
+
+        if (downloadList.isNotEmpty())
+            assetsWereDownloaded = true
+
+        while (downloadList.size != downloadedList.size) {
+            updateProgressBar(getString(R.string.progress_downloading),
+                    getString(R.string.progress_downloading_out_of,
+                            downloadedList.size,
+                            downloadList.size))
+            delay(500)
+        }
+
+        if (assetsWereDownloaded) {
+            fileUtility.moveDownloadedAssetsToSharedSupportDirectory()
+            fileUtility.correctFilePermissions()
+        }
+
+        return assetsWereDownloaded
+    }
+
+    private fun continueStartSession() {
         val filesystemDirectoryName = lastActivatedSession.filesystemId.toString()
 
         launchAsync {
@@ -173,25 +198,7 @@ class ServerService : Service() {
                     getString(R.string.progress_downloading_check_updates))
 
             asyncAwait {
-                downloadList.clear()
-                downloadedList.clear()
-                downloadList.addAll(downloadUtility.downloadRequirements())
-
-                if (downloadList.isNotEmpty())
-                    assetsWereDownloaded = true
-
-                while (downloadList.size != downloadedList.size) {
-                    updateProgressBar(getString(R.string.progress_downloading),
-                            getString(R.string.progress_downloading_out_of,
-                                    downloadedList.size,
-                                    downloadList.size))
-                    delay(500)
-                }
-
-                if (assetsWereDownloaded) {
-                    fileUtility.moveDownloadedAssetsToSharedSupportDirectory()
-                    fileUtility.correctFilePermissions()
-                }
+                downloadAssets()
             }
 
             updateProgressBar(getString(R.string.progress_setting_up), "")
@@ -250,8 +257,18 @@ class ServerService : Service() {
         filesystemUtility.deleteFilesystem(filesystemId)
     }
 
-    private fun forceAssetUpdate(session: Session) {
-        downloadUtility.downloadRequirements(updateIsBeingForced = true)
+    private fun forceAssetUpdate(session: Session, filesystem: Filesystem) {
+        downloadUtility = DownloadUtility(this, session, filesystem)
+        var assetsWereDownloaded = true
+        launchAsync {
+            asyncAwait { assetsWereDownloaded = downloadAssets() }
+            killProgressBar()
+            if (!assetsWereDownloaded) {
+                Toast.makeText(this@ServerService, R.string.no_assets_need_updating, Toast.LENGTH_LONG).show()
+                return@launchAsync
+            }
+            fileUtility.copyDistributionAssetsToFilesystem(filesystem.id.toString(), filesystem.distributionType)
+        }
     }
 
     private fun startProgressBar() {

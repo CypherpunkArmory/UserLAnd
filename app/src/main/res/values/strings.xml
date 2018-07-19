@@ -107,6 +107,7 @@
     <string name="no_supported_architecture">UserLAnd does not currently support your devices architecture.</string>
     <string name="debug_log_deleted">Debug log deleted or does not exist!</string>
     <string name="filesystem_extraction_failed">Could not extract filesystem!</string>
+    <string name="no_assets_need_updating">No assets need updating!</string>
 
     <!-- Content descriptions -->
     <string name="desc_inactive">Image: session inactive</string>

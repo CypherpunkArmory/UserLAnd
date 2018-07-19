@@ -228,9 +228,11 @@ class SessionListFragment : Fragment() {
     }
 
     private fun forceAssetUpdate(session: Session): Boolean {
+        val filesystem = filesystemList.find { it.name == session.filesystemName }
         val serviceIntent = Intent(activityContext, ServerService::class.java)
         serviceIntent.putExtra("type", "forceAssetUpdate")
         serviceIntent.putExtra("session", session)
+        serviceIntent.putExtra("filesystem", filesystem)
         activityContext.startService(serviceIntent)
         return true
     }
@@ -259,6 +261,8 @@ class SessionListFragment : Fragment() {
     }
 
     private fun updateProgressBar(intent: Intent) {
+        layout_progress.visibility = View.VISIBLE
+
         val step = intent.getStringExtra("step")
         val details = intent.getStringExtra("details")
         text_session_list_progress_step.text = step
