@@ -6,16 +6,14 @@ import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.view.*
+import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
-import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
-import kotlinx.android.synthetic.main.frag_filesystem_list.*
+import kotlinx.android.synthetic.main.frag_filesystem_list.* // ktlint-disable no-wildcard-imports
 import org.jetbrains.anko.bundleOf
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.Filesystem
-import tech.ula.utils.FilesystemUtility
 import tech.ula.viewmodel.FilesystemListViewModel
 
 class FilesystemListFragment : Fragment() {
@@ -47,7 +45,7 @@ class FilesystemListFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return if(item.itemId == R.id.menu_item_add) editFilesystem(Filesystem(0))
+        return if (item.itemId == R.id.menu_item_add) editFilesystem(Filesystem(0))
         else super.onOptionsItemSelected(item)
     }
 
@@ -72,7 +70,7 @@ class FilesystemListFragment : Fragment() {
         val menuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
         val position = menuInfo.position
         val filesystem = filesystemList[position]
-        return when(item.itemId) {
+        return when (item.itemId) {
             R.id.menu_item_filesystem_edit -> editFilesystem(filesystem)
             R.id.menu_item_filesystem_delete -> deleteFilesystem(filesystem)
             else -> super.onContextItemSelected(item)

@@ -10,14 +10,15 @@ import java.util.*
 @Parcelize
 @Entity(tableName = "filesystem", indices = [(Index(value = ["name"], unique = true))])
 data class Filesystem(
-        @PrimaryKey(autoGenerate = true)
-        val id: Long,
-        var name: String = "",
-        var distributionType: String = "",
-        var archType: String = "",
-        val defaultUsername: String = "user",
-        val defaultPassword: String = "userland",
-        val location: String = "",
-        val dateCreated: String = Date().toString(),
-        val realRoot: Boolean = false
+    @PrimaryKey(autoGenerate = true)
+    val id: Long,
+    var name: String = "",
+    var distributionType: String = "",
+    var archType: String = "",
+    val defaultUsername: String = "user",
+    val defaultPassword: String = "userland",
+    val location: String = "",
+    val dateCreated: String = Date().toString(),
+    val realRoot: Boolean = false,
+    var isDownloaded: Boolean = false
 ) : Parcelable

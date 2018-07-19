@@ -8,13 +8,13 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.*
+import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.TextView
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
-import kotlinx.android.synthetic.main.frag_session_edit.*
+import kotlinx.android.synthetic.main.frag_session_edit.* // ktlint-disable no-wildcard-imports
 import org.jetbrains.anko.bundleOf
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
@@ -47,7 +47,7 @@ class SessionEditFragment : Fragment() {
             filesystemList = it
             val filesystemNameList = ArrayList(filesystemList.map { filesystem -> filesystem.name })
             filesystemNameList.add("Create new")
-            if(it.isEmpty()) {
+            if (it.isEmpty()) {
                 filesystemNameList.add("")
             }
             val filesystemAdapter = ArrayAdapter(activityContext, android.R.layout.simple_spinner_dropdown_item, filesystemNameList)
@@ -73,7 +73,7 @@ class SessionEditFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return if(item.itemId == R.id.menu_item_add) insertSession()
+        return if (item.itemId == R.id.menu_item_add) insertSession()
         else super.onOptionsItemSelected(item)
     }
 
@@ -156,7 +156,7 @@ class SessionEditFragment : Fragment() {
         val navController = NavHostFragment.findNavController(this)
 
         if (session.name == "") text_input_session_name.error = getString(R.string.error_session_name)
-        //TODO: Uncomment when we support unique usernames
+        // TODO: Uncomment when we support unique usernames
         // /if (session.username == "") text_input_username.error = getString(R.string.error_username)
         if (session.filesystemName == "") {
             val errorText = spinner_filesystem_list.selectedView as TextView
@@ -165,15 +165,13 @@ class SessionEditFragment : Fragment() {
             errorText.text = getString(R.string.error_filesystem_name)
         }
 
-        if(session.name == "" || session.username == "" || session.filesystemName == "") {
+        if (session.name == "" || session.username == "" || session.filesystemName == "") {
             Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
-        }
-        else {
-            if(editExisting) {
+        } else {
+            if (editExisting) {
                 sessionEditViewModel.updateSession(session)
                 navController.popBackStack()
-            }
-            else {
+            } else {
                 launchAsync {
                     when (sessionEditViewModel.insertSession(session)) {
                         true -> navController.popBackStack()
@@ -186,7 +184,7 @@ class SessionEditFragment : Fragment() {
     }
 
     private fun getSupportedClientTypes(selectedServiceType: String): ArrayList<String> {
-        return when(selectedServiceType) {
+        return when (selectedServiceType) {
             "ssh" -> arrayListOf(*activityContext.resources.getStringArray(R.array.supported_ssh_clients))
             "vnc" -> arrayListOf(*activityContext.resources.getStringArray(R.array.supported_vnc_clients))
             else -> arrayListOf()
@@ -194,7 +192,7 @@ class SessionEditFragment : Fragment() {
     }
 
     private fun getDefaultServicePort(selectedServiceType: String): Long {
-        return when(selectedServiceType) {
+        return when (selectedServiceType) {
             "vnc" -> 51
             else -> 2022
         }

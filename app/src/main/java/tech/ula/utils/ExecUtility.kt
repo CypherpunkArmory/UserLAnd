@@ -6,7 +6,6 @@ import android.preference.PreferenceManager
 import android.util.Log
 import java.io.BufferedReader
 import java.io.File
-import java.io.IOException
 import java.io.InputStream
 import java.util.ArrayList
 import java.util.HashMap
@@ -19,7 +18,7 @@ class ExecUtility(private val context: Context) {
             Log.d("EXEC_DEBUG_LOGGER", line)
         }
 
-        val NOOP_CONSUMER: (line: String) -> Int = {0}
+        val NOOP_CONSUMER: (line: String) -> Int = { 0 }
     }
 
     private val fileManager by lazy {
@@ -60,14 +59,13 @@ class ExecUtility(private val context: Context) {
         buf.close()
     }
 
-
     fun wrapWithBusyboxAndExecute(targetDirectoryName: String, commandToWrap: String, listener: (String) -> Int = NOOP_CONSUMER, doWait: Boolean = true): Process {
         val executionDirectory = fileManager.createAndGetDirectory(targetDirectoryName)
 
         val preferences = PreferenceManager.getDefaultSharedPreferences(context)
         val prootDebuggingEnabled = preferences.getBoolean("pref_proot_debug_enabled", false)
         val prootDebuggingLevel =
-                if(prootDebuggingEnabled) preferences.getString("pref_proot_debug_level", "-1")
+                if (prootDebuggingEnabled) preferences.getString("pref_proot_debug_level", "-1")
                 else "-1"
         /* val prootFileLogging = preferences.getBoolean("pref_proot_local_file_enabled", false) */
 
@@ -76,7 +74,7 @@ class ExecUtility(private val context: Context) {
         val commandToAdd =
                 // TODO Fix this bug. If logging is enabled and it doesn't write to a file, isServerInProcTree can't find dropbear.
                 /*if(prootDebuggingEnabled && prootFileLogging) "$commandToWrap &> /mnt/sdcard/PRoot_Debug_Log"*/
-                if(prootDebuggingEnabled) "$commandToWrap &> /mnt/sdcard/PRoot_Debug_Log"
+                if (prootDebuggingEnabled) "$commandToWrap &> /mnt/sdcard/PRoot_Debug_Log"
                 else commandToWrap
 
         command.add(commandToAdd)
@@ -89,5 +87,4 @@ class ExecUtility(private val context: Context) {
 
         return execLocal(executionDirectory, command, env, listener, doWait)
     }
-
 }
