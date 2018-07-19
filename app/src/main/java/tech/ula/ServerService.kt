@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
+import android.widget.Toast
 import kotlinx.coroutines.experimental.delay
 import org.jetbrains.anko.doAsync
 import tech.ula.model.AppDatabase
@@ -39,7 +40,7 @@ class ServerService : Service() {
         }
     }
 
-    private lateinit var downloadManager: DownloadUtility
+    private lateinit var downloadUtility: DownloadUtility
 
     private val notificationManager: NotificationUtility by lazy {
         NotificationUtility(this)
@@ -49,7 +50,7 @@ class ServerService : Service() {
         FilesystemUtility(this)
     }
 
-    private val fileManager by lazy {
+    private val fileUtility by lazy {
         FileUtility(this)
     }
 
@@ -100,6 +101,10 @@ class ServerService : Service() {
                 val filesystemId: Long = intent.getLongExtra("filesystemId", -1)
                 cleanUpFilesystem(filesystemId)
             }
+            "forceAssetUpdate" -> {
+                val session: Session = intent.getParcelableExtra("session")
+                forceAssetUpdate(session)
+            }
             "isProgressBarActive" -> isProgressBarActive()
         }
         return Service.START_STICKY
@@ -126,24 +131,21 @@ class ServerService : Service() {
         }
     }
 
-    fun Session.isInstalled(): Boolean {
-        val filesystemDirectoryName = this.filesystemId.toString()
-        return fileManager.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")
-    }
-
-    fun Filesystem.isDownloaded(): Boolean {
-        return fileManager.rootfsExists(this.distributionType)
-    }
-
     private fun startSession(session: Session, filesystem: Filesystem) {
         lastActivatedSession = session
         lastActivatedFilesystem = filesystem
-        val archType = filesystemUtility.getArchType()
-        val distType = lastActivatedFilesystem.distributionType
+        val filesystemDirectoryName = filesystem.id.toString()
 
-        downloadManager = DownloadUtility(this@ServerService, archType, distType)
-        if (!downloadManager.isNetworkAvailable()) {
-            if (session.isInstalled() || filesystem.isDownloaded()) {
+        lastActivatedSession.isExtracted = fileUtility
+                .statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")
+
+        downloadUtility = DownloadUtility(this@ServerService,
+                lastActivatedSession,
+                lastActivatedFilesystem)
+
+        if (!downloadUtility.isNetworkAvailable()) {
+            // TODO populate these variables
+            if (session.isExtracted || filesystem.isDownloaded) {
                 continueStartSession()
                 return
             }
@@ -153,7 +155,7 @@ class ServerService : Service() {
             return
         }
 
-        if (downloadManager.checkIfLargeRequirement(!lastActivatedSession.isInstalled())) {
+        if (downloadUtility.checkIfLargeRequirement()) {
             displayNetworkChoices()
         } else {
             continueStartSession()
@@ -173,8 +175,7 @@ class ServerService : Service() {
             asyncAwait {
                 downloadList.clear()
                 downloadedList.clear()
-                downloadList.addAll(downloadManager.downloadRequirements(
-                        !lastActivatedSession.isInstalled()))
+                downloadList.addAll(downloadUtility.downloadRequirements())
 
                 if (downloadList.isNotEmpty())
                     assetsWereDownloaded = true
@@ -188,8 +189,8 @@ class ServerService : Service() {
                 }
 
                 if (assetsWereDownloaded) {
-                    fileManager.moveDownloadedAssetsToSharedSupportDirectory()
-                    fileManager.correctFilePermissions()
+                    fileUtility.moveDownloadedAssetsToSharedSupportDirectory()
+                    fileUtility.correctFilePermissions()
                 }
             }
 
@@ -197,10 +198,16 @@ class ServerService : Service() {
             asyncAwait {
                 // TODO only copy when newer versions have been downloaded (and skip rootfs)
                 val distType = lastActivatedFilesystem.distributionType
-                fileManager.copyDistributionAssetsToFilesystem(filesystemDirectoryName, distType)
-                if (!lastActivatedSession.isInstalled()) {
+                fileUtility.copyDistributionAssetsToFilesystem(filesystemDirectoryName, distType)
+                if (!lastActivatedSession.isExtracted) {
                     filesystemUtility.extractFilesystem(filesystemDirectoryName, filesystemExtractLogger)
                 }
+            }
+
+            if (!fileUtility.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")) {
+                Toast.makeText(this@ServerService, R.string.filesystem_extraction_failed, Toast.LENGTH_LONG).show()
+                killProgressBar()
+                return@launchAsync
             }
 
             updateProgressBar(getString(R.string.progress_starting), "")
@@ -241,6 +248,10 @@ class ServerService : Service() {
                 .forEach { killSession(it) }
 
         filesystemUtility.deleteFilesystem(filesystemId)
+    }
+
+    private fun forceAssetUpdate(session: Session) {
+        downloadUtility.downloadRequirements(updateIsBeingForced = true)
     }
 
     private fun startProgressBar() {

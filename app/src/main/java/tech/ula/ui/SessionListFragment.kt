@@ -196,6 +196,7 @@ class SessionListFragment : Fragment() {
             R.id.menu_item_session_kill_service -> stopService(session)
             R.id.menu_item_session_edit -> editSession(session)
             R.id.menu_item_session_delete -> deleteSession(session)
+            R.id.menu_item_session_update_assets -> forceAssetUpdate(session)
             else -> super.onContextItemSelected(item)
         }
     }
@@ -206,8 +207,8 @@ class SessionListFragment : Fragment() {
             view.image_list_item_active.setImageResource(R.drawable.ic_block_red_24dp)
 
             val serviceIntent = Intent(activityContext, ServerService::class.java)
-            serviceIntent.putExtra("session", session)
             serviceIntent.putExtra("type", "kill")
+            serviceIntent.putExtra("session", session)
             activityContext.startService(serviceIntent)
         }
         return true
@@ -226,12 +227,20 @@ class SessionListFragment : Fragment() {
         return true
     }
 
+    private fun forceAssetUpdate(session: Session): Boolean {
+        val serviceIntent = Intent(activityContext, ServerService::class.java)
+        serviceIntent.putExtra("type", "forceAssetUpdate")
+        serviceIntent.putExtra("session", session)
+        activityContext.startService(serviceIntent)
+        return true
+    }
+
     private fun startSession(session: Session) {
         val filesystem = filesystemList.find { it.name == session.filesystemName }
         val serviceIntent = Intent(activityContext, ServerService::class.java)
+        serviceIntent.putExtra("type", "start")
         serviceIntent.putExtra("session", session)
         serviceIntent.putExtra("filesystem", filesystem)
-        serviceIntent.putExtra("type", "start")
         activityContext.startService(serviceIntent)
     }
 
