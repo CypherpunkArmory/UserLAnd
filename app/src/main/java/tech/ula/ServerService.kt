@@ -202,7 +202,7 @@ class ServerService : Service() {
             }
 
             updateProgressBar(getString(R.string.progress_setting_up), "")
-            if(assetsWereDownloaded) {
+            if (assetsWereDownloaded || !filesystemUtility.assetsArePresent(filesystemDirectoryName)) {
                 asyncAwait {
                     val distType = lastActivatedFilesystem.distributionType
                     fileUtility.copyDistributionAssetsToFilesystem(filesystemDirectoryName, distType)
@@ -210,12 +210,13 @@ class ServerService : Service() {
                         filesystemUtility.extractFilesystem(filesystemDirectoryName, filesystemExtractLogger)
                     }
                 }
+
                 if (!fileUtility.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")) {
                     Toast.makeText(this@ServerService, R.string.filesystem_extraction_failed, Toast.LENGTH_LONG).show()
                     killProgressBar()
                     return@launchAsync
                 }
-
+                filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
             }
 
             updateProgressBar(getString(R.string.progress_starting), "")

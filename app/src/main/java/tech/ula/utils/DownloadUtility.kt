@@ -66,7 +66,7 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
             apply()
         }
 
-        if(type.contains("rootfs.tar.gz")) filesystem.isDownloaded = true
+        if (type.contains("rootfs.tar.gz")) filesystem.isDownloaded = true
 
         return downloadManager.enqueue(request)
     }
@@ -79,7 +79,7 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
         // TODO: make it so we download a full group of files, if any has changed (not the rootfs though, that is special)
         // This will take care of a few possible corner cases
 
-        if(!updateIsBeingForced) {
+        if (!updateIsBeingForced) {
             val now = System.currentTimeMillis()
             val lastUpdateCheck = prefs.getLong("lastUpdateCheck", 0)
             if (!asset.exists() || now > (lastUpdateCheck + TimeUnit.DAYS.toMillis(1))) {
