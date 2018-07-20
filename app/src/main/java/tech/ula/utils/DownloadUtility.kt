@@ -98,7 +98,11 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
         }
 
         val localDateStamp = prefs.getLong(type, 0)
-        val remoteDateStamp = urlDateModified(endpoint)
+        val remoteDateStamp: Long = try {
+            getLastModifiedDateForRemoteFile(endpoint)
+        } catch (err: Exception) {
+            0
+        }
         if ((remoteDateStamp != failedConnection) && (localDateStamp != remoteDateStamp)) {
             if (asset.exists())
                 asset.delete()
@@ -143,10 +147,15 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
             downloadFile.delete()
     }
 
-    private fun urlDateModified(address: String): Long {
-        val url = URL(address)
-        val httpCon = url.openConnection() as HttpURLConnection
-
-        return httpCon.lastModified
+    @Throws(Exception::class)
+    private fun getLastModifiedDateForRemoteFile(address: String): Long {
+        val repo = "UserLAnd-Assets-" +
+                if (address.contains(distType)) distType
+                else "Core"
+        val apiEndpoint = "https://api.github.com/repos/CypherpunkArmory/$repo/commits" +
+                "?path=${address.substringAfter(branch)}"
+        val conn = URL(apiEndpoint).openConnection() as HttpURLConnection
+        conn.requestMethod = "HEAD"
+        return conn.lastModified
     }
 }

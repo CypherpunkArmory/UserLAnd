@@ -163,6 +163,9 @@ class ServerService : Service() {
     }
 
     private suspend fun downloadAssets(updateIsBeingForced: Boolean = false): Boolean {
+        updateProgressBar(getString(R.string.progress_downloading),
+                getString(R.string.progress_downloading_check_updates))
+
         var assetsWereDownloaded = false
         downloadList.clear()
         downloadedList.clear()
@@ -193,9 +196,6 @@ class ServerService : Service() {
 
         launchAsync {
             startProgressBar()
-
-            updateProgressBar(getString(R.string.progress_downloading),
-                    getString(R.string.progress_downloading_check_updates))
 
             asyncAwait {
                 assetsWereDownloaded = downloadAssets()
