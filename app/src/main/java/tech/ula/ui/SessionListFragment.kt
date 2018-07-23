@@ -258,6 +258,8 @@ class SessionListFragment : Fragment() {
         outAnimation.duration = 200
         layout_progress.animation = outAnimation
         layout_progress.visibility = View.GONE
+        layout_progress.isFocusable = false
+        layout_progress.isClickable = false
     }
 
     private fun updateProgressBar(intent: Intent) {
