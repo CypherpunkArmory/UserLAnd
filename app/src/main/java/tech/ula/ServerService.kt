@@ -270,7 +270,7 @@ class ServerService : Service() {
                 Toast.makeText(this@ServerService, R.string.no_assets_need_updating, Toast.LENGTH_LONG).show()
                 return@launchAsync
             }
-            fileUtility.copyDistributionAssetsToFilesystem(lastActivatedFilesystem.id.toString(), lastActivatedFilesystem.distributionType)
+            fileUtility.copyDistributionAssetsToFilesystem(filesystem.id.toString(), filesystem.distributionType)
         }
     }
 

@@ -38,7 +38,7 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
             "$distType:startSSHServer.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/startSSHServer.sh",
             "$distType:startVNCServer.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/startVNCServer.sh",
             "$distType:startVNCServerStep2.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/startVNCServerStep2.sh",
-            "$distType:extractFilesystem.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/test/assets/all/extractFilesystem.sh",
+            "$distType:extractFilesystem.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/extractFilesystem.sh",
             "$distType:busybox" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/busybox",
             "$distType:libdisableselinux.so" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/libdisableselinux.so",
             "$distType:ld.so.preload" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/ld.so.preload"
@@ -72,8 +72,6 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
         return downloadManager.enqueue(request)
     }
 
-    // TODO make corbin rename repo to support
-    // TODO make sure rootfs download stuff is correct
     private fun assetNeedsToUpdated(
         filename: String,
         remoteTimestamp: Long,
