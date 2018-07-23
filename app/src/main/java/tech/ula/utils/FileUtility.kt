@@ -31,19 +31,14 @@ class FileUtility(private val context: Context) {
         return file.exists()
     }
 
-    fun rootfsExists(distributionType: String): Boolean {
-        val file = File("${getFilesDirPath()}/$distributionType/rootfs.tar.gz")
-        return file.exists()
-    }
-
     // Filename takes form of UserLAnd:<directory to place in>:<filename>
     fun moveDownloadedAssetsToSharedSupportDirectory() {
         val downloadDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         downloadDirectory.walkBottomUp()
                 .filter { it.name.contains("UserLAnd:") }
                 .forEach {
-                    val contents = it.name.split(":")
-                    val targetDestination = File("${getFilesDirPath()}/${contents[1]}/${contents[2]}")
+                    val (_, directory, filename) = it.name.split(":")
+                    val targetDestination = File("${getFilesDirPath()}/$directory/$filename")
                     it.copyTo(targetDestination, overwrite = true)
                     if (!it.delete())
                         Log.e("FileUtility", "Could not delete downloaded file: ${it.name}")

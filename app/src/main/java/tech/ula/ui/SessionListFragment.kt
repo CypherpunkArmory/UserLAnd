@@ -183,9 +183,16 @@ class SessionListFragment : Fragment() {
         builder.create().show()
     }
 
-    override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
+    override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo) {
+        val info = menuInfo as AdapterView.AdapterContextMenuInfo
         super.onCreateContextMenu(menu, v, menuInfo)
-        activityContext.menuInflater.inflate(R.menu.context_menu_sessions, menu)
+        val session = sessionList[info.position]
+        when {
+            session.isExtracted && !session.active ->
+                    activityContext.menuInflater.inflate(R.menu.context_menu_sessions_updateable, menu)
+            else ->
+                activityContext.menuInflater.inflate(R.menu.context_menu_sessions, menu)
+        }
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {

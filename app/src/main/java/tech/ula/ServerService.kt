@@ -162,31 +162,6 @@ class ServerService : Service() {
         }
     }
 
-    private suspend fun downloadAssets(): Boolean {
-        var assetsWereDownloaded = false
-        downloadList.clear()
-        downloadedList.clear()
-        downloadList.addAll(downloadUtility.downloadRequirements())
-
-        if (downloadList.isNotEmpty())
-            assetsWereDownloaded = true
-
-        while (downloadList.size != downloadedList.size) {
-            updateProgressBar(getString(R.string.progress_downloading),
-                    getString(R.string.progress_downloading_out_of,
-                            downloadedList.size,
-                            downloadList.size))
-            delay(500)
-        }
-
-        if (assetsWereDownloaded) {
-            fileUtility.moveDownloadedAssetsToSharedSupportDirectory()
-            fileUtility.correctFilePermissions()
-        }
-
-        return assetsWereDownloaded
-    }
-
     private fun continueStartSession() {
         val filesystemDirectoryName = lastActivatedSession.filesystemId.toString()
         var assetsWereDownloaded = false
@@ -194,15 +169,12 @@ class ServerService : Service() {
         launchAsync {
             startProgressBar()
 
-            updateProgressBar(getString(R.string.progress_downloading),
-                    getString(R.string.progress_downloading_check_updates))
-
             asyncAwait {
                 assetsWereDownloaded = downloadAssets()
             }
 
             updateProgressBar(getString(R.string.progress_setting_up), "")
-            if(assetsWereDownloaded) {
+            if (assetsWereDownloaded || !filesystemUtility.assetsArePresent(filesystemDirectoryName)) {
                 asyncAwait {
                     val distType = lastActivatedFilesystem.distributionType
                     fileUtility.copyDistributionAssetsToFilesystem(filesystemDirectoryName, distType)
@@ -210,12 +182,14 @@ class ServerService : Service() {
                         filesystemUtility.extractFilesystem(filesystemDirectoryName, filesystemExtractLogger)
                     }
                 }
+
                 if (!fileUtility.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")) {
                     Toast.makeText(this@ServerService, R.string.filesystem_extraction_failed, Toast.LENGTH_LONG).show()
                     killProgressBar()
                     return@launchAsync
                 }
-
+                filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
+                lastActivatedSession.isExtracted = true
             }
 
             updateProgressBar(getString(R.string.progress_starting), "")
@@ -240,6 +214,34 @@ class ServerService : Service() {
         }
     }
 
+    private suspend fun downloadAssets(updateIsBeingForced: Boolean = false): Boolean {
+        updateProgressBar(getString(R.string.progress_downloading),
+                getString(R.string.progress_downloading_check_updates))
+
+        var assetsWereDownloaded = false
+        downloadList.clear()
+        downloadedList.clear()
+        downloadList.addAll(downloadUtility.downloadRequirements(updateIsBeingForced))
+
+        if (downloadList.isNotEmpty())
+            assetsWereDownloaded = true
+
+        while (downloadList.size != downloadedList.size) {
+            updateProgressBar(getString(R.string.progress_downloading),
+                    getString(R.string.progress_downloading_out_of,
+                            downloadedList.size,
+                            downloadList.size))
+            delay(500)
+        }
+
+        if (assetsWereDownloaded) {
+            fileUtility.moveDownloadedAssetsToSharedSupportDirectory()
+            fileUtility.correctFilePermissions()
+        }
+
+        return assetsWereDownloaded
+    }
+
     private fun killSession(session: Session) {
         serverUtility.stopService(session)
         removeSession(session)
@@ -262,7 +264,7 @@ class ServerService : Service() {
         downloadUtility = DownloadUtility(this, session, filesystem)
         var assetsWereDownloaded = true
         launchAsync {
-            asyncAwait { assetsWereDownloaded = downloadAssets() }
+            asyncAwait { assetsWereDownloaded = downloadAssets(updateIsBeingForced = true) }
             killProgressBar()
             if (!assetsWereDownloaded) {
                 Toast.makeText(this@ServerService, R.string.no_assets_need_updating, Toast.LENGTH_LONG).show()
