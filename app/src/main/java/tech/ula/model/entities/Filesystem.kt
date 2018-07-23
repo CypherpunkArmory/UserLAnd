@@ -5,7 +5,7 @@ import android.arch.persistence.room.Index
 import android.arch.persistence.room.PrimaryKey
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
-import java.util.*
+import java.util.Date
 
 @Parcelize
 @Entity(tableName = "filesystem", indices = [(Index(value = ["name"], unique = true))])

@@ -74,8 +74,12 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
 
     // TODO make corbin rename repo to support
     // TODO make sure rootfs download stuff is correct
-    private fun assetNeedsToUpdated(filename: String, remoteTimestamp: Long,
-                                    repo: String, updateIsBeingForced: Boolean): Boolean {
+    private fun assetNeedsToUpdated(
+        filename: String,
+        remoteTimestamp: Long,
+        repo: String,
+        updateIsBeingForced: Boolean
+    ): Boolean {
         val asset = File("${context.filesDir.path}/$repo/$filename")
         val prefs = context.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE)
 
