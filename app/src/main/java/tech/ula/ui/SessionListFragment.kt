@@ -258,6 +258,8 @@ class SessionListFragment : Fragment() {
         inAnimation.duration = 200
         layout_progress.animation = inAnimation
         layout_progress.visibility = View.VISIBLE
+        layout_progress.isFocusable = true
+        layout_progress.isClickable = true
     }
 
     private fun killProgressBar() {
@@ -271,6 +273,8 @@ class SessionListFragment : Fragment() {
 
     private fun updateProgressBar(intent: Intent) {
         layout_progress.visibility = View.VISIBLE
+        layout_progress.isFocusable = true
+        layout_progress.isClickable = true
 
         val step = intent.getStringExtra("step")
         val details = intent.getStringExtra("details")

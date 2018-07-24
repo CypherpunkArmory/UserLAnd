@@ -15,7 +15,7 @@ buildscript {
         arch_version = '1.1.1'
         anko_version = '0.10.5'
         kotlinx_coroutines_version = '0.22.5'
-        navigation_version = '1.0.0-alpha02'
+        navigation_version = '1.0.0-alpha03'
         room_version = '1.1.1'
     }
 

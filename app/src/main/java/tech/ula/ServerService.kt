@@ -135,16 +135,18 @@ class ServerService : Service() {
     private fun startSession(session: Session, filesystem: Filesystem) {
         lastActivatedSession = session
         lastActivatedFilesystem = filesystem
-        val filesystemDirectoryName = filesystem.id.toString()
-
-        lastActivatedSession.isExtracted = fileUtility
-                .statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")
 
         downloadUtility = DownloadUtility(this@ServerService,
                 lastActivatedSession,
                 lastActivatedFilesystem)
 
-        if (!downloadUtility.networkIsEnabled()) {
+        val filesysemDirectoryName = session.filesystemId.toString()
+        session.isExtracted = fileUtility
+                .statusFileExists(filesysemDirectoryName, ".success_filesystem_extraction")
+
+        filesystem.isDownloaded = fileUtility.distributionAssetsExist(filesysemDirectoryName)
+
+        if (!downloadUtility.internetIsAccessible()) {
             if (session.isExtracted || filesystem.isDownloaded) {
                 continueStartSession()
                 return
@@ -156,9 +158,9 @@ class ServerService : Service() {
         }
 
         if (downloadUtility.largeAssetRequiredAndNoWifi()) {
-                displayNetworkChoices()
+            displayNetworkChoices()
         } else {
-                continueStartSession()
+            continueStartSession()
         }
     }
 
