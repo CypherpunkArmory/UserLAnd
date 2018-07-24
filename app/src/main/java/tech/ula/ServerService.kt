@@ -8,12 +8,13 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
+import android.widget.Toast
 import kotlinx.coroutines.experimental.delay
 import org.jetbrains.anko.doAsync
 import tech.ula.model.AppDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.utils.*
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 
 class ServerService : Service() {
 
@@ -39,7 +40,7 @@ class ServerService : Service() {
         }
     }
 
-    private lateinit var downloadManager: DownloadUtility
+    private lateinit var downloadUtility: DownloadUtility
 
     private val notificationManager: NotificationUtility by lazy {
         NotificationUtility(this)
@@ -49,10 +50,9 @@ class ServerService : Service() {
         FilesystemUtility(this)
     }
 
-    private val fileManager by lazy {
+    private val fileUtility by lazy {
         FileUtility(this)
     }
-
 
     private val serverUtility by lazy {
         ServerUtility(this)
@@ -63,7 +63,8 @@ class ServerService : Service() {
     }
 
     private val filesystemExtractLogger = { line: String -> Int
-        updateProgressBar(getString(R.string.progress_setting_up),getString(R.string.progress_setting_up_extract_text,line))
+        updateProgressBar(getString(R.string.progress_setting_up),
+                getString(R.string.progress_setting_up_extract_text, line))
         0
     }
 
@@ -100,6 +101,11 @@ class ServerService : Service() {
                 val filesystemId: Long = intent.getLongExtra("filesystemId", -1)
                 cleanUpFilesystem(filesystemId)
             }
+            "forceAssetUpdate" -> {
+                val session: Session = intent.getParcelableExtra("session")
+                val filesystem: Filesystem = intent.getParcelableExtra("filesystem")
+                forceAssetUpdate(session, filesystem)
+            }
             "isProgressBarActive" -> isProgressBarActive()
         }
         return Service.START_STICKY
@@ -120,7 +126,7 @@ class ServerService : Service() {
 
     private fun removeSession(session: Session) {
         activeSessions.remove(session.pid)
-        if(activeSessions.isEmpty()) {
+        if (activeSessions.isEmpty()) {
             stopForeground(true)
             stopSelf()
         }
@@ -129,64 +135,64 @@ class ServerService : Service() {
     private fun startSession(session: Session, filesystem: Filesystem) {
         lastActivatedSession = session
         lastActivatedFilesystem = filesystem
-        val archType = filesystemUtility.getArchType()
-        val distType = lastActivatedFilesystem.distributionType
+        val filesystemDirectoryName = filesystem.id.toString()
 
-        downloadManager = DownloadUtility(this@ServerService, archType, distType)
-        if(!downloadManager.isNetworkAvailable()) {
+        lastActivatedSession.isExtracted = fileUtility
+                .statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")
+
+        downloadUtility = DownloadUtility(this@ServerService,
+                lastActivatedSession,
+                lastActivatedFilesystem)
+
+        if (!downloadUtility.networkIsEnabled()) {
+            if (session.isExtracted || filesystem.isDownloaded) {
+                continueStartSession()
+                return
+            }
             val resultIntent = Intent(SERVER_SERVICE_RESULT)
             resultIntent.putExtra("type", "networkUnavailable")
+            broadcaster.sendBroadcast(resultIntent)
             return
         }
 
-        if (downloadManager.checkIfLargeRequirement()) {
-            displayNetworkChoices()
+        if (downloadUtility.largeAssetRequiredAndNoWifi()) {
+                displayNetworkChoices()
         } else {
-            continueStartSession()
+                continueStartSession()
         }
     }
 
     private fun continueStartSession() {
-        var assetsWereDownloaded = false
         val filesystemDirectoryName = lastActivatedSession.filesystemId.toString()
+        var assetsWereDownloaded = false
 
         launchAsync {
             startProgressBar()
 
-            updateProgressBar(getString(R.string.progress_downloading),"")
             asyncAwait {
-                downloadList.clear()
-                downloadedList.clear()
-                downloadList.addAll(downloadManager.downloadRequirements())
-
-                if (downloadList.isNotEmpty())
-                    assetsWereDownloaded = true
-
-                while (downloadList.size != downloadedList.size) {
-                    updateProgressBar(getString(R.string.progress_downloading),
-                            getString(R.string.progress_downloading_out_of,
-                                    downloadedList.size,
-                                    downloadList.size))
-                    delay(500)
-                }
-
-                if (assetsWereDownloaded) {
-                    fileManager.moveDownloadedAssetsToSharedSupportDirectory()
-                    fileManager.correctFilePermissions()
-                }
+                assetsWereDownloaded = downloadAssets()
             }
 
-            updateProgressBar(getString(R.string.progress_setting_up),"")
-            asyncAwait {
-                // TODO only copy when newer versions have been downloaded (and skip rootfs)
-                val distType = lastActivatedFilesystem.distributionType
-                fileManager.copyDistributionAssetsToFilesystem(filesystemDirectoryName, distType)
-                if (!fileManager.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")) {
-                    filesystemUtility.extractFilesystem(filesystemDirectoryName, filesystemExtractLogger)
+            updateProgressBar(getString(R.string.progress_setting_up), "")
+            if (assetsWereDownloaded || !filesystemUtility.assetsArePresent(filesystemDirectoryName)) {
+                asyncAwait {
+                    val distType = lastActivatedFilesystem.distributionType
+                    fileUtility.copyDistributionAssetsToFilesystem(filesystemDirectoryName, distType)
+                    if (!lastActivatedSession.isExtracted) {
+                        filesystemUtility.extractFilesystem(filesystemDirectoryName, filesystemExtractLogger)
+                    }
                 }
+
+                if (!fileUtility.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")) {
+                    Toast.makeText(this@ServerService, R.string.filesystem_extraction_failed, Toast.LENGTH_LONG).show()
+                    killProgressBar()
+                    return@launchAsync
+                }
+                filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
+                lastActivatedSession.isExtracted = true
             }
 
-            updateProgressBar(getString(R.string.progress_starting),"")
+            updateProgressBar(getString(R.string.progress_starting), "")
             asyncAwait {
 
                 lastActivatedSession.pid = serverUtility.startServer(lastActivatedSession)
@@ -197,15 +203,43 @@ class ServerService : Service() {
                 }
             }
 
-            killProgressBar()
-
             asyncAwait {
                 clientUtility.startClient(lastActivatedSession)
             }
 
             lastActivatedSession.active = true
             updateSession(lastActivatedSession)
+
+            killProgressBar()
         }
+    }
+
+    private suspend fun downloadAssets(updateIsBeingForced: Boolean = false): Boolean {
+        updateProgressBar(getString(R.string.progress_downloading),
+                getString(R.string.progress_downloading_check_updates))
+
+        var assetsWereDownloaded = false
+        downloadList.clear()
+        downloadedList.clear()
+        downloadList.addAll(downloadUtility.downloadRequirements(updateIsBeingForced))
+
+        if (downloadList.isNotEmpty())
+            assetsWereDownloaded = true
+
+        while (downloadList.size != downloadedList.size) {
+            updateProgressBar(getString(R.string.progress_downloading),
+                    getString(R.string.progress_downloading_out_of,
+                            downloadedList.size,
+                            downloadList.size))
+            delay(500)
+        }
+
+        if (assetsWereDownloaded) {
+            fileUtility.moveDownloadedAssetsToSharedSupportDirectory()
+            fileUtility.correctFilePermissions()
+        }
+
+        return assetsWereDownloaded
     }
 
     private fun killSession(session: Session) {
@@ -216,7 +250,7 @@ class ServerService : Service() {
     }
 
     private fun cleanUpFilesystem(filesystemId: Long) {
-        if(filesystemId == (-1).toLong()) {
+        if (filesystemId == (-1).toLong()) {
             throw Exception("Did not receive filesystemId")
         }
 
@@ -224,6 +258,20 @@ class ServerService : Service() {
                 .forEach { killSession(it) }
 
         filesystemUtility.deleteFilesystem(filesystemId)
+    }
+
+    private fun forceAssetUpdate(session: Session, filesystem: Filesystem) {
+        downloadUtility = DownloadUtility(this, session, filesystem)
+        var assetsWereDownloaded = true
+        launchAsync {
+            asyncAwait { assetsWereDownloaded = downloadAssets(updateIsBeingForced = true) }
+            killProgressBar()
+            if (!assetsWereDownloaded) {
+                Toast.makeText(this@ServerService, R.string.no_assets_need_updating, Toast.LENGTH_LONG).show()
+                return@launchAsync
+            }
+            fileUtility.copyDistributionAssetsToFilesystem(filesystem.id.toString(), filesystem.distributionType)
+        }
     }
 
     private fun startProgressBar() {
@@ -266,5 +314,4 @@ class ServerService : Service() {
         intent.putExtra("type", "displayNetworkChoices")
         broadcaster.sendBroadcast(intent)
     }
-
 }

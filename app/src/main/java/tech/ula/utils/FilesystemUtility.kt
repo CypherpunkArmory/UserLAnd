@@ -2,6 +2,7 @@ package tech.ula.utils
 
 import android.content.Context
 import android.os.Build
+import java.io.File
 
 class FilesystemUtility(private val context: Context) {
 
@@ -13,9 +14,27 @@ class FilesystemUtility(private val context: Context) {
         FileUtility(context)
     }
 
+    private fun getSupportDirectory(targetDirectoryName: String): File {
+        return File("${fileManager.getFilesDirPath()}/$targetDirectoryName/support")
+    }
+
     fun extractFilesystem(targetDirectoryName: String, listener: (String) -> Int) {
         val command = "../support/execInProot.sh /support/extractFilesystem.sh"
         execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, listener)
+    }
+
+    fun assetsArePresent(targetDirectoryName: String): Boolean {
+        val supportDirectory = getSupportDirectory(targetDirectoryName)
+        return supportDirectory.exists() &&
+                supportDirectory.isDirectory &&
+                supportDirectory.listFiles().isNotEmpty()
+    }
+
+    fun removeRootfsFilesFromFilesystem(targetDirectoryName: String) {
+        val supportDirectory = getSupportDirectory(targetDirectoryName)
+        supportDirectory.walkTopDown().forEach {
+            if (it.name.contains("rootfs.tar.gz")) it.delete()
+        }
     }
 
     fun deleteFilesystem(filesystemId: Long): Boolean {
@@ -24,7 +43,7 @@ class FilesystemUtility(private val context: Context) {
     }
 
     fun getArchType(): String {
-        if(Build.VERSION.SDK_INT >= 21) {
+        if (Build.VERSION.SDK_INT >= 21) {
             val supportedABIS = Build.SUPPORTED_ABIS
                     .map {
                         translateABI(it)
@@ -32,14 +51,12 @@ class FilesystemUtility(private val context: Context) {
                     .filter {
                         isSupported(it)
                     }
-            if(supportedABIS.size == 1 && supportedABIS[0] == "") {
+            if (supportedABIS.size == 1 && supportedABIS[0] == "") {
                 throw Exception("No supported ABI!")
-            }
-            else {
+            } else {
                 return supportedABIS[0]
             }
-        }
-        else {
+        } else {
             return when {
                 isSupported(Build.CPU_ABI) -> Build.CPU_ABI
                 isSupported(Build.CPU_ABI2) -> Build.CPU_ABI2
@@ -54,7 +71,7 @@ class FilesystemUtility(private val context: Context) {
     }
 
     private fun translateABI(abi: String): String {
-        return when(abi) {
+        return when (abi) {
             "arm64-v8a" -> "arm64"
             "armeabi-v7a" -> "arm"
             "x86_64" -> "x86_64"
@@ -62,5 +79,4 @@ class FilesystemUtility(private val context: Context) {
             else -> ""
         }
     }
-
 }

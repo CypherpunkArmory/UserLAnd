@@ -21,8 +21,7 @@ class FilesystemEditViewModel(application: Application) : AndroidViewModel(appli
             try {
                 appDatabase.filesystemDao().insertFilesystem(filesystem)
                 result.resume(true)
-            }
-            catch(err: SQLiteConstraintException) {
+            } catch (err: SQLiteConstraintException) {
                 result.resume(false)
             }
         } }

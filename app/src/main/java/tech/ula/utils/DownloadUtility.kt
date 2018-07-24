@@ -6,77 +6,132 @@ import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
 import android.os.Environment
+import tech.ula.model.entities.Filesystem
+import tech.ula.model.entities.Session
+import java.io.BufferedReader
 import java.io.File
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.concurrent.TimeUnit
 
-class DownloadUtility(val context: Context, val archType: String, distType: String) {
+class DownloadUtility(val context: Context, val session: Session, val filesystem: Filesystem) {
+
+    private val branch = "master"
+
+    private val distType = filesystem.distributionType
+    private val archType = filesystem.archType
 
     private val downloadManager: DownloadManager by lazy {
         context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
     }
 
+    // TODO make this list dynamic based on a list stored in the repo or otherwise
     // Prefix file name with OS type to move it into the correct folder
-    private val assets = arrayListOf(
-            "support:proot" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/$archType/proot",
-            "support:busybox" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/$archType/busybox",
-            "support:libtalloc.so.2" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/$archType/libtalloc.so.2",
-            "support:execInProot.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/main/execInProot.sh",
-            "support:killProcTree.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/main/killProcTree.sh",
-            "support:isServerInProcTree.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/mainSupport/main/isServerInProcTree.sh",
-            "$distType:startSSHServer.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/main/startSSHServer.sh",
-            "$distType:startVNCServer.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/main/startVNCServer.sh",
-            "$distType:startVNCServerStep2.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/main/startVNCServerStep2.sh",
-            "$distType:extractFilesystem.sh" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/main/extractFilesystem.sh",
-            "$distType:busybox" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/$archType/busybox",
-            "$distType:libdisableselinux.so" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/$archType/libdisableselinux.so",
-            "$distType:ld.so.preload" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/main/ld.so.preload",
-            "$distType:rootfs.tar.gz" to "https://s3-us-west-2.amazonaws.com/tech.ula.us.west.oregon/${distType}Support/$archType/rootfs.tar.gz"
+    private val assetEndpoints = arrayListOf(
+            "support:proot" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-Core/raw/$branch/assets/$archType/proot",
+            "support:busybox" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-Core/raw/$branch/assets/$archType/busybox",
+            "support:libtalloc.so.2" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-Core/raw/$branch/assets/$archType/libtalloc.so.2",
+            "support:execInProot.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-Core/raw/$branch/assets/all/execInProot.sh",
+            "support:killProcTree.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-Core/raw/$branch/assets/all/killProcTree.sh",
+            "support:isServerInProcTree.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-Core/raw/$branch/assets/all/isServerInProcTree.sh",
+            "$distType:startSSHServer.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/startSSHServer.sh",
+            "$distType:startVNCServer.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/startVNCServer.sh",
+            "$distType:startVNCServerStep2.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/startVNCServerStep2.sh",
+            "$distType:extractFilesystem.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/extractFilesystem.sh",
+            "$distType:busybox" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/busybox",
+            "$distType:libdisableselinux.so" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/libdisableselinux.so",
+            "$distType:ld.so.preload" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/ld.so.preload"
     )
 
-    fun checkIfLargeRequirement(): Boolean {
-        if(!isWifiEnabled()) {
-            assets.forEach {
-                (type, _) ->
-                if(type.contains("rootfs") && assetNeedsToUpdated(type)) {
-                    return true
-                }
-            }
-        }
-        return false
+    fun largeAssetRequiredAndNoWifi(): Boolean {
+        val filesystemIsPresent = session.isExtracted || filesystem.isDownloaded
+        return !(filesystemIsPresent || wifiIsEnabled())
     }
 
-    private fun download(type: String, url: String): Long {
-        // TODO Dynamically adjust allowed network types to ensure no mobile use
-        // Currently just assuming the dialog choices succeed in some way
+    private fun download(filename: String, repo: String, scope: String): Long {
+        val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-$repo/raw/$branch/assets/$scope/$filename"
         val uri = Uri.parse(url)
         val request = DownloadManager.Request(uri)
         request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
-        request.setDescription("Downloading $type.")
+        request.setDescription("Downloading $filename.")
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
-        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "UserLAnd:$type")
-        deletePreviousDownload("UserLAnd:$type")
+        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "UserLAnd:$repo:$filename")
+        deletePreviousDownload("UserLAnd:$filename")
+
+        val updateTime = currentTimeSeconds()
+        val prefs = context.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE)
+        with(prefs.edit()) {
+            val timestampPrefName = "$repo:$filename"
+            putLong(timestampPrefName, updateTime)
+            apply()
+        }
+
+        if (filename.contains("rootfs.tar.gz")) filesystem.isDownloaded = true
+
         return downloadManager.enqueue(request)
     }
 
-    private fun assetNeedsToUpdated(type: String): Boolean {
-        val (subdirectory, filename) = type.split(":")
-        val asset = File("${context.filesDir.path}/$subdirectory/$filename")
-        // TODO more sophisticated version checking
+    private fun assetNeedsToUpdated(
+        filename: String,
+        remoteTimestamp: Long,
+        repo: String,
+        updateIsBeingForced: Boolean
+    ): Boolean {
+        val asset = File("${context.filesDir.path}/$repo/$filename")
+        val prefs = context.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE)
+
+        if (filename.contains("rootfs.tar.gz") && session.isExtracted) return false
+
+        // TODO make it so we download a full group of files, if any has changed (not the rootfs though, that is special)
+        // TODO this will take care of a few possible corner cases
+
+        val now = currentTimeSeconds()
+        val lastUpdateCheck = prefs.getLong("lastUpdateCheck", 0)
+        if (updateIsBeingForced ||
+                !asset.exists() ||
+                now > (lastUpdateCheck + TimeUnit.DAYS.toMillis(1))) {
+            with(prefs.edit()) {
+                putLong("lastUpdateCheck", now)
+                apply()
+            }
+        } else {
+            return false
+        }
+
+        val timestampPrefName = "$repo:$filename"
+        val localTimestamp = prefs.getLong(timestampPrefName, Long.MAX_VALUE)
+        if (localTimestamp < remoteTimestamp) {
+            if (asset.exists())
+                asset.delete()
+        }
+
         return !asset.exists()
     }
 
-    fun downloadRequirements(): List<Long> {
-        return assets
-                .filter {
-                    (type, _) ->
-                    assetNeedsToUpdated(type)
+    fun downloadRequirements(updateIsBeingForced: Boolean = false): ArrayList<Long> {
+        val downloads = ArrayList<Long>()
+        val assetListTypes = listOf(
+                "support" to "all",
+                "support" to archType,
+                distType to "all",
+                distType to archType
+        )
+
+        assetListTypes.forEach {
+            (repo, scope) ->
+            val assetList = retrieveAndParseAssetList(repo, scope)
+            assetList.forEach {
+                (type, timestamp) ->
+                if (assetNeedsToUpdated(type, timestamp, repo, updateIsBeingForced)) {
+                    downloads.add(download(type, repo, scope))
                 }
-                .map {
-                    (type, endpoint) ->
-                    download(type, endpoint)
-                }
+            }
+        }
+        return downloads
     }
 
-    private fun isWifiEnabled(): Boolean {
+    private fun wifiIsEnabled(): Boolean {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE)
         return if (connectivityManager is ConnectivityManager) {
             val networkInfo: NetworkInfo? = connectivityManager.activeNetworkInfo
@@ -84,7 +139,7 @@ class DownloadUtility(val context: Context, val archType: String, distType: Stri
         } else false
     }
 
-    fun isNetworkAvailable(): Boolean {
+    fun networkIsEnabled(): Boolean {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE)
         return if (connectivityManager is ConnectivityManager) {
             val networkInfo: NetworkInfo? = connectivityManager.activeNetworkInfo
@@ -94,10 +149,25 @@ class DownloadUtility(val context: Context, val archType: String, distType: Stri
 
     private fun deletePreviousDownload(type: String) {
         val downloadDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        val downloadFile = File(downloadDirectory,type)
+        val downloadFile = File(downloadDirectory, type)
         if (downloadFile.exists())
             downloadFile.delete()
     }
 
+    @Throws(Exception::class)
+    private fun retrieveAndParseAssetList(repo: String, scope: String): ArrayList<Pair<String, Long>> {
+        val assetList = ArrayList<Pair<String, Long>>()
+        val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-$repo/raw/$branch/assets/$scope/assets.txt"
+        val conn = URL(url).openConnection() as HttpURLConnection
+        conn.requestMethod = "GET"
+        val reader = BufferedReader(InputStreamReader(conn.inputStream))
+        reader.forEachLine {
+            val (filename, timestampAsString) = it.split(" ")
+            if (filename == "assets.txt") return@forEachLine
+            val timestamp = timestampAsString.toLong()
+            assetList.add(filename to timestamp)
+        }
+        reader.close()
+        return assetList
+    }
 }
-
