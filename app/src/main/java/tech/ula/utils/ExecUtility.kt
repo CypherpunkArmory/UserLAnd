@@ -3,11 +3,8 @@ package tech.ula.utils
 import android.util.Log
 import java.io.File
 import java.io.InputStream
-import java.io.BufferedWriter
-import java.io.FileWriter
 import java.util.ArrayList
 import java.lang.ProcessBuilder
-import java.nio.file.Files
 import kotlin.text.Charsets.UTF_8
 
 class ExecUtility(val fileUtility: FileUtility, val preferenceUtility: PreferenceUtility) {
