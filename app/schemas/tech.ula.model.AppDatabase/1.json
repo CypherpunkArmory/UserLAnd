@@ -1,0 +1,223 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "f31761b0213a63a99efaeee8383a9dc8",
+    "entities": [
+      {
+        "tableName": "session",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `filesystemId` INTEGER NOT NULL, `filesystemName` TEXT NOT NULL, `active` INTEGER NOT NULL, `username` TEXT NOT NULL, `password` TEXT NOT NULL, `geometry` TEXT NOT NULL, `serviceType` TEXT NOT NULL, `clientType` TEXT NOT NULL, `port` INTEGER NOT NULL, `pid` INTEGER NOT NULL, `startupScript` TEXT NOT NULL, `runAtDeviceStartup` INTEGER NOT NULL, `initialCommand` TEXT NOT NULL, FOREIGN KEY(`filesystemId`) REFERENCES `filesystem`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "filesystemId",
+            "columnName": "filesystemId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "filesystemName",
+            "columnName": "filesystemName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "active",
+            "columnName": "active",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "username",
+            "columnName": "username",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "password",
+            "columnName": "password",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "geometry",
+            "columnName": "geometry",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "serviceType",
+            "columnName": "serviceType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "clientType",
+            "columnName": "clientType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "port",
+            "columnName": "port",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pid",
+            "columnName": "pid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startupScript",
+            "columnName": "startupScript",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "runAtDeviceStartup",
+            "columnName": "runAtDeviceStartup",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "initialCommand",
+            "columnName": "initialCommand",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [
+          {
+            "name": "index_session_name",
+            "unique": true,
+            "columnNames": [
+              "name"
+            ],
+            "createSql": "CREATE UNIQUE INDEX `index_session_name` ON `${TABLE_NAME}` (`name`)"
+          },
+          {
+            "name": "index_session_filesystemId",
+            "unique": false,
+            "columnNames": [
+              "filesystemId"
+            ],
+            "createSql": "CREATE  INDEX `index_session_filesystemId` ON `${TABLE_NAME}` (`filesystemId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "filesystem",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "filesystemId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "filesystem",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `distributionType` TEXT NOT NULL, `archType` TEXT NOT NULL, `defaultUsername` TEXT NOT NULL, `defaultPassword` TEXT NOT NULL, `location` TEXT NOT NULL, `dateCreated` TEXT NOT NULL, `realRoot` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "distributionType",
+            "columnName": "distributionType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "archType",
+            "columnName": "archType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "defaultUsername",
+            "columnName": "defaultUsername",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "defaultPassword",
+            "columnName": "defaultPassword",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "location",
+            "columnName": "location",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dateCreated",
+            "columnName": "dateCreated",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "realRoot",
+            "columnName": "realRoot",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [
+          {
+            "name": "index_filesystem_name",
+            "unique": true,
+            "columnNames": [
+              "name"
+            ],
+            "createSql": "CREATE UNIQUE INDEX `index_filesystem_name` ON `${TABLE_NAME}` (`name`)"
+          }
+        ],
+        "foreignKeys": []
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"f31761b0213a63a99efaeee8383a9dc8\")"
+    ]
+  }
+}

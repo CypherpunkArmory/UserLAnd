@@ -2,6 +2,7 @@ package tech.ula.utils
 
 import android.content.Context
 import android.os.Build
+import java.io.File
 
 class FilesystemUtility(private val context: Context) {
 
@@ -13,9 +14,27 @@ class FilesystemUtility(private val context: Context) {
         FileUtility(context)
     }
 
+    private fun getSupportDirectory(targetDirectoryName: String): File {
+        return File("${fileUtility.getFilesDirPath()}/$targetDirectoryName/support")
+    }
+
     fun extractFilesystem(targetDirectoryName: String, listener: (String) -> Any) {
         val command = "../support/execInProot.sh /support/extractFilesystem.sh"
         execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, listener)
+    }
+
+    fun assetsArePresent(targetDirectoryName: String): Boolean {
+        val supportDirectory = getSupportDirectory(targetDirectoryName)
+        return supportDirectory.exists() &&
+                supportDirectory.isDirectory &&
+                supportDirectory.listFiles().isNotEmpty()
+    }
+
+    fun removeRootfsFilesFromFilesystem(targetDirectoryName: String) {
+        val supportDirectory = getSupportDirectory(targetDirectoryName)
+        supportDirectory.walkTopDown().forEach {
+            if (it.name.contains("rootfs.tar.gz")) it.delete()
+        }
     }
 
     fun deleteFilesystem(filesystemId: Long): Boolean {

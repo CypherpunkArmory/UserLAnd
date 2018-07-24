@@ -183,9 +183,16 @@ class SessionListFragment : Fragment() {
         builder.create().show()
     }
 
-    override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
+    override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo) {
+        val info = menuInfo as AdapterView.AdapterContextMenuInfo
         super.onCreateContextMenu(menu, v, menuInfo)
-        activityContext.menuInflater.inflate(R.menu.context_menu_sessions, menu)
+        val session = sessionList[info.position]
+        when {
+            session.isExtracted && !session.active ->
+                    activityContext.menuInflater.inflate(R.menu.context_menu_sessions_updateable, menu)
+            else ->
+                activityContext.menuInflater.inflate(R.menu.context_menu_sessions, menu)
+        }
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
@@ -196,6 +203,7 @@ class SessionListFragment : Fragment() {
             R.id.menu_item_session_kill_service -> stopService(session)
             R.id.menu_item_session_edit -> editSession(session)
             R.id.menu_item_session_delete -> deleteSession(session)
+            R.id.menu_item_session_update_assets -> forceAssetUpdate(session)
             else -> super.onContextItemSelected(item)
         }
     }
@@ -206,8 +214,8 @@ class SessionListFragment : Fragment() {
             view.image_list_item_active.setImageResource(R.drawable.ic_block_red_24dp)
 
             val serviceIntent = Intent(activityContext, ServerService::class.java)
-            serviceIntent.putExtra("session", session)
             serviceIntent.putExtra("type", "kill")
+            serviceIntent.putExtra("session", session)
             activityContext.startService(serviceIntent)
         }
         return true
@@ -226,12 +234,22 @@ class SessionListFragment : Fragment() {
         return true
     }
 
+    private fun forceAssetUpdate(session: Session): Boolean {
+        val filesystem = filesystemList.find { it.name == session.filesystemName }
+        val serviceIntent = Intent(activityContext, ServerService::class.java)
+        serviceIntent.putExtra("type", "forceAssetUpdate")
+        serviceIntent.putExtra("session", session)
+        serviceIntent.putExtra("filesystem", filesystem)
+        activityContext.startService(serviceIntent)
+        return true
+    }
+
     private fun startSession(session: Session) {
         val filesystem = filesystemList.find { it.name == session.filesystemName }
         val serviceIntent = Intent(activityContext, ServerService::class.java)
+        serviceIntent.putExtra("type", "start")
         serviceIntent.putExtra("session", session)
         serviceIntent.putExtra("filesystem", filesystem)
-        serviceIntent.putExtra("type", "start")
         activityContext.startService(serviceIntent)
     }
 
@@ -247,9 +265,13 @@ class SessionListFragment : Fragment() {
         outAnimation.duration = 200
         layout_progress.animation = outAnimation
         layout_progress.visibility = View.GONE
+        layout_progress.isFocusable = false
+        layout_progress.isClickable = false
     }
 
     private fun updateProgressBar(intent: Intent) {
+        layout_progress.visibility = View.VISIBLE
+
         val step = intent.getStringExtra("step")
         val details = intent.getStringExtra("details")
         text_session_list_progress_step.text = step

@@ -19,5 +19,6 @@ data class Filesystem(
     val defaultPassword: String = "userland",
     val location: String = "",
     val dateCreated: String = Date().toString(),
-    val realRoot: Boolean = false
+    val realRoot: Boolean = false,
+    var isDownloaded: Boolean = false
 ) : Parcelable
