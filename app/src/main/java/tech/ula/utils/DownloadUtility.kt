@@ -3,7 +3,7 @@ package tech.ula.utils
 import android.app.DownloadManager
 import android.content.Context
 import android.net.ConnectivityManager
-import android.net.NetworkInfo
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Environment
 import tech.ula.model.entities.Filesystem
@@ -25,24 +25,6 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
     private val downloadManager: DownloadManager by lazy {
         context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
     }
-
-    // TODO make this list dynamic based on a list stored in the repo or otherwise
-    // Prefix file name with OS type to move it into the correct folder
-    private val assetEndpoints = arrayListOf(
-            "support:proot" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-Core/raw/$branch/assets/$archType/proot",
-            "support:busybox" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-Core/raw/$branch/assets/$archType/busybox",
-            "support:libtalloc.so.2" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-Core/raw/$branch/assets/$archType/libtalloc.so.2",
-            "support:execInProot.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-Core/raw/$branch/assets/all/execInProot.sh",
-            "support:killProcTree.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-Core/raw/$branch/assets/all/killProcTree.sh",
-            "support:isServerInProcTree.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-Core/raw/$branch/assets/all/isServerInProcTree.sh",
-            "$distType:startSSHServer.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/startSSHServer.sh",
-            "$distType:startVNCServer.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/startVNCServer.sh",
-            "$distType:startVNCServerStep2.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/startVNCServerStep2.sh",
-            "$distType:extractFilesystem.sh" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/extractFilesystem.sh",
-            "$distType:busybox" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/busybox",
-            "$distType:libdisableselinux.so" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/libdisableselinux.so",
-            "$distType:ld.so.preload" to "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/all/ld.so.preload"
-    )
 
     fun largeAssetRequiredAndNoWifi(): Boolean {
         val filesystemIsPresent = session.isExtracted || filesystem.isDownloaded
@@ -132,19 +114,23 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
     }
 
     private fun wifiIsEnabled(): Boolean {
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE)
-        return if (connectivityManager is ConnectivityManager) {
-            val networkInfo: NetworkInfo? = connectivityManager.activeNetworkInfo
-            networkInfo?.type == ConnectivityManager.TYPE_WIFI
-        } else false
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        for (network in connectivityManager.allNetworks) {
+            val capabilities = connectivityManager.getNetworkCapabilities(network)
+            if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) return true
+        }
+        return false
     }
 
-    fun networkIsEnabled(): Boolean {
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE)
-        return if (connectivityManager is ConnectivityManager) {
-            val networkInfo: NetworkInfo? = connectivityManager.activeNetworkInfo
-            networkInfo?.isConnected ?: false
-        } else false
+    fun internetIsAccessible(): Boolean {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        for (network in connectivityManager.allNetworks) {
+            val capabilities = connectivityManager.getNetworkCapabilities(network)
+            if (capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                    capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
+                return true
+        }
+        return false
     }
 
     private fun deletePreviousDownload(type: String) {
@@ -157,6 +143,11 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
     @Throws(Exception::class)
     private fun retrieveAndParseAssetList(repo: String, scope: String): ArrayList<Pair<String, Long>> {
         val assetList = ArrayList<Pair<String, Long>>()
+
+        if (!internetIsAccessible()) {
+            return assetList
+        }
+
         val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-$repo/raw/$branch/assets/$scope/assets.txt"
         val conn = URL(url).openConnection() as HttpURLConnection
         conn.requestMethod = "GET"

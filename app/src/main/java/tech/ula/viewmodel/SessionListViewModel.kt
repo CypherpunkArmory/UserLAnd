@@ -8,6 +8,7 @@ import kotlinx.coroutines.experimental.launch
 import tech.ula.model.AppDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
+import tech.ula.utils.FileUtility
 import tech.ula.utils.ServerUtility
 import tech.ula.utils.async
 
