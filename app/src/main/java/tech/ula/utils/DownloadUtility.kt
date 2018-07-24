@@ -123,14 +123,11 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
     }
 
     fun internetIsAccessible(): Boolean {
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        for (network in connectivityManager.allNetworks) {
-            val capabilities = connectivityManager.getNetworkCapabilities(network)
-            if (capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-                    capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
-                return true
-        }
-        return false
+        val successfulResult = 0
+
+        val pingProcess = Runtime.getRuntime().exec("ping -c 1 8.8.8.8")
+        val result = pingProcess.waitFor()
+        return (result == successfulResult)
     }
 
     private fun deletePreviousDownload(type: String) {
