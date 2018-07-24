@@ -51,11 +51,7 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
 
         if (filename.contains("rootfs.tar.gz")) filesystem.isDownloaded = true
 
-        return try {
-            downloadManager.enqueue(request)
-        } catch (err: Exception) {
-            download(filename, repo, scope)
-        }
+        return downloadManager.enqueue(request)
     }
 
     private fun assetNeedsToUpdated(
@@ -121,8 +117,7 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         for (network in connectivityManager.allNetworks) {
             val capabilities = connectivityManager.getNetworkCapabilities(network)
-            if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI))
-                return true
+            if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) return true
         }
         return false
     }

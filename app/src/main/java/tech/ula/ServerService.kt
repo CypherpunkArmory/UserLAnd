@@ -159,7 +159,7 @@ class ServerService : Service() {
             displayNetworkChoices()
         } else {
             continueStartSession()
-            }
+        }
     }
 
     private fun continueStartSession() {
