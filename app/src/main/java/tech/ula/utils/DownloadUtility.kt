@@ -143,6 +143,11 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
     @Throws(Exception::class)
     private fun retrieveAndParseAssetList(repo: String, scope: String): ArrayList<Pair<String, Long>> {
         val assetList = ArrayList<Pair<String, Long>>()
+
+        if (!internetIsAccessible()) {
+            return assetList
+        }
+
         val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-$repo/raw/$branch/assets/$scope/assets.txt"
         val conn = URL(url).openConnection() as HttpURLConnection
         conn.requestMethod = "GET"

@@ -8,6 +8,7 @@ import kotlinx.coroutines.experimental.launch
 import tech.ula.model.AppDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
+import tech.ula.utils.FileUtility
 import tech.ula.utils.ServerUtility
 import tech.ula.utils.async
 
@@ -24,12 +25,18 @@ class SessionListViewModel(application: Application) : AndroidViewModel(applicat
         appDatabase.sessionDao().getAllSessions()
     }
 
+    private val fileUtility: FileUtility by lazy {
+        FileUtility(application)
+    }
+
     var activeSessions: Boolean = false
 
     private val sessions: LiveData<List<Session>> =
             Transformations.map(internalSessions) { sessions ->
         for (session in sessions) {
             if (session.active) session.active = serverUtility.isServerRunning(session)
+            session.isExtracted = fileUtility
+                    .statusFileExists(session.filesystemId.toString(), ".success_filesystem_extraction")
         }
         activeSessions = sessions.any { it.active }
         sessions

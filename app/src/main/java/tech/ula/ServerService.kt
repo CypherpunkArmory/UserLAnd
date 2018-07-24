@@ -135,10 +135,6 @@ class ServerService : Service() {
     private fun startSession(session: Session, filesystem: Filesystem) {
         lastActivatedSession = session
         lastActivatedFilesystem = filesystem
-        val filesystemDirectoryName = filesystem.id.toString()
-
-        lastActivatedSession.isExtracted = fileUtility
-                .statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")
 
         downloadUtility = DownloadUtility(this@ServerService,
                 lastActivatedSession,
