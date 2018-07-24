@@ -7,18 +7,18 @@ import java.io.File
 class FilesystemUtility(private val context: Context) {
 
     private val execUtility by lazy {
-        ExecUtility(context)
+        ExecUtility(fileUtility, PreferenceUtility(context))
     }
 
-    private val fileManager by lazy {
+    private val fileUtility by lazy {
         FileUtility(context)
     }
 
     private fun getSupportDirectory(targetDirectoryName: String): File {
-        return File("${fileManager.getFilesDirPath()}/$targetDirectoryName/support")
+        return File("${fileUtility.getFilesDirPath()}/$targetDirectoryName/support")
     }
 
-    fun extractFilesystem(targetDirectoryName: String, listener: (String) -> Int) {
+    fun extractFilesystem(targetDirectoryName: String, listener: (String) -> Any) {
         val command = "../support/execInProot.sh /support/extractFilesystem.sh"
         execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, listener)
     }
@@ -38,7 +38,7 @@ class FilesystemUtility(private val context: Context) {
     }
 
     fun deleteFilesystem(filesystemId: Long): Boolean {
-        val directory = fileManager.createAndGetDirectory(filesystemId.toString())
+        val directory = fileUtility.createAndGetDirectory(filesystemId.toString())
         return directory.deleteRecursively()
     }
 

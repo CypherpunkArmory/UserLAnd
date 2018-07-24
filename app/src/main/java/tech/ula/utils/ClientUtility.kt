@@ -12,14 +12,14 @@ class ClientUtility(private val context: Context) {
 
     fun startClient(session: Session) {
         when (session.clientType) {
-            "ConnectBot" -> startConnectBotClient(session)
-            "bVNC" -> startBVncClient(session)
+            "ConnectBot" -> startSshClient(session, "org.connectbot")
+            "bVNC" -> startVncClient(session, "com.iiordanov.freebVNC")
             "xsdl" -> return // TODO
             else -> return
         }
     }
 
-    private fun startConnectBotClient(session: Session) {
+    private fun startSshClient(session: Session, packageName: String) {
         val connectBotIntent = Intent()
         connectBotIntent.action = "android.intent.action.VIEW"
         connectBotIntent.data = Uri.parse("ssh://${session.username}@localhost:${session.port}/#userland")
@@ -28,11 +28,11 @@ class ClientUtility(private val context: Context) {
         if (clientIsPresent(connectBotIntent)) {
             context.startActivity(connectBotIntent)
         } else {
-            getClient("org.connectbot")
+            getClient(packageName)
         }
     }
 
-    private fun startBVncClient(session: Session) {
+    private fun startVncClient(session: Session, packageName: String) {
         val bVncIntent = Intent()
         bVncIntent.action = "android.intent.action.VIEW"
         bVncIntent.type = "application/vnd.vnc"
@@ -42,7 +42,7 @@ class ClientUtility(private val context: Context) {
         if (clientIsPresent(bVncIntent)) {
             context.startActivity(bVncIntent)
         } else {
-            getClient("com.iiordanov.freebVNC")
+            getClient(packageName)
         }
     }
 
@@ -51,8 +51,8 @@ class ClientUtility(private val context: Context) {
         return(activities.size > 0)
     }
 
-    private fun getClient(appPackageName: String) {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName"))
+    private fun getClient(packageName: String) {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
         context.runOnUiThread { longToast(R.string.download_client_app) }
         context.startActivity(intent)

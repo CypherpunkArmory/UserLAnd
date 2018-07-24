@@ -1,17 +1,13 @@
 package tech.ula.utils
 
-import android.content.Context
-import android.os.Environment
-import android.preference.PreferenceManager
 import android.util.Log
-import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
 import java.util.ArrayList
-import java.util.HashMap
+import java.lang.ProcessBuilder
 import kotlin.text.Charsets.UTF_8
 
-class ExecUtility(private val context: Context) {
+class ExecUtility(val fileUtility: FileUtility, val preferenceUtility: PreferenceUtility) {
 
     companion object {
         val EXEC_DEBUG_LOGGER = { line: String -> Unit
@@ -21,36 +17,57 @@ class ExecUtility(private val context: Context) {
         val NOOP_CONSUMER: (line: String) -> Int = { 0 }
     }
 
-    private val fileManager by lazy {
-        FileUtility(context)
-    }
+    fun execLocal(
+        executionDirectory: File,
+        command: ArrayList<String>,
+        listener: (String) -> Any = NOOP_CONSUMER,
+        doWait: Boolean = true,
+        wrapped: Boolean = false
+    ): Process {
 
-    fun execLocal(executionDirectory: File, command: ArrayList<String>, env: HashMap<String, String> = hashMapOf(), listener: (String) -> Int = NOOP_CONSUMER, doWait: Boolean = true): Process {
+        // TODO refactor naming convention to command debugging log
+        val prootDebuggingEnabled = preferenceUtility.getProotDebuggingEnabled()
+        val prootDebuggingLevel =
+                if (prootDebuggingEnabled) preferenceUtility.getProotDebuggingLevel()
+                else "-1"
+        val prootDebugLogLocation = preferenceUtility.getProotDebugLogLocation()
+
+        val env = if (wrapped) hashMapOf("LD_LIBRARY_PATH" to (fileUtility.getSupportDirPath()),
+                "ROOT_PATH" to fileUtility.getFilesDirPath(),
+                "ROOTFS_PATH" to "${fileUtility.getFilesDirPath()}/${executionDirectory.name}",
+                "PROOT_DEBUG_LEVEL" to prootDebuggingLevel)
+        else hashMapOf()
+
         try {
             val pb = ProcessBuilder(command)
             pb.directory(executionDirectory)
-            pb.redirectErrorStream(true)
             pb.environment().putAll(env)
+            pb.redirectErrorStream(true)
+
             listener("Running: ${pb.command()} \n with env $env")
 
             val process = pb.start()
 
-            if (doWait) {
-                collectOutput(process.inputStream, listener)
+            when {
+                prootDebuggingEnabled -> writeDebugLogFile(process.inputStream, prootDebugLogLocation)
+                doWait -> {
+                    collectOutput(process.inputStream, listener)
 
-                if (process.waitFor() != 0) {
-                    Log.e("Exec", "Failed to execute command ${pb.command()}")
+                    if (process.waitFor() != 0) {
+                        listener("Exec: Failed to execute command ${pb.command()}")
+                    }
                 }
             }
+
             return process
         } catch (err: Exception) {
-            Log.e("Exec", err.toString())
+            listener("Exec: $err")
             throw RuntimeException(err)
         }
     }
 
-    private fun collectOutput(inputStream: InputStream, listener: (String) -> Int) {
-        val buf: BufferedReader = inputStream.bufferedReader(UTF_8)
+    private fun collectOutput(inputStream: InputStream, listener: (String) -> Any) {
+        val buf = inputStream.bufferedReader(UTF_8)
 
         buf.forEachLine {
             listener(it)
@@ -59,32 +76,22 @@ class ExecUtility(private val context: Context) {
         buf.close()
     }
 
-    fun wrapWithBusyboxAndExecute(targetDirectoryName: String, commandToWrap: String, listener: (String) -> Int = NOOP_CONSUMER, doWait: Boolean = true): Process {
-        val executionDirectory = fileManager.createAndGetDirectory(targetDirectoryName)
+    private fun writeDebugLogFile(inputStream: InputStream, debugLogLocation: String) {
+        // TODO Fix this bug. If logging is enabled and it doesn't write to a file, isServerInProcTree can't find dropbear.
+        val reader = inputStream.bufferedReader(UTF_8)
+        val writer = File(debugLogLocation).writer(UTF_8)
+        reader.forEachLine {
+            writer.write(it)
+        }
+        reader.close()
+        writer.flush()
+        writer.close()
+    }
 
-        val preferences = PreferenceManager.getDefaultSharedPreferences(context)
-        val prootDebuggingEnabled = preferences.getBoolean("pref_proot_debug_enabled", false)
-        val prootDebuggingLevel =
-                if (prootDebuggingEnabled) preferences.getString("pref_proot_debug_level", "-1")
-                else "-1"
-        /* val prootFileLogging = preferences.getBoolean("pref_proot_local_file_enabled", false) */
+    fun wrapWithBusyboxAndExecute(targetDirectoryName: String, commandToWrap: String, listener: (String) -> Any = NOOP_CONSUMER, doWait: Boolean = true): Process {
+        val executionDirectory = fileUtility.createAndGetDirectory(targetDirectoryName)
+        val command = arrayListOf("../support/busybox", "sh", "-c", commandToWrap)
 
-        val command = arrayListOf("../support/busybox", "sh", "-c")
-
-        val commandToAdd =
-                // TODO Fix this bug. If logging is enabled and it doesn't write to a file, isServerInProcTree can't find dropbear.
-                /*if(prootDebuggingEnabled && prootFileLogging) "$commandToWrap &> /mnt/sdcard/PRoot_Debug_Log"*/
-                if (prootDebuggingEnabled) "$commandToWrap &> /mnt/sdcard/PRoot_Debug_Log"
-                else commandToWrap
-
-        command.add(commandToAdd)
-
-        val env = hashMapOf("LD_LIBRARY_PATH" to (fileManager.getSupportDirPath()),
-                "ROOT_PATH" to fileManager.getFilesDirPath(),
-                "ROOTFS_PATH" to "${fileManager.getFilesDirPath()}/$targetDirectoryName",
-                "PROOT_DEBUG_LEVEL" to prootDebuggingLevel,
-                "EXTRA_BINDINGS" to "-b ${Environment.getExternalStorageDirectory().getAbsolutePath()}:/sdcard")
-
-        return execLocal(executionDirectory, command, env, listener, doWait)
+        return execLocal(executionDirectory, command, listener, doWait, wrapped = true)
     }
 }

@@ -62,10 +62,9 @@ class ServerService : Service() {
         ClientUtility(this)
     }
 
-    private val filesystemExtractLogger = { line: String -> Int
+    private val filesystemExtractLogger = { line: String -> Unit
         updateProgressBar(getString(R.string.progress_setting_up),
                 getString(R.string.progress_setting_up_extract_text, line))
-        0
     }
 
     override fun onCreate() {
@@ -153,8 +152,8 @@ class ServerService : Service() {
             }
             val resultIntent = Intent(SERVER_SERVICE_RESULT)
             resultIntent.putExtra("type", "networkUnavailable")
-            broadcaster.sendBroadcast(resultIntent)
-            return
+
+            if (!lastActivatedSession.isExtracted) return
         }
 
         if (downloadUtility.largeAssetRequiredAndNoWifi()) {
@@ -237,8 +236,8 @@ class ServerService : Service() {
         }
 
         if (assetsWereDownloaded) {
-            fileUtility.moveDownloadedAssetsToSharedSupportDirectory()
-            fileUtility.correctFilePermissions()
+            fileUtility.moveAssetsToCorrectSharedDirectory()
+            fileUtility.correctFilePermissions(lastActivatedFilesystem.distributionType)
         }
 
         return assetsWereDownloaded

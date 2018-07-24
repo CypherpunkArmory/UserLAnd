@@ -6,6 +6,14 @@ import java.io.File
 
 class ServerUtility(private val context: Context) {
 
+    private val execUtility by lazy {
+        ExecUtility(fileUtility, PreferenceUtility(context))
+    }
+
+    private val fileUtility by lazy {
+        FileUtility(context)
+    }
+
     fun Process.pid(): Long {
         return this.toString().substringAfter("pid=").substringBefore(",").substringBefore("]").trim().toLong()
     }
@@ -31,14 +39,6 @@ class ServerUtility(private val context: Context) {
         } catch (e: Exception) {
             -1
         }
-    }
-
-    private val execUtility by lazy {
-        ExecUtility(context)
-    }
-
-    private val fileUtility by lazy {
-        FileUtility(context)
     }
 
     fun startServer(session: Session): Long {
