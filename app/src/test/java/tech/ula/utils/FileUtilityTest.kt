@@ -1,7 +1,8 @@
 package tech.ula.utils
 
 import android.content.Context
-import org.junit.Assert.*
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -9,7 +10,6 @@ import org.junit.rules.TemporaryFolder
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
-import java.io.BufferedInputStream
 import java.io.File
 import kotlin.text.Charsets.UTF_8
 

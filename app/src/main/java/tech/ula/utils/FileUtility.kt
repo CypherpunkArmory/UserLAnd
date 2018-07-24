@@ -32,7 +32,7 @@ class FileUtility(val context: Context) {
         rootfsParts.map {
             File("${getFilesDirPath()}/$distributionType/$it")
         }.forEach {
-            if(!it.exists()) return false
+            if (!it.exists()) return false
         }
         return true
     }

@@ -17,14 +17,18 @@ class ExecUtility(val fileUtility: FileUtility, val preferenceUtility: Preferenc
         val NOOP_CONSUMER: (line: String) -> Int = { 0 }
     }
 
-    fun execLocal(executionDirectory: File, command: ArrayList<String>,
-                  listener: (String) -> Any = NOOP_CONSUMER, doWait: Boolean = true,
-                  wrapped: Boolean = false): Process {
+    fun execLocal(
+        executionDirectory: File,
+        command: ArrayList<String>,
+        listener: (String) -> Any = NOOP_CONSUMER,
+        doWait: Boolean = true,
+        wrapped: Boolean = false
+    ): Process {
 
-        //TODO refactor naming convention to command debugging log
+        // TODO refactor naming convention to command debugging log
         val prootDebuggingEnabled = preferenceUtility.getProotDebuggingEnabled()
         val prootDebuggingLevel =
-                if(prootDebuggingEnabled) preferenceUtility.getProotDebuggingLevel()
+                if (prootDebuggingEnabled) preferenceUtility.getProotDebuggingLevel()
                 else "-1"
         val prootDebugLogLocation = preferenceUtility.getProotDebugLogLocation()
 
