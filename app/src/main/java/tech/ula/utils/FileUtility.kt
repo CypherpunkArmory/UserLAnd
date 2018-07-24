@@ -31,6 +31,16 @@ class FileUtility(private val context: Context) {
         return file.exists()
     }
 
+    fun distributionAssetsExist(distributionType: String): Boolean {
+        val rootfsParts = listOf("rootfs.tar.gz.part00", "rootfs.tar.gz.part01", "rootfs.tar.gz.part02", "rootfs.tar.gz.part03")
+        rootfsParts.map {
+            File("${getFilesDirPath()}/$distributionType/$it")
+        }.forEach {
+            if(!it.exists()) return false
+        }
+        return true
+    }
+
     // Filename takes form of UserLAnd:<directory to place in>:<filename>
     fun moveDownloadedAssetsToSharedSupportDirectory() {
         val downloadDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)

@@ -25,18 +25,12 @@ class SessionListViewModel(application: Application) : AndroidViewModel(applicat
         appDatabase.sessionDao().getAllSessions()
     }
 
-    private val fileUtility: FileUtility by lazy {
-        FileUtility(application)
-    }
-
     var activeSessions: Boolean = false
 
     private val sessions: LiveData<List<Session>> =
             Transformations.map(internalSessions) { sessions ->
         for (session in sessions) {
             if (session.active) session.active = serverUtility.isServerRunning(session)
-            session.isExtracted = fileUtility
-                    .statusFileExists(session.filesystemId.toString(), ".success_filesystem_extraction")
         }
         activeSessions = sessions.any { it.active }
         sessions

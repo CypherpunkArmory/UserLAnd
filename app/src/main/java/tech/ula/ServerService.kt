@@ -140,6 +140,12 @@ class ServerService : Service() {
                 lastActivatedSession,
                 lastActivatedFilesystem)
 
+        val filesysemDirectoryName = session.filesystemId.toString()
+        session.isExtracted = fileUtility
+                .statusFileExists(filesysemDirectoryName, ".success_filesystem_extraction")
+
+        filesystem.isDownloaded = fileUtility.distributionAssetsExist(filesysemDirectoryName)
+
         if (!downloadUtility.internetIsAccessible()) {
             if (session.isExtracted || filesystem.isDownloaded) {
                 continueStartSession()
