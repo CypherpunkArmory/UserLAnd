@@ -144,7 +144,7 @@ class ServerService : Service() {
                 lastActivatedSession,
                 lastActivatedFilesystem)
 
-        if (!downloadUtility.networkIsEnabled()) {
+        if (!downloadUtility.internetIsAccessible()) {
             if (session.isExtracted || filesystem.isDownloaded) {
                 continueStartSession()
                 return
@@ -156,10 +156,10 @@ class ServerService : Service() {
         }
 
         if (downloadUtility.largeAssetRequiredAndNoWifi()) {
-                displayNetworkChoices()
+            displayNetworkChoices()
         } else {
-                continueStartSession()
-        }
+            continueStartSession()
+            }
     }
 
     private fun continueStartSession() {
