@@ -72,6 +72,7 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
         val lastUpdateCheck = prefs.getLong("lastUpdateCheck", 0)
         if (updateIsBeingForced ||
                 !asset.exists() ||
+                filename.contains("rootfs.tar.gz") ||
                 now > (lastUpdateCheck + TimeUnit.DAYS.toMillis(1))) {
             with(prefs.edit()) {
                 putLong("lastUpdateCheck", now)
@@ -82,7 +83,7 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
         }
 
         val timestampPrefName = "$repo:$filename"
-        val localTimestamp = prefs.getLong(timestampPrefName, Long.MAX_VALUE)
+        val localTimestamp = prefs.getLong(timestampPrefName, 0)
         if (localTimestamp < remoteTimestamp) {
             if (asset.exists())
                 asset.delete()

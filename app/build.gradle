@@ -12,7 +12,7 @@ android {
         applicationId "tech.ula"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 5
+        versionCode 6
         versionName "0.2.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
