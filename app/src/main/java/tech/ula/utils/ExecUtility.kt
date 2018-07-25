@@ -1,5 +1,6 @@
 package tech.ula.utils
 
+import android.os.Environment
 import android.util.Log
 import java.io.File
 import java.io.InputStream
@@ -35,7 +36,8 @@ class ExecUtility(val fileUtility: FileUtility, val preferenceUtility: Preferenc
         val env = if (wrapped) hashMapOf("LD_LIBRARY_PATH" to (fileUtility.getSupportDirPath()),
                 "ROOT_PATH" to fileUtility.getFilesDirPath(),
                 "ROOTFS_PATH" to "${fileUtility.getFilesDirPath()}/${executionDirectory.name}",
-                "PROOT_DEBUG_LEVEL" to prootDebuggingLevel)
+                "PROOT_DEBUG_LEVEL" to prootDebuggingLevel,
+                "EXTRA_BINDINGS" to "-b ${Environment.getExternalStorageDirectory().getAbsolutePath()}:/sdcard")
         else hashMapOf()
 
         try {
