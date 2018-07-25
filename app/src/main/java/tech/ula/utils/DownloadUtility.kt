@@ -124,11 +124,9 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
 
     fun internetIsAccessible(): Boolean {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        for (network in connectivityManager.allNetworks) {
-            val capabilities = connectivityManager.getNetworkCapabilities(network)
-            if (capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-                    capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
-                return true
+        val activeNetworkInfo = connectivityManager.activeNetworkInfo
+        activeNetworkInfo?.let {
+            return true
         }
         return false
     }
