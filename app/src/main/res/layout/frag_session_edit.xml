@@ -31,10 +31,13 @@
         android:id="@+id/text_filesystem"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:text="@string/prompt_filesystem"
-        app:layout_constraintBottom_toBottomOf="@id/spinner_filesystem_list"
-        app:layout_constraintTop_toTopOf="@id/spinner_filesystem_list"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintBaseline_toBaselineOf="@id/spinner_filesystem_list"
+        app:layout_constraintEnd_toStartOf="@id/spinner_filesystem_list"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_input_layout_session_name" />
 
     <!-- TODO more robust way of styling correctly
     using margin start is likely not enough on larger screens, different localizations
@@ -43,7 +46,7 @@
         android:id="@+id/spinner_filesystem_list"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="8dp"
         android:layout_marginStart="16dp"
         android:spinnerMode="dropdown"
         app:layout_constraintEnd_toEndOf="parent"
@@ -55,23 +58,24 @@
         android:id="@+id/text_session_service_type"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:text="@string/prompt_service_type"
         app:layout_constraintHorizontal_bias="0"
-        app:layout_constraintBottom_toBottomOf="@id/spinner_session_service_type"
-        app:layout_constraintTop_toTopOf="@id/spinner_session_service_type"
+        app:layout_constraintBaseline_toBaselineOf="@id/spinner_session_service_type"
+        app:layout_constraintTop_toBottomOf="@id/text_filesystem"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toStartOf="@id/spinner_session_service_type" />
 
     <Spinner
         android:id="@+id/spinner_session_service_type"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="8dp"
         android:spinnerMode="dropdown"
         android:entries="@array/supported_services"
-
-        app:layout_constraintStart_toStartOf="@id/spinner_filesystem_list"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/spinner_filesystem_list"
+        app:layout_constraintStart_toEndOf="@id/text_session_service_type"
         app:layout_constraintTop_toBottomOf="@id/spinner_filesystem_list" />
 
     <!-- Client Type -->
@@ -79,21 +83,23 @@
         android:id="@+id/text_session_client_type"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:text="@string/prompt_client_type"
         app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintBaseline_toBaselineOf="@id/spinner_session_client_type"
+        app:layout_constraintTop_toBottomOf="@id/text_session_service_type"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/spinner_session_client_type"
-        app:layout_constraintBottom_toBottomOf="@id/spinner_session_client_type"/>
+        app:layout_constraintEnd_toStartOf="@id/spinner_session_client_type"/>
 
     <Spinner
         android:id="@+id/spinner_session_client_type"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="8dp"
         android:spinnerMode="dropdown"
-        android:entries="@array/supported_ssh_clients"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@id/spinner_session_service_type"
+        app:layout_constraintStart_toEndOf="@id/text_session_client_type"
         app:layout_constraintTop_toBottomOf="@id/spinner_session_service_type" />
 
     <!-- Username -->
