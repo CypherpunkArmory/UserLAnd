@@ -26,6 +26,12 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
         context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
     }
 
+    private val lastUpdateCheck: Long by lazy {
+        //only grab the value from the database the first time such that we won't be looking at the value that is being
+        //updated while we check each file
+        context.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE).getLong("lastUpdateCheck", 0)
+    }
+
     fun largeAssetRequiredAndNoWifi(): Boolean {
         val filesystemIsPresent = session.isExtracted || filesystem.isDownloaded
         return !(filesystemIsPresent || wifiIsEnabled())
@@ -69,9 +75,9 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
         // TODO this will take care of a few possible corner cases
 
         val now = currentTimeSeconds()
-        val lastUpdateCheck = prefs.getLong("lastUpdateCheck", 0)
         if (updateIsBeingForced ||
                 !asset.exists() ||
+                filename.contains("rootfs.tar.gz") ||
                 now > (lastUpdateCheck + TimeUnit.DAYS.toMillis(1))) {
             with(prefs.edit()) {
                 putLong("lastUpdateCheck", now)
@@ -82,7 +88,7 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
         }
 
         val timestampPrefName = "$repo:$filename"
-        val localTimestamp = prefs.getLong(timestampPrefName, Long.MAX_VALUE)
+        val localTimestamp = prefs.getLong(timestampPrefName, 0)
         if (localTimestamp < remoteTimestamp) {
             if (asset.exists())
                 asset.delete()

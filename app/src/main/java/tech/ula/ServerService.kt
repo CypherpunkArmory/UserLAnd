@@ -262,6 +262,9 @@ class ServerService : Service() {
     }
 
     private fun forceAssetUpdate(session: Session, filesystem: Filesystem) {
+        lastActivatedSession = session
+        lastActivatedFilesystem = filesystem
+
         downloadUtility = DownloadUtility(this, session, filesystem)
         var assetsWereDownloaded = true
         launchAsync {
