@@ -80,7 +80,12 @@ class FileUtility(val context: Context) {
 
     private fun changePermission(filename: String, subdirectory: String) {
         val executionDirectory = createAndGetDirectory(subdirectory)
-        val commandToRun = arrayOf("chmod", "0777", filename)
-        Runtime.getRuntime().exec(commandToRun, arrayOf<String>(), executionDirectory)
+        val commandToRun = arrayListOf("chmod", "0777", filename)
+
+        val pb = ProcessBuilder(commandToRun)
+        pb.directory(executionDirectory)
+
+        val process = pb.start()
+        process.waitFor()
     }
 }
