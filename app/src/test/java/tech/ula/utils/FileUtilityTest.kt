@@ -31,6 +31,36 @@ class FileUtilityTest {
     }
 
     @Test
+    fun checksStatusFileExistence() {
+        val filesystemName = "filesystemTest"
+        val filename = "fileTest"
+
+        val supportFolder = tempFolder.newFolder(filesystemName, "support")
+        assertFalse(fileUtility.statusFileExists(filesystemName, filename))
+
+        File("${supportFolder.path}/$filename").createNewFile()
+        assertTrue(fileUtility.statusFileExists(filesystemName, filename))
+    }
+
+    @Test
+    fun checksDistributionAssetsExist() {
+        val distributionType = "distTest"
+        val distFolder = tempFolder.newFolder(distributionType)
+
+        assertFalse(fileUtility.distributionAssetsExist(distributionType))
+
+        File("${distFolder.path}/rootfs.tar.gz.part00").createNewFile()
+        File("${distFolder.path}/rootfs.tar.gz.part01").createNewFile()
+
+        assertFalse(fileUtility.distributionAssetsExist(distributionType))
+
+        File("${distFolder.path}/rootfs.tar.gz.part02").createNewFile()
+        File("${distFolder.path}/rootfs.tar.gz.part03").createNewFile()
+
+        assertTrue(fileUtility.distributionAssetsExist(distributionType))
+    }
+
+    @Test
     fun movesDownloadedAssets() {
         val ulaAsset1 = "test1.sh"
         val ulaAsset2 = "test2.rootfs.tar.gz"
