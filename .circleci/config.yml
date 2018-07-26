@@ -15,7 +15,7 @@ reference:
       GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m"'
 
 jobs:
-  build:
+  test_unit:
     <<: *android_config
     steps:
       - checkout
@@ -206,13 +206,13 @@ jobs:
 #            path: app/build/reports/
 #            destination: /reports/
 #
-#workflows:
-#  version: 2
-#  workflow:
-#    jobs:
+workflows:
+  version: 2
+  workflow:
+    jobs:
 #      - build_debug
 #      - build_release
-#      - test_unit
+      - test_unit
 #      - test_instrumented
 #        requires:
 #          - build_debug
