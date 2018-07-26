@@ -36,6 +36,28 @@ reference:
       GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m"'
 
 jobs:
+  build_debug:
+    <<: *android_config
+    steps:
+      - checkout
+      - *restore_cache
+      - run:
+          name: Download dependencies
+          command: ./gradlew androidDependencies
+      - *save_cache
+#      - *export_gservices_key
+#      - *decode_gservices_key
+      - run:
+          name: Run ktlint
+          command: ./gradlew ktlint
+      - run:
+          name: Gradle build (debug)
+          command: ./gradlew -PciBuild=true ktlint :app:assembleDebug :app:assembleAndroidTest
+      - *persist_debug_workspace
+      - store_artifacts:
+          path: app/build/outputs/apk/
+          destination: /apk/
+
   test_unit:
     <<: *android_config
     steps:
@@ -111,27 +133,7 @@ jobs:
 #      command: echo $GCLOUD_SERVICE_KEY | base64 -di > ${HOME}/client-secret.json
 #
 #jobs:
-#  build_debug:
-#    <<: *android_config
-#    steps:
-#      - checkout
-#      - *restore_cache
-#      - run:
-#          name: Download dependencies
-#          command: ./gradlew androidDependencies
-#      - *save_cache
-#      - *export_gservices_key
-#      - *decode_gservices_key
-#      - run:
-#          name: Run ktlint
-#          command: ./gradlew ktlint
-#      - run:
-#          name: Gradle build (debug)
-#          command: ./gradlew -PciBuild=true ktlint :app:assembleDebug :app:assembleAndroidTest
-#      - *persist_debug_workspace
-#      - store_artifacts:
-#          path: app/build/outputs/apk/
-#          destination: /apk/
+
 #
 #  build_release:
 #      <<: *android_config
@@ -212,7 +214,7 @@ workflows:
   version: 2
   workflow:
     jobs:
-#      - build_debug
+      - build_debug
 #      - build_release
       - test_unit
 #      - test_instrumented
