@@ -223,9 +223,9 @@ workflows:
     jobs:
       - build_debug
       - build_release
-#      - test_unit:
-#        requires:
-#          - build_debug
+      - test_unit:
+        requires:
+          - build_debug
 #      - test_instrumented:
 #        requires:
 #          - build_debug
