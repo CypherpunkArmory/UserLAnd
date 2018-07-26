@@ -1,8 +1,11 @@
 version: 2
 
 reference:
+  workspace: &workspace
+    ~/workspace
+
   android_config: &android_config
-#    working_directory: *workspace
+    working_directory: *workspace
     docker:
       - image: circleci/android:api-28-alpha
     environment:
@@ -34,8 +37,7 @@ jobs:
 #        - ~/.gradle
 #        - ~/.m2
 #
-#  workspace: &workspace
-#    ~/workspace
+
 #  attach_debug_workspace: &attach_debug_workspace
 #    attach_workspace:
 #      at: *workspace
