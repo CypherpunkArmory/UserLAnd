@@ -2,7 +2,7 @@ version: 2
 
 reference:
   android_config: &android_config
-    working_directory: *workspace
+#    working_directory: *workspace
     docker:
       - image: circleci/android:api-28-alpha
     environment:
