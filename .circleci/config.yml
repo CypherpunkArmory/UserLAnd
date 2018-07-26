@@ -1,8 +1,7 @@
 version: 2
 jobs:
   build:
-    docker:
-      - image: circleci/android:api-28-alpha
+    <<: *android_config
     steps:
       - checkout
       - run: echo "hello world"
@@ -55,15 +54,15 @@ jobs:
 #        - firebase
 #
 #
-#  android_config: &android_config
-#    working_directory: *workspace
-#    docker:
-#      - image: circleci/android:api-28-alpha
-#    environment:
-#      TERM: dumb
-#      # Limit JVM heap size to prevent exceeding container memory
-#      _JAVA_OPTIONS: "-Xmx2048m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
-#      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m"'
+  android_config: &android_config
+    working_directory: *workspace
+    docker:
+      - image: circleci/android:api-28-alpha
+    environment:
+      TERM: dumb
+      # Limit JVM heap size to prevent exceeding container memory
+      _JAVA_OPTIONS: "-Xmx2048m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
+      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m"'
 #
 #  # Get CircleCI env variable in container
 #  export_gservices_key: &export_gservices_key
