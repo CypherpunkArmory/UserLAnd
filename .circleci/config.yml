@@ -40,6 +40,7 @@ jobs:
     <<: *android_config
     steps:
       - checkout
+      - run: echo 'build_debug'
       - *restore_cache
       - run:
           name: Download dependencies
