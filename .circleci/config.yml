@@ -24,6 +24,25 @@ reference:
         - app/build/outputs/apk
         - app/build/outputs/code-coverage
         - app/build/test-results
+  attach_debug_workspace: &attach_debug_workspace
+    attach_workspace:
+      at: *workspace
+  attach_release_workspace: &attach_release_workspace
+    attach_workspace:
+      at: *workspace
+  persist_release_workspace: &persist_release_workspace
+    persist_to_workspace:
+      root: *workspace
+      paths:
+        - app/build
+  attach_firebase_workspace: &attach_firebase_workspace
+    attach_workspace:
+      at: *workspace
+  persist_firebase_workspace: &persist_firebase_workspace
+    persist_to_workspace:
+      root: *workspace
+      paths:
+        - firebase
 
   android_config: &android_config
     working_directory: *workspace
@@ -34,6 +53,16 @@ reference:
       # Limit JVM heap size to prevent exceeding container memory
       _JAVA_OPTIONS: "-Xmx2048m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
       GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m"'
+
+  export_gcloud_key: &export_gcloud_key
+    run:
+      name: Export Google Cloud Service key environment variable
+      command: echo 'export GCLOUD_SERVICE_KEY="$GCLOUD_SERVICE_KEY"' >> $BASH_ENV
+  decode_gcloud_key: &decode_gcloud_key
+    run:
+      name: Decode Google Cloud credentials
+      command: echo $GCLOUD_SERVICE_KEY | base64 -di > ${HOME}/client-secret.json
+
 
 jobs:
   build_debug:
@@ -105,6 +134,33 @@ jobs:
           path: app/build/test-results/
           destination: /test-results/
 
+  test_instrumented:
+    <<: *android_config
+    steps:
+      - *attach_debug_workspace
+      - *export_gcloud_key
+      - *decode_gcloud_key
+      - run:
+          name: Set Google Cloud target project
+          command: gcloud config set project userland-app
+      - run:
+          name: Authenticate with Google Cloud
+          command: gcloud auth activate-service-account firebase-adminsdk-i376h@userland-app.iam.gserviceaccount.com --key-file ${HOME}/client-secret.json
+      - run:
+          name: Run instrumented test on Firebase Test Lab
+          command: gcloud firebase test android run --type instrumentation --app app/build/outputs/apk/debug/app-debug.apk --test app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk --device model=Pixel2,version=28,locale=en_US,orientation=portrait --environment-variables coverage=true,coverageFile=/sdcard/tmp/code-coverage/connected/coverage.ec --directories-to-pull=/sdcard/tmp --timeout 20m
+      - run:
+          name: Create directory to store test results
+          command: mkdir firebase
+      - run:
+          name: Download instrumented test results from Firebase Test Lab
+          command: gsutil -m cp -r -U "`gsutil ls gs://test-lab-5114im9qa55t6-h6m476ja1a8jm| tail -1`*" /root/workspace/firebase/
+      - *persist_firebase_workspace
+      - store_artifacts:
+          path: firebase/
+          destination: /firebase/
+
+
 
 #version: 2
 #
@@ -113,25 +169,6 @@ jobs:
 
 #
 
-#  attach_debug_workspace: &attach_debug_workspace
-#    attach_workspace:
-#      at: *workspace
-#  attach_release_workspace: &attach_release_workspace
-#    attach_workspace:
-#      at: *workspace
-#  persist_release_workspace: &persist_release_workspace
-#    persist_to_workspace:
-#      root: *workspace
-#      paths:
-#        - app/build
-#  attach_firebase_workspace: &attach_firebase_workspace
-#    attach_workspace:
-#      at: *workspace
-#  persist_firebase_workspace: &persist_firebase_workspace
-#    persist_to_workspace:
-#      root: *workspace
-#      paths:
-#        - firebase
 #
 #
 
@@ -147,47 +184,14 @@ jobs:
 #      name: Decode Google Services key
 #      command: echo $GOOGLE_SERVICES_KEY | base64 -di > app/google-services.json
 #
-#  export_gcloud_key: &export_gcloud_key
-#    run:
-#      name: Export Google Cloud Service key environment variable
-#      command: echo 'export GCLOUD_SERVICE_KEY="$GCLOUD_SERVICE_KEY"' >> $BASH_ENV
-#  decode_gcloud_key: &decode_gcloud_key
-#    run:
-#      name: Decode Google Cloud credentials
-#      command: echo $GCLOUD_SERVICE_KEY | base64 -di > ${HOME}/client-secret.json
-#
+
 #jobs:
 
 #
 #
 
 #
-#  test_instrumented:
-#    <<: *android_config
-#    steps:
-#      - *attach_debug_workspace
-#      - *export_gcloud_key
-#      - *decode_gcloud_key
-#      - run:
-#          name: Set Google Cloud target project
-#          command: gcloud config set project userland-app
-#      - run:
-#          name: Authenticate with Google Cloud
-#          command: gcloud auth activate-service-account firebase-adminsdk-i376h@userland-app.iam.gserviceaccount.com --key-file ${HOME}/client-secret.json
-#      - run:
-#          name: Run instrumented test on Firebase Test Lab
-#          command: gcloud firebase test android run --type instrumentation --app app/build/outputs/apk/debug/app-debug.apk --test app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk --device model=Pixel2,version=28,locale=en_US,orientation=portrait --environment-variables coverage=true,coverageFile=/sdcard/tmp/code-coverage/connected/coverage.ec --directories-to-pull=/sdcard/tmp --timeout 20m
-#      - run:
-#          name: Create directory to store test results
-#          command: mkdir firebase
-#      - run:
-#          name: Download instrumented test results from Firebase Test Lab
-#          command: gsutil -m cp -r -U "`gsutil ls gs://test-lab-5114im9qa55t6-h6m476ja1a8jm| tail -1`*" /root/workspace/firebase/
-#      - *persist_firebase_workspace
-#      - store_artifacts:
-#          path: firebase/
-#          destination: /firebase/
-#
+
 #  report_coverage:
 #      <<: *android_config
 #      steps:
@@ -220,9 +224,9 @@ workflows:
       - build_debug
       - build_release
       - test_unit
-#      - test_instrumented
-#        requires:
-#          - build_debug
+      - test_instrumented
+        requires:
+          - build_debug
 #      - report_coverage
 #        requires:
 #          - test_unit
