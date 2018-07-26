@@ -2,6 +2,8 @@ package tech.ula.utils
 
 import android.os.Environment
 import android.util.Log
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.launch
 import java.io.File
 import java.io.InputStream
 import java.util.ArrayList
@@ -51,8 +53,11 @@ class ExecUtility(val fileUtility: FileUtility, val preferenceUtility: Preferenc
             val process = pb.start()
 
             when {
-                prootDebuggingEnabled -> writeDebugLogFile(process.inputStream, prootDebugLogLocation)
-                doWait -> {
+                prootDebuggingEnabled && command.any { it.contains("execInProot") }
+                -> writeDebugLogFile(process.inputStream, prootDebugLogLocation)
+
+                doWait
+                -> {
                     collectOutput(process.inputStream, listener)
 
                     if (process.waitFor() != 0) {
@@ -80,14 +85,18 @@ class ExecUtility(val fileUtility: FileUtility, val preferenceUtility: Preferenc
 
     private fun writeDebugLogFile(inputStream: InputStream, debugLogLocation: String) {
         // TODO Fix this bug. If logging is enabled and it doesn't write to a file, isServerInProcTree can't find dropbear.
-        val reader = inputStream.bufferedReader(UTF_8)
-        val writer = File(debugLogLocation).writer(UTF_8)
-        reader.forEachLine {
-            writer.write(it)
+        launch(CommonPool) {
+            async {
+                val reader = inputStream.bufferedReader(UTF_8)
+                val writer = File(debugLogLocation).writer(UTF_8)
+                reader.forEachLine {
+                    writer.write("$it\n")
+                }
+                reader.close()
+                writer.flush()
+                writer.close()
+            }
         }
-        reader.close()
-        writer.flush()
-        writer.close()
     }
 
     fun wrapWithBusyboxAndExecute(targetDirectoryName: String, commandToWrap: String, listener: (String) -> Any = NOOP_CONSUMER, doWait: Boolean = true): Process {

@@ -20,7 +20,7 @@ class PreferenceUtility(private val context: Context) : Preferences {
     }
 
     override fun getProotDebuggingEnabled(): Boolean {
-        return prefs.getBoolean("pref_proot_debugging_enabled", false)
+        return prefs.getBoolean("pref_proot_debug_enabled", false)
     }
 
     override fun getProotDebuggingLevel(): String {
