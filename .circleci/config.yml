@@ -59,11 +59,34 @@ jobs:
           path: app/build/outputs/apk/
           destination: /apk/
 
+  build_release:
+      <<: *android_config
+      steps:
+        - checkout
+        - run: echo 'build_release'
+        - *restore_cache
+        - run:
+            name: Download dependencies
+            command: ./gradlew androidDependencies
+        - *save_cache
+#        - *export_gservices_key
+#        - *decode_gservices_key
+        - run:
+            name: Run ktlint
+            command: ./gradlew ktlint
+        - run:
+            name: Build
+            command: ./gradlew -PciBuild=true
+        - *persist_debug_workspace
+        - store_artifacts:
+            path: app/build/reports/
+            destination: /reports/
+
   test_unit:
     <<: *android_config
     steps:
       - checkout
-      - run: echo "hello world"
+      - run: echo "test_unit"
       - *restore_cache
       - run:
           name: Download dependencies
@@ -136,27 +159,6 @@ jobs:
 #jobs:
 
 #
-#  build_release:
-#      <<: *android_config
-#      steps:
-#        - checkout
-#        - *restore_cache
-#        - run:
-#            name: Download dependencies
-#            command: ./gradlew androidDependencies
-#        - *save_cache
-#        - *export_gservices_key
-#        - *decode_gservices_key
-#        - run:
-#            name: Run ktlint
-#            command: ./gradlew ktlint
-#        - run:
-#            name: Build
-#            command: ./gradlew -PciBuild=true
-#        - *persist_debug_workspace
-#        - store_artifacts:
-#            path: app/build/reports/
-#            destination: /reports/
 #
 
 #
@@ -215,8 +217,8 @@ workflows:
   version: 2
   workflow:
     jobs:
-      - build_debug
-#      - build_release
+#      - build_debug
+      - build_release
 #      - test_unit
 #      - test_instrumented
 #        requires:
