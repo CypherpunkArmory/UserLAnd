@@ -1,6 +1,18 @@
 version: 2
 
 reference:
+  cache_key: &cache_key
+    key: cache-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "build.gradle" }}-{{ checksum "app/build.gradle" }}
+  restore_cache: &restore_cache
+    restore_cache:
+      <<: *cache_key
+  save_cache: &save_cache
+    save_cache:
+      <<: *cache_key
+      paths:
+        - ~/.gradle
+        - ~/.m2
+
   workspace: &workspace
     ~/workspace
 
@@ -20,11 +32,11 @@ jobs:
     steps:
       - checkout
       - run: echo "hello world"
-#      - *restore_cache
+      - *restore_cache
       - run:
           name: Download dependencies
           command: ./gradlew androidDependencies
-#      - *save_cache
+      - *save_cache
 #      - *export_gservices_key
 #      - *decode_gservices_key
       - run:
@@ -43,17 +55,7 @@ jobs:
 #
 #references:
 #
-#  cache_key: &cache_key
-#    key: cache-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "build.gradle" }}-{{ checksum "app/build.gradle" }}
-#  restore_cache: &restore_cache
-#    restore_cache:
-#      <<: *cache_key
-#  save_cache: &save_cache
-#    save_cache:
-#      <<: *cache_key
-#      paths:
-#        - ~/.gradle
-#        - ~/.m2
+
 #
 
 #  attach_debug_workspace: &attach_debug_workspace
