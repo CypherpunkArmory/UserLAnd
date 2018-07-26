@@ -15,10 +15,11 @@ reference:
       GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m"'
 
 jobs:
-  test_unit:
+  build:
     <<: *android_config
     steps:
       - checkout
+      - run: echo "hello world"
 #      - *restore_cache
       - run:
           name: Download dependencies
@@ -36,6 +37,7 @@ jobs:
       - store_test_results:
           path: app/build/test-results/
           destination: /test-results/
+
 
 #version: 2
 #
