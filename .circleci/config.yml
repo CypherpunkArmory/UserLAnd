@@ -15,11 +15,27 @@ reference:
       GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m"'
 
 jobs:
-  build:
+  test_unit:
     <<: *android_config
     steps:
       - checkout
-      - run: echo "hello world"
+#      - *restore_cache
+      - run:
+          name: Download dependencies
+          command: ./gradlew androidDependencies
+#      - *save_cache
+#      - *export_gservices_key
+#      - *decode_gservices_key
+      - run:
+          name: Run unit tests
+          command: ./gradlew -PciBuild=true :app:testDebugUnitTest
+#      - *persist_debug_workspace
+      - store_artifacts:
+          path: app/build/reports/
+          destination: /reports/
+      - store_test_results:
+          path: app/build/test-results/
+          destination: /test-results/
 
 #version: 2
 #
@@ -135,27 +151,7 @@ jobs:
 #            path: app/build/reports/
 #            destination: /reports/
 #
-#  test_unit:
-#      <<: *android_config
-#      steps:
-#        - checkout
-#        - *restore_cache
-#        - run:
-#            name: Download dependencies
-#            command: ./gradlew androidDependencies
-#        - *save_cache
-#        - *export_gservices_key
-#        - *decode_gservices_key
-#        - run:
-#            name: Run unit tests
-#            command: ./gradlew -PciBuild=true :app:testDebugUnitTest
-#        - *persist_debug_workspace
-#        - store_artifacts:
-#            path: app/build/reports/
-#            destination: /reports/
-#        - store_test_results:
-#            path: app/build/test-results/
-#            destination: /test-results/
+
 #
 #  test_instrumented:
 #    <<: *android_config
