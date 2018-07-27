@@ -207,9 +207,9 @@ workflows:
       - test_unit:
           requires:
             - build_debug
-#      - test_instrumented:
-#          requires:
-#            - build_debug
+      - test_instrumented:
+          requires:
+            - build_debug
 #      - report_coverage
 #        requires:
 #          - test_unit
