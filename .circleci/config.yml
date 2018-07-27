@@ -74,8 +74,6 @@ jobs:
           name: Download dependencies
           command: ./gradlew androidDependencies
       - *save_cache
-#      - *export_gservices_key
-#      - *decode_gservices_key
       - run:
           name: Run ktlint
           command: ./gradlew ktlint
@@ -97,8 +95,6 @@ jobs:
           name: Download dependencies
           command: ./gradlew androidDependencies
       - *save_cache
-#        - *export_gservices_key
-#        - *decode_gservices_key
       - run:
           name: Run ktlint
           command: ./gradlew ktlint
@@ -120,8 +116,6 @@ jobs:
           name: Download dependencies
           command: ./gradlew androidDependencies
       - *save_cache
-#      - *export_gservices_key
-#      - *decode_gservices_key
       - run:
           name: Run unit tests
           command: ./gradlew -PciBuild=true :app:testDebugUnitTest
@@ -159,43 +153,28 @@ jobs:
           path: firebase/
           destination: /firebase/
 
-#
-#  # Get CircleCI env variable in container
-#  export_gservices_key: &export_gservices_key
-#    run:
-#      name: Export Google Services key environment variable
-#      command: echo 'export GOOGLE_SERVICES_KEY="$GOOGLE_SERVICES_KEY"' >> $BASH_ENV
-#  # Decode key
-#  decode_gservices_key: &decode_gservices_key
-#    run:
-#      name: Decode Google Services key
-#      command: echo $GOOGLE_SERVICES_KEY | base64 -di > app/google-services.json
-#
-
-#  report_coverage:
-#      <<: *android_config
-#      steps:
-#        - checkout
-#        - *restore_cache
-#        - run:
-#            name: Download dependencies
-#            command: ./gradlew androidDependencies
-#        - *attach_debug_workspace
-#        - *attach_firebase_workspace
-#        - run:
-#            name: Move Firebase coverage report
-#            command: mkdir -p app/build/outputs/code-coverage/connected && cp firebase/walleye-28-en_US-portrait/artifacts/coverage.ec app/build/outputs/code-coverage/connected/coverage.ec
-#        - *export_gservices_key
-#        - *decode_gservices_key
-#        - run:
-#            name: Generate JaCoCo report
-#            command: ./gradlew -PciBuild=true :app:jacocoTestReport
-#        - run:
-#            name: Upload coverage report to CodeCov
-#            command: bash <(curl -s https://codecov.io/bash)
-#        - store_artifacts:
-#            path: app/build/reports/
-#            destination: /reports/
+  report_coverage:
+      <<: *android_config
+      steps:
+        - checkout
+        - *restore_cache
+        - run:
+            name: Download dependencies
+            command: ./gradlew androidDependencies
+        - *attach_debug_workspace
+        - *attach_firebase_workspace
+        - run:
+            name: Move Firebase coverage report
+            command: mkdir -p app/build/outputs/code-coverage/connected && cp firebase/walleye-28-en_US-portrait/artifacts/coverage.ec app/build/outputs/code-coverage/connected/coverage.ec
+        - run:
+            name: Generate JaCoCo report
+            command: ./gradlew -PciBuild=true :app:jacocoTestReport
+        - run:
+            name: Upload coverage report to CodeCov
+            command: bash <(curl -s https://codecov.io/bash)
+        - store_artifacts:
+            path: app/build/reports/
+            destination: /reports/
 
 workflows:
   version: 2
