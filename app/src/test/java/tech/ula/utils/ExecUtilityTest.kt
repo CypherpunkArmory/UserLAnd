@@ -68,11 +68,12 @@ class ExecUtilityTest {
         `when`(preferenceUtility.getProotDebuggingLevel()).thenReturn("9")
         `when`(preferenceUtility.getProotDebugLogLocation()).thenReturn(debugFile.path)
 
-        val commandToRun = arrayListOf("echo", "hello", "world")
+        val commandToRun = arrayListOf("echo", "execInProot")
         val doWait = true
 
         execUtility.execLocal(testDirectory, commandToRun, testLogger, doWait)
+        Thread.sleep(100)
         assertTrue(debugFile.exists())
-        assertEquals("hello world", debugFile.readText(UTF_8))
+        assertEquals("execInProot", debugFile.readText(UTF_8).trim())
     }
 }
