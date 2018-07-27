@@ -71,14 +71,11 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
 
         if (filename.contains("rootfs.tar.gz") && session.isExtracted) return false
 
-        // TODO make it so we download a full group of files, if any has changed (not the rootfs though, that is special)
-        // TODO this will take care of a few possible corner cases
-
         val now = currentTimeSeconds()
         if (updateIsBeingForced ||
                 !asset.exists() ||
-                filename.contains("rootfs.tar.gz") ||
-                now > (lastUpdateCheck + TimeUnit.DAYS.toMillis(1))) {
+                !session.isExtracted ||
+                now > (lastUpdateCheck + TimeUnit.DAYS.toSeconds(1))) {
             with(prefs.edit()) {
                 putLong("lastUpdateCheck", now)
                 apply()
