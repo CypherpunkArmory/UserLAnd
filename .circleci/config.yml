@@ -168,7 +168,3 @@ workflows:
       - test_instrumented:
           requires:
             - build_debug
-      - report_coverage:
-          requires:
-            - test_unit
-            - test_instrumented
