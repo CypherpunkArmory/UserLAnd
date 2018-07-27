@@ -112,10 +112,11 @@ class FileUtilityTest {
 
         // TODO test that permissions are changed
         var output = ""
-        val proc = Runtime.getRuntime().exec("stat -f %A ${tempFolder.root}/$targetFilesystemName/support/dist1file1")
+        val proc = Runtime.getRuntime().exec("ls -l ${tempFolder.root}/$targetFilesystemName/support/dist1file1")
 
         proc.inputStream.bufferedReader(UTF_8).forEachLine { output += it }
-        assert(output == "777")
+        val permissions = output.substring(0, 10)
+        assert(permissions == "-rwxrwxrwx")
     }
 
     @Test
@@ -146,10 +147,11 @@ class FileUtilityTest {
 
         assets.forEach {
             (asset, directory) ->
-            val proc = Runtime.getRuntime().exec("stat -f %A ${tempFolder.root}/$directory/$asset")
+            val proc = Runtime.getRuntime().exec("ls -l ${tempFolder.root}/$directory/$asset")
             var output = ""
             proc.inputStream.bufferedReader(UTF_8).forEachLine { output += it }
-            assert(output == "777")
+            val permissions = output.substring(0, 10)
+            assert(permissions == "-rwxrwxrwx")
         }
     }
 }
