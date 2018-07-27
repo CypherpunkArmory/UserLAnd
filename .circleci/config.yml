@@ -85,26 +85,29 @@ jobs:
           path: app/build/outputs/apk/
           destination: /apk/
 
-  build_release:
-    <<: *android_config
-    steps:
-      - checkout
-      - run: echo 'build_release'
-      - *restore_cache
-      - run:
-          name: Download dependencies
-          command: ./gradlew androidDependencies
-      - *save_cache
-      - run:
-          name: Run ktlint
-          command: ./gradlew ktlint
-      - run:
-          name: Build
-          command: ./gradlew -PciBuild=true
-      - *persist_debug_workspace
-      - store_artifacts:
-          path: app/build/reports/
-          destination: /reports/
+#  build_release:
+#    <<: *android_config
+#    steps:
+#      - checkout
+#      - run: echo 'build_release'
+#      - *restore_cache
+#      - run:
+#          name: Download dependencies
+#          command: ./gradlew androidDependencies
+#      - *save_cache
+#      - run:
+#          name: Run ktlint
+#          command: ./gradlew ktlint
+#      - run:
+#          name: Build
+#          command: ./gradlew -PciBuild=true :app:assembleRelease
+#      - *persist_release_workspace
+#      - store_artifacts:
+#          path: app/build/apk/
+#          destination: /apk/
+#      - store_artifacts:
+#          path: app/build/outputs/mapping/
+#          destination: /mapping/
 
   test_unit:
     <<: *android_config
@@ -181,7 +184,7 @@ workflows:
   workflow:
     jobs:
       - build_debug
-      - build_release
+#      - build_release
       - test_unit:
           requires:
             - build_debug
