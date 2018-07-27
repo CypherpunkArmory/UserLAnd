@@ -157,27 +157,27 @@ jobs:
           destination: /firebase/
 
   report_coverage:
-      <<: *android_config
-      steps:
-        - checkout
-        - *restore_cache
-        - run:
-            name: Download dependencies
-            command: ./gradlew androidDependencies
-        - *attach_debug_workspace
-        - *attach_firebase_workspace
-        - run:
-            name: Move Firebase coverage report
-            command: mkdir -p app/build/outputs/code-coverage/connected && cp firebase/walleye-28-en_US-portrait/artifacts/coverage.ec app/build/outputs/code-coverage/connected/coverage.ec
-        - run:
-            name: Generate JaCoCo report
-            command: ./gradlew -PciBuild=true :app:jacocoTestReport
-        - run:
-            name: Upload coverage report to CodeCov
-            command: bash <(curl -s https://codecov.io/bash)
-        - store_artifacts:
-            path: app/build/reports/
-            destination: /reports/
+    <<: *android_config
+    steps:
+      - checkout
+      - *restore_cache
+      - run:
+          name: Download dependencies
+          command: ./gradlew androidDependencies
+      - *attach_debug_workspace
+      - *attach_firebase_workspace
+      - run:
+          name: Move Firebase coverage report
+          command: mkdir -p app/build/outputs/code-coverage/connected && cp firebase/walleye-28-en_US-portrait/artifacts/coverage.ec app/build/outputs/code-coverage/connected/coverage.ec
+      - run:
+          name: Generate JaCoCo report
+          command: ./gradlew -PciBuild=true :app:jacocoTestReport
+      - run:
+          name: Upload coverage report to CodeCov
+          command: bash <(curl -s https://codecov.io/bash)
+      - store_artifacts:
+          path: app/build/reports/
+          destination: /reports/
 
 workflows:
   version: 2
