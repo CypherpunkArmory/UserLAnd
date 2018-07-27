@@ -57,12 +57,11 @@ reference:
   export_gcloud_key: &export_gcloud_key
     run:
       name: Export Google Cloud Service key environment variable
-      command: echo 'export GCLOUD_SERVICE_KEY="$GCLOUD_SERVICE_KEY"' >> $BASH_ENV
+      command: echo 'export GCLOUD_SERVICE_ACCOUNT_KEY="$GCLOUD_SERVICE_ACCOUNT_KEY"' >> $BASH_ENV
   decode_gcloud_key: &decode_gcloud_key
     run:
       name: Decode Google Cloud credentials
-      command: echo $GCLOUD_SERVICE_KEY | base64 -di > ${HOME}/client-secret.json
-
+      command: echo $GCLOUD_SERVICE_ACCOUNT_KEY | base64 -di > ${HOME}/client-secret.json
 
 jobs:
   build_debug:
@@ -210,7 +209,7 @@ workflows:
       - test_instrumented:
           requires:
             - build_debug
-#      - report_coverage
-#        requires:
-#          - test_unit
-#          - test_instrumented
+      - report_coverage:
+          requires:
+            - test_unit
+            - test_instrumented
