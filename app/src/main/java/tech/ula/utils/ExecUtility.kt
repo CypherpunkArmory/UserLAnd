@@ -51,18 +51,19 @@ class ExecUtility(val fileUtility: FileUtility, val preferenceUtility: Preferenc
             listener("Running: ${pb.command()} \n with env $env")
 
             val process = pb.start()
+            val logProot = prootDebuggingEnabled && command.any { it.contains("execInProot") }
 
-            when {
-                prootDebuggingEnabled && command.any { it.contains("execInProot") }
-                -> writeDebugLogFile(process.inputStream, prootDebugLogLocation)
+            if (logProot) {
+                writeDebugLogFile(process.inputStream, prootDebugLogLocation)
+                listener("Output being redirected to PRoot debug log.")
+            }
 
-                doWait
-                -> {
+            if (doWait) {
+                if (!logProot) {
                     collectOutput(process.inputStream, listener)
-
-                    if (process.waitFor() != 0) {
-                        listener("Exec: Failed to execute command ${pb.command()}")
-                    }
+                }
+                if (process.waitFor() != 0) {
+                    listener("Exec: Failed to execute command ${pb.command()}")
                 }
             }
 

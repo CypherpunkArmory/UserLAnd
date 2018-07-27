@@ -27,8 +27,8 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
     }
 
     private val lastUpdateCheck: Long by lazy {
-        //only grab the value from the database the first time such that we won't be looking at the value that is being
-        //updated while we check each file
+        // only grab the value from the database the first time such that we won't be looking at the value that is being
+        // updated while we check each file
         context.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE).getLong("lastUpdateCheck", 0)
     }
 
