@@ -180,8 +180,8 @@ class ServerService : Service() {
             }
             val resultIntent = Intent(SERVER_SERVICE_RESULT)
             resultIntent.putExtra("type", "networkUnavailable")
-
-            if (!lastActivatedSession.isExtracted) return
+            broadcaster.sendBroadcast(resultIntent)
+            return
         }
 
         if (downloadUtility.largeAssetRequiredAndNoWifi()) {
