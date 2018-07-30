@@ -1,7 +1,7 @@
 package tech.ula.utils
 
 import android.app.DownloadManager
-import android.content.Context
+import android.content.SharedPreferences
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
@@ -15,21 +15,24 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
-class DownloadUtility(val context: Context, val session: Session, val filesystem: Filesystem) {
+class DownloadUtility(
+    val session: Session,
+    val filesystem: Filesystem,
+    val downloadManager: DownloadManager,
+    val sharedPreferences: SharedPreferences,
+    val applicationFilesDirPath: String,
+    val connectivityManager: ConnectivityManager
+) {
 
     private val branch = "master"
 
     private val distType = filesystem.distributionType
     private val archType = filesystem.archType
 
-    private val downloadManager: DownloadManager by lazy {
-        context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-    }
-
     private val lastUpdateCheck: Long by lazy {
         // only grab the value from the database the first time such that we won't be looking at the value that is being
         // updated while we check each file
-        context.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE).getLong("lastUpdateCheck", 0)
+        sharedPreferences.getLong("lastUpdateCheck", 0)
     }
 
     fun largeAssetRequiredAndNoWifi(): Boolean {
@@ -48,8 +51,7 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
         deletePreviousDownload("UserLAnd:$filename")
 
         val updateTime = currentTimeSeconds()
-        val prefs = context.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE)
-        with(prefs.edit()) {
+        with(sharedPreferences.edit()) {
             val timestampPrefName = "$repo:$filename"
             putLong(timestampPrefName, updateTime)
             apply()
@@ -66,8 +68,7 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
         repo: String,
         updateIsBeingForced: Boolean
     ): Boolean {
-        val asset = File("${context.filesDir.path}/$repo/$filename")
-        val prefs = context.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE)
+        val asset = File("$applicationFilesDirPath/$repo/$filename")
 
         if (filename.contains("rootfs.tar.gz") && session.isExtracted) return false
 
@@ -76,7 +77,7 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
                 !asset.exists() ||
                 !session.isExtracted ||
                 now > (lastUpdateCheck + TimeUnit.DAYS.toSeconds(1))) {
-            with(prefs.edit()) {
+            with(sharedPreferences.edit()) {
                 putLong("lastUpdateCheck", now)
                 apply()
             }
@@ -85,7 +86,7 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
         }
 
         val timestampPrefName = "$repo:$filename"
-        val localTimestamp = prefs.getLong(timestampPrefName, 0)
+        val localTimestamp = sharedPreferences.getLong(timestampPrefName, 0)
         if (localTimestamp < remoteTimestamp) {
             if (asset.exists())
                 asset.delete()
@@ -117,7 +118,6 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
     }
 
     private fun wifiIsEnabled(): Boolean {
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         for (network in connectivityManager.allNetworks) {
             val capabilities = connectivityManager.getNetworkCapabilities(network)
             if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) return true
@@ -126,7 +126,6 @@ class DownloadUtility(val context: Context, val session: Session, val filesystem
     }
 
     fun internetIsAccessible(): Boolean {
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val activeNetworkInfo = connectivityManager.activeNetworkInfo
         activeNetworkInfo?.let {
             return true

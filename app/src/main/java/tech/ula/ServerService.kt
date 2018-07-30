@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
@@ -62,6 +63,18 @@ class ServerService : Service() {
 
     private val serverUtility by lazy {
         ServerUtility(execUtility, fileUtility)
+    }
+
+    private fun initializeDownloadUtility(
+        session: Session = lastActivatedSession,
+        filesystem: Filesystem = lastActivatedFilesystem
+    ): DownloadUtility {
+        val downloadManager = this.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val connectivityManager = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        return DownloadUtility(session, filesystem,
+                downloadManager, this.defaultSharedPreferences,
+                this.filesDir.path, connectivityManager)
     }
 
     private val filesystemExtractLogger = { line: String -> Unit
@@ -152,9 +165,7 @@ class ServerService : Service() {
         lastActivatedSession = session
         lastActivatedFilesystem = filesystem
 
-        downloadUtility = DownloadUtility(this@ServerService,
-                lastActivatedSession,
-                lastActivatedFilesystem)
+        downloadUtility = initializeDownloadUtility()
 
         val filesystemDirectoryName = session.filesystemId.toString()
         session.isExtracted = fileUtility
@@ -323,7 +334,7 @@ class ServerService : Service() {
         lastActivatedSession = session
         lastActivatedFilesystem = filesystem
 
-        downloadUtility = DownloadUtility(this, session, filesystem)
+        downloadUtility = initializeDownloadUtility(session, filesystem)
         var assetsWereDownloaded = true
         launchAsync {
             asyncAwait { assetsWereDownloaded = downloadAssets(updateIsBeingForced = true) }
