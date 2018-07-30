@@ -74,7 +74,7 @@ class ServerService : Service() {
 
         return DownloadUtility(session, filesystem,
                 downloadManager, this.defaultSharedPreferences,
-                this.filesDir.path, connectivityManager)
+                this.filesDir.path, connectivityManager, ConnectionUtility())
     }
 
     private val filesystemExtractLogger = { line: String -> Unit
