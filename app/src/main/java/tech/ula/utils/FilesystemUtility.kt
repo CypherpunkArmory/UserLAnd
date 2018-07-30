@@ -1,18 +1,9 @@
 package tech.ula.utils
 
-import android.content.Context
 import android.os.Build
 import java.io.File
 
-class FilesystemUtility(private val context: Context) {
-
-    private val execUtility by lazy {
-        ExecUtility(fileUtility, PreferenceUtility(context))
-    }
-
-    private val fileUtility by lazy {
-        FileUtility(context)
-    }
+class FilesystemUtility(private val execUtility: ExecUtility, private val fileUtility: FileUtility) {
 
     private fun getSupportDirectory(targetDirectoryName: String): File {
         return File("${fileUtility.getFilesDirPath()}/$targetDirectoryName/support")

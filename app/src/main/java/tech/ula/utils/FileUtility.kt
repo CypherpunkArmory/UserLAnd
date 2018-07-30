@@ -1,19 +1,18 @@
 package tech.ula.utils
 
-import android.content.Context
 import android.os.Environment
 import android.util.Log
 import java.io.File
 
 // TODO refactor this class with a better name
-class FileUtility(val context: Context) {
+class FileUtility(private val applicationFilesDirectoryPath: String) {
 
     fun getSupportDirPath(): String {
-        return "${context.filesDir.path}/support"
+        return "$applicationFilesDirectoryPath/support"
     }
 
     fun getFilesDirPath(): String {
-        return context.filesDir.path
+        return applicationFilesDirectoryPath
     }
 
     fun createAndGetDirectory(directory: String): File {

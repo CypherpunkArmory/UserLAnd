@@ -1,14 +1,11 @@
 package tech.ula.utils
 
-import android.content.Context
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 import java.io.File
 import kotlin.text.Charsets.UTF_8
@@ -19,15 +16,10 @@ class FileUtilityTest {
     @get:Rule
     val tempFolder = TemporaryFolder()
 
-    @Mock
-    lateinit var context: Context
-
     @Before
     fun setup() {
         MockitoAnnotations.initMocks(this)
-        val target = tempFolder.root
-        `when`(context.filesDir).thenReturn(target)
-        fileUtility = FileUtility(context)
+        fileUtility = FileUtility(tempFolder.root.path)
     }
 
     @Test

@@ -72,7 +72,7 @@ class ExecUtilityTest {
         val doWait = true
 
         execUtility.execLocal(testDirectory, commandToRun, testLogger, doWait)
-        Thread.sleep(100)
+        Thread.sleep(100) // To wait for coroutine
         assertTrue(debugFile.exists())
         assertEquals("execInProot", debugFile.readText(UTF_8).trim())
     }

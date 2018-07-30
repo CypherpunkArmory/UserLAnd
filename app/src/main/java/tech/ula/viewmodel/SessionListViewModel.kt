@@ -5,15 +5,23 @@ import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.Transformations
 import kotlinx.coroutines.experimental.launch
+import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.model.AppDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.utils.ServerUtility
-import tech.ula.utils.async
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 
 class SessionListViewModel(application: Application) : AndroidViewModel(application) {
+    private val fileUtility: FileUtility by lazy {
+        FileUtility(application.filesDir.path)
+    }
+
+    private val execUtility: ExecUtility by lazy {
+        ExecUtility(fileUtility, PreferenceUtility(application.defaultSharedPreferences))
+    }
+
     private val serverUtility: ServerUtility by lazy {
-        ServerUtility(application)
+        ServerUtility(execUtility, fileUtility)
     }
 
     private val appDatabase: AppDatabase by lazy {

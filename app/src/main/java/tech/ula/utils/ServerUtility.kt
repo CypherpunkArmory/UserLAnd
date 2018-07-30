@@ -1,18 +1,9 @@
 package tech.ula.utils
 
-import android.content.Context
 import tech.ula.model.entities.Session
 import java.io.File
 
-class ServerUtility(private val context: Context) {
-
-    private val execUtility by lazy {
-        ExecUtility(fileUtility, PreferenceUtility(context))
-    }
-
-    private val fileUtility by lazy {
-        FileUtility(context)
-    }
+class ServerUtility(private val execUtility: ExecUtility, private val fileUtility: FileUtility) {
 
     fun Process.pid(): Long {
         return this.toString().substringAfter("pid=").substringBefore(",").substringBefore("]").trim().toLong()
