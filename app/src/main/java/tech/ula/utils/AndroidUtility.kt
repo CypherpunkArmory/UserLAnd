@@ -1,9 +1,7 @@
 package tech.ula.utils
 
-import android.content.Context
 import android.content.SharedPreferences
 import android.os.Environment
-import android.preference.PreferenceManager
 
 interface Preferences {
     fun getProotDebuggingEnabled(): Boolean
@@ -13,11 +11,7 @@ interface Preferences {
     fun getProotDebugLogLocation(): String
 }
 
-class PreferenceUtility(private val context: Context) : Preferences {
-
-    val prefs: SharedPreferences by lazy {
-        PreferenceManager.getDefaultSharedPreferences(context)
-    }
+class PreferenceUtility(private val prefs: SharedPreferences) : Preferences {
 
     override fun getProotDebuggingEnabled(): Boolean {
         return prefs.getBoolean("pref_proot_debug_enabled", false)

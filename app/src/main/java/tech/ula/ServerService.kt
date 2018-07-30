@@ -2,14 +2,13 @@ package tech.ula
 
 import android.app.DownloadManager
 import android.app.Service
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
+import android.net.Uri
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
 import android.widget.Toast
 import kotlinx.coroutines.experimental.delay
+import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.doAsync
 import tech.ula.model.AppDatabase
 import tech.ula.model.entities.Filesystem
@@ -46,20 +45,20 @@ class ServerService : Service() {
         NotificationUtility(this)
     }
 
-    private val filesystemUtility by lazy {
-        FilesystemUtility(this)
+    private val fileUtility by lazy {
+        FileUtility(this.filesDir.path)
     }
 
-    private val fileUtility by lazy {
-        FileUtility(this)
+    private val execUtility by lazy {
+        ExecUtility(fileUtility, PreferenceUtility(this.defaultSharedPreferences))
+    }
+
+    private val filesystemUtility by lazy {
+        FilesystemUtility(execUtility, fileUtility)
     }
 
     private val serverUtility by lazy {
-        ServerUtility(this)
-    }
-
-    private val clientUtility by lazy {
-        ClientUtility(this)
+        ServerUtility(execUtility, fileUtility)
     }
 
     private val filesystemExtractLogger = { line: String -> Unit
@@ -92,6 +91,10 @@ class ServerService : Service() {
                 startSession(session, filesystem)
             }
             "continue" -> continueStartSession()
+            "restartRunningSession" -> {
+                val session: Session = intent.getParcelableExtra("session")
+                startClient(session)
+            }
             "kill" -> {
                 val session: Session = intent.getParcelableExtra("session")
                 killSession(session)
@@ -131,6 +134,18 @@ class ServerService : Service() {
         }
     }
 
+    private fun updateSession(session: Session) {
+        doAsync { AppDatabase.getInstance(this@ServerService).sessionDao().updateSession(session) }
+    }
+
+
+    private fun killSession(session: Session) {
+        serverUtility.stopService(session)
+        removeSession(session)
+        session.active = false
+        updateSession(session)
+    }
+
     private fun startSession(session: Session, filesystem: Filesystem) {
         lastActivatedSession = session
         lastActivatedFilesystem = filesystem
@@ -139,11 +154,11 @@ class ServerService : Service() {
                 lastActivatedSession,
                 lastActivatedFilesystem)
 
-        val filesysemDirectoryName = session.filesystemId.toString()
+        val filesystemDirectoryName = session.filesystemId.toString()
         session.isExtracted = fileUtility
-                .statusFileExists(filesysemDirectoryName, ".success_filesystem_extraction")
+                .statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")
 
-        filesystem.isDownloaded = fileUtility.distributionAssetsExist(filesysemDirectoryName)
+        filesystem.isDownloaded = fileUtility.distributionAssetsExist(filesystemDirectoryName)
 
         if (!downloadUtility.internetIsAccessible()) {
             if (session.isExtracted || filesystem.isDownloaded) {
@@ -205,7 +220,7 @@ class ServerService : Service() {
             }
 
             asyncAwait {
-                clientUtility.startClient(lastActivatedSession)
+                startClient(lastActivatedSession)
             }
 
             lastActivatedSession.active = true
@@ -243,11 +258,52 @@ class ServerService : Service() {
         return assetsWereDownloaded
     }
 
-    private fun killSession(session: Session) {
-        serverUtility.stopService(session)
-        removeSession(session)
-        session.active = false
-        updateSession(session)
+    private fun startClient(session: Session) {
+        when (session.clientType) {
+            "ConnectBot" -> startSshClient(session, "org.connectbot")
+            "bVNC" -> startVncClient(session, "com.iiordanov.freebVNC")
+//            "xsdl" -> return // TODO
+            else -> sendToastBroadcast(R.string.client_not_found)
+        }
+    }
+
+    private fun startSshClient(session: Session, packageName: String) {
+        val connectBotIntent = Intent()
+        connectBotIntent.action = "android.intent.action.VIEW"
+        connectBotIntent.data = Uri.parse("ssh://${session.username}@localhost:${session.port}/#userland")
+        connectBotIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+
+        if (clientIsPresent(connectBotIntent)) {
+            this.startActivity(connectBotIntent)
+        } else {
+            getClient(packageName)
+        }
+    }
+
+    private fun startVncClient(session: Session, packageName: String) {
+        val bVncIntent = Intent()
+        bVncIntent.action = "android.intent.action.VIEW"
+        bVncIntent.type = "application/vnd.vnc"
+        bVncIntent.data = Uri.parse("vnc://127.0.0.1:5951/?VncPassword=${session.password}")
+        bVncIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+
+        if (clientIsPresent(bVncIntent)) {
+            this.startActivity(bVncIntent)
+        } else {
+            getClient(packageName)
+        }
+    }
+
+    private fun clientIsPresent(intent: Intent): Boolean {
+        val activities = packageManager.queryIntentActivities(intent, 0)
+        return(activities.size > 0)
+    }
+
+    private fun getClient(packageName: String) {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        sendToastBroadcast(R.string.download_client_app)
+        this.startActivity(intent)
     }
 
     private fun cleanUpFilesystem(filesystemId: Long) {
@@ -271,7 +327,7 @@ class ServerService : Service() {
             asyncAwait { assetsWereDownloaded = downloadAssets(updateIsBeingForced = true) }
             killProgressBar()
             if (!assetsWereDownloaded) {
-                Toast.makeText(this@ServerService, R.string.no_assets_need_updating, Toast.LENGTH_LONG).show()
+                sendToastBroadcast(R.string.no_assets_need_updating)
                 return@launchAsync
             }
             fileUtility.copyDistributionAssetsToFilesystem(filesystem.id.toString(), filesystem.distributionType)
@@ -309,13 +365,15 @@ class ServerService : Service() {
         broadcaster.sendBroadcast(intent)
     }
 
-    private fun updateSession(session: Session) {
-        doAsync { AppDatabase.getInstance(this@ServerService).sessionDao().updateSession(session) }
-    }
-
     private fun displayNetworkChoices() {
         val intent = Intent(SERVER_SERVICE_RESULT)
         intent.putExtra("type", "displayNetworkChoices")
+        broadcaster.sendBroadcast(intent)
+    }
+
+    private fun sendToastBroadcast(id: Int) {
+        val intent = Intent(SERVER_SERVICE_RESULT)
+        intent.putExtra("id", id)
         broadcaster.sendBroadcast(intent)
     }
 }

@@ -28,7 +28,6 @@ import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.utils.ClientUtility
 import tech.ula.viewmodel.SessionListViewModel
 
 class SessionListFragment : Fragment() {
@@ -75,10 +74,6 @@ class SessionListFragment : Fragment() {
                 }
             }
         }
-    }
-
-    private val clientUtility by lazy {
-        ClientUtility(activityContext)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -138,7 +133,7 @@ class SessionListFragment : Fragment() {
                     Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG).show()
                 }
             } else {
-                clientUtility.startClient(session)
+                restartRunningSession(session)
             }
         }
     }
@@ -250,6 +245,13 @@ class SessionListFragment : Fragment() {
         serviceIntent.putExtra("type", "start")
         serviceIntent.putExtra("session", session)
         serviceIntent.putExtra("filesystem", filesystem)
+        activityContext.startService(serviceIntent)
+    }
+
+    private fun restartRunningSession(session: Session) {
+        val serviceIntent = Intent(activityContext, ServerService::class.java)
+        serviceIntent.putExtra("type", "restartRunningSession")
+        serviceIntent.putExtra("session", session)
         activityContext.startService(serviceIntent)
     }
 
