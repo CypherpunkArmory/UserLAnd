@@ -54,8 +54,30 @@ class FilesystemUtilityTest {
                 "rootfs.tar.gz.part02", "rootfs.tar.gz.part03")
                 .map { File("${supportDirectory.path}/$it") }
 
+        fsFiles.forEach { it.createNewFile() }
+        fsFiles.forEach { assertTrue(it.exists()) }
+
         filesystemUtility.removeRootfsFilesFromFilesystem(filesystemName)
 
         fsFiles.forEach { assertFalse(it.exists()) }
+    }
+
+    @Test
+    fun deletesAFilesystem() {
+        val filesystemId = 0L
+        val filesystemRoot = tempFolder.newFolder(filesystemId.toString())
+        val files = ArrayList<File>()
+        for (i in 0..10) {
+            files.add(File("${filesystemRoot.path}/$i"))
+        }
+
+        files.forEach { it.createNewFile() }
+        files.forEach { assertTrue(it.exists()) }
+
+        `when`(fileUtility.createAndGetDirectory("0")).thenReturn(filesystemRoot)
+
+        filesystemUtility.deleteFilesystem(filesystemId)
+
+        files.forEach { assertFalse (it.exists()) }
     }
 }
