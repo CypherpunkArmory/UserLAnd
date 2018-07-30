@@ -38,8 +38,6 @@ class ExecUtilityTest {
         testDirectory = tempFolder.root
         logCollector.clear()
 
-        MockitoAnnotations.initMocks(this)
-
         execUtility = ExecUtility(fileUtility, preferenceUtility)
     }
 
