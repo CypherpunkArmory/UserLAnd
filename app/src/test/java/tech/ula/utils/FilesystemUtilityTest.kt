@@ -80,4 +80,35 @@ class FilesystemUtilityTest {
 
         files.forEach { assertFalse (it.exists()) }
     }
+
+    @Test
+    fun getsCorrectSupportedAbis() {
+        var archType = ""
+
+        `when`(buildUtility.getSupportedAbis()).thenReturn(arrayOf("arm64-v8a"))
+        archType = filesystemUtility.getArchType()
+        assertEquals("arm64", archType)
+
+        `when`(buildUtility.getSupportedAbis()).thenReturn(arrayOf("armeabi-v7a"))
+        archType = filesystemUtility.getArchType()
+        assertEquals("arm", archType)
+
+        `when`(buildUtility.getSupportedAbis()).thenReturn(arrayOf("x86_64"))
+        archType = filesystemUtility.getArchType()
+        assertEquals("x86_64", archType)
+
+        `when`(buildUtility.getSupportedAbis()).thenReturn(arrayOf("x86"))
+        archType = filesystemUtility.getArchType()
+        assertEquals("x86", archType)
+
+        `when`(buildUtility.getSupportedAbis()).thenReturn(arrayOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86"))
+        archType = filesystemUtility.getArchType()
+        assertEquals("arm64", archType)
+    }
+
+    @Test(expected = Exception::class)
+    fun throwsExceptionWhenNoSupportAbi() {
+        `when`(buildUtility.getSupportedAbis()).thenReturn(arrayOf())
+        filesystemUtility.getArchType()
+    }
 }
