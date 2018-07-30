@@ -22,7 +22,7 @@ class DownloadUtility(
     val sharedPreferences: SharedPreferences,
     val applicationFilesDirPath: String,
     val connectivityManager: ConnectivityManager
-) {
+) {x
 
     private val branch = "master"
 

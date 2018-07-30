@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
+import android.net.NetworkInfo
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
@@ -37,7 +38,11 @@ class DownloadUtilityTest {
     lateinit var network: Network
 
     @Mock
+    lateinit var networkInfo: NetworkInfo
+
+    @Mock
     lateinit var networkCapabilities: NetworkCapabilities
+
 
     lateinit var downloadUtility: DownloadUtility
 
@@ -94,5 +99,24 @@ class DownloadUtilityTest {
         `when`(networkCapabilities.hasTransport(anyInt())).thenReturn(true)
 
         assertFalse(downloadUtility.largeAssetRequiredAndNoWifi())
+    }
+
+    @Test
+    fun internetIsAccessibleWhenActiveNetworkInfoPresent() {
+        val session = Session(0, filesystemId = 0)
+        val filesystem = Filesystem(0)
+        downloadUtility = DownloadUtility(session, filesystem, downloadManager, sharedPreferences, applicationFilesDirPath, connectivityManager)
+
+        `when`(connectivityManager.activeNetworkInfo).thenReturn(networkInfo)
+        assertTrue(downloadUtility.internetIsAccessible())
+    }
+
+    @Test
+    fun internetIsAccessibleWhenActiveNetworkInfoNotPresent() {
+        val session = Session(0, filesystemId = 0)
+        val filesystem = Filesystem(0)
+        downloadUtility = DownloadUtility(session, filesystem, downloadManager, sharedPreferences, applicationFilesDirPath, connectivityManager)
+
+        assertFalse(downloadUtility.internetIsAccessible())
     }
 }
