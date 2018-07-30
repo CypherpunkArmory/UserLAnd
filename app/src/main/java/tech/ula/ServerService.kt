@@ -2,7 +2,10 @@ package tech.ula
 
 import android.app.DownloadManager
 import android.app.Service
-import android.content.*
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.net.Uri
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
@@ -137,7 +140,6 @@ class ServerService : Service() {
     private fun updateSession(session: Session) {
         doAsync { AppDatabase.getInstance(this@ServerService).sessionDao().updateSession(session) }
     }
-
 
     private fun killSession(session: Session) {
         serverUtility.stopService(session)

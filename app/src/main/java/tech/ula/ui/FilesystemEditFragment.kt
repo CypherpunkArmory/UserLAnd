@@ -14,7 +14,7 @@ import kotlinx.android.synthetic.main.frag_filesystem_edit.* // ktlint-disable n
 import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
-import tech.ula.utils.*
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.FilesystemEditViewModel
 
 class FilesystemEditFragment : Fragment() {

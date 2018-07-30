@@ -1,16 +1,16 @@
-//package tech.ula.utils
+// package tech.ula.utils
 //
-//import android.content.Intent
-//import android.net.Uri
-//import tech.ula.model.entities.Session
+// import android.content.Intent
+// import android.net.Uri
+// import tech.ula.model.entities.Session
 //
-//class ClientUtility() {
+// class ClientUtility() {
 //
 //    fun getClientIntentData(session: Session): String {
 //        return when (session.clientType) {
 //            "ConnectBot" -> startSshClient(session, "org.connectbot")
 //            "bVNC" -> startVncClient(session, "com.iiordanov.freebVNC")
-////            "xsdl" -> return // TODO
+// //            "xsdl" -> return // TODO
 //            else -> "clientNotFound"
 //        }
 //    }
@@ -45,4 +45,4 @@
 //        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))
 //        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
 //    }
-//}
+// }

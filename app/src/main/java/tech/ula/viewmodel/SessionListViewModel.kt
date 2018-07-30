@@ -9,7 +9,7 @@ import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.model.AppDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.utils.*
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 
 class SessionListViewModel(application: Application) : AndroidViewModel(application) {
     private val fileUtility: FileUtility by lazy {
