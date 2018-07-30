@@ -1,6 +1,6 @@
 package tech.ula.utils
 
-import org.junit.Assert.*
+import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -78,7 +78,7 @@ class FilesystemUtilityTest {
 
         filesystemUtility.deleteFilesystem(filesystemId)
 
-        files.forEach { assertFalse (it.exists()) }
+        files.forEach { assertFalse(it.exists()) }
     }
 
     @Test

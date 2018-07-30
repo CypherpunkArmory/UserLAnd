@@ -3,9 +3,10 @@ package tech.ula.utils
 import java.io.File
 
 class FilesystemUtility(
-        private val execUtility: ExecUtility,
-        private val fileUtility: FileUtility,
-        private val buildUtility: BuildUtility) {
+    private val execUtility: ExecUtility,
+    private val fileUtility: FileUtility,
+    private val buildUtility: BuildUtility
+) {
 
     private fun getSupportDirectory(targetDirectoryName: String): File {
         return File("${fileUtility.getFilesDirPath()}/$targetDirectoryName/support")
