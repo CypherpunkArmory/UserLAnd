@@ -58,7 +58,7 @@ class ServerService : Service() {
     }
 
     private val filesystemUtility by lazy {
-        FilesystemUtility(execUtility, fileUtility)
+        FilesystemUtility(execUtility, fileUtility, BuildUtility())
     }
 
     private val serverUtility by lazy {

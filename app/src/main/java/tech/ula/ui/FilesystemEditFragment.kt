@@ -42,7 +42,7 @@ class FilesystemEditFragment : Fragment() {
     }
 
     private val filesystemUtility: FilesystemUtility by lazy {
-        FilesystemUtility(execUtility, fileUtility)
+        FilesystemUtility(execUtility, fileUtility, BuildUtility())
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

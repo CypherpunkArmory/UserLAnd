@@ -1,9 +1,12 @@
 package tech.ula.utils
 
-import android.os.Build
 import java.io.File
 
-class FilesystemUtility(private val execUtility: ExecUtility, private val fileUtility: FileUtility) {
+class FilesystemUtility(
+    private val execUtility: ExecUtility,
+    private val fileUtility: FileUtility,
+    private val buildUtility: BuildUtility
+) {
 
     private fun getSupportDirectory(targetDirectoryName: String): File {
         return File("${fileUtility.getFilesDirPath()}/$targetDirectoryName/support")
@@ -34,7 +37,7 @@ class FilesystemUtility(private val execUtility: ExecUtility, private val fileUt
     }
 
     fun getArchType(): String {
-        val supportedABIS = Build.SUPPORTED_ABIS
+        val supportedABIS = buildUtility.getSupportedAbis()
                 .map {
                     translateABI(it)
                 }

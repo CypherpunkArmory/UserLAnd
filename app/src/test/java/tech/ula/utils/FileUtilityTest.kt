@@ -6,7 +6,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import org.mockito.MockitoAnnotations
 import java.io.File
 import kotlin.text.Charsets.UTF_8
 
@@ -18,7 +17,6 @@ class FileUtilityTest {
 
     @Before
     fun setup() {
-        MockitoAnnotations.initMocks(this)
         fileUtility = FileUtility(tempFolder.root.path)
     }
 

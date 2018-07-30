@@ -9,7 +9,6 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
-import org.mockito.MockitoAnnotations
 import org.mockito.junit.MockitoJUnitRunner
 import java.io.File
 import kotlin.text.Charsets.UTF_8
@@ -37,8 +36,6 @@ class ExecUtilityTest {
     fun setup() {
         testDirectory = tempFolder.root
         logCollector.clear()
-
-        MockitoAnnotations.initMocks(this)
 
         execUtility = ExecUtility(fileUtility, preferenceUtility)
     }
