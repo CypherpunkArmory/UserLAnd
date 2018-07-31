@@ -1,30 +1,25 @@
 package tech.ula.utils
 
 import android.app.DownloadManager
-import android.content.SharedPreferences
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkInfo
 import com.nhaarman.mockitokotlin2.verify
-import org.junit.Assert.*
+import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
-import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
-import org.mockito.ArgumentMatchers.*
 import org.mockito.Mock
-import org.mockito.Mockito.*
+import org.mockito.Mockito.* // ktlint-disable no-wildcard-imports
 import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileWriter
-import java.net.HttpURLConnection
-import java.net.URL
 
 @RunWith(MockitoJUnitRunner::class)
 class DownloadUtilityTest {
@@ -101,7 +96,7 @@ class DownloadUtilityTest {
 
         tempFolder.newFolder(repo)
         assetFile = File("${tempFolder.root.path}/$repo/$filename")
-        if(assetFile.exists()) assetFile.delete()
+        if (assetFile.exists()) assetFile.delete()
 
         val inputStream = FileInputStream(assetList)
         `when`(connectivityManager.activeNetworkInfo).thenReturn(networkInfo)
