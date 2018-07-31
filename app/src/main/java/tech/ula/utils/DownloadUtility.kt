@@ -1,28 +1,25 @@
 package tech.ula.utils
 
 import android.app.DownloadManager
-import android.content.SharedPreferences
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.net.Uri
-import android.os.Environment
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
-import java.net.HttpURLConnection
-import java.net.URL
 import java.util.concurrent.TimeUnit
 
 class DownloadUtility(
-    val session: Session,
-    val filesystem: Filesystem,
-    val downloadManager: DownloadManager,
-    val preferenceUtility: PreferenceUtility,
-    val applicationFilesDirPath: String,
-    val connectivityManager: ConnectivityManager,
-    val connectionUtility: ConnectionUtility
+    private val session: Session,
+    private val filesystem: Filesystem,
+    private val downloadManager: DownloadManager,
+    private val timestampPreferenceUtility: TimestampPreferenceUtility,
+    private val applicationFilesDirPath: String,
+    private val connectivityManager: ConnectivityManager,
+    private val connectionUtility: ConnectionUtility,
+    private val requestUtility: RequestUtility,
+    private val environmentUtility: EnvironmentUtility
 ) {
 
     private val branch = "master"
@@ -40,7 +37,7 @@ class DownloadUtility(
     private val lastUpdateCheck: Long by lazy {
         // only grab the value from the database the first time such that we won't be looking at the value that is being
         // updated while we check each file
-        preferenceUtility.getLastUpdateCheck()
+        timestampPreferenceUtility.getLastUpdateCheck()
     }
 
     fun largeAssetRequiredAndNoWifi(): Boolean {
@@ -50,17 +47,13 @@ class DownloadUtility(
 
     private fun download(filename: String, repo: String, scope: String): Long {
         val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-$repo/raw/$branch/assets/$scope/$filename"
-        val uri = Uri.parse(url)
-        val request = DownloadManager.Request(uri)
-        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
-        request.setDescription("Downloading $filename.")
-        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
-        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "UserLAnd:$repo:$filename")
-        deletePreviousDownload("UserLAnd:$filename")
+        val destination = "UserLAnd:$repo:$filename"
+        val request = requestUtility.generateTypicalDownloadRequest(url, destination)
+        deletePreviousDownload("UserLAnd:$repo:$filename")
 
         val updateTime = currentTimeSeconds()
         val timestampPrefName = "$repo:$filename"
-        preferenceUtility.setSavedTimestampForFile(timestampPrefName, updateTime)
+        timestampPreferenceUtility.setSavedTimestampForFile(timestampPrefName, updateTime)
 
         if (filename.contains("rootfs.tar.gz")) filesystem.isDownloaded = true
 
@@ -82,13 +75,13 @@ class DownloadUtility(
                 !asset.exists() ||
                 !session.isExtracted ||
                 now > (lastUpdateCheck + TimeUnit.DAYS.toSeconds(1))) {
-            preferenceUtility.setLastUpdateCheck(now)
+            timestampPreferenceUtility.setLastUpdateCheck(now)
         } else {
             return false
         }
 
         val timestampPrefName = "$repo:$filename"
-        val localTimestamp = preferenceUtility.getSavedTimestampForFile(timestampPrefName)
+        val localTimestamp = timestampPreferenceUtility.getSavedTimestampForFile(timestampPrefName)
         if (localTimestamp < remoteTimestamp) {
             if (asset.exists())
                 asset.delete()
@@ -130,13 +123,12 @@ class DownloadUtility(
     }
 
     private fun deletePreviousDownload(type: String) {
-        val downloadDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val downloadDirectory = environmentUtility.getDownloadsDirectory()
         val downloadFile = File(downloadDirectory, type)
         if (downloadFile.exists())
             downloadFile.delete()
     }
 
-    @Throws(Exception::class)
     private fun retrieveAndParseAssetList(repo: String, scope: String): ArrayList<Pair<String, Long>> {
         val assetList = ArrayList<Pair<String, Long>>()
 
