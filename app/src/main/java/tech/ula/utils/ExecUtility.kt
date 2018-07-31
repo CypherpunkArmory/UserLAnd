@@ -10,7 +10,7 @@ import java.util.ArrayList
 import java.lang.ProcessBuilder
 import kotlin.text.Charsets.UTF_8
 
-class ExecUtility(val fileUtility: FileUtility, val preferenceUtility: PreferenceUtility) {
+class ExecUtility(val fileUtility: FileUtility, val defaultPreferenceUtility: DefaultPreferenceUtility) {
 
     companion object {
         val EXEC_DEBUG_LOGGER = { line: String -> Unit
@@ -29,11 +29,11 @@ class ExecUtility(val fileUtility: FileUtility, val preferenceUtility: Preferenc
     ): Process {
 
         // TODO refactor naming convention to command debugging log
-        val prootDebuggingEnabled = preferenceUtility.getProotDebuggingEnabled()
+        val prootDebuggingEnabled = defaultPreferenceUtility.getProotDebuggingEnabled()
         val prootDebuggingLevel =
-                if (prootDebuggingEnabled) preferenceUtility.getProotDebuggingLevel()
+                if (prootDebuggingEnabled) defaultPreferenceUtility.getProotDebuggingLevel()
                 else "-1"
-        val prootDebugLogLocation = preferenceUtility.getProotDebugLogLocation()
+        val prootDebugLogLocation = defaultPreferenceUtility.getProotDebugLogLocation()
 
         val env = if (wrapped) hashMapOf("LD_LIBRARY_PATH" to (fileUtility.getSupportDirPath()),
                 "ROOT_PATH" to fileUtility.getFilesDirPath(),

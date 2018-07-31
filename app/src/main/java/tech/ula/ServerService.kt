@@ -54,7 +54,7 @@ class ServerService : Service() {
     }
 
     private val execUtility by lazy {
-        ExecUtility(fileUtility, PreferenceUtility(this.defaultSharedPreferences))
+        ExecUtility(fileUtility, DefaultPreferenceUtility(this.defaultSharedPreferences))
     }
 
     private val filesystemUtility by lazy {
@@ -70,11 +70,14 @@ class ServerService : Service() {
         filesystem: Filesystem = lastActivatedFilesystem
     ): DownloadUtility {
         val downloadManager = this.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val prefs = this.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE)
+        val applicationFilesDirPath = this.filesDir.path
         val connectivityManager = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
         return DownloadUtility(session, filesystem,
-                downloadManager, this.defaultSharedPreferences,
-                this.filesDir.path, connectivityManager)
+                downloadManager, TimestampPreferenceUtility(prefs),
+                applicationFilesDirPath, connectivityManager,
+                ConnectionUtility(), RequestUtility(), EnvironmentUtility())
     }
 
     private val filesystemExtractLogger = { line: String -> Unit

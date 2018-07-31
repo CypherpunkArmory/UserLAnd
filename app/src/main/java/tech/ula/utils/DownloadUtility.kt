@@ -1,27 +1,25 @@
 package tech.ula.utils
 
 import android.app.DownloadManager
-import android.content.SharedPreferences
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.net.Uri
-import android.os.Environment
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
-import java.net.HttpURLConnection
-import java.net.URL
 import java.util.concurrent.TimeUnit
 
 class DownloadUtility(
-    val session: Session,
-    val filesystem: Filesystem,
-    val downloadManager: DownloadManager,
-    val sharedPreferences: SharedPreferences,
-    val applicationFilesDirPath: String,
-    val connectivityManager: ConnectivityManager
+    private val session: Session,
+    private val filesystem: Filesystem,
+    private val downloadManager: DownloadManager,
+    private val timestampPreferenceUtility: TimestampPreferenceUtility,
+    private val applicationFilesDirPath: String,
+    private val connectivityManager: ConnectivityManager,
+    private val connectionUtility: ConnectionUtility,
+    private val requestUtility: RequestUtility,
+    private val environmentUtility: EnvironmentUtility
 ) {
 
     private val branch = "master"
@@ -29,10 +27,17 @@ class DownloadUtility(
     private val distType = filesystem.distributionType
     private val archType = filesystem.archType
 
+    private val allAssetListTypes = listOf(
+            "support" to "all",
+            "support" to archType,
+            distType to "all",
+            distType to archType
+    )
+
     private val lastUpdateCheck: Long by lazy {
         // only grab the value from the database the first time such that we won't be looking at the value that is being
         // updated while we check each file
-        sharedPreferences.getLong("lastUpdateCheck", 0)
+        timestampPreferenceUtility.getLastUpdateCheck()
     }
 
     fun largeAssetRequiredAndNoWifi(): Boolean {
@@ -42,20 +47,13 @@ class DownloadUtility(
 
     private fun download(filename: String, repo: String, scope: String): Long {
         val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-$repo/raw/$branch/assets/$scope/$filename"
-        val uri = Uri.parse(url)
-        val request = DownloadManager.Request(uri)
-        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
-        request.setDescription("Downloading $filename.")
-        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
-        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "UserLAnd:$repo:$filename")
-        deletePreviousDownload("UserLAnd:$filename")
+        val destination = "UserLAnd:$repo:$filename"
+        val request = requestUtility.generateTypicalDownloadRequest(url, destination)
+        deletePreviousDownload("UserLAnd:$repo:$filename")
 
         val updateTime = currentTimeSeconds()
-        with(sharedPreferences.edit()) {
-            val timestampPrefName = "$repo:$filename"
-            putLong(timestampPrefName, updateTime)
-            apply()
-        }
+        val timestampPrefName = "$repo:$filename"
+        timestampPreferenceUtility.setSavedTimestampForFile(timestampPrefName, updateTime)
 
         if (filename.contains("rootfs.tar.gz")) filesystem.isDownloaded = true
 
@@ -77,16 +75,13 @@ class DownloadUtility(
                 !asset.exists() ||
                 !session.isExtracted ||
                 now > (lastUpdateCheck + TimeUnit.DAYS.toSeconds(1))) {
-            with(sharedPreferences.edit()) {
-                putLong("lastUpdateCheck", now)
-                apply()
-            }
+            timestampPreferenceUtility.setLastUpdateCheck(now)
         } else {
             return false
         }
 
         val timestampPrefName = "$repo:$filename"
-        val localTimestamp = sharedPreferences.getLong(timestampPrefName, 0)
+        val localTimestamp = timestampPreferenceUtility.getSavedTimestampForFile(timestampPrefName)
         if (localTimestamp < remoteTimestamp) {
             if (asset.exists())
                 asset.delete()
@@ -95,14 +90,8 @@ class DownloadUtility(
         return !asset.exists()
     }
 
-    fun downloadRequirements(updateIsBeingForced: Boolean = false): ArrayList<Long> {
+    fun downloadRequirements(updateIsBeingForced: Boolean = false, assetListTypes: List<Pair<String, String>> = allAssetListTypes): ArrayList<Long> {
         val downloads = ArrayList<Long>()
-        val assetListTypes = listOf(
-                "support" to "all",
-                "support" to archType,
-                distType to "all",
-                distType to archType
-        )
 
         assetListTypes.forEach {
             (repo, scope) ->
@@ -134,13 +123,12 @@ class DownloadUtility(
     }
 
     private fun deletePreviousDownload(type: String) {
-        val downloadDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val downloadDirectory = environmentUtility.getDownloadsDirectory()
         val downloadFile = File(downloadDirectory, type)
         if (downloadFile.exists())
             downloadFile.delete()
     }
 
-    @Throws(Exception::class)
     private fun retrieveAndParseAssetList(repo: String, scope: String): ArrayList<Pair<String, Long>> {
         val assetList = ArrayList<Pair<String, Long>>()
 
@@ -149,9 +137,7 @@ class DownloadUtility(
         }
 
         val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-$repo/raw/$branch/assets/$scope/assets.txt"
-        val conn = URL(url).openConnection() as HttpURLConnection
-        conn.requestMethod = "GET"
-        val reader = BufferedReader(InputStreamReader(conn.inputStream))
+        val reader = BufferedReader(InputStreamReader(connectionUtility.getAssetListConnection(url)))
         reader.forEachLine {
             val (filename, timestampAsString) = it.split(" ")
             if (filename == "assets.txt") return@forEachLine
