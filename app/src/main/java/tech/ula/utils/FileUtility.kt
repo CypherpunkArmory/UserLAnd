@@ -1,28 +1,23 @@
 package tech.ula.utils
 
-import android.content.Context
 import android.os.Environment
 import android.util.Log
 import java.io.File
 
 // TODO refactor this class with a better name
-class FileUtility(private val context: Context) {
-
-    private val execUtility by lazy {
-        ExecUtility(context)
-    }
+class FileUtility(private val applicationFilesDirectoryPath: String) {
 
     fun getSupportDirPath(): String {
-        return "${context.filesDir.path}/support"
+        return "$applicationFilesDirectoryPath/support"
     }
 
     fun getFilesDirPath(): String {
-        return context.filesDir.path
+        return applicationFilesDirectoryPath
     }
 
     fun createAndGetDirectory(directory: String): File {
         val file = File("${getFilesDirPath()}/$directory")
-        if(!file.exists()) file.mkdirs()
+        if (!file.exists()) file.mkdirs()
         return file
     }
 
@@ -31,16 +26,25 @@ class FileUtility(private val context: Context) {
         return file.exists()
     }
 
+    fun distributionAssetsExist(distributionType: String): Boolean {
+        val rootfsParts = listOf("rootfs.tar.gz.part00", "rootfs.tar.gz.part01", "rootfs.tar.gz.part02", "rootfs.tar.gz.part03")
+        rootfsParts.map {
+            File("${getFilesDirPath()}/$distributionType/$it")
+        }.forEach {
+            if (!it.exists()) return false
+        }
+        return true
+    }
+
     // Filename takes form of UserLAnd:<directory to place in>:<filename>
-    fun moveDownloadedAssetsToSharedSupportDirectory() {
-        val downloadDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        downloadDirectory.walkBottomUp()
+    fun moveAssetsToCorrectSharedDirectory(source: File = Environment.getExternalStoragePublicDirectory((Environment.DIRECTORY_DOWNLOADS))) {
+        source.walkBottomUp()
                 .filter { it.name.contains("UserLAnd:") }
                 .forEach {
-                    val contents = it.name.split(":")
-                    val targetDestination = File("${getFilesDirPath()}/${contents[1]}/${contents[2]}")
+                    val (_, directory, filename) = it.name.split(":")
+                    val targetDestination = File("${getFilesDirPath()}/$directory/$filename")
                     it.copyTo(targetDestination, overwrite = true)
-                    if(!it.delete())
+                    if (!it.delete())
                         Log.e("FileUtility", "Could not delete downloaded file: ${it.name}")
                 }
     }
@@ -50,34 +54,37 @@ class FileUtility(private val context: Context) {
         val targetDirectory = createAndGetDirectory("$targetFilesystemName/support")
         sharedDirectory.copyRecursively(targetDirectory, overwrite = true)
         targetDirectory.walkBottomUp().forEach {
-            if(it.name == "support") {
+            if (it.name == "support") {
                 return
             }
-            changePermission(it.name, "$targetFilesystemName/support", "0777")
+            changePermission(it.name, "$targetFilesystemName/support")
         }
     }
 
-    fun correctFilePermissions() {
+    fun correctFilePermissions(distributionType: String) {
         val filePermissions = listOf(
-                Triple("proot", "support", "0777"),
-                Triple("killProcTree.sh", "support", "0777"),
-                Triple("isServerInProcTree.sh", "support", "0777"),
-                Triple("busybox", "support", "0777"),
-                Triple("libtalloc.so.2", "support", "0777"),
-                Triple("execInProot.sh", "support", "0777"),
-                Triple("startSSHServer.sh", "debian", "0777"),
-                Triple("startVNCServer.sh", "debian", "0777"),
-                Triple("startVNCServerStep2.sh", "debian", "0777"),
-                Triple("busybox", "debian","0777"),
-                Triple("libdisableselinux.so", "debian", "0777")
-        )
-        filePermissions.forEach { (file, subdirectory, permissions) -> changePermission(file, subdirectory, permissions) }
+                "proot" to "support",
+                "killProcTree.sh" to "support",
+                "isServerInProcTree.sh" to "support",
+                "busybox" to "support",
+                "libtalloc.so.2" to "support",
+                "execInProot.sh" to "support",
+                "startSSHServer.sh" to distributionType,
+                "startVNCServer.sh" to distributionType,
+                "startVNCServerStep2.sh" to distributionType,
+                "busybox" to distributionType,
+                "libdisableselinux.so" to distributionType)
+        filePermissions.forEach { (file, subdirectory) -> changePermission(file, subdirectory) }
     }
 
-    private fun changePermission(filename: String, subdirectory: String, permissions: String) {
+    private fun changePermission(filename: String, subdirectory: String) {
         val executionDirectory = createAndGetDirectory(subdirectory)
-        val commandToRun = arrayListOf("chmod", permissions, filename)
-        execUtility.execLocal(executionDirectory, commandToRun, listener = ExecUtility.EXEC_DEBUG_LOGGER)
-    }
+        val commandToRun = arrayListOf("chmod", "0777", filename)
 
+        val pb = ProcessBuilder(commandToRun)
+        pb.directory(executionDirectory)
+
+        val process = pb.start()
+        process.waitFor()
+    }
 }

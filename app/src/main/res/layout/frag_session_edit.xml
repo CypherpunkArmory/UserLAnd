@@ -1,124 +1,131 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_margin="8dp">
+    android:layout_height="match_parent">
 
-    <!-- Session name -->
-    <android.support.design.widget.TextInputLayout
-        android:id="@+id/text_input_layout_session_name"
+    <android.support.constraint.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/text_filesystem">
+        android:layout_margin="8dp">
 
-        <android.support.design.widget.TextInputEditText
-            android:id="@+id/text_input_session_name"
+        <!-- Session name -->
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/text_input_layout_session_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
-            android:hint="@string/hint_session_name" />
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/text_filesystem">
 
-    </android.support.design.widget.TextInputLayout>
+            <android.support.design.widget.TextInputEditText
+                android:id="@+id/text_input_session_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:hint="@string/hint_session_name" />
 
-    <!-- Filesystem -->
-    <TextView
-        android:id="@+id/text_filesystem"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="@string/prompt_filesystem"
-        app:layout_constraintHorizontal_bias="0"
-        app:layout_constraintBaseline_toBaselineOf="@id/spinner_filesystem_list"
-        app:layout_constraintEnd_toStartOf="@id/spinner_filesystem_list"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/text_input_layout_session_name" />
+        </android.support.design.widget.TextInputLayout>
 
-    <!-- TODO more robust way of styling correctly
-    using margin start is likely not enough on larger screens, different localizations
-    -->
-    <Spinner
-        android:id="@+id/spinner_filesystem_list"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginStart="16dp"
-        android:spinnerMode="dropdown"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/text_filesystem"
-        app:layout_constraintTop_toBottomOf="@id/text_input_layout_session_name" />
+        <!-- Filesystem -->
+        <TextView
+            android:id="@+id/text_filesystem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/prompt_filesystem"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintBaseline_toBaselineOf="@id/spinner_filesystem_list"
+            app:layout_constraintEnd_toStartOf="@id/spinner_filesystem_list"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_input_layout_session_name" />
 
-    <!-- Service type -->
-    <TextView
-        android:id="@+id/text_session_service_type"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="@string/prompt_service_type"
-        app:layout_constraintHorizontal_bias="0"
-        app:layout_constraintBaseline_toBaselineOf="@id/spinner_session_service_type"
-        app:layout_constraintTop_toBottomOf="@id/text_filesystem"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/spinner_session_service_type" />
+        <!-- TODO more robust way of styling correctly
+        using margin start is likely not enough on larger screens, different localizations
+        -->
+        <Spinner
+            android:id="@+id/spinner_filesystem_list"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="16dp"
+            android:spinnerMode="dropdown"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/text_filesystem"
+            app:layout_constraintTop_toBottomOf="@id/text_input_layout_session_name" />
 
-    <Spinner
-        android:id="@+id/spinner_session_service_type"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:spinnerMode="dropdown"
-        android:entries="@array/supported_services"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@id/spinner_filesystem_list"
-        app:layout_constraintStart_toEndOf="@id/text_session_service_type"
-        app:layout_constraintTop_toBottomOf="@id/spinner_filesystem_list" />
+        <!-- Service type -->
+        <TextView
+            android:id="@+id/text_session_service_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/prompt_service_type"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintBaseline_toBaselineOf="@id/spinner_session_service_type"
+            app:layout_constraintTop_toBottomOf="@id/text_filesystem"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/spinner_session_service_type" />
 
-    <!-- Client Type -->
-    <TextView
-        android:id="@+id/text_session_client_type"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="@string/prompt_client_type"
-        app:layout_constraintHorizontal_bias="0"
-        app:layout_constraintBaseline_toBaselineOf="@id/spinner_session_client_type"
-        app:layout_constraintTop_toBottomOf="@id/text_session_service_type"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/spinner_session_client_type"/>
+        <Spinner
+            android:id="@+id/spinner_session_service_type"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:spinnerMode="dropdown"
+            android:entries="@array/supported_services"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/spinner_filesystem_list"
+            app:layout_constraintStart_toEndOf="@id/text_session_service_type"
+            app:layout_constraintTop_toBottomOf="@id/spinner_filesystem_list" />
 
-    <Spinner
-        android:id="@+id/spinner_session_client_type"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:spinnerMode="dropdown"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@id/spinner_session_service_type"
-        app:layout_constraintStart_toEndOf="@id/text_session_client_type"
-        app:layout_constraintTop_toBottomOf="@id/spinner_session_service_type" />
+        <!-- Client Type -->
+        <TextView
+            android:id="@+id/text_session_client_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/prompt_client_type"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintBaseline_toBaselineOf="@id/spinner_session_client_type"
+            app:layout_constraintTop_toBottomOf="@id/text_session_service_type"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/spinner_session_client_type"/>
 
-    <!-- Username -->
-    <android.support.design.widget.TextInputLayout
-        android:id="@+id/text_input_layout_username"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/spinner_session_client_type"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" >
+        <Spinner
+            android:id="@+id/spinner_session_client_type"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:spinnerMode="dropdown"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/spinner_session_service_type"
+            app:layout_constraintStart_toEndOf="@id/text_session_client_type"
+            app:layout_constraintTop_toBottomOf="@id/spinner_session_service_type" />
 
-        <android.support.design.widget.TextInputEditText
-            android:id="@+id/text_input_username"
+        <!-- Username -->
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/text_input_layout_username"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
-            android:hint="@string/hint_username" />
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/spinner_session_client_type"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" >
 
-    </android.support.design.widget.TextInputLayout>
+            <android.support.design.widget.TextInputEditText
+                android:id="@+id/text_input_username"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:hint="@string/hint_username" />
 
-</android.support.constraint.ConstraintLayout>
+        </android.support.design.widget.TextInputLayout>
+
+    </android.support.constraint.ConstraintLayout>
+
+</ScrollView>

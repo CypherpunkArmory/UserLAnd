@@ -19,20 +19,23 @@ import kotlinx.android.parcel.Parcelize
             Index(value = ["filesystemId"])
         ])
 data class Session(
-        @PrimaryKey(autoGenerate = true)
-        val id: Long,
-        var name: String = "",
-        var filesystemId: Long,
-        var filesystemName: String = "",
-        var active: Boolean = false,
-        var username: String = "",
-        var password: String = "userland",
-        var geometry: String = "1024x768",
-        var serviceType: String = "",
-        var clientType: String = "",
-        var port: Long = 2022,
-        var pid: Long = 0,
-        val startupScript: String = "",
-        val runAtDeviceStartup: Boolean = false,
-        val initialCommand: String = ""
+    @PrimaryKey(autoGenerate = true)
+    val id: Long,
+    var name: String = "",
+    var filesystemId: Long,
+    var filesystemName: String = "",
+    var active: Boolean = false,
+    var username: String = "",
+    var password: String = "userland",
+    var geometry: String = "1024x768",
+    var serviceType: String = "",
+    var clientType: String = "",
+    var port: Long = 2022,
+    var pid: Long = 0,
+    val startupScript: String = "",
+    val runAtDeviceStartup: Boolean = false,
+    val initialCommand: String = "",
+    var isExtracted: Boolean = false,
+    var lastUpdated: Long = 0,
+    var bindings: String = ""
 ) : Parcelable

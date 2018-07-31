@@ -20,7 +20,7 @@ class FilesystemListAdapter(private var activity: Activity, private var items: L
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val view: View?
         val viewHolder: ViewHolder
-        if(convertView  == null) {
+        if (convertView == null) {
             val inflater = activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
             view = inflater.inflate(R.layout.list_item_filesystem, parent, false)
             viewHolder = ViewHolder(view)
@@ -32,9 +32,9 @@ class FilesystemListAdapter(private var activity: Activity, private var items: L
 
         val filesystem = items[position]
 
-
-        when(filesystem.distributionType) {
+        when (filesystem.distributionType) {
             "debian" -> viewHolder.imageViewType.setImageResource(R.drawable.ic_debian_logo)
+            "ubuntu" -> viewHolder.imageViewType.setImageResource(R.drawable.ic_ubuntu_logo)
             else -> viewHolder.imageViewType.setImageResource(R.mipmap.ic_launcher_foreground)
         }
         viewHolder.textViewName.text = filesystem.name

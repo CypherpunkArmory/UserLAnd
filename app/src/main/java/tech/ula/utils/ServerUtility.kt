@@ -1,17 +1,16 @@
 package tech.ula.utils
 
-import android.content.Context
 import tech.ula.model.entities.Session
 import java.io.File
 
-class ServerUtility(private val context: Context) {
+class ServerUtility(private val execUtility: ExecUtility, private val fileUtility: FileUtility) {
 
     fun Process.pid(): Long {
         return this.toString().substringAfter("pid=").substringBefore(",").substringBefore("]").trim().toLong()
     }
 
     fun Session.pidRelativeFilePath(): String {
-        return when(this.serviceType) {
+        return when (this.serviceType) {
             "ssh" -> "/run/dropbear.pid"
             "vnc" -> "/home/${this.username}/.vnc/localhost:${this.port}.pid"
             "xsdl" -> "error" // TODO
@@ -28,21 +27,13 @@ class ServerUtility(private val context: Context) {
         if (!pidFile.exists()) return -1
         return try {
             pidFile.readText().trim().toLong()
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             -1
         }
     }
 
-    private val execUtility by lazy {
-        ExecUtility(context)
-    }
-
-    private val fileUtility by lazy {
-        FileUtility(context)
-    }
-
     fun startServer(session: Session): Long {
-        return when(session.serviceType) {
+        return when (session.serviceType) {
             "ssh" -> startSSHServer(session)
             "vnc" -> startVNCServer(session)
             "xsdl" -> 0 // TODO
@@ -82,9 +73,8 @@ class ServerUtility(private val context: Context) {
         val targetDirectoryName = session.filesystemId.toString()
         val command = "../support/isServerInProcTree.sh ${session.pid()}"
         val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command)
-        if (process.exitValue() != 0)  //isServerInProcTree returns a 1 if it did't find a server
+        if (process.exitValue() != 0) // isServerInProcTree returns a 1 if it did't find a server
             return false
         return true
     }
-
 }

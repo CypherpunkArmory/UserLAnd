@@ -17,6 +17,7 @@
     <string name="delete">Delete</string>
     <string name="save">Save</string>
     <string name="add">Add</string>
+    <string name="update_assets">Update Assets</string>
 
     <!-- Hints -->
     <string name="hint_filesystem_name">Filesystem name</string>
@@ -43,6 +44,7 @@
 
     <!-- Progress bar messages -->
     <string name="progress_downloading">Downloading required assets&#8230;</string>
+    <string name="progress_downloading_check_updates">Looking for updates.</string>
     <string name="progress_downloading_out_of">%1$d out of %2$d complete</string>
     <string name="progress_setting_up">Setting up filesystem&#8230;</string>
     <string name="progress_setting_up_extract_text">Extracting: %1$s</string>
@@ -103,7 +105,10 @@
     <!-- TODO remove this once multisession support is implemented -->
     <string name="single_session_supported">UserLAnd currently only supports a single active session!</string>
     <string name="no_supported_architecture">UserLAnd does not currently support your devices architecture.</string>
-
+    <string name="debug_log_deleted">Debug log deleted or does not exist!</string>
+    <string name="filesystem_extraction_failed">Could not extract filesystem!</string>
+    <string name="no_assets_need_updating">No assets need updating!</string>
+    <string name="client_not_found">Could not find a way to handle the type of client this session is attempting to start!</string>
 
     <!-- Content descriptions -->
     <string name="desc_inactive">Image: session inactive</string>

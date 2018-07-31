@@ -6,15 +6,15 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.*
+import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
-import kotlinx.android.synthetic.main.frag_filesystem_edit.*
+import kotlinx.android.synthetic.main.frag_filesystem_edit.* // ktlint-disable no-wildcard-imports
+import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
-import tech.ula.utils.FilesystemUtility
-import tech.ula.utils.launchAsync
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.FilesystemEditViewModel
 
 class FilesystemEditFragment : Fragment() {
@@ -33,8 +33,16 @@ class FilesystemEditFragment : Fragment() {
         ViewModelProviders.of(this).get(FilesystemEditViewModel::class.java)
     }
 
+    private val fileUtility: FileUtility by lazy {
+        FileUtility(activityContext.filesDir.path)
+    }
+
+    private val execUtility: ExecUtility by lazy {
+        ExecUtility(fileUtility, PreferenceUtility(activityContext.defaultSharedPreferences))
+    }
+
     private val filesystemUtility: FilesystemUtility by lazy {
-        FilesystemUtility(activityContext)
+        FilesystemUtility(execUtility, fileUtility, BuildUtility())
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,7 +56,7 @@ class FilesystemEditFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return if(item.itemId == R.id.menu_item_add) insertFilesystem()
+        return if (item.itemId == R.id.menu_item_add) insertFilesystem()
         else super.onOptionsItemSelected(item)
     }
 
@@ -65,7 +73,7 @@ class FilesystemEditFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         input_filesystem_name.setText(filesystem.name)
-        input_filesystem_name.addTextChangedListener(object: TextWatcher {
+        input_filesystem_name.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
                 filesystem.name = p0.toString()
             }
@@ -75,7 +83,7 @@ class FilesystemEditFragment : Fragment() {
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
         })
 
-        if(editExisting) {
+        if (editExisting) {
             spinner_filesystem_type.isEnabled = false
         }
         spinner_filesystem_type.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -91,19 +99,16 @@ class FilesystemEditFragment : Fragment() {
     private fun insertFilesystem(): Boolean {
         val navController = NavHostFragment.findNavController(this)
         if (filesystem.name == "") input_filesystem_name.error = getString(R.string.error_filesystem_name)
-        if(filesystem.name == "") {
+        if (filesystem.name == "") {
             Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
-        }
-        else {
-            if(editExisting) {
+        } else {
+            if (editExisting) {
                 filesystemEditViewModel.updateFilesystem(filesystem)
                 navController.popBackStack()
-            }
-            else {
+            } else {
                 try {
                     filesystem.archType = filesystemUtility.getArchType()
-                }
-                catch(err: Exception) {
+                } catch (err: Exception) {
                     Toast.makeText(activityContext, R.string.no_supported_architecture, Toast.LENGTH_LONG).show()
                     return true
                 }
