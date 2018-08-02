@@ -201,8 +201,18 @@ class ServerService : Service() {
         launchAsync {
             startProgressBar()
 
-            asyncAwait {
-                assetsWereDownloaded = downloadAssets()
+            try {
+                asyncAwait {
+                    assetsWereDownloaded = downloadAssets()
+                }
+            } catch (err: Exception) {
+                if (err.message == "Error getting asset list") {
+                    val resultIntent = Intent(SERVER_SERVICE_RESULT)
+                    resultIntent.putExtra("type", "assetListFailure")
+                    broadcaster.sendBroadcast(resultIntent)
+                    killProgressBar()
+                    return@launchAsync
+                }
             }
 
             updateProgressBar(getString(R.string.progress_setting_up), "")
@@ -340,7 +350,17 @@ class ServerService : Service() {
         downloadUtility = initializeDownloadUtility(session, filesystem)
         var assetsWereDownloaded = true
         launchAsync {
-            asyncAwait { assetsWereDownloaded = downloadAssets(updateIsBeingForced = true) }
+            try {
+                asyncAwait { assetsWereDownloaded = downloadAssets(updateIsBeingForced = true) }
+            } catch (err: Exception) {
+                if (err.message == "Error getting asset list") {
+                    val resultIntent = Intent(SERVER_SERVICE_RESULT)
+                    resultIntent.putExtra("type", "assetListFailure")
+                    broadcaster.sendBroadcast(resultIntent)
+                    killProgressBar()
+                    return@launchAsync
+                }
+            }
             killProgressBar()
             if (!assetsWereDownloaded) {
                 sendToastBroadcast(R.string.no_assets_need_updating)

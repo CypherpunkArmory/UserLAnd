@@ -137,14 +137,18 @@ class DownloadUtility(
         }
 
         val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-$repo/raw/$branch/assets/$scope/assets.txt"
-        val reader = BufferedReader(InputStreamReader(connectionUtility.getAssetListConnection(url)))
-        reader.forEachLine {
-            val (filename, timestampAsString) = it.split(" ")
-            if (filename == "assets.txt") return@forEachLine
-            val timestamp = timestampAsString.toLong()
-            assetList.add(filename to timestamp)
+        try {
+            val reader = BufferedReader(InputStreamReader(connectionUtility.getAssetListConnection(url)))
+            reader.forEachLine {
+                val (filename, timestampAsString) = it.split(" ")
+                if (filename == "assets.txt") return@forEachLine
+                val timestamp = timestampAsString.toLong()
+                assetList.add(filename to timestamp)
+            }
+            reader.close()
+            return assetList
+        } catch (err: Exception) {
+            throw object : Exception("Error getting asset list") {}
         }
-        reader.close()
-        return assetList
     }
 }

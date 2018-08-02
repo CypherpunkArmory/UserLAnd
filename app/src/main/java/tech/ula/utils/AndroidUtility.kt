@@ -83,6 +83,7 @@ interface ConnectionAccessor {
 }
 
 class ConnectionUtility : ConnectionAccessor {
+    @Throws(Exception::class)
     override fun getAssetListConnection(url: String): InputStream {
         val conn = URL(url).openConnection() as HttpURLConnection
         conn.requestMethod = "GET"

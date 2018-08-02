@@ -158,6 +158,21 @@ class DownloadUtilityTest {
     }
 
     @Test
+    fun rethrowsExceptionCorrectlyIfAssetListCantBeRetrieved() {
+        val session = Session(0, filesystemId = 0)
+        val filesystem = Filesystem(0)
+        downloadUtility = initDownloadUtility(session, filesystem)
+
+        `when`(connectivityManager.activeNetworkInfo).thenReturn(networkInfo)
+        `when`(connectionUtility.getAssetListConnection(assetListUrl)).thenThrow(Exception::class.java)
+        try {
+            downloadUtility.downloadRequirements(updateIsBeingForced = false, assetListTypes = assetListTypes)
+        } catch (err: Exception) {
+            assertEquals("Error getting asset list", err.message)
+        }
+    }
+
+    @Test
     fun downloadsRequirementsWhenForced() {
         val session = Session(0, filesystemId = 0)
         val filesystem = Filesystem(0)
