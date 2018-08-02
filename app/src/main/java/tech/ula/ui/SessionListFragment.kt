@@ -69,6 +69,7 @@ class SessionListFragment : Fragment() {
                         "killProgressBar" -> killProgressBar()
                         "isProgressBarActive" -> syncProgressBarDisplayedWithService(it)
                         "networkUnavailable" -> displayNetworkUnavailableDialog()
+                        "assetListFailure" -> displayAssetListFailureDialog()
                         "displayNetworkChoices" -> displayNetworkChoicesDialog()
                     }
                 }
@@ -295,6 +296,18 @@ class SessionListFragment : Fragment() {
         builder.setMessage(R.string.alert_network_unavailable_message)
                 .setTitle(R.string.alert_network_unavailable_title)
                 .setPositiveButton(R.string.alert_network_unavailable_cancel_button) {
+                    dialog, _ ->
+                    dialog.dismiss()
+                }
+                .create()
+                .show()
+    }
+
+    private fun displayAssetListFailureDialog() {
+        val builder = AlertDialog.Builder(activityContext)
+        builder.setMessage(R.string.alert_asset_list_failure_message)
+                .setTitle(R.string.alert_asset_list_failure_title)
+                .setPositiveButton(R.string.alert_asset_list_failure_cancel_button) {
                     dialog, _ ->
                     dialog.dismiss()
                 }
