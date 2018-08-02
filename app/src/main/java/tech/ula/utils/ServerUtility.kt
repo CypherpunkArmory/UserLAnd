@@ -3,6 +3,7 @@ package tech.ula.utils
 import tech.ula.model.entities.Session
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.IOException
 
 class ServerUtility(private val execUtility: ExecUtility, private val fileUtility: FileUtility) {
 
@@ -77,7 +78,7 @@ class ServerUtility(private val execUtility: ExecUtility, private val fileUtilit
             val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command)
             if (process.exitValue() != 0) // isServerInProcTree returns a 1 if it did't find a server
                 return false
-        } catch (err: FileNotFoundException) {
+        } catch (err: IOException) {
             return false
         }
         return true
