@@ -2,7 +2,6 @@ package tech.ula.utils
 
 import tech.ula.model.entities.Session
 import java.io.File
-import java.io.FileNotFoundException
 import java.io.IOException
 
 class ServerUtility(private val execUtility: ExecUtility, private val fileUtility: FileUtility) {

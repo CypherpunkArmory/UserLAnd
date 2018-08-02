@@ -9,6 +9,7 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
 import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLHandshakeException
 
 class DownloadUtility(
     private val session: Session,
@@ -129,14 +130,19 @@ class DownloadUtility(
             downloadFile.delete()
     }
 
-    private fun retrieveAndParseAssetList(repo: String, scope: String): ArrayList<Pair<String, Long>> {
+    private fun retrieveAndParseAssetList(
+        repo: String,
+        scope: String,
+        protocol: String = "https",
+        retries: Int = 0
+    ): ArrayList<Pair<String, Long>> {
         val assetList = ArrayList<Pair<String, Long>>()
 
         if (!internetIsAccessible()) {
             return assetList
         }
 
-        val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-$repo/raw/$branch/assets/$scope/assets.txt"
+        val url = "$protocol://github.com/CypherpunkArmory/UserLAnd-Assets-$repo/raw/$branch/assets/$scope/assets.txt"
         try {
             val reader = BufferedReader(InputStreamReader(connectionUtility.getAssetListConnection(url)))
             reader.forEachLine {
@@ -147,6 +153,9 @@ class DownloadUtility(
             }
             reader.close()
             return assetList
+        } catch (err: SSLHandshakeException) {
+            if (retries >= 5) throw object : Exception("Error getting asset list") {}
+            return retrieveAndParseAssetList(repo, scope, "http", retries + 1)
         } catch (err: Exception) {
             throw object : Exception("Error getting asset list") {}
         }
