@@ -2,6 +2,7 @@ package tech.ula.utils
 
 import tech.ula.model.entities.Session
 import java.io.File
+import java.io.IOException
 
 class ServerUtility(private val execUtility: ExecUtility, private val fileUtility: FileUtility) {
 
@@ -72,9 +73,13 @@ class ServerUtility(private val execUtility: ExecUtility, private val fileUtilit
     fun isServerRunning(session: Session): Boolean {
         val targetDirectoryName = session.filesystemId.toString()
         val command = "../support/isServerInProcTree.sh ${session.pid()}"
-        val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command)
-        if (process.exitValue() != 0) // isServerInProcTree returns a 1 if it did't find a server
+        try {
+            val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command)
+            if (process.exitValue() != 0) // isServerInProcTree returns a 1 if it did't find a server
+                return false
+        } catch (err: IOException) {
             return false
+        }
         return true
     }
 }

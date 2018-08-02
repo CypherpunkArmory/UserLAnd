@@ -83,10 +83,9 @@ class FilesystemUtilityTest {
 
     @Test
     fun getsCorrectSupportedAbis() {
-        var archType = ""
 
         `when`(buildUtility.getSupportedAbis()).thenReturn(arrayOf("arm64-v8a"))
-        archType = filesystemUtility.getArchType()
+        var archType = filesystemUtility.getArchType()
         assertEquals("arm64", archType)
 
         `when`(buildUtility.getSupportedAbis()).thenReturn(arrayOf("armeabi-v7a"))
