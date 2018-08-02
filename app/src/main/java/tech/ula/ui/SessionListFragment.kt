@@ -12,7 +12,6 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.wifi.WifiManager
 import android.os.Bundle
-import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.LocalBroadcastManager
@@ -38,6 +37,8 @@ class SessionListFragment : Fragment() {
     private lateinit var sessionList: List<Session>
     private lateinit var sessionAdapter: SessionListAdapter
     private lateinit var filesystemList: List<Filesystem>
+
+    private lateinit var lastSelectedSession: Session
 
     private val sessionListViewModel: SessionListViewModel by lazy {
         ViewModelProviders.of(this).get(SessionListViewModel::class.java)
@@ -69,6 +70,7 @@ class SessionListFragment : Fragment() {
                         "killProgressBar" -> killProgressBar()
                         "isProgressBarActive" -> syncProgressBarDisplayedWithService(it)
                         "networkUnavailable" -> displayNetworkUnavailableDialog()
+                        "assetListFailure" -> displayAssetListFailureDialog()
                         "displayNetworkChoices" -> displayNetworkChoicesDialog()
                     }
                 }
@@ -80,12 +82,16 @@ class SessionListFragment : Fragment() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             permissionRequestCode -> {
-                if (!(grantResults.isNotEmpty() &&
-                                grantResults[0] == PackageManager.PERMISSION_GRANTED &&
-                                grantResults[1] == PackageManager.PERMISSION_GRANTED)) {
+
+                val grantedPermissions = (grantResults.isNotEmpty() &&
+                        grantResults[0] == PackageManager.PERMISSION_GRANTED &&
+                        grantResults[1] == PackageManager.PERMISSION_GRANTED)
+
+                if (grantedPermissions) {
+                    handleSessionSelection(lastSelectedSession)
+                } else {
                     showPermissionsNecessaryDialog()
                 }
-                return
             }
         }
     }
@@ -120,20 +126,25 @@ class SessionListFragment : Fragment() {
         registerForContextMenu(list_sessions)
         list_sessions.onItemClickListener = AdapterView.OnItemClickListener {
             _, _, position, _ ->
-            if (!arePermissionsGranted()) {
+            lastSelectedSession = sessionList[position]
+
+            if (arePermissionsGranted()) {
+                handleSessionSelection(lastSelectedSession)
+            } else {
                 showPermissionsNecessaryDialog()
                 return@OnItemClickListener
             }
+        }
+    }
 
-            val session = sessionList[position]
-            if (!session.active) {
-                if (!sessionListViewModel.activeSessions) {
-                    startSession(session)
-                } else {
-                    Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG).show()
-                }
+    private fun handleSessionSelection(session: Session) {
+        if (session.active) {
+            restartRunningSession(session)
+        } else {
+            if (sessionListViewModel.activeSessions) {
+                Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG).show()
             } else {
-                restartRunningSession(session)
+                startSession(session)
             }
         }
     }
@@ -166,7 +177,7 @@ class SessionListFragment : Fragment() {
                 .setTitle(R.string.alert_permissions_necessary_title)
                 .setPositiveButton(R.string.alert_permissions_necessary_ok_button) {
                     dialog, _ ->
-                    ActivityCompat.requestPermissions(activityContext, arrayOf(
+                    requestPermissions(arrayOf(
                             Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),
                             permissionRequestCode)
                     dialog.dismiss()
@@ -295,6 +306,18 @@ class SessionListFragment : Fragment() {
         builder.setMessage(R.string.alert_network_unavailable_message)
                 .setTitle(R.string.alert_network_unavailable_title)
                 .setPositiveButton(R.string.alert_network_unavailable_cancel_button) {
+                    dialog, _ ->
+                    dialog.dismiss()
+                }
+                .create()
+                .show()
+    }
+
+    private fun displayAssetListFailureDialog() {
+        val builder = AlertDialog.Builder(activityContext)
+        builder.setMessage(R.string.alert_asset_list_failure_message)
+                .setTitle(R.string.alert_asset_list_failure_title)
+                .setPositiveButton(R.string.alert_asset_list_failure_cancel_button) {
                     dialog, _ ->
                     dialog.dismiss()
                 }

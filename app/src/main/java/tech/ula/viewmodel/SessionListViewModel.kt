@@ -17,7 +17,7 @@ class SessionListViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     private val execUtility: ExecUtility by lazy {
-        ExecUtility(fileUtility, PreferenceUtility(application.defaultSharedPreferences))
+        ExecUtility(fileUtility, DefaultPreferenceUtility(application.defaultSharedPreferences))
     }
 
     private val serverUtility: ServerUtility by lazy {

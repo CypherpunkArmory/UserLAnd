@@ -38,7 +38,7 @@ class FilesystemEditFragment : Fragment() {
     }
 
     private val execUtility: ExecUtility by lazy {
-        ExecUtility(fileUtility, PreferenceUtility(activityContext.defaultSharedPreferences))
+        ExecUtility(fileUtility, DefaultPreferenceUtility(activityContext.defaultSharedPreferences))
     }
 
     private val filesystemUtility: FilesystemUtility by lazy {

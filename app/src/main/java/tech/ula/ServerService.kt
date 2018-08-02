@@ -54,7 +54,7 @@ class ServerService : Service() {
     }
 
     private val execUtility by lazy {
-        ExecUtility(fileUtility, PreferenceUtility(this.defaultSharedPreferences))
+        ExecUtility(fileUtility, DefaultPreferenceUtility(this.defaultSharedPreferences))
     }
 
     private val filesystemUtility by lazy {
@@ -70,11 +70,14 @@ class ServerService : Service() {
         filesystem: Filesystem = lastActivatedFilesystem
     ): DownloadUtility {
         val downloadManager = this.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val prefs = this.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE)
+        val applicationFilesDirPath = this.filesDir.path
         val connectivityManager = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
         return DownloadUtility(session, filesystem,
-                downloadManager, this.defaultSharedPreferences,
-                this.filesDir.path, connectivityManager)
+                downloadManager, TimestampPreferenceUtility(prefs),
+                applicationFilesDirPath, connectivityManager,
+                ConnectionUtility(), RequestUtility(), EnvironmentUtility())
     }
 
     private val filesystemExtractLogger = { line: String -> Unit
@@ -198,8 +201,18 @@ class ServerService : Service() {
         launchAsync {
             startProgressBar()
 
-            asyncAwait {
-                assetsWereDownloaded = downloadAssets()
+            try {
+                asyncAwait {
+                    assetsWereDownloaded = downloadAssets()
+                }
+            } catch (err: Exception) {
+                if (err.message == "Error getting asset list") {
+                    val resultIntent = Intent(SERVER_SERVICE_RESULT)
+                    resultIntent.putExtra("type", "assetListFailure")
+                    broadcaster.sendBroadcast(resultIntent)
+                    killProgressBar()
+                    return@launchAsync
+                }
             }
 
             updateProgressBar(getString(R.string.progress_setting_up), "")
@@ -337,7 +350,17 @@ class ServerService : Service() {
         downloadUtility = initializeDownloadUtility(session, filesystem)
         var assetsWereDownloaded = true
         launchAsync {
-            asyncAwait { assetsWereDownloaded = downloadAssets(updateIsBeingForced = true) }
+            try {
+                asyncAwait { assetsWereDownloaded = downloadAssets(updateIsBeingForced = true) }
+            } catch (err: Exception) {
+                if (err.message == "Error getting asset list") {
+                    val resultIntent = Intent(SERVER_SERVICE_RESULT)
+                    resultIntent.putExtra("type", "assetListFailure")
+                    broadcaster.sendBroadcast(resultIntent)
+                    killProgressBar()
+                    return@launchAsync
+                }
+            }
             killProgressBar()
             if (!assetsWereDownloaded) {
                 sendToastBroadcast(R.string.no_assets_need_updating)
