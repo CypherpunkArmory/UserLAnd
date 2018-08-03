@@ -1,7 +1,5 @@
 package tech.ula.utils
 
-import android.os.Environment
-import android.util.Log
 import java.io.File
 
 // TODO refactor this class with a better name
@@ -36,31 +34,16 @@ class FileUtility(private val applicationFilesDirectoryPath: String) {
         return true
     }
 
-    fun copyDistributionAssetsToFilesystem(targetFilesystemName: String, distributionType: String) {
-        val sharedDirectory = File("${getFilesDirPath()}/$distributionType")
-        val targetDirectory = createAndGetDirectory("$targetFilesystemName/support")
-        sharedDirectory.copyRecursively(targetDirectory, overwrite = true)
-        targetDirectory.walkBottomUp().forEach {
-            if (it.name == "support") {
-                return
-            }
-            changePermission(it.name, "$targetFilesystemName/support")
-        }
-    }
-
-    fun correctFilePermissions(distributionType: String) {
-        val filePermissions = listOf(
-                "proot" to "support",
-                "killProcTree.sh" to "support",
-                "isServerInProcTree.sh" to "support",
-                "busybox" to "support",
-                "libtalloc.so.2" to "support",
-                "execInProot.sh" to "support",
-                "startSSHServer.sh" to distributionType,
-                "startVNCServer.sh" to distributionType,
-                "startVNCServerStep2.sh" to distributionType,
-                "busybox" to distributionType,
-                "libdisableselinux.so" to distributionType)
-        filePermissions.forEach { (file, subdirectory) -> changePermission(file, subdirectory) }
-    }
+    // TODO is this actually necessary?
+//    fun copyDistributionAssetsToFilesystem(targetFilesystemName: String, distributionType: String) {
+//        val sharedDirectory = File("${getFilesDirPath()}/$distributionType")
+//        val targetDirectory = createAndGetDirectory("$targetFilesystemName/support")
+//        sharedDirectory.copyRecursively(targetDirectory, overwrite = true)
+//        targetDirectory.walkBottomUp().forEach {
+//            if (it.name == "support") {
+//                return
+//            }
+//            changePermission(it.name, "$targetFilesystemName/support")
+//        }
+//    }
 }

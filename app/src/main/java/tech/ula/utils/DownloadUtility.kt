@@ -18,14 +18,12 @@ class DownloadUtility(
 
     private fun download(asset: Asset): Long {
         val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-" +
-                "${asset.location}/raw/master/assets/$deviceArchitecture/${asset.name}"
-        val qualifiedAssetName = "${asset.location}:${asset.name}"
-        val destination = "UserLAnd:$qualifiedAssetName"
+                "${asset.type}/raw/master/assets/$deviceArchitecture/${asset.name}"
+        val destination = "UserLAnd:${asset.qualifedName}"
         val request = requestUtility.generateTypicalDownloadRequest(url, destination)
-        deletePreviousDownload("UserLAnd:$qualifiedAssetName")
+        deletePreviousDownload("UserLAnd:${asset.qualifedName}")
 
-        val timestampPrefName = "${asset.location}:${asset.name}"
-        timestampPreferenceUtility.setSavedTimestampForFileToNow(timestampPrefName)
+        timestampPreferenceUtility.setSavedTimestampForFileToNow(asset.qualifedName)
 
         // TODO
 //        if (filename.contains("rootfs.tar.gz")) filesystem.isDownloaded = true
@@ -53,7 +51,7 @@ class DownloadUtility(
     }
 
     private fun makePermissionsUsable(containingDirectoryPath: String, filename: String) {
-        val commandToRun = arrayListOf("chmod", "0777", file)
+        val commandToRun = arrayListOf("chmod", "0777", filename)
 
         val pb = ProcessBuilder(commandToRun)
         pb.directory(File(containingDirectoryPath))

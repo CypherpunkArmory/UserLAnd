@@ -196,6 +196,11 @@ class ServerService : Service() {
 //        }
     }
 
+//    fun largeAssetRequiredAndNoWifi(): Boolean {
+//        val filesystemIsPresent = session.isExtracted || filesystem.isDownloaded
+//        return !(filesystemIsPresent || wifiIsEnabled())
+//    }
+
     private fun continueStartSession() {
         val filesystemDirectoryName = lastActivatedSession.filesystemId.toString()
         var assetsWereDownloaded = false
