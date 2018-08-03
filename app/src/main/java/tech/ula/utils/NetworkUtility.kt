@@ -27,8 +27,7 @@ class NetworkUtility(private val connectivityManager: ConnectivityManager, priva
         return try {
             connectionUtility.getUrlConnection(url)
             true
-        }
-        catch (err: SSLHandshakeException) {
+        } catch (err: SSLHandshakeException) {
             false
         }
     }

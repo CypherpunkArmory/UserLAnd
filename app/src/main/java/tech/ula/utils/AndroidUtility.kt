@@ -37,11 +37,11 @@ class DefaultPreferenceUtility(private val prefs: SharedPreferences) : DefaultPr
 interface TimestampPreferenceAccessor {
     fun getSavedTimestampForFile(filename: String): Long
 
-    fun setSavedTimestampForFile(filename: String, timestamp: Long)
+    fun setSavedTimestampForFileToNow(filename: String)
 
     fun getLastUpdateCheck(): Long
 
-    fun setLastUpdateCheck(timestamp: Long)
+    fun setLastUpdateCheckToNow()
 }
 
 class TimestampPreferenceUtility(private val prefs: SharedPreferences) : TimestampPreferenceAccessor {
@@ -49,9 +49,9 @@ class TimestampPreferenceUtility(private val prefs: SharedPreferences) : Timesta
         return prefs.getLong(filename, 0)
     }
 
-    override fun setSavedTimestampForFile(filename: String, timestamp: Long) {
+    override fun setSavedTimestampForFileToNow(filename: String) {
         with(prefs.edit()) {
-            putLong(filename, timestamp)
+            putLong(filename, currentTimeSeconds())
             apply()
         }
     }
@@ -60,9 +60,9 @@ class TimestampPreferenceUtility(private val prefs: SharedPreferences) : Timesta
         return prefs.getLong("lastUpdateCheck", 0)
     }
 
-    override fun setLastUpdateCheck(timestamp: Long) {
+    override fun setLastUpdateCheckToNow() {
         with(prefs.edit()) {
-            putLong("lastUpdateCheck", timestamp)
+            putLong("lastUpdateCheck", currentTimeSeconds())
             apply()
         }
     }

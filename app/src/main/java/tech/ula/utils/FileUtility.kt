@@ -36,19 +36,6 @@ class FileUtility(private val applicationFilesDirectoryPath: String) {
         return true
     }
 
-    // Filename takes form of UserLAnd:<directory to place in>:<filename>
-    fun moveAssetsToCorrectSharedDirectory(source: File = Environment.getExternalStoragePublicDirectory((Environment.DIRECTORY_DOWNLOADS))) {
-        source.walkBottomUp()
-                .filter { it.name.contains("UserLAnd:") }
-                .forEach {
-                    val (_, directory, filename) = it.name.split(":")
-                    val targetDestination = File("${getFilesDirPath()}/$directory/$filename")
-                    it.copyTo(targetDestination, overwrite = true)
-                    if (!it.delete())
-                        Log.e("FileUtility", "Could not delete downloaded file: ${it.name}")
-                }
-    }
-
     fun copyDistributionAssetsToFilesystem(targetFilesystemName: String, distributionType: String) {
         val sharedDirectory = File("${getFilesDirPath()}/$distributionType")
         val targetDirectory = createAndGetDirectory("$targetFilesystemName/support")
@@ -75,16 +62,5 @@ class FileUtility(private val applicationFilesDirectoryPath: String) {
                 "busybox" to distributionType,
                 "libdisableselinux.so" to distributionType)
         filePermissions.forEach { (file, subdirectory) -> changePermission(file, subdirectory) }
-    }
-
-    private fun changePermission(filename: String, subdirectory: String) {
-        val executionDirectory = createAndGetDirectory(subdirectory)
-        val commandToRun = arrayListOf("chmod", "0777", filename)
-
-        val pb = ProcessBuilder(commandToRun)
-        pb.directory(executionDirectory)
-
-        val process = pb.start()
-        process.waitFor()
     }
 }

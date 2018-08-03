@@ -6,7 +6,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
@@ -163,6 +162,9 @@ class ServerService : Service() {
     }
 
     private fun startSession(session: Session, filesystem: Filesystem) {
+        if (session.isExtracted) {
+            serverUtility.startServer(session)
+        }
         lastActivatedSession = session
         lastActivatedFilesystem = filesystem
 
@@ -173,7 +175,6 @@ class ServerService : Service() {
                 .statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")
 
         filesystem.isDownloaded = fileUtility.distributionAssetsExist(filesystemDirectoryName)
-
 
         // TODO
 //        if (!downloadUtility.internetIsAccessible()) {
