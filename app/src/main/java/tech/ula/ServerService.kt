@@ -72,12 +72,10 @@ class ServerService : Service() {
         val downloadManager = this.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val prefs = this.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE)
         val applicationFilesDirPath = this.filesDir.path
-        val connectivityManager = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
         return DownloadUtility(session, filesystem,
                 downloadManager, TimestampPreferenceUtility(prefs),
-                applicationFilesDirPath, connectivityManager,
-                ConnectionUtility(), RequestUtility(), EnvironmentUtility())
+                applicationFilesDirPath, ConnectionUtility(), RequestUtility(), EnvironmentUtility())
     }
 
     private val filesystemExtractLogger = { line: String -> Unit
@@ -176,22 +174,25 @@ class ServerService : Service() {
 
         filesystem.isDownloaded = fileUtility.distributionAssetsExist(filesystemDirectoryName)
 
-        if (!downloadUtility.internetIsAccessible()) {
-            if (session.isExtracted || filesystem.isDownloaded) {
-                continueStartSession()
-                return
-            }
+
+        // TODO
+//        if (!downloadUtility.internetIsAccessible()) {
+//            if (session.isExtracted || filesystem.isDownloaded) {
+//                continueStartSession()
+//                return
+//            }
             val resultIntent = Intent(SERVER_SERVICE_RESULT)
             resultIntent.putExtra("type", "networkUnavailable")
             broadcaster.sendBroadcast(resultIntent)
             return
-        }
+//        }
 
-        if (downloadUtility.largeAssetRequiredAndNoWifi()) {
-            displayNetworkChoices()
-        } else {
-            continueStartSession()
-        }
+        // TODO move to control utility
+//        if (downloadUtility.largeAssetRequiredAndNoWifi()) {
+//            displayNetworkChoices()
+//        } else {
+//            continueStartSession()
+//        }
     }
 
     private fun continueStartSession() {
@@ -340,6 +341,7 @@ class ServerService : Service() {
         activeSessions.values.filter { it.filesystemId == filesystemId }
                 .forEach { killSession(it) }
 
+        // TODO this is causing ANRs. stick in coroutine
         filesystemUtility.deleteFilesystem(filesystemId)
     }
 

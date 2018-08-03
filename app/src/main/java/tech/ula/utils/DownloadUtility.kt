@@ -1,8 +1,6 @@
 package tech.ula.utils
 
 import android.app.DownloadManager
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import java.io.BufferedReader
@@ -17,7 +15,6 @@ class DownloadUtility(
     private val downloadManager: DownloadManager,
     private val timestampPreferenceUtility: TimestampPreferenceUtility,
     private val applicationFilesDirPath: String,
-    private val connectivityManager: ConnectivityManager,
     private val connectionUtility: ConnectionUtility,
     private val requestUtility: RequestUtility,
     private val environmentUtility: EnvironmentUtility
@@ -41,10 +38,11 @@ class DownloadUtility(
         timestampPreferenceUtility.getLastUpdateCheck()
     }
 
-    fun largeAssetRequiredAndNoWifi(): Boolean {
-        val filesystemIsPresent = session.isExtracted || filesystem.isDownloaded
-        return !(filesystemIsPresent || wifiIsEnabled())
-    }
+    // TODO move to control utility
+//    fun largeAssetRequiredAndNoWifi(): Boolean {
+//        val filesystemIsPresent = session.isExtracted || filesystem.isDownloaded
+//        return !(filesystemIsPresent || wifiIsEnabled())
+//    }
 
     private fun download(filename: String, repo: String, scope: String): Long {
         val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-$repo/raw/$branch/assets/$scope/$filename"
@@ -107,22 +105,6 @@ class DownloadUtility(
         return downloads
     }
 
-    private fun wifiIsEnabled(): Boolean {
-        for (network in connectivityManager.allNetworks) {
-            val capabilities = connectivityManager.getNetworkCapabilities(network)
-            if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) return true
-        }
-        return false
-    }
-
-    fun internetIsAccessible(): Boolean {
-        val activeNetworkInfo = connectivityManager.activeNetworkInfo
-        activeNetworkInfo?.let {
-            return true
-        }
-        return false
-    }
-
     private fun deletePreviousDownload(type: String) {
         val downloadDirectory = environmentUtility.getDownloadsDirectory()
         val downloadFile = File(downloadDirectory, type)
@@ -138,13 +120,9 @@ class DownloadUtility(
     ): ArrayList<Pair<String, Long>> {
         val assetList = ArrayList<Pair<String, Long>>()
 
-        if (!internetIsAccessible()) {
-            return assetList
-        }
-
         val url = "$protocol://github.com/CypherpunkArmory/UserLAnd-Assets-$repo/raw/$branch/assets/$scope/assets.txt"
         try {
-            val reader = BufferedReader(InputStreamReader(connectionUtility.getAssetListConnection(url)))
+            val reader = BufferedReader(InputStreamReader(connectionUtility.getUrlInputStream(url)))
             reader.forEachLine {
                 val (filename, timestampAsString) = it.split(" ")
                 if (filename == "assets.txt") return@forEachLine

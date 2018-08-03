@@ -79,12 +79,20 @@ class BuildUtility : BuildAccessor {
 }
 
 interface ConnectionAccessor {
-    fun getAssetListConnection(url: String): InputStream
+    fun getUrlConnection(url: String): HttpURLConnection
+
+    fun getUrlInputStream(url: String): InputStream
 }
 
 class ConnectionUtility : ConnectionAccessor {
+
     @Throws(Exception::class)
-    override fun getAssetListConnection(url: String): InputStream {
+    override fun getUrlConnection(url: String): HttpURLConnection {
+        return URL(url).openConnection() as HttpURLConnection
+    }
+
+    @Throws(Exception::class)
+    override fun getUrlInputStream(url: String): InputStream {
         val conn = URL(url).openConnection() as HttpURLConnection
         conn.requestMethod = "GET"
         return conn.inputStream
