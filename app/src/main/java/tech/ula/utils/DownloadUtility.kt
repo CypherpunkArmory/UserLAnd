@@ -19,11 +19,11 @@ class DownloadUtility(
     private fun download(asset: Asset): Long {
         val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-" +
                 "${asset.type}/raw/master/assets/$deviceArchitecture/${asset.name}"
-        val destination = "UserLAnd:${asset.qualifedName}"
+        val destination = "UserLAnd:${asset.concatenatedName}"
         val request = requestUtility.generateTypicalDownloadRequest(url, destination)
-        deletePreviousDownload("UserLAnd:${asset.qualifedName}")
+        deletePreviousDownload("UserLAnd:${asset.concatenatedName}")
 
-        timestampPreferenceUtility.setSavedTimestampForFileToNow(asset.qualifedName)
+        timestampPreferenceUtility.setSavedTimestampForFileToNow(asset.concatenatedName)
 
         // TODO
 //        if (filename.contains("rootfs.tar.gz")) filesystem.isDownloaded = true
