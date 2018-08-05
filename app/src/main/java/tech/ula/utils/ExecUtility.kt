@@ -5,7 +5,6 @@ import android.util.Log
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
 import java.io.File
-import java.io.IOException
 import java.io.InputStream
 import java.util.ArrayList
 import java.lang.ProcessBuilder
