@@ -5,6 +5,7 @@ import android.util.Log
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
 import java.io.File
+import java.io.IOException
 import java.io.InputStream
 import java.util.ArrayList
 import java.lang.ProcessBuilder
@@ -103,7 +104,11 @@ class ExecUtility(val fileUtility: FileUtility, val defaultPreferenceUtility: De
     fun wrapWithBusyboxAndExecute(targetDirectoryName: String, commandToWrap: String, listener: (String) -> Any = NOOP_CONSUMER, doWait: Boolean = true): Process {
         val executionDirectory = fileUtility.createAndGetDirectory(targetDirectoryName)
         val command = arrayListOf("../support/busybox", "sh", "-c", commandToWrap)
-
-        return execLocal(executionDirectory, command, listener, doWait, wrapped = true)
+        try {
+            return execLocal(executionDirectory, command, listener, doWait, wrapped = true)
+        } catch (err: Exception) {
+            listener("Exec: $err")
+            throw RuntimeException(err)
+        }
     }
 }

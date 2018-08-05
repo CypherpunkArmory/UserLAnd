@@ -77,7 +77,7 @@ class ServerUtility(private val execUtility: ExecUtility, private val fileUtilit
             val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command)
             if (process.exitValue() != 0) // isServerInProcTree returns a 1 if it did't find a server
                 return false
-        } catch (err: IOException) {
+        } catch (err: Exception) {
             return false
         }
         return true
