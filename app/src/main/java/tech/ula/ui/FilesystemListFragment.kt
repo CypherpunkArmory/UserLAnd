@@ -15,12 +15,27 @@ import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.Filesystem
 import tech.ula.viewmodel.FilesystemListViewModel
+import android.net.Uri
+import android.os.Environment
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import android.widget.Toast
+import org.jetbrains.anko.defaultSharedPreferences
+import tech.ula.utils.ExecUtility
 
 class FilesystemListFragment : Fragment() {
 
     private lateinit var activityContext: Activity
 
     private lateinit var filesystemList: List<Filesystem>
+
+    private val execUtility: ExecUtility by lazy {
+        val externalStoragePath = Environment.getExternalStorageDirectory().absolutePath
+        ExecUtility(activityContext.filesDir.path, externalStoragePath, DefaultPreferences(activityContext.defaultSharedPreferences))
+    }
+
+    private val filesystemUtility by lazy {
+        FilesystemUtility(activityContext.filesDir.path, execUtility)
+    }
 
     private val filesystemListViewModel: FilesystemListViewModel by lazy {
         ViewModelProviders.of(this).get(FilesystemListViewModel::class.java)
@@ -50,7 +65,7 @@ class FilesystemListFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        filesystemListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
+        filesystemListViewModel.getAllFilesystems().observe(this  ,filesystemChangeObserver)
         return inflater.inflate(R.layout.frag_filesystem_list, container, false)
     }
 
@@ -72,6 +87,7 @@ class FilesystemListFragment : Fragment() {
         val filesystem = filesystemList[position]
         return when (item.itemId) {
             R.id.menu_item_filesystem_edit -> editFilesystem(filesystem)
+            R.id.menu_item_filesystem_backup -> backupFilesystem(filesystem)
             R.id.menu_item_filesystem_delete -> deleteFilesystem(filesystem)
             else -> super.onContextItemSelected(item)
         }
@@ -92,6 +108,18 @@ class FilesystemListFragment : Fragment() {
         serviceIntent.putExtra("filesystemId", filesystem.id)
         activityContext.startService(serviceIntent)
 
+        return true
+    }
+
+    private fun backupFilesystem(filesystem: Filesystem): Boolean {
+        try {
+            // TODO exec only if session is not running and block starting session if backup or restore is in progress
+            // TODO progress notification
+            val backupLocation = "${filesystem.id}.tar.gz"
+            filesystemUtility.backupFilesystemByLocation("/support","${filesystem.id}", "${backupLocation}", Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS))
+        } catch (e: Exception){
+            Toast.makeText(activityContext, e.message, Toast.LENGTH_LONG).show()
+        }
         return true
     }
 }

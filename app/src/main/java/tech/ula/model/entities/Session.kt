@@ -1,5 +1,6 @@
 package tech.ula.model.entities
 
+import android.annotation.SuppressLint
 import android.arch.persistence.room.Entity
 import android.arch.persistence.room.ForeignKey
 import android.arch.persistence.room.Index
@@ -8,6 +9,7 @@ import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
+@SuppressLint("ParcelCreator")
 @Entity(tableName = "session",
         foreignKeys = [ForeignKey(
                 entity = Filesystem::class,
