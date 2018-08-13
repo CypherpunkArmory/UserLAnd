@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
@@ -14,6 +15,7 @@ import kotlinx.coroutines.experimental.delay
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.doAsync
 import tech.ula.model.AppDatabase
+import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
@@ -48,6 +50,19 @@ class ServerService : Service() {
         NotificationUtility(this)
     }
 
+    private val timestampPreferences by lazy {
+        TimestampPreferenceUtility(this.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE))
+    }
+
+    private val networkUtility by lazy {
+        val connectivityManager = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        NetworkUtility(connectivityManager, ConnectionUtility())
+    }
+
+    private val assetUpdateChecker by lazy {
+        AssetUpdateChecker(this.filesDir.path, timestampPreferences)
+    }
+
     private val fileUtility by lazy {
         FileUtility(this.filesDir.path)
     }
@@ -69,11 +84,10 @@ class ServerService : Service() {
         filesystem: Filesystem = lastActivatedFilesystem
     ): DownloadUtility {
         val downloadManager = this.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        val prefs = this.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE)
         val applicationFilesDirPath = this.filesDir.path
 
         return DownloadUtility(session, filesystem,
-                downloadManager, TimestampPreferenceUtility(prefs),
+                downloadManager, TimestampPreferenceUtility(timestampPreferences),
                 applicationFilesDirPath, ConnectionUtility(), RequestUtility(), EnvironmentUtility())
     }
 
@@ -126,6 +140,8 @@ class ServerService : Service() {
             }
             "isProgressBarActive" -> isProgressBarActive()
         }
+
+        // TODO this is causing crashes. should potentially be START_REDELIVER_INTENT
         return Service.START_STICKY
     }
 
@@ -159,6 +175,59 @@ class ServerService : Service() {
         removeSession(session)
         session.active = false
         updateSession(session)
+    }
+
+    private fun startSession(session: Session, filesystem: Filesystem) {
+        //  if session is activateable
+        //      activate
+        //  handle errors TODO
+        if (session.isExtracted) {
+            serverUtility.startServer(session)
+            startClient(session)
+            return
+        }
+
+        // check network availability
+        if (!networkUtility.networkIsActive()) {
+            sendDialogBroadcast("inactiveNetwork")
+            return
+        }
+
+        //  if session needs assets
+        //      fetch asset lists
+        //      handle errors
+        //      download assets and update UI as downloaded TODO UI
+        //      handle errors
+        val assetListUtility = AssetListUtility(deviceArchitecture, filesystem.distributionType, ConnectionUtility())
+        val assetLists = assetListUtility.retrieveAllAssetLists()
+        if (assetLists.any { it.isEmpty() }) {
+            sendDialogBroadcast("errorFetchingAssetLists")
+            return
+        }
+
+        var wifiRequired = false
+        val requiredDownloads: List<Asset> = assetLists.map {
+            assetList ->
+            assetList.filter {
+                asset ->
+                assetUpdateChecker.doesAssetNeedToUpdated(asset)
+                if (asset.isLarge && !networkUtility.wifiIsEnabled()) {
+                    wifiRequired = true
+                    sendDialogBroadcast("wifiRequired")
+                }
+                assetUpdateChecker.doesAssetNeedToUpdated(asset)
+            }
+        }.flatten()
+
+        if (wifiRequired) return
+
+        //  extract and update ui
+        //  handle errors
+
+        //  start server
+        //  handle errors
+
+        //  start client
     }
 
     private fun startSession(session: Session, filesystem: Filesystem) {
@@ -295,7 +364,6 @@ class ServerService : Service() {
         when (session.clientType) {
             "ConnectBot" -> startSshClient(session, "org.connectbot")
             "bVNC" -> startVncClient(session, "com.iiordanov.freebVNC")
-//            "xsdl" -> return // TODO
             else -> sendToastBroadcast(R.string.client_not_found)
         }
     }
@@ -419,5 +487,9 @@ class ServerService : Service() {
         val intent = Intent(SERVER_SERVICE_RESULT)
         intent.putExtra("id", id)
         broadcaster.sendBroadcast(intent)
+    }
+
+    private fun sendDialogBroadcast(type: String) {
+        // TODO
     }
 }
