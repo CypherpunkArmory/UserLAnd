@@ -1,5 +1,6 @@
 package tech.ula.utils
 
+import tech.ula.model.entities.Asset
 import java.io.File
 import java.util.concurrent.TimeUnit
 

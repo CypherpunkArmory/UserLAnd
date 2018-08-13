@@ -1,6 +1,7 @@
 package tech.ula.utils
 
 import android.app.DownloadManager
+import tech.ula.model.entities.Asset
 import java.io.File
 
 class DownloadUtility(

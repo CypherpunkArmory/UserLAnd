@@ -1,4 +1,4 @@
-package tech.ula.utils
+package tech.ula.model.entities
 
 data class Asset(
     val name: String,

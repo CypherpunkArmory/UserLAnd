@@ -1,5 +1,6 @@
 package tech.ula.utils
 
+import tech.ula.model.entities.Asset
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import javax.net.ssl.SSLHandshakeException
