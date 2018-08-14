@@ -347,7 +347,7 @@ class SessionListFragment : Fragment() {
                     dialog, _ ->
                     dialog.dismiss()
                     val serviceIntent = Intent(activityContext, ServerService::class.java)
-                    serviceIntent.putExtra("type", "continue")
+                    serviceIntent.putExtra("type", "forceDownloads")
                     activityContext.startService(serviceIntent)
                 }
                 .setNegativeButton(R.string.alert_wifi_disabled_turn_on_wifi_button) {

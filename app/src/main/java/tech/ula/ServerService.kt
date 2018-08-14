@@ -42,8 +42,6 @@ class ServerService : Service() {
         }
     }
 
-    private lateinit var downloadUtility: DownloadUtility
-
     private val notificationManager: NotificationUtility by lazy {
         NotificationUtility(this)
     }
@@ -86,6 +84,12 @@ class ServerService : Service() {
                 getString(R.string.progress_setting_up_extract_text, line))
     }
 
+    private fun initDownloadUtility(): DownloadUtility {
+        val downloadManager = this.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        return DownloadUtility(BuildUtility().getArchType(), downloadManager, timestampPreferences,
+                RequestUtility(), EnvironmentUtility().getDownloadsDirectory(), this.filesDir)
+    }
+
     override fun onCreate() {
         broadcaster = LocalBroadcastManager.getInstance(this)
         registerReceiver(downloadBroadcastReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
@@ -108,7 +112,10 @@ class ServerService : Service() {
             "start" -> {
                 val session: Session = intent.getParcelableExtra("session")
                 val filesystem: Filesystem = intent.getParcelableExtra("filesystem")
-                startSession(session, filesystem)
+                startSession(session, filesystem, forceDownloads = false)
+            }
+            "forceDownloads" -> {
+                startSession(lastActivatedSession, lastActivatedFilesystem, forceDownloads = true)
             }
             "restartRunningSession" -> {
                 val session: Session = intent.getParcelableExtra("session")
@@ -141,7 +148,6 @@ class ServerService : Service() {
         asyncAwait {
             session.pid = serverUtility.startServer(lastActivatedSession)
             activeSessions[session.pid] = session
-            lastActivatedSession = session
             startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
 
             while (!serverUtility.isServerRunning(lastActivatedSession)) {
@@ -170,7 +176,9 @@ class ServerService : Service() {
         updateSession(session)
     }
 
-    private fun startSession(session: Session, filesystem: Filesystem) {
+    private fun startSession(session: Session, filesystem: Filesystem, forceDownloads: Boolean) {
+        lastActivatedSession = session
+        lastActivatedFilesystem = filesystem
         launch(CommonPool) {
             //  if session is activateable
             //      activate
@@ -207,13 +215,12 @@ class ServerService : Service() {
             }
 
             // TODO is the case where the filesystem is downloaded but not extracted handled?
-            // TODO continue case if forced
             updateProgressBar(getString(R.string.progress_checking_for_required_updates), "")
             var wifiRequired = false
             val requiredDownloads: List<Asset> = assetLists.map { assetList ->
                 assetList.filter { asset ->
                     assetUpdateChecker.doesAssetNeedToUpdated(asset)
-                    if (asset.isLarge && !networkUtility.wifiIsEnabled()) {
+                    if (asset.isLarge && !networkUtility.wifiIsEnabled() && !forceDownloads) {
                         wifiRequired = true
                         sendDialogBroadcast("wifiRequired")
                         return@map listOf<Asset>()
@@ -230,6 +237,7 @@ class ServerService : Service() {
             if (requiredDownloads.isNotEmpty()) {
                 downloadedIds.clear()
                 asyncAwait {
+                    val downloadUtility = initDownloadUtility()
                     val downloadIds = downloadUtility.downloadRequirements(requiredDownloads)
                     while (downloadIds.size != downloadedIds.size) {
                         updateProgressBar(getString(R.string.progress_downloading),
