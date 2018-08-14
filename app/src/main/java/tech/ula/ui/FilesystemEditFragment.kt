@@ -33,16 +33,16 @@ class FilesystemEditFragment : Fragment() {
         ViewModelProviders.of(this).get(FilesystemEditViewModel::class.java)
     }
 
-    private val fileUtility: FileUtility by lazy {
-        FileUtility(activityContext.filesDir.path)
-    }
+    private val applicationFilesDirPath by lazy { activityContext.filesDir.path }
+
+    private val fileUtility: FileUtility by lazy { FileUtility(applicationFilesDirPath) }
 
     private val execUtility: ExecUtility by lazy {
         ExecUtility(fileUtility, DefaultPreferenceUtility(activityContext.defaultSharedPreferences))
     }
 
     private val filesystemUtility: FilesystemUtility by lazy {
-        FilesystemUtility(execUtility, fileUtility, BuildUtility())
+        FilesystemUtility(applicationFilesDirPath, execUtility)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -107,7 +107,7 @@ class FilesystemEditFragment : Fragment() {
                 navController.popBackStack()
             } else {
                 try {
-                    filesystem.archType = filesystemUtility.getArchType()
+                    filesystem.archType = BuildUtility().getArchType()
                 } catch (err: Exception) {
                     Toast.makeText(activityContext, R.string.no_supported_architecture, Toast.LENGTH_LONG).show()
                     return true

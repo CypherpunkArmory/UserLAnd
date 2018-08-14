@@ -27,7 +27,7 @@ class AssetListUtility(
         val allAssetLists = ArrayList<List<Asset>>()
         allAssetListTypes.forEach {
             (assetType, location) ->
-            val assetList = retrieveAndParseAssetList(assetType, httpsIsAccessible)
+            val assetList = retrieveAndParseAssetList(assetType, location, httpsIsAccessible)
             allAssetLists.add(assetList)
             assetListPreferenceUtility.setAssetList(assetType, assetList)
         }
@@ -36,6 +36,7 @@ class AssetListUtility(
 
     private fun retrieveAndParseAssetList(
         assetType: String,
+        location: String,
         httpsIsAccessible: Boolean,
         retries: Int = 0
     ): List<Asset> {
@@ -43,7 +44,7 @@ class AssetListUtility(
         val protocol = if (httpsIsAccessible) "https" else "http"
 
         val url = "$protocol://github.com/CypherpunkArmory/UserLAnd-Assets-" +
-                "$distributionType/raw/master/assets/$deviceArchitecture/assets.txt"
+                "$distributionType/raw/master/assets/$location/assets.txt"
         try {
             val reader = BufferedReader(InputStreamReader(connectionUtility.getUrlInputStream(url)))
 
@@ -58,7 +59,8 @@ class AssetListUtility(
             return assetList.toList()
         } catch (err: SSLHandshakeException) {
             if (retries >= 5) throw object : Exception("Error getting asset list") {}
-            return retrieveAndParseAssetList(assetType, httpsIsAccessible, retries + 1)
+            return retrieveAndParseAssetList(assetType, location,
+                    httpsIsAccessible, retries + 1)
         } catch (err: Exception) {
             throw object : Exception("Error getting asset list") {}
         }
