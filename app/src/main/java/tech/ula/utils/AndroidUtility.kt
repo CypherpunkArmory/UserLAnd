@@ -72,7 +72,7 @@ class TimestampPreferenceUtility(private val prefs: SharedPreferences) : Timesta
 interface AssetListPreferenceAccessor {
     fun getAssetLists(allAssetListTypes: List<Pair<String, String>>): List<List<Asset>>
 
-    fun setAssetList(assetType: String, architectureType: String, list: List<Asset>)
+    fun setAssetList(assetType: String, architectureType: String, assetList: List<Asset>)
 }
 
 class AssetListPreferenceUtility(private val prefs: SharedPreferences) : AssetListPreferenceAccessor {

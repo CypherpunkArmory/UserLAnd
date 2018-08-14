@@ -43,6 +43,8 @@
     <string name="service_notification_description">UserLAnd is running a background service.</string>
 
     <!-- Progress bar messages -->
+    <string name="progress_fetching_asset_lists">Fetching asset lists&#8230;</string>
+    <string name="progress_checking_for_required_updates">Checking whether updates are required&#8230;</string>
     <string name="progress_downloading">Downloading required assets&#8230;</string>
     <string name="progress_downloading_check_updates">Looking for updates.</string>
     <string name="progress_downloading_out_of">%1$d out of %2$d complete</string>
@@ -92,8 +94,13 @@
 
     <!-- Asset list failure alert -->
     <string name="alert_asset_list_failure_title">Could not retrieve asset lists.</string>
-    <string name="alert_asset_list_failure_message">Please try again shortly. Ensure you have network access!</string>
-    <string name="alert_asset_list_failure_cancel_button">Cancel</string>
+    <string name="alert_asset_list_failure_message">Either the asset lists cannot be fetched or they are not cached locally. Please try again shortly.</string>
+    <string name="alert_asset_list_failure_positive_button">OK!</string>
+
+    <!-- Extraction failure alert -->
+    <string name="alert_extraction_failure_title">Could not extract filesystem.</string>
+    <string name="alert_extraction_failure_message">Something went wrong. Try deleting the filesystem and trying again.</string>
+    <string name="alert_extraction_failure_positive_button">OK!</string>
 
     <!-- Wifi alert -->
     <string name="alert_wifi_disabled_title">No wifi!</string>

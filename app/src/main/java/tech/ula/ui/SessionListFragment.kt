@@ -72,6 +72,8 @@ class SessionListFragment : Fragment() {
                         "networkUnavailable" -> displayNetworkUnavailableDialog()
                         "assetListFailure" -> displayAssetListFailureDialog()
                         "displayNetworkChoices" -> displayNetworkChoicesDialog()
+                        "toast" -> showToast(it)
+                        "dialog" -> showDialog(it)
                     }
                 }
             }
@@ -301,6 +303,18 @@ class SessionListFragment : Fragment() {
         else killProgressBar()
     }
 
+    private fun showToast(intent: Intent) {
+
+    }
+
+    private fun showDialog(intent: Intent) {
+        when(intent.getStringExtra("dialogType")) {
+            "errorFetchingAssetLists" -> displayAssetListFailureDialog()
+            "wifiRequired" -> displayNetworkChoicesDialog() // TODO respond to continue button
+            "extractionFailed" -> displayExtractionFailedDialog()
+        }
+    }
+
     private fun displayNetworkUnavailableDialog() {
         val builder = AlertDialog.Builder(activityContext)
         builder.setMessage(R.string.alert_network_unavailable_message)
@@ -317,7 +331,7 @@ class SessionListFragment : Fragment() {
         val builder = AlertDialog.Builder(activityContext)
         builder.setMessage(R.string.alert_asset_list_failure_message)
                 .setTitle(R.string.alert_asset_list_failure_title)
-                .setPositiveButton(R.string.alert_asset_list_failure_cancel_button) {
+                .setPositiveButton(R.string.alert_asset_list_failure_positive_button) {
                     dialog, _ ->
                     dialog.dismiss()
                 }
@@ -349,6 +363,18 @@ class SessionListFragment : Fragment() {
                 }
                 .setOnCancelListener {
                     killProgressBar()
+                }
+                .create()
+                .show()
+    }
+
+    private fun displayExtractionFailedDialog() {
+        val builder = AlertDialog.Builder(activityContext)
+        builder.setMessage(R.string.alert_extraction_failure_message)
+                .setTitle(R.string.alert_extraction_failure_title)
+                .setPositiveButton(R.string.alert_extraction_failure_positive_button) {
+                    dialog, _ ->
+                    dialog.dismiss()
                 }
                 .create()
                 .show()

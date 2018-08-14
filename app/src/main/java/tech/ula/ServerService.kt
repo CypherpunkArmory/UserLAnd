@@ -180,6 +180,7 @@ class ServerService : Service() {
 
             if (session.isExtracted) {
                 activateSession(session)
+                killProgressBar()
                 return@launch
             }
 
@@ -193,10 +194,12 @@ class ServerService : Service() {
             val assetLists: List<List<Asset>>
 
             // check network availability
+            updateProgressBar(getString(R.string.progress_fetching_asset_lists), "")
             if (!networkUtility.networkIsActive()) {
                 assetLists = assetListUtility.getCachedAssetLists()
                 if (assetLists.any { it.isEmpty() }) {
                     sendDialogBroadcast("errorFetchingAssetLists")
+                    killProgressBar()
                     return@launch
                 }
             } else {
@@ -204,6 +207,8 @@ class ServerService : Service() {
             }
 
             // TODO is the case where the filesystem is downloaded but not extracted handled?
+            // TODO continue case if forced
+            updateProgressBar(getString(R.string.progress_checking_for_required_updates), "")
             var wifiRequired = false
             val requiredDownloads: List<Asset> = assetLists.map { assetList ->
                 assetList.filter { asset ->
@@ -217,7 +222,10 @@ class ServerService : Service() {
                 }
             }.flatten()
 
-            if (wifiRequired) return@launch
+            if (wifiRequired) {
+                killProgressBar()
+                return@launch
+            }
 
             if (requiredDownloads.isNotEmpty()) {
                 downloadedIds.clear()
@@ -245,12 +253,15 @@ class ServerService : Service() {
                         delay(500)
                     }
                     if (filesystemUtility.didExtractionFail(filesystemDirectoryName)) {
-                        sendDialogBroadcast("extractionFailed")
                         return@asyncAwait false
                     }
                     true
                 }
-                if (!extractionSuccess) return@launch
+                if (!extractionSuccess) {
+                    sendDialogBroadcast("extractionFailed")
+                    killProgressBar()
+                    return@launch
+                }
             }
 
             activateSession(session)
@@ -350,11 +361,15 @@ class ServerService : Service() {
 
     private fun sendToastBroadcast(id: Int) {
         val intent = Intent(SERVER_SERVICE_RESULT)
-        intent.putExtra("id", id)
+                .putExtra("type", "toast")
+                .putExtra("id", id)
         broadcaster.sendBroadcast(intent)
     }
 
     private fun sendDialogBroadcast(type: String) {
-        // TODO
+        val intent = Intent(SERVER_SERVICE_RESULT)
+                .putExtra("type", "dialog")
+                .putExtra("dialogType", type)
+        broadcaster.sendBroadcast(intent)
     }
 }
