@@ -70,30 +70,34 @@ class TimestampPreferenceUtility(private val prefs: SharedPreferences) : Timesta
 }
 
 interface AssetListPreferenceAccessor {
-//    fun assetListsAreCachedForDistribution(distributionType: String): Boolean
-//
-//    fun setAssetListsCachedForDistribution()
+    fun getAssetLists(allAssetListTypes: List<Pair<String, String>>): List<List<Asset>>
 
-    fun getAssetLists(distributionType: String): List<List<Asset>>
-
-    fun setAssetList(assetType: String, list: List<Asset>)
+    fun setAssetList(assetType: String, architectureType: String, list: List<Asset>)
 }
 
 class AssetListPreferenceUtility(private val prefs: SharedPreferences) : AssetListPreferenceAccessor {
-//    override fun assetListsAreCachedForDistribution(distributionType: String): Boolean {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-//    }
-//
-//    override fun setAssetListsCachedForDistribution() {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-//    }
-
-    override fun getAssetLists(distributionType: String): List<List<Asset>> {
-        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
+    override fun getAssetLists(allAssetListTypes: List<Pair<String, String>>): List<List<Asset>> {
+        val assetLists = ArrayList<List<Asset>>()
+        allAssetListTypes.forEach {
+            (assetType, architectureType) ->
+            val allEntries = prefs.getStringSet("$assetType:$architectureType", setOf())
+            val assetList: List<Asset> = allEntries.map {
+                val (filename, remoteTimestamp) = it.split(":")
+                Asset(filename, assetType, remoteTimestamp.toLong())
+            }
+            assetLists.add(assetList)
+        }
+        return assetLists
     }
 
-    override fun setAssetList(assetType: String, list: List<Asset>) {
-        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
+    override fun setAssetList(assetType: String, architectureType: String, assetList: List<Asset>) {
+        val entries = assetList.map {
+            "${it.name}:${it.remoteTimestamp}"
+        }.toSet()
+        with(prefs.edit()) {
+            putStringSet("$assetType:$architectureType", entries)
+            apply()
+        }
     }
 }
 

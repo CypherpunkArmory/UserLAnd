@@ -10,7 +10,9 @@ import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
+import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.launch
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.doAsync
 import tech.ula.model.AppDatabase
@@ -169,7 +171,7 @@ class ServerService : Service() {
     }
 
     private fun startSession(session: Session, filesystem: Filesystem) {
-        launchAsync {
+        launch(CommonPool) {
             //  if session is activateable
             //      activate
             //  handle errors TODO
@@ -178,7 +180,7 @@ class ServerService : Service() {
 
             if (session.isExtracted) {
                 activateSession(session)
-                return@launchAsync
+                return@launch
             }
 
             //  if session needs assets
@@ -195,7 +197,7 @@ class ServerService : Service() {
                 assetLists = assetListUtility.getCachedAssetLists()
                 if (assetLists.any { it.isEmpty() }) {
                     sendDialogBroadcast("errorFetchingAssetLists")
-                    return@launchAsync
+                    return@launch
                 }
             } else {
                 assetLists = assetListUtility.retrieveAllRemoteAssetLists(networkUtility.httpsIsAccessible())
@@ -215,7 +217,7 @@ class ServerService : Service() {
                 }
             }.flatten()
 
-            if (wifiRequired) return@launchAsync
+            if (wifiRequired) return@launch
 
             if (requiredDownloads.isNotEmpty()) {
                 downloadedIds.clear()
@@ -248,7 +250,7 @@ class ServerService : Service() {
                     }
                     true
                 }
-                if (!extractionSuccess) return@launchAsync
+                if (!extractionSuccess) return@launch
             }
 
             activateSession(session)

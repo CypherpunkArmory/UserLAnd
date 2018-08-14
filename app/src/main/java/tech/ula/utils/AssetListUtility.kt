@@ -6,7 +6,7 @@ import java.io.InputStreamReader
 import javax.net.ssl.SSLHandshakeException
 
 class AssetListUtility(
-    private val deviceArchitecture: String,
+        deviceArchitecture: String,
     private val distributionType: String,
     private val assetListPreferenceUtility: AssetListPreferenceAccessor,
     private val connectionUtility: ConnectionUtility
@@ -20,7 +20,7 @@ class AssetListUtility(
     )
 
     fun getCachedAssetLists(): List<List<Asset>> {
-        return assetListPreferenceUtility.getAssetLists(distributionType)
+        return assetListPreferenceUtility.getAssetLists(allAssetListTypes)
     }
 
     fun retrieveAllRemoteAssetLists(httpsIsAccessible: Boolean): List<List<Asset>> {
@@ -29,7 +29,7 @@ class AssetListUtility(
             (assetType, location) ->
             val assetList = retrieveAndParseAssetList(assetType, location, httpsIsAccessible)
             allAssetLists.add(assetList)
-            assetListPreferenceUtility.setAssetList(assetType, assetList)
+            assetListPreferenceUtility.setAssetList(assetType, location, assetList)
         }
         return allAssetLists.toList()
     }
@@ -52,7 +52,7 @@ class AssetListUtility(
                 val (filename, timestampAsString) = it.split(" ")
                 if (filename == "assets.txt") return@forEachLine
                 val remoteTimestamp = timestampAsString.toLong()
-                assetList.add(Asset(filename, distributionType, remoteTimestamp))
+                assetList.add(Asset(filename, assetType, remoteTimestamp))
             }
 
             reader.close()
