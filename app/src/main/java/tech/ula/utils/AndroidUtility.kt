@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import tech.ula.model.entities.Asset
 import java.io.File
 import java.io.InputStream
 import java.net.HttpURLConnection
@@ -68,6 +69,34 @@ class TimestampPreferenceUtility(private val prefs: SharedPreferences) : Timesta
     }
 }
 
+interface AssetListPreferenceAccessor {
+//    fun assetListsAreCachedForDistribution(distributionType: String): Boolean
+//
+//    fun setAssetListsCachedForDistribution()
+
+    fun getAssetLists(distributionType: String): List<List<Asset>>
+
+    fun setAssetList(assetType: String, list: List<Asset>)
+}
+
+class AssetListPreferenceUtility(private val prefs: SharedPreferences) : AssetListPreferenceAccessor {
+//    override fun assetListsAreCachedForDistribution(distributionType: String): Boolean {
+//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+//    }
+//
+//    override fun setAssetListsCachedForDistribution() {
+//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+//    }
+
+    override fun getAssetLists(distributionType: String): List<List<Asset>> {
+        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun setAssetList(assetType: String, list: List<Asset>) {
+        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
+    }
+}
+
 interface BuildAccessor {
     fun getSupportedAbis(): Array<String>
 }
@@ -75,6 +104,36 @@ interface BuildAccessor {
 class BuildUtility : BuildAccessor {
     override fun getSupportedAbis(): Array<String> {
         return Build.SUPPORTED_ABIS
+    }
+
+    fun getArchType(): String {
+        val supportedABIS = this.getSupportedAbis()
+                .map {
+                    translateABI(it)
+                }
+                .filter {
+                    isSupported(it)
+                }
+        if (supportedABIS.size == 1 && supportedABIS[0] == "") {
+            throw Exception("No supported ABI!")
+        } else {
+            return supportedABIS[0]
+        }
+    }
+
+    private fun isSupported(abi: String): Boolean {
+        val supportedABIs = listOf("arm64", "arm", "x86_64", "x86")
+        return supportedABIs.contains(abi)
+    }
+
+    private fun translateABI(abi: String): String {
+        return when (abi) {
+            "arm64-v8a" -> "arm64"
+            "armeabi-v7a" -> "arm"
+            "x86_64" -> "x86_64"
+            "x86" -> "x86"
+            else -> ""
+        }
     }
 }
 

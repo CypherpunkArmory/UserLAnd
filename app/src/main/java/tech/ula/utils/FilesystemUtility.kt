@@ -3,13 +3,15 @@ package tech.ula.utils
 import java.io.File
 
 class FilesystemUtility(
-    private val execUtility: ExecUtility,
-    private val fileUtility: FileUtility,
-    private val buildUtility: BuildUtility
+    private val applicationFilesDirPath: String,
+    private val execUtility: ExecUtility
 ) {
 
-    private fun getSupportDirectory(targetDirectoryName: String): File {
-        return File("${fileUtility.getFilesDirPath()}/$targetDirectoryName/support")
+    private val filesystemExtractionSuccess = ".success_filesystem_extraction"
+    private val filesystemExtractionFailure = ".failure_filesystem_extraction"
+
+    private fun getSupportDirectoryPath(targetDirectoryName: String): String {
+        return "$applicationFilesDirPath/$targetDirectoryName/support"
     }
 
     fun extractFilesystem(targetDirectoryName: String, listener: (String) -> Any) {
@@ -17,52 +19,29 @@ class FilesystemUtility(
         execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, listener)
     }
 
-    fun assetsArePresent(targetDirectoryName: String): Boolean {
-        val supportDirectory = getSupportDirectory(targetDirectoryName)
-        return supportDirectory.exists() &&
-                supportDirectory.isDirectory &&
-                supportDirectory.listFiles().isNotEmpty()
+    fun isExtractionComplete(targetDirectoryName: String): Boolean {
+        val supportPath = getSupportDirectoryPath(targetDirectoryName)
+        val success = File("$supportPath/$filesystemExtractionSuccess")
+        val failure = File("$supportPath/$filesystemExtractionFailure")
+        return success.exists() || failure.exists()
     }
 
-    fun removeRootfsFilesFromFilesystem(targetDirectoryName: String) {
-        val supportDirectory = getSupportDirectory(targetDirectoryName)
-        supportDirectory.walkTopDown().forEach {
-            if (it.name.contains("rootfs.tar.gz")) it.delete()
-        }
+    fun didExtractionFail(targetDirectoryName: String): Boolean {
+        return isExtractionComplete(targetDirectoryName) &&
+                File("${getSupportDirectoryPath(targetDirectoryName)}/$$filesystemExtractionFailure")
+                .exists()
     }
 
-    fun deleteFilesystem(filesystemId: Long): Boolean {
-        val directory = fileUtility.createAndGetDirectory(filesystemId.toString())
-        return directory.deleteRecursively()
-    }
+//    fun assetsArePresent(targetDirectoryName: String): Boolean {
+//        val supportDirectory = getSupportDirectory(targetDirectoryName)
+//        return supportDirectory.exists() &&
+//                supportDirectory.isDirectory &&
+//                supportDirectory.listFiles().isNotEmpty()
+//    }
 
-    fun getArchType(): String {
-        val supportedABIS = buildUtility.getSupportedAbis()
-                .map {
-                    translateABI(it)
-                }
-                .filter {
-                    isSupported(it)
-                }
-        if (supportedABIS.size == 1 && supportedABIS[0] == "") {
-            throw Exception("No supported ABI!")
-        } else {
-            return supportedABIS[0]
-        }
-    }
-
-    private fun isSupported(abi: String): Boolean {
-        val supportedABIs = listOf("arm64", "arm", "x86_64", "x86")
-        return supportedABIs.contains(abi)
-    }
-
-    private fun translateABI(abi: String): String {
-        return when (abi) {
-            "arm64-v8a" -> "arm64"
-            "armeabi-v7a" -> "arm"
-            "x86_64" -> "x86_64"
-            "x86" -> "x86"
-            else -> ""
-        }
+    fun deleteFilesystem(filesystemId: Long) {
+        val directory = File("$applicationFilesDirPath/$filesystemId")
+        if (directory.exists() && directory.isDirectory)
+            directory.deleteRecursively()
     }
 }

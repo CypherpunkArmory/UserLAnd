@@ -8,6 +8,7 @@ import javax.net.ssl.SSLHandshakeException
 class AssetListUtility(
     private val deviceArchitecture: String,
     private val distributionType: String,
+    private val assetListPreferenceUtility: AssetListPreferenceAccessor,
     private val connectionUtility: ConnectionUtility
 ) {
 
@@ -18,22 +19,28 @@ class AssetListUtility(
             distributionType to deviceArchitecture
     )
 
-    fun retrieveAllAssetLists(): List<List<Asset>> {
+    fun getCachedAssetLists(): List<List<Asset>> {
+        return assetListPreferenceUtility.getAssetLists(distributionType)
+    }
+
+    fun retrieveAllRemoteAssetLists(httpsIsAccessible: Boolean): List<List<Asset>> {
         val allAssetLists = ArrayList<List<Asset>>()
         allAssetListTypes.forEach {
             (assetType, location) ->
-            allAssetLists.add(retrieveAndParseAssetList(assetType, location))
+            val assetList = retrieveAndParseAssetList(assetType, httpsIsAccessible)
+            allAssetLists.add(assetList)
+            assetListPreferenceUtility.setAssetList(assetType, assetList)
         }
         return allAssetLists.toList()
     }
 
     private fun retrieveAndParseAssetList(
         assetType: String,
-        location: String,
-        protocol: String = "https",
+        httpsIsAccessible: Boolean,
         retries: Int = 0
     ): List<Asset> {
         val assetList = ArrayList<Asset>()
+        val protocol = if (httpsIsAccessible) "https" else "http"
 
         val url = "$protocol://github.com/CypherpunkArmory/UserLAnd-Assets-" +
                 "$distributionType/raw/master/assets/$deviceArchitecture/assets.txt"
@@ -51,8 +58,7 @@ class AssetListUtility(
             return assetList.toList()
         } catch (err: SSLHandshakeException) {
             if (retries >= 5) throw object : Exception("Error getting asset list") {}
-            return retrieveAndParseAssetList(assetType, location,
-                    "http", retries + 1)
+            return retrieveAndParseAssetList(assetType, httpsIsAccessible, retries + 1)
         } catch (err: Exception) {
             throw object : Exception("Error getting asset list") {}
         }

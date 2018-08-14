@@ -19,11 +19,6 @@ class FileUtility(private val applicationFilesDirectoryPath: String) {
         return file
     }
 
-    fun statusFileExists(filesystemName: String, filename: String): Boolean {
-        val file = File("${getFilesDirPath()}/$filesystemName/support/$filename")
-        return file.exists()
-    }
-
     fun distributionAssetsExist(distributionType: String): Boolean {
         val rootfsParts = listOf("rootfs.tar.gz.part00", "rootfs.tar.gz.part01", "rootfs.tar.gz.part02", "rootfs.tar.gz.part03")
         rootfsParts.map {
