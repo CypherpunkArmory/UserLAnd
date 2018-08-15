@@ -1,6 +1,5 @@
 package tech.ula.utils
 
-import android.util.Log
 import java.io.File
 
 class FilesystemUtility(
@@ -30,7 +29,7 @@ class FilesystemUtility(
 
     fun extractFilesystem(targetDirectoryName: String, listener: (String) -> Any) {
         val command = "../support/execInProot.sh /support/extractFilesystem.sh"
-        execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, test)
+        execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, listener)
     }
 
     fun isExtractionComplete(targetDirectoryName: String): Boolean {

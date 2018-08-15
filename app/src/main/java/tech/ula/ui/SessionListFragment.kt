@@ -304,11 +304,10 @@ class SessionListFragment : Fragment() {
     }
 
     private fun showToast(intent: Intent) {
-
     }
 
     private fun showDialog(intent: Intent) {
-        when(intent.getStringExtra("dialogType")) {
+        when (intent.getStringExtra("dialogType")) {
             "errorFetchingAssetLists" -> displayAssetListFailureDialog()
             "wifiRequired" -> displayNetworkChoicesDialog() // TODO respond to continue button
             "extractionFailed" -> displayExtractionFailedDialog()
