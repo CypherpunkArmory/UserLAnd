@@ -1,5 +1,6 @@
 package tech.ula.utils
 
+import android.util.Log
 import java.io.File
 
 class FilesystemUtility(
@@ -14,9 +15,22 @@ class FilesystemUtility(
         return "$applicationFilesDirPath/$targetDirectoryName/support"
     }
 
+    fun copyDistributionAssetsToFilesystem(targetFilesystemName: String, distributionType: String) {
+        val sharedDirectory = File("$applicationFilesDirPath/$distributionType")
+        val targetDirectory = File("$applicationFilesDirPath/$targetFilesystemName/support")
+        if (!targetDirectory.exists()) targetDirectory.mkdirs()
+        sharedDirectory.copyRecursively(targetDirectory, overwrite = true)
+        targetDirectory.walkBottomUp().forEach {
+            if (it.name == "support") {
+                return
+            }
+            makePermissionsUsable(targetDirectory.path, it.name)
+        }
+    }
+
     fun extractFilesystem(targetDirectoryName: String, listener: (String) -> Any) {
         val command = "../support/execInProot.sh /support/extractFilesystem.sh"
-        execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, listener)
+        execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, test)
     }
 
     fun isExtractionComplete(targetDirectoryName: String): Boolean {

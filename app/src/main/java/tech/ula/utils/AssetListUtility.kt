@@ -6,8 +6,8 @@ import java.io.InputStreamReader
 import javax.net.ssl.SSLHandshakeException
 
 class AssetListUtility(
-        deviceArchitecture: String,
-    private val distributionType: String,
+    deviceArchitecture: String,
+    distributionType: String,
     private val assetListPreferenceUtility: AssetListPreferenceAccessor,
     private val connectionUtility: ConnectionUtility
 ) {
@@ -26,17 +26,17 @@ class AssetListUtility(
     fun retrieveAllRemoteAssetLists(httpsIsAccessible: Boolean): List<List<Asset>> {
         val allAssetLists = ArrayList<List<Asset>>()
         allAssetListTypes.forEach {
-            (assetType, location) ->
-            val assetList = retrieveAndParseAssetList(assetType, location, httpsIsAccessible)
+            (assetType, architectureType) ->
+            val assetList = retrieveAndParseAssetList(assetType, architectureType, httpsIsAccessible)
             allAssetLists.add(assetList)
-            assetListPreferenceUtility.setAssetList(assetType, location, assetList)
+            assetListPreferenceUtility.setAssetList(assetType, architectureType, assetList)
         }
         return allAssetLists.toList()
     }
 
     private fun retrieveAndParseAssetList(
         assetType: String,
-        location: String,
+        architectureType: String,
         httpsIsAccessible: Boolean,
         retries: Int = 0
     ): List<Asset> {
@@ -44,7 +44,7 @@ class AssetListUtility(
         val protocol = if (httpsIsAccessible) "https" else "http"
 
         val url = "$protocol://github.com/CypherpunkArmory/UserLAnd-Assets-" +
-                "$distributionType/raw/master/assets/$location/assets.txt"
+                "$assetType/raw/master/assets/$architectureType/assets.txt"
         try {
             val reader = BufferedReader(InputStreamReader(connectionUtility.getUrlInputStream(url)))
 
@@ -52,14 +52,14 @@ class AssetListUtility(
                 val (filename, timestampAsString) = it.split(" ")
                 if (filename == "assets.txt") return@forEachLine
                 val remoteTimestamp = timestampAsString.toLong()
-                assetList.add(Asset(filename, assetType, remoteTimestamp))
+                assetList.add(Asset(filename, assetType, architectureType, remoteTimestamp))
             }
 
             reader.close()
             return assetList.toList()
         } catch (err: SSLHandshakeException) {
             if (retries >= 5) throw object : Exception("Error getting asset list") {}
-            return retrieveAndParseAssetList(assetType, location,
+            return retrieveAndParseAssetList(assetType, architectureType,
                     httpsIsAccessible, retries + 1)
         } catch (err: Exception) {
             throw object : Exception("Error getting asset list") {}

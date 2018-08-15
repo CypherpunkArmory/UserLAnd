@@ -11,6 +11,16 @@ import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
+fun makePermissionsUsable(containingDirectoryPath: String, filename: String) {
+    val commandToRun = arrayListOf("chmod", "0777", filename)
+
+    val pb = ProcessBuilder(commandToRun)
+    pb.directory(File(containingDirectoryPath))
+
+    val process = pb.start()
+    process.waitFor()
+}
+
 interface DefaultPreferencesAccessor {
     fun getProotDebuggingEnabled(): Boolean
 
@@ -83,7 +93,7 @@ class AssetListPreferenceUtility(private val prefs: SharedPreferences) : AssetLi
             val allEntries = prefs.getStringSet("$assetType:$architectureType", setOf())
             val assetList: List<Asset> = allEntries.map {
                 val (filename, remoteTimestamp) = it.split(":")
-                Asset(filename, assetType, remoteTimestamp.toLong())
+                Asset(filename, assetType, architectureType, remoteTimestamp.toLong())
             }
             assetLists.add(assetList)
         }

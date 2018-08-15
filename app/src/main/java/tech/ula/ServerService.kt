@@ -86,7 +86,7 @@ class ServerService : Service() {
 
     private fun initDownloadUtility(): DownloadUtility {
         val downloadManager = this.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        return DownloadUtility(BuildUtility().getArchType(), downloadManager, timestampPreferences,
+        return DownloadUtility(downloadManager, timestampPreferences,
                 RequestUtility(), EnvironmentUtility().getDownloadsDirectory(), this.filesDir)
     }
 
@@ -180,9 +180,6 @@ class ServerService : Service() {
         lastActivatedSession = session
         lastActivatedFilesystem = filesystem
         launch(CommonPool) {
-            //  if session is activateable
-            //      activate
-            //  handle errors TODO
 
             startProgressBar()
 
@@ -192,16 +189,10 @@ class ServerService : Service() {
                 return@launch
             }
 
-            //  if session needs assets
-            //      fetch asset lists
-            //      handle errors
-            //      download assets and update UI as downloaded TODO UI
-            //      handle errors
             val assetListUtility = AssetListUtility(BuildUtility().getArchType(), filesystem.distributionType,
                     assetListPreferenceUtility, ConnectionUtility())
             val assetLists: List<List<Asset>>
 
-            // check network availability
             updateProgressBar(getString(R.string.progress_fetching_asset_lists), "")
             if (!networkUtility.networkIsActive()) {
                 assetLists = assetListUtility.getCachedAssetLists()
@@ -211,7 +202,9 @@ class ServerService : Service() {
                     return@launch
                 }
             } else {
-                assetLists = assetListUtility.retrieveAllRemoteAssetLists(networkUtility.httpsIsAccessible())
+                assetLists = asyncAwait {
+                    assetListUtility.retrieveAllRemoteAssetLists(networkUtility.httpsIsAccessible())
+                }
             }
 
             // TODO is the case where the filesystem is downloaded but not extracted handled?
@@ -245,16 +238,16 @@ class ServerService : Service() {
                                         downloadedIds.size, downloadIds.size))
                         delay(500)
                     }
+                    downloadUtility.moveAssetsToCorrectLocalDirectory()
                 }
             }
 
-            //  extract and update ui
-            //  handle errors
-
+            updateProgressBar(getString(R.string.progress_setting_up), "")
             if (!session.isExtracted) {
+                val filesystemDirectoryName = "${filesystem.id}"
+                filesystemUtility.copyDistributionAssetsToFilesystem(filesystemDirectoryName, filesystem.distributionType)
                 val timeout = currentTimeSeconds() + (60 * 10)
                 val extractionSuccess = asyncAwait {
-                    val filesystemDirectoryName = "${filesystem.id}"
                     filesystemUtility.extractFilesystem(filesystemDirectoryName, filesystemExtractLogger)
                     while (!filesystemUtility.isExtractionComplete(filesystemDirectoryName) &&
                             currentTimeSeconds() < timeout) {
