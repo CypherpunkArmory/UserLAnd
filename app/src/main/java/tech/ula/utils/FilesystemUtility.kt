@@ -1,5 +1,6 @@
 package tech.ula.utils
 
+import tech.ula.model.entities.Asset
 import java.io.File
 
 class FilesystemUtility(
@@ -39,24 +40,21 @@ class FilesystemUtility(
         return success.exists() || failure.exists()
     }
 
-    fun didExtractionFail(targetDirectoryName: String): Boolean {
-        return File("${getSupportDirectoryPath(targetDirectoryName)}/" +
-                filesystemExtractionFailure)
-                .exists()
-    }
-
     fun hasFilesystemBeenSuccessfullyExtracted(targetDirectoryName: String): Boolean {
-        return File("${getSupportDirectoryPath(targetDirectoryName)}/ " +
-                filesystemExtractionSuccess)
-                .exists()
+        val supportPath = getSupportDirectoryPath(targetDirectoryName)
+        return File("$supportPath/$filesystemExtractionSuccess").exists()
     }
 
-//    fun assetsArePresent(targetDirectoryName: String): Boolean {
-//        val supportDirectory = getSupportDirectory(targetDirectoryName)
-//        return supportDirectory.exists() &&
-//                supportDirectory.isDirectory &&
-//                supportDirectory.listFiles().isNotEmpty()
-//    }
+    fun areAllRequiredAssetsPresent(targetDirectoryName: String,
+                                    distributionAssetList: List<Asset>): Boolean {
+        val supportDirectory = File(getSupportDirectoryPath(targetDirectoryName))
+        if (!supportDirectory.exists() || !supportDirectory.isDirectory) return false
+
+        val supportDirectoryFileNames = supportDirectory.listFiles().map { it.name }
+        return distributionAssetList.all {
+            supportDirectoryFileNames.contains(it.name)
+        }
+    }
 
     fun deleteFilesystem(filesystemId: Long) {
         val directory = File("$applicationFilesDirPath/$filesystemId")

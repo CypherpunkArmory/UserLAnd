@@ -144,21 +144,6 @@ class ServerService : Service() {
         stopSelf()
     }
 
-    private suspend fun activateSession(session: Session) {
-        asyncAwait {
-            session.pid = serverUtility.startServer(lastActivatedSession)
-            activeSessions[session.pid] = session
-            startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
-
-            while (!serverUtility.isServerRunning(lastActivatedSession)) {
-                delay(500)
-            }
-        }
-        session.active = true
-        updateSession(session)
-        startClient(session)
-    }
-
     private fun removeSession(session: Session) {
         activeSessions.remove(session.pid)
         if (activeSessions.isEmpty()) {
@@ -208,13 +193,16 @@ class ServerService : Service() {
             var wifiRequired = false
             val requiredDownloads: List<Asset> = assetLists.map { assetList ->
                 assetList.filter { asset ->
-                    assetUpdateChecker.doesAssetNeedToUpdated(asset)
-                    if (asset.isLarge && !networkUtility.wifiIsEnabled() && !forceDownloads) {
+                    val needsUpdate = assetUpdateChecker.doesAssetNeedToUpdated(asset)
+                    if (needsUpdate &&
+                            asset.isLarge &&
+                            !forceDownloads &&
+                            !networkUtility.wifiIsEnabled()) {
                         wifiRequired = true
                         sendDialogBroadcast("wifiRequired")
                         return@map listOf<Asset>()
                     }
-                    assetUpdateChecker.doesAssetNeedToUpdated(asset)
+                    needsUpdate
                 }
             }.flatten()
 
@@ -249,20 +237,41 @@ class ServerService : Service() {
                             currentTimeSeconds() < timeout) {
                         delay(500)
                     }
-                    if (filesystemUtility.didExtractionFail(filesystemDirectoryName)) {
-                        return@asyncAwait false
-                    }
-                    true
+                    return@asyncAwait filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)
                 }
                 if (!extractionSuccess) {
                     sendDialogBroadcast("extractionFailed")
                     killProgressBar()
                     return@launch
                 }
-                updateSession(session)
             }
 
-            activateSession(session)
+            val sessionStarted = asyncAwait {
+                val requiredDistributionAssets = assetListUtility.getDistributionAssetsList(filesystem.distributionType)
+                if (!filesystemUtility.areAllRequiredAssetsPresent(filesystemDirectoryName, requiredDistributionAssets)) {
+                    sendDialogBroadcast("filesystemIsMissingRequiredAssets")
+                    return@asyncAwait false
+                }
+
+                session.pid = serverUtility.startServer(session)
+
+                while (!serverUtility.isServerRunning(session)) {
+                    delay(500)
+                }
+                activeSessions[session.pid] = session
+                startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
+                true
+            }
+
+            if (!sessionStarted) {
+                killProgressBar()
+                return@launch
+            }
+
+            session.active = true
+            updateSession(session)
+            startClient(session)
+
             killProgressBar()
         }
     }

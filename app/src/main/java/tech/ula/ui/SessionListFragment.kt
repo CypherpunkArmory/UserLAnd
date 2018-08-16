@@ -309,8 +309,9 @@ class SessionListFragment : Fragment() {
     private fun showDialog(intent: Intent) {
         when (intent.getStringExtra("dialogType")) {
             "errorFetchingAssetLists" -> displayAssetListFailureDialog()
-            "wifiRequired" -> displayNetworkChoicesDialog() // TODO respond to continue button
+            "wifiRequired" -> displayNetworkChoicesDialog()
             "extractionFailed" -> displayExtractionFailedDialog()
+            "sessionIsMissingRequiredAssets" -> displayFilesystemMissingRequiredAssets()
         }
     }
 
@@ -372,6 +373,18 @@ class SessionListFragment : Fragment() {
         builder.setMessage(R.string.alert_extraction_failure_message)
                 .setTitle(R.string.alert_extraction_failure_title)
                 .setPositiveButton(R.string.alert_extraction_failure_positive_button) {
+                    dialog, _ ->
+                    dialog.dismiss()
+                }
+                .create()
+                .show()
+    }
+
+    private fun displayFilesystemMissingRequiredAssets() {
+        val builder = AlertDialog.Builder(activityContext)
+        builder.setMessage(R.string.alert_filesystem_missing_requirements_message)
+                .setTitle(R.string.alert_filesystem_missing_requirements_title)
+                .setPositiveButton(R.string.alert_filesystem_missing_requirements_positive_button) {
                     dialog, _ ->
                     dialog.dismiss()
                 }

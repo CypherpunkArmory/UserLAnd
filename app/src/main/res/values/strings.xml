@@ -102,6 +102,11 @@
     <string name="alert_extraction_failure_message">Something went wrong. Try deleting the filesystem and trying again.</string>
     <string name="alert_extraction_failure_positive_button">OK!</string>
 
+    <!-- Filesystem missing assets alert -->
+    <string name="alert_filesystem_missing_requirements_title">This filesystem is missing required assets!</string>
+    <string name="alert_filesystem_missing_requirements_message">Please try starting the session again, and report this to a developer!</string>
+    <string name="alert_filesystem_missing_requirements_positive_button">OK!</string>
+
     <!-- Wifi alert -->
     <string name="alert_wifi_disabled_title">No wifi!</string>
     <string name="alert_wifi_disabled_message">A large asset (~80mb) needs to be downloaded.</string>

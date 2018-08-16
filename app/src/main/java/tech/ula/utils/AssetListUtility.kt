@@ -23,6 +23,14 @@ class AssetListUtility(
         return assetListPreferenceUtility.getAssetLists(allAssetListTypes)
     }
 
+    fun getDistributionAssetsList(distributionType: String): List<Asset> {
+        val distributionAssetLists = allAssetListTypes.filter {
+            (assetType, _) ->
+            assetType == distributionType
+        }
+        return assetListPreferenceUtility.getAssetLists(distributionAssetLists).flatten()
+    }
+
     fun retrieveAllRemoteAssetLists(httpsIsAccessible: Boolean): List<List<Asset>> {
         val allAssetLists = ArrayList<List<Asset>>()
         allAssetListTypes.forEach {
