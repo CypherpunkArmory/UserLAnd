@@ -304,6 +304,9 @@ class SessionListFragment : Fragment() {
     }
 
     private fun showToast(intent: Intent) {
+        val content = intent.getIntExtra("id", -1)
+        if (content == -1) return
+        Toast.makeText(activityContext, content, Toast.LENGTH_LONG).show()
     }
 
     private fun showDialog(intent: Intent) {
@@ -311,7 +314,7 @@ class SessionListFragment : Fragment() {
             "errorFetchingAssetLists" -> displayAssetListFailureDialog()
             "wifiRequired" -> displayNetworkChoicesDialog()
             "extractionFailed" -> displayExtractionFailedDialog()
-            "sessionIsMissingRequiredAssets" -> displayFilesystemMissingRequiredAssets()
+            "filesystemIsMissingRequiredAssets" -> displayFilesystemMissingRequiredAssets()
         }
     }
 

@@ -28,7 +28,8 @@ class AssetListUtility(
             (assetType, _) ->
             assetType == distributionType
         }
-        return assetListPreferenceUtility.getAssetLists(distributionAssetLists).flatten()
+        val allAssets = assetListPreferenceUtility.getAssetLists(distributionAssetLists).flatten()
+        return allAssets.filter { !(it.name.contains("rootfs.tar.gz")) }
     }
 
     fun retrieveAllRemoteAssetLists(httpsIsAccessible: Boolean): List<List<Asset>> {

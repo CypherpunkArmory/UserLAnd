@@ -28,6 +28,13 @@ class FilesystemUtility(
         }
     }
 
+    fun removeRootfsFilesFromFilesystem(targetFilesystemName: String) {
+        val supportDirectory = File(getSupportDirectoryPath(targetFilesystemName))
+        supportDirectory.walkBottomUp().forEach {
+            if (it.name.contains("rootfs.tar.gz")) it.delete()
+        }
+    }
+
     fun extractFilesystem(targetDirectoryName: String, listener: (String) -> Any) {
         val command = "../support/execInProot.sh /support/extractFilesystem.sh"
         execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, listener)
