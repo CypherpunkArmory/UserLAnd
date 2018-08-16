@@ -154,6 +154,8 @@ class ServerService : Service() {
                 delay(500)
             }
         }
+        session.active = true
+        updateSession(session)
         startClient(session)
     }
 
@@ -182,12 +184,6 @@ class ServerService : Service() {
         launch(CommonPool) {
 
             startProgressBar()
-
-            if (session.isExtracted) {
-                activateSession(session)
-                killProgressBar()
-                return@launch
-            }
 
             val assetListUtility = AssetListUtility(BuildUtility().getArchType(), filesystem.distributionType,
                     assetListPreferenceUtility, ConnectionUtility())
@@ -243,8 +239,8 @@ class ServerService : Service() {
             }
 
             updateProgressBar(getString(R.string.progress_setting_up), "")
-            if (!session.isExtracted) {
-                val filesystemDirectoryName = "${filesystem.id}"
+            val filesystemDirectoryName = "${filesystem.id}"
+            if (!filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
                 filesystemUtility.copyDistributionAssetsToFilesystem(filesystemDirectoryName, filesystem.distributionType)
                 val timeout = currentTimeSeconds() + (60 * 10)
                 val extractionSuccess = asyncAwait {
@@ -263,6 +259,7 @@ class ServerService : Service() {
                     killProgressBar()
                     return@launch
                 }
+                updateSession(session)
             }
 
             activateSession(session)
@@ -331,7 +328,7 @@ class ServerService : Service() {
 
     private fun startProgressBar() {
         val intent = Intent(SERVER_SERVICE_RESULT)
-        intent.putExtra("type", "startProgressBar")
+                .putExtra("type", "startProgressBar")
         broadcaster.sendBroadcast(intent)
 
         progressBarActive = true
@@ -339,7 +336,7 @@ class ServerService : Service() {
 
     private fun killProgressBar() {
         val intent = Intent(SERVER_SERVICE_RESULT)
-        intent.putExtra("type", "killProgressBar")
+                .putExtra("type", "killProgressBar")
         broadcaster.sendBroadcast(intent)
 
         progressBarActive = false
@@ -347,16 +344,16 @@ class ServerService : Service() {
 
     private fun updateProgressBar(step: String, details: String) {
         val intent = Intent(SERVER_SERVICE_RESULT)
-        intent.putExtra("type", "updateProgressBar")
-        intent.putExtra("step", step)
-        intent.putExtra("details", details)
+                .putExtra("type", "updateProgressBar")
+                .putExtra("step", step)
+                .putExtra("details", details)
         broadcaster.sendBroadcast(intent)
     }
 
     private fun isProgressBarActive() {
         val intent = Intent(SERVER_SERVICE_RESULT)
-        intent.putExtra("type", "isProgressBarActive")
-        intent.putExtra("isProgressBarActive", progressBarActive)
+                .putExtra("type", "isProgressBarActive")
+                .putExtra("isProgressBarActive", progressBarActive)
         broadcaster.sendBroadcast(intent)
     }
 

@@ -39,7 +39,7 @@ class ExecUtility(val fileUtility: FileUtility, val defaultPreferenceUtility: De
                 "ROOT_PATH" to fileUtility.getFilesDirPath(),
                 "ROOTFS_PATH" to "${fileUtility.getFilesDirPath()}/${executionDirectory.name}",
                 "PROOT_DEBUG_LEVEL" to prootDebuggingLevel,
-                "EXTRA_BINDINGS" to "-b ${Environment.getExternalStorageDirectory().getAbsolutePath()}:/sdcard")
+                "EXTRA_BINDINGS" to "-b ${Environment.getExternalStorageDirectory().absolutePath}:/sdcard")
         else hashMapOf()
 
         try {

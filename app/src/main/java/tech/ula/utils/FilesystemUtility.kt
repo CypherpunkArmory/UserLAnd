@@ -40,8 +40,14 @@ class FilesystemUtility(
     }
 
     fun didExtractionFail(targetDirectoryName: String): Boolean {
-        return isExtractionComplete(targetDirectoryName) &&
-                File("${getSupportDirectoryPath(targetDirectoryName)}/$$filesystemExtractionFailure")
+        return File("${getSupportDirectoryPath(targetDirectoryName)}/" +
+                filesystemExtractionFailure)
+                .exists()
+    }
+
+    fun hasFilesystemBeenSuccessfullyExtracted(targetDirectoryName: String): Boolean {
+        return File("${getSupportDirectoryPath(targetDirectoryName)}/ " +
+                filesystemExtractionSuccess)
                 .exists()
     }
 
