@@ -1,11 +1,15 @@
 package tech.ula.utils
 
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.launch
 import java.io.File
 
 class FilesystemUtility(
     private val execUtility: ExecUtility,
     private val fileUtility: FileUtility,
-    private val buildUtility: BuildUtility
+    private val buildUtility: BuildUtility,
+    private val logger: LogUtility = LogUtility()
+
 ) {
 
     private fun getSupportDirectory(targetDirectoryName: String): File {
@@ -31,9 +35,17 @@ class FilesystemUtility(
         }
     }
 
-    fun deleteFilesystem(filesystemId: Long): Boolean {
+    fun deleteFilesystem(filesystemId: Long) {
         val directory = fileUtility.createAndGetDirectory(filesystemId.toString())
-        return directory.deleteRecursively()
+        launch(CommonPool) {
+            val isDirectoryDeleted = directory.deleteRecursively()
+            if (isDirectoryDeleted) {
+                logger.v("Success", "Successfully deleted Filesystem $directory")
+            } else {
+                val errorMessage = "Filesystem for directory: $directory has not been deleted successfully."
+                logger.e("DeleteFilesystemFail = ", errorMessage)
+            }
+        }
     }
 
     fun getArchType(): String {
