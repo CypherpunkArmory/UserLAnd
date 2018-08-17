@@ -100,7 +100,6 @@ class FileUtilityTest {
         assertFalse(File("${tempFolder.root}/$targetFilesystemName/support/dist2file1").exists())
         assertFalse(File("${tempFolder.root}/$targetFilesystemName/support/dist2file1").exists())
 
-        // TODO test that permissions are changed
         var output = ""
         val proc = Runtime.getRuntime().exec("ls -l ${tempFolder.root}/$targetFilesystemName/support/dist1file1")
 

@@ -26,9 +26,6 @@ class DownloadUtility(
 
         timestampPreferenceUtility.setSavedTimestampForFileToNow(asset.concatenatedName)
 
-        // TODO
-//        if (filename.contains("rootfs.tar.gz")) filesystem.isDownloaded = true
-
         return downloadManager.enqueue(request)
     }
 

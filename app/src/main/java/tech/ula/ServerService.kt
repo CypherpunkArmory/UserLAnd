@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.net.Uri
+import android.os.Environment
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
 import kotlinx.coroutines.experimental.CommonPool
@@ -54,12 +55,9 @@ class ServerService : Service() {
         AssetUpdateChecker(this.filesDir.path, timestampPreferences)
     }
 
-    private val fileUtility by lazy {
-        FileUtility(this.filesDir.path)
-    }
-
     private val execUtility by lazy {
-        ExecUtility(fileUtility, DefaultPreferenceUtility(this.defaultSharedPreferences))
+        val externalStoragePath = Environment.getExternalStorageDirectory().absolutePath
+        ExecUtility(this.filesDir.path, externalStoragePath, DefaultPreferenceUtility(this.defaultSharedPreferences))
     }
 
     private val filesystemUtility by lazy {
@@ -67,7 +65,7 @@ class ServerService : Service() {
     }
 
     private val serverUtility by lazy {
-        ServerUtility(execUtility, fileUtility)
+        ServerUtility(this.filesDir.path, execUtility)
     }
 
     private val filesystemExtractLogger = { line: String -> Unit

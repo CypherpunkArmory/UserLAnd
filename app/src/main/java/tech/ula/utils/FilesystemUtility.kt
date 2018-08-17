@@ -8,7 +8,7 @@ import java.io.File
 class FilesystemUtility(
     private val applicationFilesDirPath: String,
     private val execUtility: ExecUtility,
-    private val logger: LogUtility
+    private val logger: LogUtility = LogUtility()
 ) {
 
     private val filesystemExtractionSuccess = ".success_filesystem_extraction"
