@@ -28,7 +28,7 @@ class FilesystemUtilityTest {
     lateinit var buildUtility: BuildUtility
 
     @Mock
-    lateinit var logger:LogUtility
+    lateinit var logger: LogUtility
 
     val statelessListener: (line: String) -> Unit = { }
 
