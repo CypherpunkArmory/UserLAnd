@@ -1,11 +1,14 @@
 package tech.ula.utils
 
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.launch
 import tech.ula.model.entities.Asset
 import java.io.File
 
 class FilesystemUtility(
     private val applicationFilesDirPath: String,
-    private val execUtility: ExecUtility
+    private val execUtility: ExecUtility,
+    private val logger: LogUtility
 ) {
 
     private val filesystemExtractionSuccess = ".success_filesystem_extraction"
@@ -52,8 +55,10 @@ class FilesystemUtility(
         return File("$supportPath/$filesystemExtractionSuccess").exists()
     }
 
-    fun areAllRequiredAssetsPresent(targetDirectoryName: String,
-                                    distributionAssetList: List<Asset>): Boolean {
+    fun areAllRequiredAssetsPresent(
+        targetDirectoryName: String,
+        distributionAssetList: List<Asset>
+    ): Boolean {
         val supportDirectory = File(getSupportDirectoryPath(targetDirectoryName))
         if (!supportDirectory.exists() || !supportDirectory.isDirectory) return false
 
@@ -65,7 +70,17 @@ class FilesystemUtility(
 
     fun deleteFilesystem(filesystemId: Long) {
         val directory = File("$applicationFilesDirPath/$filesystemId")
-        if (directory.exists() && directory.isDirectory)
-            directory.deleteRecursively()
+        launch(CommonPool) {
+            if (directory.exists() && directory.isDirectory)
+                directory.deleteRecursively()
+            val isDirectoryDeleted = directory.deleteRecursively()
+            if (isDirectoryDeleted) {
+                val successMessage = "Successfully deleted filesystem located at: $directory"
+                logger.v("Filesystem Delete", successMessage)
+            } else {
+                val errorMessage = "Error in attempting to delete filesystem located at: $directory"
+                logger.e("Filesystem Delete", errorMessage)
+            }
+        }
     }
 }
