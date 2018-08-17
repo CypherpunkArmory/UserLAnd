@@ -3,6 +3,7 @@ package tech.ula.ui
 import android.app.Activity
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
+import android.os.Environment
 import android.support.v4.app.Fragment
 import android.text.Editable
 import android.text.TextWatcher
@@ -31,18 +32,6 @@ class FilesystemEditFragment : Fragment() {
 
     private val filesystemEditViewModel: FilesystemEditViewModel by lazy {
         ViewModelProviders.of(this).get(FilesystemEditViewModel::class.java)
-    }
-
-    private val applicationFilesDirPath by lazy { activityContext.filesDir.path }
-
-    private val fileUtility: FileUtility by lazy { FileUtility(applicationFilesDirPath) }
-
-    private val execUtility: ExecUtility by lazy {
-        ExecUtility(fileUtility, DefaultPreferenceUtility(activityContext.defaultSharedPreferences))
-    }
-
-    private val filesystemUtility: FilesystemUtility by lazy {
-        FilesystemUtility(applicationFilesDirPath, execUtility)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

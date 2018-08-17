@@ -4,6 +4,7 @@ import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.Transformations
+import android.os.Environment
 import kotlinx.coroutines.experimental.launch
 import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.model.AppDatabase
@@ -12,16 +13,14 @@ import tech.ula.model.entities.Session
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 
 class SessionListViewModel(application: Application) : AndroidViewModel(application) {
-    private val fileUtility: FileUtility by lazy {
-        FileUtility(application.filesDir.path)
-    }
 
     private val execUtility: ExecUtility by lazy {
-        ExecUtility(fileUtility, DefaultPreferenceUtility(application.defaultSharedPreferences))
+        val externalStoragePath = Environment.getExternalStorageDirectory().absolutePath
+        ExecUtility(application.filesDir.path, externalStoragePath, DefaultPreferenceUtility(application.defaultSharedPreferences))
     }
 
     private val serverUtility: ServerUtility by lazy {
-        ServerUtility(execUtility, fileUtility)
+        ServerUtility(application.filesDir.path, execUtility)
     }
 
     private val appDatabase: AppDatabase by lazy {

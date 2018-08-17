@@ -40,11 +40,11 @@ class DefaultPreferenceUtility(private val prefs: SharedPreferences) : DefaultPr
     }
 
     override fun getProotDebuggingLevel(): String {
-        return prefs.getString("pref_proot_debug_level", "-1")
+        return prefs.getString("pref_proot_debug_level", "-1") ?: ""
     }
 
     override fun getProotDebugLogLocation(): String {
-        return prefs.getString("pref_proot_debug_log_location", "${Environment.getExternalStorageDirectory().path}/PRoot_Debug_Log")
+        return prefs.getString("pref_proot_debug_log_location", "${Environment.getExternalStorageDirectory().path}/PRoot_Debug_Log") ?: ""
     }
 }
 
