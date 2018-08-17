@@ -1,7 +1,11 @@
 package tech.ula.utils
 
 import android.app.DownloadManager
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.Resources
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -89,7 +93,7 @@ class AssetListPreferenceUtility(private val prefs: SharedPreferences) : AssetLi
         val assetLists = ArrayList<List<Asset>>()
         allAssetListTypes.forEach {
             (assetType, architectureType) ->
-            val allEntries = prefs.getStringSet("$assetType:$architectureType", setOf())
+            val allEntries = prefs.getStringSet("$assetType:$architectureType", setOf()) ?: setOf()
             val assetList: List<Asset> = allEntries.map {
                 val (filename, remoteTimestamp) = it.split(":")
                 Asset(filename, assetType, architectureType, remoteTimestamp.toLong())
@@ -194,5 +198,31 @@ interface EnvironmentAccessor {
 class EnvironmentUtility : EnvironmentAccessor {
     override fun getDownloadsDirectory(): File {
         return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+    }
+}
+
+interface ResourcesAccessor {
+    fun getAppResources(): Resources
+}
+
+class ResourcesUtility(private val context: Context) : ResourcesAccessor {
+    override fun getAppResources(): Resources {
+        return context.resources
+    }
+}
+
+class DownloadBroadcastReceiver : BroadcastReceiver() {
+    private lateinit var doOnReceived: (Long) -> Unit
+
+    fun setDoOnReceived(action: (Long) -> Unit) {
+        doOnReceived = action
+    }
+
+    override fun onReceive(context: Context?, intent: Intent?) {
+        val downloadedId = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+        downloadedId?.let {
+            if (it == -1L) return@let
+            doOnReceived(it)
+        }
     }
 }

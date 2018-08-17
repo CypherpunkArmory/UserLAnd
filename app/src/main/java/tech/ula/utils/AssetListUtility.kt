@@ -9,7 +9,7 @@ class AssetListUtility(
     deviceArchitecture: String,
     distributionType: String,
     private val assetListPreferenceUtility: AssetListPreferenceAccessor,
-    private val connectionUtility: ConnectionUtility
+    private val connectionUtility: ConnectionUtility = ConnectionUtility()
 ) {
 
     private val allAssetListTypes = listOf(
