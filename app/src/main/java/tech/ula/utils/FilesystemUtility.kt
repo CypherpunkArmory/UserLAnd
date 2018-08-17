@@ -40,10 +40,11 @@ class FilesystemUtility(
         launch(CommonPool) {
             val isDirectoryDeleted = directory.deleteRecursively()
             if (isDirectoryDeleted) {
-                logger.v("Success", "Successfully deleted Filesystem $directory")
+                val successMessage = "Successfully deleted filesystem located at: $directory"
+                logger.v("Filesystem Delete", successMessage)
             } else {
-                val errorMessage = "Filesystem for directory: $directory has not been deleted successfully."
-                logger.e("DeleteFilesystemFail = ", errorMessage)
+                val errorMessage = "Error in attempting to delete filesystem located at: $directory"
+                logger.e("Filesystem Delete", errorMessage)
             }
         }
     }
