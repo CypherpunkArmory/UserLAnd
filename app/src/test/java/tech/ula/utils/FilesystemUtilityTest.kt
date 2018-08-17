@@ -27,6 +27,9 @@ class FilesystemUtilityTest {
     @Mock
     lateinit var buildUtility: BuildUtility
 
+    @Mock
+    lateinit var logger: LogUtility
+
     val statelessListener: (line: String) -> Unit = { }
 
     lateinit var filesystemUtility: FilesystemUtility
@@ -34,7 +37,7 @@ class FilesystemUtilityTest {
     @Before
     fun setup() {
         `when`(fileUtility.getFilesDirPath()).thenReturn(tempFolder.root.path)
-        filesystemUtility = FilesystemUtility(execUtility, fileUtility, buildUtility)
+        filesystemUtility = FilesystemUtility(execUtility, fileUtility, buildUtility, logger)
     }
 
     @Test
@@ -77,6 +80,7 @@ class FilesystemUtilityTest {
         `when`(fileUtility.createAndGetDirectory("0")).thenReturn(filesystemRoot)
 
         filesystemUtility.deleteFilesystem(filesystemId)
+        Thread.sleep(500)
 
         files.forEach { assertFalse(it.exists()) }
     }
