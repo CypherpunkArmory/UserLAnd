@@ -45,18 +45,16 @@ class SessionEditFragment : Fragment() {
 
     private val filesystemChangeObserver = Observer<List<Filesystem>> {
         it?.let {
-            val filesystemNameList = ArrayList(it.map { filesystem -> filesystem.name })
-            filesystemNameList.add("Create new")
+            val filesystemNames = ArrayList(it.map { filesystem -> filesystem.name })
+            filesystemNames.add("Create new")
+
             if (it.isEmpty()) {
-                filesystemNameList.add("")
+                filesystemNames.add("")
             }
 
-            val newFilesystem = getNewlyAddedFilesystem(filesystemList, it)
-            if (newFilesystem != null) {
-                updateFilesystemForSession(newFilesystem)
-            }
+            getListDifferenceAndSetNewFilesystem(filesystemList, it)
 
-            val filesystemAdapter = ArrayAdapter(activityContext, android.R.layout.simple_spinner_dropdown_item, filesystemNameList)
+            val filesystemAdapter = ArrayAdapter(activityContext, android.R.layout.simple_spinner_dropdown_item, filesystemNames)
             val filesystemNamePosition = filesystemAdapter.getPosition(session.filesystemName)
             val usedPosition = if (filesystemNamePosition < 0) 0 else filesystemNamePosition
 
@@ -119,9 +117,9 @@ class SessionEditFragment : Fragment() {
                     else -> {
                         // TODO adapter to associate filesystem structure with list items?
                         val filesystem = filesystemList.find { it.name == filesystemName }
-                        if (filesystem != null) {
-                            updateFilesystemForSession(filesystem)
-                            text_input_username.setText(filesystem.defaultUsername)
+                        filesystem?.run {
+                            setFilesystemForSessionTo(this)
+                            text_input_username.setText(this.defaultUsername)
                         }
                     }
                 }
@@ -209,19 +207,14 @@ class SessionEditFragment : Fragment() {
         }
     }
 
-    private fun getNewlyAddedFilesystem(prevFilesystemList: List<Filesystem>, currentfilesystemList: List<Filesystem>): Filesystem? {
-        if (prevFilesystemList.isEmpty()) {
-            return null
-        }
-
-        val uniqueFilesystems = currentfilesystemList.subtract(prevFilesystemList)
-        return when (uniqueFilesystems.size) {
-            1 -> uniqueFilesystems.first()
-            else -> null
+    private fun getListDifferenceAndSetNewFilesystem(prevFilesystems: List<Filesystem>, currentFilesystems: List<Filesystem>) {
+        val uniqueFilesystems = currentFilesystems.subtract(prevFilesystems)
+        if (uniqueFilesystems.isNotEmpty()) {
+            setFilesystemForSessionTo(uniqueFilesystems.first())
         }
     }
 
-    private fun updateFilesystemForSession(filesystem: Filesystem) {
+    private fun setFilesystemForSessionTo(filesystem: Filesystem) {
         session.filesystemName = filesystem.name
         session.filesystemId = filesystem.id
     }
