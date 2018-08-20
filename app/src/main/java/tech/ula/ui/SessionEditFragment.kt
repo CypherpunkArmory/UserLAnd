@@ -117,9 +117,9 @@ class SessionEditFragment : Fragment() {
                     else -> {
                         // TODO adapter to associate filesystem structure with list items?
                         val filesystem = filesystemList.find { it.name == filesystemName }
-                        filesystem?.run {
-                            setFilesystemForSessionTo(this)
-                            text_input_username.setText(this.defaultUsername)
+                        filesystem?.let {
+                            updateFilesystemDetailsForSession(it)
+                            text_input_username.setText(it.defaultUsername)
                         }
                     }
                 }
@@ -210,11 +210,11 @@ class SessionEditFragment : Fragment() {
     private fun getListDifferenceAndSetNewFilesystem(prevFilesystems: List<Filesystem>, currentFilesystems: List<Filesystem>) {
         val uniqueFilesystems = currentFilesystems.subtract(prevFilesystems)
         if (uniqueFilesystems.isNotEmpty()) {
-            setFilesystemForSessionTo(uniqueFilesystems.first())
+            updateFilesystemDetailsForSession(uniqueFilesystems.first())
         }
     }
 
-    private fun setFilesystemForSessionTo(filesystem: Filesystem) {
+    private fun updateFilesystemDetailsForSession(filesystem: Filesystem) {
         session.filesystemName = filesystem.name
         session.filesystemId = filesystem.id
     }
