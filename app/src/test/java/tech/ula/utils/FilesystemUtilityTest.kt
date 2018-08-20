@@ -7,7 +7,6 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.entities.Asset
@@ -54,12 +53,11 @@ class FilesystemUtilityTest {
         val filenames = listOf("asset1", "asset2", "asset3", "asset4")
 
         val targetDirectory = File("${tempFolder.root.path}/target/support")
-        val targetFiles = filenames.map { File("${targetDirectory.path}/$it")}
+        val targetFiles = filenames.map { File("${targetDirectory.path}/$it") }
 
         val sharedDirectory = tempFolder.newFolder("shared")
         val sharedFiles = filenames.map { File("${sharedDirectory.path}/$it") }
         sharedFiles.forEach { it.createNewFile() }
-
 
         assertFalse(targetDirectory.exists())
         targetFiles.forEach { assertFalse(it.exists()) }
@@ -79,16 +77,15 @@ class FilesystemUtilityTest {
         }
     }
 
+    @Test
+    fun extractionIsIncompleteIfNeitherStatusFileExists() {
+        val supportDirectory = tempFolder.newFolder("target", "support")
 
-     @Test
-     fun extractionIsIncompleteIfNeitherStatusFileExists() {
-         val supportDirectory = tempFolder.newFolder("target", "support")
+        assertFalse(File("${supportDirectory.path}/$filesystemExtractionSuccess").exists())
+        assertFalse(File("${supportDirectory.path}/$filesystemExtractionFailure").exists())
 
-         assertFalse(File("${supportDirectory.path}/$filesystemExtractionSuccess").exists())
-         assertFalse(File("${supportDirectory.path}/$filesystemExtractionFailure").exists())
-
-         assertFalse(filesystemUtility.isExtractionComplete("target"))
-     }
+        assertFalse(filesystemUtility.isExtractionComplete("target"))
+    }
 
     @Test
     fun extractionIsCompleteIfEitherStatusFileExists() {
