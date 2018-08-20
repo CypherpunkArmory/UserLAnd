@@ -1,13 +1,19 @@
-package tech.ula.utils
+package tech.ula.model.repositories
 
 import tech.ula.model.entities.Asset
+import tech.ula.utils.AssetListPreferenceAccessor
+import tech.ula.utils.ConnectionUtility
+import tech.ula.utils.TimestampPreferenceUtility
 import java.io.BufferedReader
+import java.io.File
 import java.io.InputStreamReader
 import javax.net.ssl.SSLHandshakeException
 
-class AssetListUtility(
+class AssetRepository(
     deviceArchitecture: String,
     distributionType: String,
+    private val applicationFilesDirPath: String,
+    private val timestampPreferenceUtility: TimestampPreferenceUtility,
     private val assetListPreferenceUtility: AssetListPreferenceAccessor,
     private val connectionUtility: ConnectionUtility = ConnectionUtility()
 ) {
@@ -73,5 +79,14 @@ class AssetListUtility(
         } catch (err: Exception) {
             throw object : Exception("Error getting asset list") {}
         }
+    }
+
+    fun doesAssetNeedToUpdated(asset: Asset): Boolean {
+        val assetFile = File("$applicationFilesDirPath/${asset.pathName}")
+
+        if (!assetFile.exists()) return true
+
+        val localTimestamp = timestampPreferenceUtility.getSavedTimestampForFile(asset.concatenatedName)
+        return localTimestamp < asset.remoteTimestamp
     }
 }

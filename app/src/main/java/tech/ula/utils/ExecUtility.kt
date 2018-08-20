@@ -1,6 +1,5 @@
 package tech.ula.utils
 
-import android.os.Environment
 import android.util.Log
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
@@ -10,9 +9,11 @@ import java.util.ArrayList
 import java.lang.ProcessBuilder
 import kotlin.text.Charsets.UTF_8
 
-class ExecUtility(private val applicationFilesDirPath: String,
-                  private val externalStoragePath: String,
-                  private val defaultPreferenceUtility: DefaultPreferenceUtility) {
+class ExecUtility(
+    private val applicationFilesDirPath: String,
+    private val externalStoragePath: String,
+    private val defaultPreferenceUtility: DefaultPreferenceUtility
+) {
 
     companion object {
         val EXEC_DEBUG_LOGGER = { line: String -> Unit

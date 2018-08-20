@@ -11,7 +11,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import tech.ula.model.AppDatabase
+import tech.ula.model.repositories.AppDatabase
 import tech.ula.model.entities.Filesystem
 
 @RunWith(AndroidJUnit4::class)

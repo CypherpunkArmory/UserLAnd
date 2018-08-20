@@ -1,4 +1,4 @@
-package tech.ula.model
+package tech.ula.model.repositories
 
 import android.arch.persistence.db.SupportSQLiteDatabase
 import android.arch.persistence.room.Database

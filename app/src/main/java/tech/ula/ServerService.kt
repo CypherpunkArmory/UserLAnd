@@ -14,9 +14,10 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.doAsync
-import tech.ula.model.AppDatabase
+import tech.ula.model.repositories.AppDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
+import tech.ula.model.repositories.AssetRepository
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 
 class ServerService : Service() {
@@ -49,10 +50,6 @@ class ServerService : Service() {
     private val networkUtility by lazy {
         val connectivityManager = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         NetworkUtility(connectivityManager, ConnectionUtility())
-    }
-
-    private val assetUpdateChecker by lazy {
-        AssetUpdateChecker(this.filesDir.path, timestampPreferences)
     }
 
     private val execUtility by lazy {
@@ -155,22 +152,26 @@ class ServerService : Service() {
     private fun startSession(session: Session, filesystem: Filesystem, forceDownloads: Boolean) {
         lastActivatedSession = session
         lastActivatedFilesystem = filesystem
-        val sessionController = SessionController(ResourcesUtility(this), progressBarUpdater, dialogBroadcaster)
+
+        val assetRepository = AssetRepository(BuildUtility().getArchType(),
+                filesystem.distributionType,
+                this.filesDir.path,
+                timestampPreferences,
+                assetListPreferenceUtility)
+        val sessionController = SessionController(ResourcesUtility(this), assetRepository,
+                progressBarUpdater, dialogBroadcaster)
+
         launch(CommonPool) {
 
             startProgressBar()
 
-            val assetListUtility = AssetListUtility(BuildUtility().getArchType(),
-                    filesystem.distributionType,
-                    assetListPreferenceUtility)
-
             val assetLists = asyncAwait {
-                sessionController.getAssetLists(networkUtility, assetListUtility)
+                sessionController.getAssetLists(networkUtility)
             }
             if (assetLists.any { it.isEmpty() }) return@launch
 
             val isWifiRequiredForDownloads = asyncAwait {
-                sessionController.downloadRequirements(assetUpdateChecker, downloadBroadcastReceiver,
+                sessionController.downloadRequirements(downloadBroadcastReceiver,
                         initDownloadUtility(), networkUtility, forceDownloads, assetLists)
             }
             if (isWifiRequiredForDownloads) return@launch
@@ -182,7 +183,7 @@ class ServerService : Service() {
             }
             if (!wasExtractionSuccessful) return@launch
 
-            sessionController.ensureFilesystemHasRequiredAssets(filesystem, assetListUtility, filesystemUtility)
+            sessionController.ensureFilesystemHasRequiredAssets(filesystem, filesystemUtility)
 
             val updatedSession = asyncAwait { sessionController.activateSession(session, serverUtility) }
 

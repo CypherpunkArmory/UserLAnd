@@ -5,7 +5,7 @@ import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
-import tech.ula.model.AppDatabase
+import tech.ula.model.repositories.AppDatabase
 import tech.ula.model.entities.Filesystem
 
 class FilesystemListViewModel(application: Application) : AndroidViewModel(application) {

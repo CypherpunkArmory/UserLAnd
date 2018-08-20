@@ -5,9 +5,11 @@ import tech.ula.R
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
+import tech.ula.model.repositories.AssetRepository
 
 class SessionController(
     resourcesUtility: ResourcesUtility,
+    private val assetRepository: AssetRepository,
     private val progressBarUpdater: (String, String) -> Unit,
     private val dialogBroadcaster: (String) -> Unit
 ) {
@@ -15,15 +17,14 @@ class SessionController(
     private val resources = resourcesUtility.getAppResources()
 
     fun getAssetLists(
-        networkUtility: NetworkUtility,
-        assetListUtility: AssetListUtility
+        networkUtility: NetworkUtility
     ): List<List<Asset>> {
 
         progressBarUpdater(resources.getString(R.string.progress_fetching_asset_lists), "")
         val assetLists = if (!networkUtility.networkIsActive()) {
-            assetListUtility.getCachedAssetLists()
+            assetRepository.getCachedAssetLists()
         } else {
-            assetListUtility.retrieveAllRemoteAssetLists(networkUtility.httpsIsAccessible())
+            assetRepository.retrieveAllRemoteAssetLists(networkUtility.httpsIsAccessible())
         }
         if (assetLists.any { it.isEmpty() }) {
             dialogBroadcaster("errorFetchingAssetLists")
@@ -34,7 +35,6 @@ class SessionController(
 
     // Return value represents whether wifi is required for downloads.
     suspend fun downloadRequirements(
-        assetUpdateChecker: AssetUpdateChecker,
         downloadBroadcastReceiver: DownloadBroadcastReceiver,
         downloadUtility: DownloadUtility,
         networkUtility: NetworkUtility,
@@ -44,7 +44,7 @@ class SessionController(
         var wifiRequired = false
         val requiredDownloads: List<Asset> = assetLists.map { assetList ->
             assetList.filter { asset ->
-                val needsUpdate = assetUpdateChecker.doesAssetNeedToUpdated(asset)
+                val needsUpdate = assetRepository.doesAssetNeedToUpdated(asset)
                 if (needsUpdate &&
                         asset.isLarge &&
                         !forceDownloads &&
@@ -100,11 +100,10 @@ class SessionController(
 
     fun ensureFilesystemHasRequiredAssets(
         filesystem: Filesystem,
-        assetListUtility: AssetListUtility,
         filesystemUtility: FilesystemUtility
     ) {
         val filesystemDirectoryName = "${filesystem.id}"
-        val requiredDistributionAssets = assetListUtility.getDistributionAssetsList(filesystem.distributionType)
+        val requiredDistributionAssets = assetRepository.getDistributionAssetsList(filesystem.distributionType)
         if (!filesystemUtility.areAllRequiredAssetsPresent(filesystemDirectoryName, requiredDistributionAssets)) {
             filesystemUtility.copyDistributionAssetsToFilesystem(filesystemDirectoryName, filesystem.distributionType)
             filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)

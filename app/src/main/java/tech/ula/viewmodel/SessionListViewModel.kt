@@ -7,7 +7,7 @@ import android.arch.lifecycle.Transformations
 import android.os.Environment
 import kotlinx.coroutines.experimental.launch
 import org.jetbrains.anko.defaultSharedPreferences
-import tech.ula.model.AppDatabase
+import tech.ula.model.repositories.AppDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports

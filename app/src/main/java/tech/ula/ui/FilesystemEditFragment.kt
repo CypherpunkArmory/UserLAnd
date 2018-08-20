@@ -3,7 +3,6 @@ package tech.ula.ui
 import android.app.Activity
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
-import android.os.Environment
 import android.support.v4.app.Fragment
 import android.text.Editable
 import android.text.TextWatcher
@@ -12,7 +11,6 @@ import android.widget.AdapterView
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_edit.* // ktlint-disable no-wildcard-imports
-import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
