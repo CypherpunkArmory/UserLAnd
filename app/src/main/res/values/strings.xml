@@ -112,6 +112,7 @@
     <string name="no_supported_architecture">UserLAnd does not currently support your devices architecture.</string>
     <string name="debug_log_deleted">Debug log deleted or does not exist!</string>
     <string name="filesystem_extraction_failed">Could not extract filesystem!</string>
+    <string name="server_start_failed">Could not start desired server!</string>
     <string name="no_assets_need_updating">No assets need updating!</string>
     <string name="client_not_found">Could not find a way to handle the type of client this session is attempting to start!</string>
 

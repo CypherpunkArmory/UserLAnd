@@ -47,26 +47,42 @@ class ServerUtility(private val execUtility: ExecUtility, private val fileUtilit
     }
 
     private fun startSSHServer(session: Session): Long {
+        var pid: Long
         val targetDirectoryName = session.filesystemId.toString()
         deletePidFile(session)
         val command = "../support/execInProot.sh /bin/bash -c /support/startSSHServer.sh"
-        val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, doWait = false)
-        return process.pid()
+        try {
+            val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, doWait = false)
+            pid = process.pid()
+        } catch (err: Exception) {
+            return -1
+        }
+        return pid
     }
 
     private fun startVNCServer(session: Session): Long {
+        var pid: Long
         val targetDirectoryName = session.filesystemId.toString()
         deletePidFile(session)
         val command = "../support/execInProot.sh /bin/bash -c /support/startVNCServer.sh"
-        val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, doWait = false)
-        return process.pid()
+        try {
+            val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, doWait = false)
+            pid = process.pid()
+        } catch (err: Exception) {
+            return -1
+        }
+        return pid
     }
 
     fun stopService(session: Session) {
         val targetDirectoryName = session.filesystemId.toString()
 
         val command = "../support/killProcTree.sh ${session.pid} ${session.pid()}"
-        execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command)
+        try {
+            execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command)
+        } catch (err: Exception) {
+            return
+        }
     }
 
     fun isServerRunning(session: Session): Boolean {

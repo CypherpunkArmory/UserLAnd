@@ -16,9 +16,14 @@ class FilesystemUtility(
         return File("${fileUtility.getFilesDirPath()}/$targetDirectoryName/support")
     }
 
-    fun extractFilesystem(targetDirectoryName: String, listener: (String) -> Any) {
+    fun extractFilesystem(targetDirectoryName: String, listener: (String) -> Any): Boolean {
         val command = "../support/execInProot.sh /support/extractFilesystem.sh"
-        execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, listener)
+        try {
+            execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, listener)
+        } catch (err: Exception) {
+            return false
+        }
+        return true
     }
 
     fun assetsArePresent(targetDirectoryName: String): Boolean {

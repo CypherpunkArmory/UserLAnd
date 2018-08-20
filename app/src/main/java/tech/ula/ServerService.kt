@@ -197,6 +197,7 @@ class ServerService : Service() {
     private fun continueStartSession() {
         val filesystemDirectoryName = lastActivatedSession.filesystemId.toString()
         var assetsWereDownloaded = false
+        var extractResult = false
 
         launchAsync {
             startProgressBar()
@@ -221,11 +222,11 @@ class ServerService : Service() {
                     val distType = lastActivatedFilesystem.distributionType
                     fileUtility.copyDistributionAssetsToFilesystem(filesystemDirectoryName, distType)
                     if (!lastActivatedSession.isExtracted) {
-                        filesystemUtility.extractFilesystem(filesystemDirectoryName, filesystemExtractLogger)
+                        extractResult = filesystemUtility.extractFilesystem(filesystemDirectoryName, filesystemExtractLogger)
                     }
                 }
 
-                if (!fileUtility.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")) {
+                if ((!fileUtility.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")) || (!extractResult)) {
                     Toast.makeText(this@ServerService, R.string.filesystem_extraction_failed, Toast.LENGTH_LONG).show()
                     killProgressBar()
                     return@launchAsync
@@ -236,10 +237,18 @@ class ServerService : Service() {
 
             updateProgressBar(getString(R.string.progress_starting), "")
             asyncAwait {
-
                 lastActivatedSession.pid = serverUtility.startServer(lastActivatedSession)
-                addSession(lastActivatedSession)
+            }
 
+            if (lastActivatedSession.pid == -1L) {
+                Toast.makeText(this@ServerService, R.string.server_start_failed, Toast.LENGTH_LONG).show()
+                killProgressBar()
+                return@launchAsync
+            } else {
+                addSession(lastActivatedSession)
+            }
+
+            asyncAwait {
                 while (!serverUtility.isServerRunning(lastActivatedSession)) {
                     delay(500)
                 }
