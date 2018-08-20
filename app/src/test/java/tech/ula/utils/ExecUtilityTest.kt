@@ -1,25 +1,25 @@
- package tech.ula.utils
+package tech.ula.utils
 
- import org.junit.Assert.assertEquals
- import org.junit.Assert.assertTrue
- import org.junit.Before
- import org.junit.Rule
- import org.junit.Test
- import org.junit.rules.TemporaryFolder
- import org.junit.runner.RunWith
- import org.mockito.Mock
- import org.mockito.Mockito.`when`
- import org.mockito.junit.MockitoJUnitRunner
- import java.io.File
- import kotlin.text.Charsets.UTF_8
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TemporaryFolder
+import org.junit.runner.RunWith
+import org.mockito.Mock
+import org.mockito.Mockito.`when`
+import org.mockito.junit.MockitoJUnitRunner
+import java.io.File
+import kotlin.text.Charsets.UTF_8
 
- @RunWith(MockitoJUnitRunner::class)
- class ExecUtilityTest {
+@RunWith(MockitoJUnitRunner::class)
+class ExecUtilityTest {
 
     @get:Rule
     val tempFolder = TemporaryFolder()
 
-    lateinit var externalStoragePath : String
+    lateinit var externalStoragePath: String
 
     @Mock
     lateinit var defaultPreferenceUtility: DefaultPreferenceUtility
@@ -73,4 +73,4 @@
         assertTrue(debugFile.exists())
         assertEquals("execInProot", debugFile.readText(UTF_8).trim())
     }
- }
+}
