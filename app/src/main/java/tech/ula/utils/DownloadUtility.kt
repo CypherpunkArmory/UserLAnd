@@ -22,17 +22,21 @@ class DownloadUtility(
                 "${asset.architectureType}/${asset.name}"
         val destination = "UserLAnd:${asset.concatenatedName}"
         val request = requestUtility.generateTypicalDownloadRequest(url, destination)
-        deletePreviousDownload("UserLAnd:${asset.concatenatedName}")
+        deletePreviousDownload(asset)
 
         timestampPreferenceUtility.setSavedTimestampForFileToNow(asset.concatenatedName)
 
         return downloadManager.enqueue(request)
     }
 
-    private fun deletePreviousDownload(type: String) {
-        val downloadFile = File(downloadDirectory, type)
-        if (downloadFile.exists())
-            downloadFile.delete()
+    private fun deletePreviousDownload(asset: Asset) {
+        val downloadsDirectoryFile = File(downloadDirectory, "UserLAnd:${asset.concatenatedName}")
+        val localFile = File(applicationFilesDir, asset.pathName)
+
+        if (downloadsDirectoryFile.exists())
+            downloadsDirectoryFile.delete()
+        if (localFile.exists())
+            localFile.delete()
     }
 
     fun moveAssetsToCorrectLocalDirectory() {
