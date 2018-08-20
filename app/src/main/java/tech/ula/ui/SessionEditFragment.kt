@@ -15,6 +15,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_session_edit.* // ktlint-disable no-wildcard-imports
+import kotlinx.android.synthetic.main.preference_list_fragment.*
 import org.jetbrains.anko.bundleOf
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
@@ -36,7 +37,7 @@ class SessionEditFragment : Fragment() {
 
     private var sessionClientTypeList = ArrayList<String>()
 
-    private lateinit var filesystemList: List<Filesystem>
+    private var filesystemList: List<Filesystem> = emptyList()
 
     private val sessionEditViewModel: SessionEditViewModel by lazy {
         ViewModelProviders.of(this).get(SessionEditViewModel::class.java)
@@ -44,18 +45,23 @@ class SessionEditFragment : Fragment() {
 
     private val filesystemChangeObserver = Observer<List<Filesystem>> {
         it?.let {
-            filesystemList = it
-            val filesystemNameList = ArrayList(filesystemList.map { filesystem -> filesystem.name })
-            filesystemNameList.add("Create new")
+            val filesystemNames = ArrayList(it.map { filesystem -> filesystem.name })
+            filesystemNames.add("Create new")
+
             if (it.isEmpty()) {
-                filesystemNameList.add("")
+                filesystemNames.add("")
             }
-            val filesystemAdapter = ArrayAdapter(activityContext, android.R.layout.simple_spinner_dropdown_item, filesystemNameList)
+
+            getListDifferenceAndSetNewFilesystem(filesystemList, it)
+
+            val filesystemAdapter = ArrayAdapter(activityContext, android.R.layout.simple_spinner_dropdown_item, filesystemNames)
             val filesystemNamePosition = filesystemAdapter.getPosition(session.filesystemName)
             val usedPosition = if (filesystemNamePosition < 0) 0 else filesystemNamePosition
 
             spinner_filesystem_list.adapter = filesystemAdapter
             spinner_filesystem_list.setSelection(usedPosition)
+
+            filesystemList = it
         }
     }
 
@@ -111,9 +117,10 @@ class SessionEditFragment : Fragment() {
                     else -> {
                         // TODO adapter to associate filesystem structure with list items?
                         val filesystem = filesystemList.find { it.name == filesystemName }
-                        session.filesystemName = filesystem!!.name
-                        session.filesystemId = filesystem.id
-                        text_input_username.setText(filesystem.defaultUsername)
+                        filesystem?.let {
+                            updateFilesystemDetailsForSession(it)
+                            text_input_username.setText(it.defaultUsername)
+                        }
                     }
                 }
             }
@@ -198,5 +205,17 @@ class SessionEditFragment : Fragment() {
             "vnc" -> 51
             else -> 2022
         }
+    }
+
+    private fun getListDifferenceAndSetNewFilesystem(prevFilesystems: List<Filesystem>, currentFilesystems: List<Filesystem>) {
+        val uniqueFilesystems = currentFilesystems.subtract(prevFilesystems)
+        if (uniqueFilesystems.isNotEmpty()) {
+            updateFilesystemDetailsForSession(uniqueFilesystems.first())
+        }
+    }
+
+    private fun updateFilesystemDetailsForSession(filesystem: Filesystem) {
+        session.filesystemName = filesystem.name
+        session.filesystemId = filesystem.id
     }
 }
