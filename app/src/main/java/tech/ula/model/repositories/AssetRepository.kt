@@ -1,9 +1,9 @@
 package tech.ula.model.repositories
 
 import tech.ula.model.entities.Asset
-import tech.ula.utils.AssetListPreferenceAccessor
+import tech.ula.utils.AssetListPreferences
 import tech.ula.utils.ConnectionUtility
-import tech.ula.utils.TimestampPreferenceUtility
+import tech.ula.utils.TimestampPreferences
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -13,8 +13,8 @@ class AssetRepository(
     deviceArchitecture: String,
     distributionType: String,
     private val applicationFilesDirPath: String,
-    private val timestampPreferenceUtility: TimestampPreferenceUtility,
-    private val assetListPreferenceUtility: AssetListPreferenceAccessor,
+    private val timestampPreferences: TimestampPreferences,
+    private val assetListPreferences: AssetListPreferences,
     private val connectionUtility: ConnectionUtility = ConnectionUtility()
 ) {
 
@@ -26,7 +26,7 @@ class AssetRepository(
     )
 
     fun getCachedAssetLists(): List<List<Asset>> {
-        return assetListPreferenceUtility.getAssetLists(allAssetListTypes)
+        return assetListPreferences.getAssetLists(allAssetListTypes)
     }
 
     fun getDistributionAssetsList(distributionType: String): List<Asset> {
@@ -34,7 +34,7 @@ class AssetRepository(
             (assetType, _) ->
             assetType == distributionType
         }
-        val allAssets = assetListPreferenceUtility.getAssetLists(distributionAssetLists).flatten()
+        val allAssets = assetListPreferences.getAssetLists(distributionAssetLists).flatten()
         return allAssets.filter { !(it.name.contains("rootfs.tar.gz")) }
     }
 
@@ -44,7 +44,7 @@ class AssetRepository(
             (assetType, architectureType) ->
             val assetList = retrieveAndParseAssetList(assetType, architectureType, httpsIsAccessible)
             allAssetLists.add(assetList)
-            assetListPreferenceUtility.setAssetList(assetType, architectureType, assetList)
+            assetListPreferences.setAssetList(assetType, architectureType, assetList)
         }
         return allAssetLists.toList()
     }
@@ -86,7 +86,7 @@ class AssetRepository(
 
         if (!assetFile.exists()) return true
 
-        val localTimestamp = timestampPreferenceUtility.getSavedTimestampForFile(asset.concatenatedName)
+        val localTimestamp = timestampPreferences.getSavedTimestampForFile(asset.concatenatedName)
         return localTimestamp < asset.remoteTimestamp
     }
 }

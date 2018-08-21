@@ -16,7 +16,7 @@ class SessionListViewModel(application: Application) : AndroidViewModel(applicat
 
     private val execUtility: ExecUtility by lazy {
         val externalStoragePath = Environment.getExternalStorageDirectory().absolutePath
-        ExecUtility(application.filesDir.path, externalStoragePath, DefaultPreferenceUtility(application.defaultSharedPreferences))
+        ExecUtility(application.filesDir.path, externalStoragePath, DefaultPreferences(application.defaultSharedPreferences))
     }
 
     private val serverUtility: ServerUtility by lazy {

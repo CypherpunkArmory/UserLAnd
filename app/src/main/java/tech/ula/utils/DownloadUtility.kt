@@ -6,8 +6,8 @@ import java.io.File
 
 class DownloadUtility(
     private val downloadManager: DownloadManager,
-    private val timestampPreferenceUtility: TimestampPreferenceUtility,
-    private val requestUtility: RequestUtility,
+    private val timestampPreferences: TimestampPreferences,
+    private val requestGenerator: RequestGenerator,
     private val downloadDirectory: File,
     private val applicationFilesDir: File
 ) {
@@ -21,10 +21,10 @@ class DownloadUtility(
                 "${asset.distributionType}/raw/master/assets/" +
                 "${asset.architectureType}/${asset.name}"
         val destination = "UserLAnd:${asset.concatenatedName}"
-        val request = requestUtility.generateTypicalDownloadRequest(url, destination)
+        val request = requestGenerator.generateTypicalDownloadRequest(url, destination)
         deletePreviousDownload(asset)
 
-        timestampPreferenceUtility.setSavedTimestampForFileToNow(asset.concatenatedName)
+        timestampPreferences.setSavedTimestampForFileToNow(asset.concatenatedName)
 
         return downloadManager.enqueue(request)
     }

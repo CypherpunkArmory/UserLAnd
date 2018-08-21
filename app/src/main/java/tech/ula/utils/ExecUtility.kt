@@ -12,7 +12,7 @@ import kotlin.text.Charsets.UTF_8
 class ExecUtility(
     private val applicationFilesDirPath: String,
     private val externalStoragePath: String,
-    private val defaultPreferenceUtility: DefaultPreferenceUtility
+    private val defaultPreferences: DefaultPreferences
 ) {
 
     companion object {
@@ -32,11 +32,11 @@ class ExecUtility(
     ): Process {
 
         // TODO refactor naming convention to command debugging log
-        val prootDebuggingEnabled = defaultPreferenceUtility.getProotDebuggingEnabled()
+        val prootDebuggingEnabled = defaultPreferences.getProotDebuggingEnabled()
         val prootDebuggingLevel =
-                if (prootDebuggingEnabled) defaultPreferenceUtility.getProotDebuggingLevel()
+                if (prootDebuggingEnabled) defaultPreferences.getProotDebuggingLevel()
                 else "-1"
-        val prootDebugLogLocation = defaultPreferenceUtility.getProotDebugLogLocation()
+        val prootDebugLogLocation = defaultPreferences.getProotDebugLogLocation()
 
         val env = if (wrapped) hashMapOf("LD_LIBRARY_PATH" to "$applicationFilesDirPath/support",
                 "ROOT_PATH" to applicationFilesDirPath,

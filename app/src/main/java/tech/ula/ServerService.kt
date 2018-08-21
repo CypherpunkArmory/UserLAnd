@@ -40,11 +40,11 @@ class ServerService : Service() {
     }
 
     private val timestampPreferences by lazy {
-        TimestampPreferenceUtility(this.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE))
+        TimestampPreferences(this.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE))
     }
 
-    private val assetListPreferenceUtility by lazy {
-        AssetListPreferenceUtility(this.getSharedPreferences("assetLists", Context.MODE_PRIVATE))
+    private val assetListPreferences by lazy {
+        AssetListPreferences(this.getSharedPreferences("assetLists", Context.MODE_PRIVATE))
     }
 
     private val networkUtility by lazy {
@@ -54,7 +54,7 @@ class ServerService : Service() {
 
     private val execUtility by lazy {
         val externalStoragePath = Environment.getExternalStorageDirectory().absolutePath
-        ExecUtility(this.filesDir.path, externalStoragePath, DefaultPreferenceUtility(this.defaultSharedPreferences))
+        ExecUtility(this.filesDir.path, externalStoragePath, DefaultPreferences(this.defaultSharedPreferences))
     }
 
     private val filesystemUtility by lazy {
@@ -73,7 +73,7 @@ class ServerService : Service() {
     private fun initDownloadUtility(): DownloadUtility {
         val downloadManager = this.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         return DownloadUtility(downloadManager, timestampPreferences,
-                RequestUtility(), EnvironmentUtility().getDownloadsDirectory(), this.filesDir)
+                RequestGenerator(), EnvironmentWrapper().getDownloadsDirectory(), this.filesDir)
     }
 
     override fun onCreate() {
@@ -153,12 +153,12 @@ class ServerService : Service() {
         lastActivatedSession = session
         lastActivatedFilesystem = filesystem
 
-        val assetRepository = AssetRepository(BuildUtility().getArchType(),
+        val assetRepository = AssetRepository(BuildWrapper().getArchType(),
                 filesystem.distributionType,
                 this.filesDir.path,
                 timestampPreferences,
-                assetListPreferenceUtility)
-        val sessionController = SessionController(ResourcesUtility(this), assetRepository,
+                assetListPreferences)
+        val sessionController = SessionController(ResourcesFetcher(this), assetRepository,
                 progressBarUpdater, dialogBroadcaster)
 
         launch(CommonPool) {

@@ -94,7 +94,7 @@ class FilesystemEditFragment : Fragment() {
                 navController.popBackStack()
             } else {
                 try {
-                    filesystem.archType = BuildUtility().getArchType()
+                    filesystem.archType = BuildWrapper().getArchType()
                 } catch (err: Exception) {
                     Toast.makeText(activityContext, R.string.no_supported_architecture, Toast.LENGTH_LONG).show()
                     return true

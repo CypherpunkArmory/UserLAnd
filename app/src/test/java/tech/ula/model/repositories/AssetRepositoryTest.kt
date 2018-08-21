@@ -14,9 +14,9 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.times
 import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.entities.Asset
-import tech.ula.utils.AssetListPreferenceUtility
+import tech.ula.utils.AssetListPreferences
 import tech.ula.utils.ConnectionUtility
-import tech.ula.utils.TimestampPreferenceUtility
+import tech.ula.utils.TimestampPreferences
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.InputStream
@@ -28,10 +28,10 @@ class AssetRepositoryTest {
     val tempFolder = TemporaryFolder()
 
     @Mock
-    lateinit var timestampPreferenceUtility: TimestampPreferenceUtility
+    lateinit var timestampPreferences: TimestampPreferences
 
     @Mock
-    lateinit var assetListPreferenceUtility: AssetListPreferenceUtility
+    lateinit var assetListPreferences: AssetListPreferences
 
     @Mock
     lateinit var connectionUtility: ConnectionUtility
@@ -53,13 +53,13 @@ class AssetRepositoryTest {
     fun setup() {
         applicationFilesDirPath = tempFolder.root.path
         assetRepository = AssetRepository(archType, distType, applicationFilesDirPath,
-                timestampPreferenceUtility, assetListPreferenceUtility, connectionUtility)
+                timestampPreferences, assetListPreferences, connectionUtility)
     }
 
     @Test
     fun allTypesOfCachedAssetListsAreRetrieved() {
         assetRepository.getCachedAssetLists()
-        verify(assetListPreferenceUtility).getAssetLists(allAssetListTypes)
+        verify(assetListPreferences).getAssetLists(allAssetListTypes)
     }
 
     @Test
@@ -71,7 +71,7 @@ class AssetRepositoryTest {
         val asset1 = Asset("name", distType, archType, 0)
         val asset2 = Asset("rootfs.tar.gz", distType, archType, 0)
         val assetListWithRootfsFile = listOf(listOf(asset1, asset2))
-        `when`(assetListPreferenceUtility.getAssetLists(distTypeAssetLists)).thenReturn(assetListWithRootfsFile)
+        `when`(assetListPreferences.getAssetLists(distTypeAssetLists)).thenReturn(assetListWithRootfsFile)
 
         val returnedAssetList = assetRepository.getDistributionAssetsList(distType)
 
@@ -113,7 +113,7 @@ class AssetRepositoryTest {
         val asset = Asset("name", distType, archType, Long.MAX_VALUE)
 
         assertTrue(assetRepository.doesAssetNeedToUpdated(asset))
-        verify(timestampPreferenceUtility, never()).getSavedTimestampForFile(anyString())
+        verify(timestampPreferences, never()).getSavedTimestampForFile(anyString())
     }
 
     @Test
@@ -121,7 +121,7 @@ class AssetRepositoryTest {
         val asset = Asset("late", distType, archType, Long.MAX_VALUE)
         tempFolder.newFolder("dist")
         File("${tempFolder.root.path}/${asset.pathName}").createNewFile()
-        `when`(timestampPreferenceUtility.getSavedTimestampForFile(asset.concatenatedName))
+        `when`(timestampPreferences.getSavedTimestampForFile(asset.concatenatedName))
                 .thenReturn(Long.MIN_VALUE)
 
         assertTrue(assetRepository.doesAssetNeedToUpdated(asset))
@@ -132,7 +132,7 @@ class AssetRepositoryTest {
         val asset = Asset("early", distType, archType, Long.MIN_VALUE)
         tempFolder.newFolder("dist")
         File("${tempFolder.root.path}/${asset.pathName}").createNewFile()
-        `when`(timestampPreferenceUtility.getSavedTimestampForFile(asset.concatenatedName))
+        `when`(timestampPreferences.getSavedTimestampForFile(asset.concatenatedName))
                 .thenReturn(Long.MAX_VALUE)
 
         assertFalse(assetRepository.doesAssetNeedToUpdated(asset))
