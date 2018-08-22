@@ -21,3 +21,5 @@ A normal first session might look like this:
 But, you can do so much more than that...your phone is not just a play thing anymore.
 
 This app is fully open source.  You can find our code and file issues [here](https://github.com/CypherpunkArmory/UserLAnd/).
+
+The assets that UserLAnd depends on and the scripts that build them are contained in other repositores.  For example, the assets that are used for any distro or application are found at https://github.com/CypherpunkArmory/UserLAnd-Assets-Support .  For any specific distro or application, they are found at https://github.com/CypherpunkArmory/UserLAnd-Assets-DISTRO_OR_APP_NAME ( ie https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian )
