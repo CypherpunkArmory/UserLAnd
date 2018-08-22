@@ -158,8 +158,8 @@ class ServerService : Service() {
                 this.filesDir.path,
                 timestampPreferences,
                 assetListPreferences)
-        val sessionController = SessionController(ResourcesFetcher(this), assetRepository,
-                progressBarUpdater, dialogBroadcaster)
+        val sessionController = SessionController(filesystem, ResourcesFetcher(this),
+                assetRepository, filesystemUtility, progressBarUpdater, dialogBroadcaster)
 
         launch(CommonPool) {
 
@@ -171,19 +171,18 @@ class ServerService : Service() {
             if (assetLists.any { it.isEmpty() }) return@launch
 
             val isWifiRequiredForDownloads = asyncAwait {
-                sessionController.downloadRequirements(downloadBroadcastReceiver,
-                        initDownloadUtility(), networkUtility, forceDownloads, assetLists)
+                sessionController.downloadRequirements(assetLists, forceDownloads,
+                        downloadBroadcastReceiver, initDownloadUtility(), networkUtility)
             }
             if (isWifiRequiredForDownloads) return@launch
 
             progressBarUpdater(getString(R.string.progress_setting_up), "")
             val wasExtractionSuccessful = asyncAwait {
-                sessionController.extractFilesystemIfNeeded(filesystemUtility,
-                        filesystemExtractLogger, filesystem)
+                sessionController.extractFilesystemIfNeeded(filesystemExtractLogger)
             }
             if (!wasExtractionSuccessful) return@launch
 
-            sessionController.ensureFilesystemHasRequiredAssets(filesystem, filesystemUtility)
+            sessionController.ensureFilesystemHasRequiredAssets()
 
             val updatedSession = asyncAwait { sessionController.activateSession(session, serverUtility) }
 
