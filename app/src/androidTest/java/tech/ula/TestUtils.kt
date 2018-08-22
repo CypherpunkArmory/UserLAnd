@@ -1,4 +1,4 @@
-package tech.ula.utils
+package tech.ula
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.Observer

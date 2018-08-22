@@ -24,9 +24,6 @@ class ServerUtilityTest {
     lateinit var execUtility: ExecUtility
 
     @Mock
-    lateinit var fileUtility: FileUtility
-
-    @Mock
     lateinit var process: Process
 
     lateinit var serverUtility: ServerUtility
@@ -37,7 +34,7 @@ class ServerUtilityTest {
 
     @Before
     fun setup() {
-        serverUtility = ServerUtility(execUtility, fileUtility)
+        serverUtility = ServerUtility(tempFolder.root.path, execUtility)
     }
 
     fun createSshPidFile() {
@@ -57,7 +54,6 @@ class ServerUtilityTest {
         val session = Session(0, filesystemId = 0, serviceType = "ssh")
         val command = "../support/execInProot.sh /bin/bash -c /support/startSSHServer.sh"
 
-        `when`(fileUtility.getFilesDirPath()).thenReturn(tempFolder.root.path)
         `when`(execUtility.wrapWithBusyboxAndExecute("0", command, doWait = false)).thenReturn(process)
         `when`(process.toString()).thenReturn("pid=100,")
 
@@ -76,7 +72,6 @@ class ServerUtilityTest {
 
         `when`(execUtility.wrapWithBusyboxAndExecute("0", command, doWait = false)).thenReturn(process)
         `when`(process.toString()).thenReturn("pid=100,")
-        `when`(fileUtility.getFilesDirPath()).thenReturn(tempFolder.root.path)
 
         createVNCPidFile(session)
         assertTrue(vncPidFile.exists())

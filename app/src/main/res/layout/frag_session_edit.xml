@@ -44,9 +44,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/text_input_layout_session_name" />
 
-        <!-- TODO more robust way of styling correctly
-        using margin start is likely not enough on larger screens, different localizations
-        -->
         <Spinner
             android:id="@+id/spinner_filesystem_list"
             android:layout_width="0dp"

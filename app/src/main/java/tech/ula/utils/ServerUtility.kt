@@ -3,7 +3,7 @@ package tech.ula.utils
 import tech.ula.model.entities.Session
 import java.io.File
 
-class ServerUtility(private val execUtility: ExecUtility, private val fileUtility: FileUtility) {
+class ServerUtility(private val applicationFilesDirPath: String, private val execUtility: ExecUtility) {
 
     fun Process.pid(): Long {
         return this.toString().substringAfter("pid=").substringBefore(",").substringBefore("]").trim().toLong()
@@ -19,7 +19,7 @@ class ServerUtility(private val execUtility: ExecUtility, private val fileUtilit
     }
 
     fun Session.pidFilePath(): String {
-        return fileUtility.getFilesDirPath() + "/" + this.filesystemId.toString() + this.pidRelativeFilePath()
+        return "$applicationFilesDirPath/${this.filesystemId}${this.pidRelativeFilePath()}"
     }
 
     fun Session.pid(): Long {

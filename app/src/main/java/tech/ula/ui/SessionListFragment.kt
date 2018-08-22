@@ -72,6 +72,8 @@ class SessionListFragment : Fragment() {
                         "networkUnavailable" -> displayNetworkUnavailableDialog()
                         "assetListFailure" -> displayAssetListFailureDialog()
                         "displayNetworkChoices" -> displayNetworkChoicesDialog()
+                        "toast" -> showToast(it)
+                        "dialog" -> showDialog(it)
                     }
                 }
             }
@@ -301,6 +303,21 @@ class SessionListFragment : Fragment() {
         else killProgressBar()
     }
 
+    private fun showToast(intent: Intent) {
+        val content = intent.getIntExtra("id", -1)
+        if (content == -1) return
+        Toast.makeText(activityContext, content, Toast.LENGTH_LONG).show()
+    }
+
+    private fun showDialog(intent: Intent) {
+        when (intent.getStringExtra("dialogType")) {
+            "errorFetchingAssetLists" -> displayAssetListFailureDialog()
+            "wifiRequired" -> displayNetworkChoicesDialog()
+            "extractionFailed" -> displayExtractionFailedDialog()
+            "filesystemIsMissingRequiredAssets" -> displayFilesystemMissingRequiredAssets()
+        }
+    }
+
     private fun displayNetworkUnavailableDialog() {
         val builder = AlertDialog.Builder(activityContext)
         builder.setMessage(R.string.alert_network_unavailable_message)
@@ -317,7 +334,7 @@ class SessionListFragment : Fragment() {
         val builder = AlertDialog.Builder(activityContext)
         builder.setMessage(R.string.alert_asset_list_failure_message)
                 .setTitle(R.string.alert_asset_list_failure_title)
-                .setPositiveButton(R.string.alert_asset_list_failure_cancel_button) {
+                .setPositiveButton(R.string.alert_asset_list_failure_positive_button) {
                     dialog, _ ->
                     dialog.dismiss()
                 }
@@ -333,7 +350,7 @@ class SessionListFragment : Fragment() {
                     dialog, _ ->
                     dialog.dismiss()
                     val serviceIntent = Intent(activityContext, ServerService::class.java)
-                    serviceIntent.putExtra("type", "continue")
+                    serviceIntent.putExtra("type", "forceDownloads")
                     activityContext.startService(serviceIntent)
                 }
                 .setNegativeButton(R.string.alert_wifi_disabled_turn_on_wifi_button) {
@@ -349,6 +366,30 @@ class SessionListFragment : Fragment() {
                 }
                 .setOnCancelListener {
                     killProgressBar()
+                }
+                .create()
+                .show()
+    }
+
+    private fun displayExtractionFailedDialog() {
+        val builder = AlertDialog.Builder(activityContext)
+        builder.setMessage(R.string.alert_extraction_failure_message)
+                .setTitle(R.string.alert_extraction_failure_title)
+                .setPositiveButton(R.string.alert_extraction_failure_positive_button) {
+                    dialog, _ ->
+                    dialog.dismiss()
+                }
+                .create()
+                .show()
+    }
+
+    private fun displayFilesystemMissingRequiredAssets() {
+        val builder = AlertDialog.Builder(activityContext)
+        builder.setMessage(R.string.alert_filesystem_missing_requirements_message)
+                .setTitle(R.string.alert_filesystem_missing_requirements_title)
+                .setPositiveButton(R.string.alert_filesystem_missing_requirements_positive_button) {
+                    dialog, _ ->
+                    dialog.dismiss()
                 }
                 .create()
                 .show()
