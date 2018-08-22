@@ -196,10 +196,10 @@ class SessionListFragment : Fragment() {
         super.onCreateContextMenu(menu, v, menuInfo)
         val session = sessionList[info.position]
         when {
-            session.isExtracted && !session.active ->
-                    activityContext.menuInflater.inflate(R.menu.context_menu_sessions_updateable, menu)
+            session.active ->
+                activityContext.menuInflater.inflate(R.menu.context_menu_active_sessions, menu)
             else ->
-                activityContext.menuInflater.inflate(R.menu.context_menu_sessions, menu)
+                activityContext.menuInflater.inflate(R.menu.context_menu_inactive_sessions, menu)
         }
     }
 
@@ -211,7 +211,6 @@ class SessionListFragment : Fragment() {
             R.id.menu_item_session_kill_service -> stopService(session)
             R.id.menu_item_session_edit -> editSession(session)
             R.id.menu_item_session_delete -> deleteSession(session)
-            R.id.menu_item_session_update_assets -> forceAssetUpdate(session)
             else -> super.onContextItemSelected(item)
         }
     }
@@ -239,16 +238,6 @@ class SessionListFragment : Fragment() {
     private fun deleteSession(session: Session): Boolean {
         stopService(session)
         sessionListViewModel.deleteSessionById(session.id)
-        return true
-    }
-
-    private fun forceAssetUpdate(session: Session): Boolean {
-        val filesystem = filesystemList.find { it.name == session.filesystemName }
-        val serviceIntent = Intent(activityContext, ServerService::class.java)
-        serviceIntent.putExtra("type", "forceAssetUpdate")
-        serviceIntent.putExtra("session", session)
-        serviceIntent.putExtra("filesystem", filesystem)
-        activityContext.startService(serviceIntent)
         return true
     }
 
