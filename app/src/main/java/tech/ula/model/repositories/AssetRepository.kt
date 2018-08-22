@@ -72,7 +72,7 @@ class AssetRepository(
 
             reader.close()
             return assetList.toList()
-        } catch (err: SSLHandshakeException) {
+        } catch (err: SSLHandshakeException) { // TODO nothing is done with these
             if (retries >= 5) throw object : Exception("Error getting asset list") {}
             return retrieveAndParseAssetList(assetType, architectureType,
                     httpsIsAccessible, retries + 1)
