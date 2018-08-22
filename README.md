@@ -22,4 +22,8 @@ But, you can do so much more than that...your phone is not just a play thing any
 
 This app is fully open source.  You can find our code and file issues [here](https://github.com/CypherpunkArmory/UserLAnd/).
 
-The assets that UserLAnd depends on and the scripts that build them are contained in other repositores.  For example, the common assets that are used for all distros and application are found at https://github.com/CypherpunkArmory/UserLAnd-Assets-Support .  For any specific distro or application, they are found at `https://github.com/CypherpunkArmory/UserLAnd-Assets-DISTRO_OR_APP_NAME` ( ie https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian )
+The assets that UserLAnd depends on and the scripts that build them are contained in other repositories.  
+
+The common assets that are used for all distros and application are found at [CypherpunkArmory/UserLAnd-Assets-Support](https://github.com/CypherpunkArmory/UserLAnd-Assets-Support).  
+
+Distribution or application specific assets are found under CypherpunkArmory/UserLAnd-Assets-(__Distribution/App__). For example, our Debian specific assets can be found at [CypherpunkArmory/UserLAnd-Assets-Debian](https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian)
