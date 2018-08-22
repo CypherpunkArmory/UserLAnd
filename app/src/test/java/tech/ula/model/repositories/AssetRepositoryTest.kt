@@ -91,7 +91,8 @@ class AssetRepositoryTest {
 
         argumentCaptor<String>().apply {
             assetRepository.retrieveAllRemoteAssetLists(httpsIsAccessible = true)
-            verify(connectionUtility, times(4)).getUrlInputStream(capture())
+            verify(connectionUtility, times(allAssetListTypes.size))
+                    .getUrlInputStream(capture())
             allUrlsWithoutProtocols.forEach {
                 assertTrue(allValues.contains("https$it"))
             }
@@ -100,8 +101,10 @@ class AssetRepositoryTest {
         argumentCaptor<String>().apply {
             assetRepository.retrieveAllRemoteAssetLists(httpsIsAccessible = false)
             // The mock tracks how many times a method is invoked since instantiation, so it will be
-            // called 4 times in the first part of the test and another 4 here.
-            verify(connectionUtility, times(4 + 4)).getUrlInputStream(capture())
+            // called once for each element in the list of asset types in the first part of the test,
+            // then that an additional time for each element in the second part of the test.
+            verify(connectionUtility, times(allAssetListTypes.size + allAssetListTypes.size))
+                    .getUrlInputStream(capture())
             allUrlsWithoutProtocols.forEach {
                 assertTrue(allValues.contains("http$it"))
             }
