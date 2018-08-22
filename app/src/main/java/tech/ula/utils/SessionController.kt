@@ -8,8 +8,10 @@ import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 
 class SessionController(
+    private val filesystem: Filesystem,
     resourcesFetcher: ResourcesFetcher,
     private val assetRepository: AssetRepository,
+    private val filesystemUtility: FilesystemUtility,
     private val progressBarUpdater: (String, String) -> Unit,
     private val dialogBroadcaster: (String) -> Unit
 ) {
@@ -35,23 +37,28 @@ class SessionController(
 
     // Return value represents whether wifi is required for downloads.
     suspend fun downloadRequirements(
+        assetLists: List<List<Asset>>,
+        forceDownloads: Boolean,
         downloadBroadcastReceiver: DownloadBroadcastReceiver,
         downloadUtility: DownloadUtility,
-        networkUtility: NetworkUtility,
-        forceDownloads: Boolean,
-        assetLists: List<List<Asset>>
+        networkUtility: NetworkUtility
     ): Boolean {
         var wifiRequired = false
         val requiredDownloads: List<Asset> = assetLists.map { assetList ->
             assetList.filter { asset ->
                 val needsUpdate = assetRepository.doesAssetNeedToUpdated(asset)
-                if (needsUpdate &&
-                        asset.isLarge &&
-                        !forceDownloads &&
-                        !networkUtility.wifiIsEnabled()) {
-                    wifiRequired = true
-                    dialogBroadcaster("wifiRequired")
-                    return@map listOf<Asset>()
+                if (asset.isLarge && needsUpdate) {
+
+                    // Avoid overhead of updating filesystems unless they will need to be
+                    // extracted.
+                    if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
+                        return@filter false
+
+                    if (!forceDownloads && !networkUtility.wifiIsEnabled()) {
+                        wifiRequired = true
+                        dialogBroadcaster("wifiRequired")
+                        return@map listOf<Asset>()
+                    }
                 }
                 needsUpdate
             }
@@ -73,11 +80,7 @@ class SessionController(
     }
 
     // Return value represents successful extraction. Also true if extraction is unnecessary.
-    suspend fun extractFilesystemIfNeeded(
-        filesystemUtility: FilesystemUtility,
-        filesystemExtractLogger: (line: String) -> Unit,
-        filesystem: Filesystem
-    ): Boolean {
+    suspend fun extractFilesystemIfNeeded(filesystemExtractLogger: (line: String) -> Unit): Boolean {
         val filesystemDirectoryName = "${filesystem.id}"
         if (!filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
             filesystemUtility.copyDistributionAssetsToFilesystem(filesystemDirectoryName, filesystem.distributionType)
@@ -98,10 +101,7 @@ class SessionController(
         return true
     }
 
-    fun ensureFilesystemHasRequiredAssets(
-        filesystem: Filesystem,
-        filesystemUtility: FilesystemUtility
-    ) {
+    fun ensureFilesystemHasRequiredAssets() {
         val filesystemDirectoryName = "${filesystem.id}"
         val requiredDistributionAssets = assetRepository.getDistributionAssetsList(filesystem.distributionType)
         if (!filesystemUtility.areAllRequiredAssetsPresent(filesystemDirectoryName, requiredDistributionAssets)) {
