@@ -25,10 +25,10 @@ class DownloadUtilityTest {
     lateinit var downloadManager: DownloadManager
 
     @Mock
-    lateinit var timestampPreferenceUtility: TimestampPreferenceUtility
+    lateinit var timestampPreferences: TimestampPreferences
 
     @Mock
-    lateinit var requestUtility: RequestUtility
+    lateinit var requestGenerator: RequestGenerator
 
     @Mock
     lateinit var requestReturn: DownloadManager.Request
@@ -45,7 +45,7 @@ class DownloadUtilityTest {
     @Before
     fun setup() {
         downloadDirectory = tempFolder.newFolder("downloads")
-        downloadUtility = DownloadUtility(downloadManager, timestampPreferenceUtility, requestUtility,
+        downloadUtility = DownloadUtility(downloadManager, timestampPreferences, requestGenerator,
                 downloadDirectory, applicationFilesDir = tempFolder.root)
 
         asset1 = Asset("name1", "distType1", "archType1", 0)
@@ -54,11 +54,11 @@ class DownloadUtilityTest {
 
         val url1 = getDownloadUrl(asset1.distributionType, asset1.architectureType, asset1.name)
         val destination1 = "UserLAnd:${asset1.concatenatedName}"
-        `when`(requestUtility.generateTypicalDownloadRequest(url1, destination1)).thenReturn(requestReturn)
+        `when`(requestGenerator.generateTypicalDownloadRequest(url1, destination1)).thenReturn(requestReturn)
 
         val url2 = getDownloadUrl(asset1.distributionType, asset1.architectureType, asset1.name)
         val destination2 = "UserLAnd:${asset1.concatenatedName}"
-        `when`(requestUtility.generateTypicalDownloadRequest(url2, destination2)).thenReturn(requestReturn)
+        `when`(requestGenerator.generateTypicalDownloadRequest(url2, destination2)).thenReturn(requestReturn)
     }
 
     fun getDownloadUrl(distType: String, archType: String, name: String): String {
@@ -69,8 +69,8 @@ class DownloadUtilityTest {
     fun enqueuesDownloadAndUpdatesTimestamps() {
         downloadUtility.downloadRequirements(assetList)
 
-        verify(timestampPreferenceUtility).setSavedTimestampForFileToNow(asset1.concatenatedName)
-        verify(timestampPreferenceUtility).setSavedTimestampForFileToNow(asset2.concatenatedName)
+        verify(timestampPreferences).setSavedTimestampForFileToNow(asset1.concatenatedName)
+        verify(timestampPreferences).setSavedTimestampForFileToNow(asset2.concatenatedName)
         verify(downloadManager, times(2)).enqueue(any())
     }
 

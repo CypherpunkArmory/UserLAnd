@@ -25,71 +25,36 @@ fun makePermissionsUsable(containingDirectoryPath: String, filename: String) {
     process.waitFor()
 }
 
-interface DefaultPreferencesAccessor {
-    fun getProotDebuggingEnabled(): Boolean
+class DefaultPreferences(private val prefs: SharedPreferences) {
 
-    fun getProotDebuggingLevel(): String
-
-    fun getProotDebugLogLocation(): String
-}
-
-class DefaultPreferenceUtility(private val prefs: SharedPreferences) : DefaultPreferencesAccessor {
-
-    override fun getProotDebuggingEnabled(): Boolean {
+    fun getProotDebuggingEnabled(): Boolean {
         return prefs.getBoolean("pref_proot_debug_enabled", false)
     }
 
-    override fun getProotDebuggingLevel(): String {
+    fun getProotDebuggingLevel(): String {
         return prefs.getString("pref_proot_debug_level", "-1") ?: ""
     }
 
-    override fun getProotDebugLogLocation(): String {
+    fun getProotDebugLogLocation(): String {
         return prefs.getString("pref_proot_debug_log_location", "${Environment.getExternalStorageDirectory().path}/PRoot_Debug_Log") ?: ""
     }
 }
 
-interface TimestampPreferenceAccessor {
-    fun getSavedTimestampForFile(filename: String): Long
-
-    fun setSavedTimestampForFileToNow(filename: String)
-
-    fun getLastUpdateCheck(): Long
-
-    fun setLastUpdateCheckToNow()
-}
-
-class TimestampPreferenceUtility(private val prefs: SharedPreferences) : TimestampPreferenceAccessor {
-    override fun getSavedTimestampForFile(filename: String): Long {
+class TimestampPreferences(private val prefs: SharedPreferences) {
+    fun getSavedTimestampForFile(filename: String): Long {
         return prefs.getLong(filename, 0)
     }
 
-    override fun setSavedTimestampForFileToNow(filename: String) {
+    fun setSavedTimestampForFileToNow(filename: String) {
         with(prefs.edit()) {
             putLong(filename, currentTimeSeconds())
             apply()
         }
     }
-
-    override fun getLastUpdateCheck(): Long {
-        return prefs.getLong("lastUpdateCheck", 0)
-    }
-
-    override fun setLastUpdateCheckToNow() {
-        with(prefs.edit()) {
-            putLong("lastUpdateCheck", currentTimeSeconds())
-            apply()
-        }
-    }
 }
 
-interface AssetListPreferenceAccessor {
-    fun getAssetLists(allAssetListTypes: List<Pair<String, String>>): List<List<Asset>>
-
-    fun setAssetList(assetType: String, architectureType: String, assetList: List<Asset>)
-}
-
-class AssetListPreferenceUtility(private val prefs: SharedPreferences) : AssetListPreferenceAccessor {
-    override fun getAssetLists(allAssetListTypes: List<Pair<String, String>>): List<List<Asset>> {
+class AssetListPreferences(private val prefs: SharedPreferences) {
+    fun getAssetLists(allAssetListTypes: List<Pair<String, String>>): List<List<Asset>> {
         val assetLists = ArrayList<List<Asset>>()
         allAssetListTypes.forEach {
             (assetType, architectureType) ->
@@ -103,7 +68,7 @@ class AssetListPreferenceUtility(private val prefs: SharedPreferences) : AssetLi
         return assetLists
     }
 
-    override fun setAssetList(assetType: String, architectureType: String, assetList: List<Asset>) {
+    fun setAssetList(assetType: String, architectureType: String, assetList: List<Asset>) {
         val entries = assetList.map {
             "${it.name}:${it.remoteTimestamp}"
         }.toSet()
@@ -114,12 +79,8 @@ class AssetListPreferenceUtility(private val prefs: SharedPreferences) : AssetLi
     }
 }
 
-interface BuildAccessor {
-    fun getSupportedAbis(): Array<String>
-}
-
-class BuildUtility : BuildAccessor {
-    override fun getSupportedAbis(): Array<String> {
+class BuildWrapper {
+    fun getSupportedAbis(): Array<String> {
         return Build.SUPPORTED_ABIS
     }
 
@@ -154,33 +115,22 @@ class BuildUtility : BuildAccessor {
     }
 }
 
-interface ConnectionAccessor {
-    fun getUrlConnection(url: String): HttpURLConnection
-
-    fun getUrlInputStream(url: String): InputStream
-}
-
-class ConnectionUtility : ConnectionAccessor {
-
+class ConnectionUtility {
     @Throws(Exception::class)
-    override fun getUrlConnection(url: String): HttpURLConnection {
+    fun getUrlConnection(url: String): HttpURLConnection {
         return URL(url).openConnection() as HttpURLConnection
     }
 
     @Throws(Exception::class)
-    override fun getUrlInputStream(url: String): InputStream {
+    fun getUrlInputStream(url: String): InputStream {
         val conn = URL(url).openConnection() as HttpURLConnection
         conn.requestMethod = "GET"
         return conn.inputStream
     }
 }
 
-interface RequestGenerator {
-    fun generateTypicalDownloadRequest(url: String, destination: String): DownloadManager.Request
-}
-
-class RequestUtility : RequestGenerator {
-    override fun generateTypicalDownloadRequest(url: String, destination: String): DownloadManager.Request {
+class RequestGenerator {
+    fun generateTypicalDownloadRequest(url: String, destination: String): DownloadManager.Request {
         val uri = Uri.parse(url)
         val request = DownloadManager.Request(uri)
         request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
@@ -191,22 +141,14 @@ class RequestUtility : RequestGenerator {
     }
 }
 
-interface EnvironmentAccessor {
-    fun getDownloadsDirectory(): File
-}
-
-class EnvironmentUtility : EnvironmentAccessor {
-    override fun getDownloadsDirectory(): File {
+class EnvironmentWrapper {
+    fun getDownloadsDirectory(): File {
         return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
     }
 }
 
-interface ResourcesAccessor {
-    fun getAppResources(): Resources
-}
-
-class ResourcesUtility(private val context: Context) : ResourcesAccessor {
-    override fun getAppResources(): Resources {
+class ResourcesFetcher(private val context: Context) {
+    fun getAppResources(): Resources {
         return context.resources
     }
 }

@@ -8,13 +8,13 @@ import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 
 class SessionController(
-    resourcesUtility: ResourcesUtility,
+    resourcesFetcher: ResourcesFetcher,
     private val assetRepository: AssetRepository,
     private val progressBarUpdater: (String, String) -> Unit,
     private val dialogBroadcaster: (String) -> Unit
 ) {
 
-    private val resources = resourcesUtility.getAppResources()
+    private val resources = resourcesFetcher.getAppResources()
 
     fun getAssetLists(
         networkUtility: NetworkUtility
