@@ -147,12 +147,6 @@ class EnvironmentWrapper {
     }
 }
 
-class ResourcesFetcher(private val context: Context) {
-    fun getAppResources(): Resources {
-        return context.resources
-    }
-}
-
 class DownloadBroadcastReceiver : BroadcastReceiver() {
     private lateinit var doOnReceived: (Long) -> Unit
 

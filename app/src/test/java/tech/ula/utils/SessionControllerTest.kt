@@ -26,9 +26,6 @@ class SessionControllerTest {
     val testFilesystem = Filesystem(name = "testFS", id = 1)
 
     @Mock
-    lateinit var resourcesFetcher: ResourcesFetcher
-
-    @Mock
     lateinit var resources: Resources
 
     @Mock
@@ -37,19 +34,8 @@ class SessionControllerTest {
     @Mock
     lateinit var filesystemUtility: FilesystemUtility
 
-    val progressBarUpdater: (String, String) -> Unit = {
-        step: String, details: String ->
-        System.out.println("progress bar updater called with step: $step and details: $details")
-    }
-
     @Mock
-    lateinit var dialogBroadcaster: (String) -> Unit
-//    val dialogBroadcaster: (String) -> Unit = {
-//        type ->
-//        System.out.println("dialog broadcast called with type: $type")
-//    }
-
-    // Function dependencies
+    lateinit var progressBarUpdater: (String, String) -> Unit
 
     @Mock
     lateinit var networkUtility: NetworkUtility
@@ -70,16 +56,12 @@ class SessionControllerTest {
 
     @Before
     fun setup() {
-        `when`(resourcesFetcher.getAppResources()).thenReturn(resources)
-        sessionController = SessionController(testFilesystem, resourcesFetcher, assetRepository,
-                filesystemUtility, progressBarUpdater, dialogBroadcaster)
+        sessionController = SessionController(testFilesystem, assetRepository, filesystemUtility)
     }
 
     @Test
     fun retrievesCachedAssetsIfNetworkIsUnavaialable() {
         val asset = Asset("name", "dist", "arch", 0)
-        `when`(resources.getString(R.string.progress_fetching_asset_lists))
-                .thenReturn("retrievesCachedAssetsIfNetworkIsUnavailable")
         `when`(networkUtility.networkIsActive()).thenReturn(false)
         `when`(assetRepository.getCachedAssetLists()).thenReturn(listOf(listOf(asset)))
 
@@ -97,8 +79,6 @@ class SessionControllerTest {
     @Test
     fun retrievesRemoteAssetListsWhenNetworkIsAvailable() {
         val asset = Asset("name", "dist", "arch", 0)
-        `when`(resources.getString(R.string.progress_fetching_asset_lists))
-                .thenReturn("retrievesRemoteAssetListsWhenNetworkIsAvailable")
         `when`(networkUtility.networkIsActive()).thenReturn(true)
         `when`(networkUtility.httpsIsAccessible()).thenReturn(true)
         `when`(assetRepository.retrieveAllRemoteAssetLists(true)).thenReturn(listOf(listOf(asset)))
@@ -115,19 +95,7 @@ class SessionControllerTest {
     }
 
     @Test
-    fun broadcastsWhenRetrievedAssetListsAreEmpty() {
-        `when`(resources.getString(R.string.progress_fetching_asset_lists))
-                .thenReturn("broadcastsWhenRetrievedAssetListsAreEmpty")
-        `when`(networkUtility.networkIsActive()).thenReturn(false)
-        `when`(assetRepository.getCachedAssetLists()).thenReturn(listOf(listOf()))
-
-        val assetLists = sessionController.getAssetLists(networkUtility)
-
-        verify(dialogBroadcaster).invoke("errorFetchingAssetLists")
-    }
-
-    @Test
-    fun exitsEarlyWithTrueReturnIfALargeAssetIsRequiredAndWifiIsDisabled() {
+    fun returnsRequiresWifiResultWhenNecessary() {
         val asset = Asset("rootfs.tar.gz", "dist", "arch", 0)
         val assetLists = listOf(listOf(asset))
         val forceDownload = false
@@ -137,16 +105,13 @@ class SessionControllerTest {
                 .thenReturn(false)
         `when`(networkUtility.wifiIsEnabled()).thenReturn(false)
 
-        val result = runBlocking { sessionController.downloadRequirements(assetLists, forceDownload, downloadBroadcastReceiver,
-                downloadUtility, networkUtility) }
+        val result = sessionController.getDownloadRequirements(assetLists, forceDownload, networkUtility)
 
-        verify(dialogBroadcaster).invoke("wifiRequired")
-        verify(downloadUtility, never()).downloadRequirements(any())
-        assertTrue(result)
+        assertTrue(result is RequiresWifiResult)
     }
 
     @Test
-    fun forceDownloadsAllowsDownloadsWithoutWifi() {
+    fun returnsRequiresAssetsResultWithLargeAssetWhenDownloadsAreForced() {
         val asset = Asset("rootfs.tar.gz", "dist", "arch", 0)
         val assetLists = listOf(listOf(asset))
         val forceDownload = true
@@ -154,19 +119,16 @@ class SessionControllerTest {
         `when`(assetRepository.doesAssetNeedToUpdated(asset)).thenReturn(true)
         `when`(filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${testFilesystem.id}"))
                 .thenReturn(false)
-        `when`(networkUtility.wifiIsEnabled()).thenReturn(false)
 
-        val result = runBlocking { sessionController.downloadRequirements(assetLists, forceDownload, downloadBroadcastReceiver,
-                downloadUtility, networkUtility) }
+        val result = sessionController.getDownloadRequirements(assetLists, forceDownload, networkUtility)
 
         val expectedRequirements = listOf(asset)
-        verify(dialogBroadcaster, never()).invoke("wifiRequired")
-        verify(downloadUtility).downloadRequirements(expectedRequirements)
-        assertFalse(result)
+        assertTrue(result is RequiredAssetsResult)
+        if(result is RequiredAssetsResult) assertEquals(expectedRequirements, result.assetList)
     }
 
     @Test
-    fun ignoresRootfsFilesIfFilesystemIsExtracted() {
+    fun doesNotAddRootfsFilesToRequiredDownloadsIfFilesystemIsExtracted() {
         val rootfsAsset = Asset("rootfs.tar.gz", "dist", "arch", 0)
         val regularAsset = Asset("name", "dist", "arch", 0)
         val assetLists = listOf(listOf(rootfsAsset, regularAsset))
@@ -177,13 +139,11 @@ class SessionControllerTest {
 
         `when`(filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${testFilesystem.id}"))
                 .thenReturn(true)
-        `when`(networkUtility.wifiIsEnabled()).thenReturn(true)
 
-        val result = runBlocking { sessionController.downloadRequirements(assetLists, forceDownload,
-                downloadBroadcastReceiver, downloadUtility, networkUtility) }
+        val result = sessionController.getDownloadRequirements(assetLists, forceDownload, networkUtility)
 
         val expectedRequirements = listOf(regularAsset)
-        verify(downloadUtility).downloadRequirements(expectedRequirements)
-        assertFalse(result)
+        assertTrue(result is RequiredAssetsResult)
+        if(result is RequiredAssetsResult) assertEquals(expectedRequirements, result.assetList)
     }
 }

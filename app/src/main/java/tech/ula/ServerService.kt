@@ -14,6 +14,7 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.doAsync
+import tech.ula.model.entities.Asset
 import tech.ula.model.repositories.AppDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
@@ -158,29 +159,46 @@ class ServerService : Service() {
                 this.filesDir.path,
                 timestampPreferences,
                 assetListPreferences)
-        val sessionController = SessionController(filesystem, ResourcesFetcher(this),
-                assetRepository, filesystemUtility, progressBarUpdater, dialogBroadcaster)
+        val sessionController = SessionController(filesystem, assetRepository, filesystemUtility)
 
         launch(CommonPool) {
 
             startProgressBar()
 
+            progressBarUpdater(resources.getString(R.string.progress_fetching_asset_lists), "")
             val assetLists = asyncAwait {
                 sessionController.getAssetLists(networkUtility)
             }
-            if (assetLists.any { it.isEmpty() }) return@launch
-
-            val isWifiRequiredForDownloads = asyncAwait {
-                sessionController.downloadRequirements(assetLists, forceDownloads,
-                        downloadBroadcastReceiver, initDownloadUtility(), networkUtility)
+            if (assetLists.any { it.isEmpty() }) {
+                dialogBroadcaster("errorFetchingAssetLists")
+                return@launch
             }
-            if (isWifiRequiredForDownloads) return@launch
+
+            val downloadRequirementsResult = sessionController
+                    .getDownloadRequirements(assetLists, forceDownloads, networkUtility)
+
+            val requiredDownloads: List<Asset>
+            when(downloadRequirementsResult) {
+                is RequiresWifiResult -> {
+                    dialogBroadcaster("wifiRequired")
+                    return@launch
+                }
+                is RequiredAssetsResult -> requiredDownloads = downloadRequirementsResult.assetList
+            }
+
+            asyncAwait {
+                sessionController.downloadRequirements(requiredDownloads, downloadBroadcastReceiver,
+                        initDownloadUtility(), progressBarUpdater, resources)
+            }
 
             progressBarUpdater(getString(R.string.progress_setting_up), "")
             val wasExtractionSuccessful = asyncAwait {
                 sessionController.extractFilesystemIfNeeded(filesystemExtractLogger)
             }
-            if (!wasExtractionSuccessful) return@launch
+            if (!wasExtractionSuccessful) {
+                dialogBroadcaster("extractionFailed")
+                return@launch
+            }
 
             sessionController.ensureFilesystemHasRequiredAssets()
 
