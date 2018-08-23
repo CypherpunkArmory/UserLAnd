@@ -123,4 +123,19 @@ class SessionControllerTest {
         assertTrue(result is RequiredAssetsResult)
         if (result is RequiredAssetsResult) assertEquals(expectedRequirements, result.assetList)
     }
+
+    @Test
+    fun copiesDistributionAssetsToFilesystemIfTheyAreMissing() {
+        val distAssetList = listOf(Asset("name", "dist", "arch", 0))
+        val filesystemDirectoryName = "${testFilesystem.id}"
+        `when`(assetRepository.getDistributionAssetsList(testFilesystem.distributionType))
+                .thenReturn(distAssetList)
+        `when`(filesystemUtility.areAllRequiredAssetsPresent(filesystemDirectoryName, distAssetList))
+                .thenReturn(false)
+
+        sessionController.ensureFilesystemHasRequiredAssets()
+
+        verify(filesystemUtility).copyDistributionAssetsToFilesystem(filesystemDirectoryName, testFilesystem.distributionType)
+        verify(filesystemUtility).removeRootfsFilesFromFilesystem(filesystemDirectoryName)
+    }
 }
