@@ -178,7 +178,7 @@ class ServerService : Service() {
                     .getDownloadRequirements(assetLists, forceDownloads, networkUtility)
 
             val requiredDownloads: List<Asset>
-            when(downloadRequirementsResult) {
+            when (downloadRequirementsResult) {
                 is RequiresWifiResult -> {
                     dialogBroadcaster("wifiRequired")
                     return@launch

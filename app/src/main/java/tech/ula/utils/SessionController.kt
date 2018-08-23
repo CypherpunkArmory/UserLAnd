@@ -23,7 +23,6 @@ class SessionController(
         }
     }
 
-    // Return value represents whether wifi is required for downloads.
     fun getDownloadRequirements(
         assetLists: List<List<Asset>>,
         forceDownloads: Boolean,
@@ -53,11 +52,13 @@ class SessionController(
         return RequiredAssetsResult(requiredDownloads)
     }
 
-    suspend fun downloadRequirements(requiredDownloads: List<Asset>,
-                                     downloadBroadcastReceiver: DownloadBroadcastReceiver,
-                                     downloadUtility: DownloadUtility,
-                                     progressBarUpdater: (String, String) -> Unit,
-                                     resources: Resources) {
+    suspend fun downloadRequirements(
+        requiredDownloads: List<Asset>,
+        downloadBroadcastReceiver: DownloadBroadcastReceiver,
+        downloadUtility: DownloadUtility,
+        progressBarUpdater: (String, String) -> Unit,
+        resources: Resources
+    ) {
         val downloadedIds = ArrayList<Long>()
         downloadBroadcastReceiver.setDoOnReceived { downloadedIds.add(it) }
         val downloadIds = downloadUtility.downloadRequirements(requiredDownloads)
@@ -67,6 +68,8 @@ class SessionController(
                             downloadedIds.size, downloadIds.size))
             delay(500)
         }
+
+        progressBarUpdater(resources.getString(R.string.progress_copying_downloads), "")
         downloadUtility.moveAssetsToCorrectLocalDirectory()
     }
 

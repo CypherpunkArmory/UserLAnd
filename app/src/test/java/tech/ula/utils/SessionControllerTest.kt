@@ -1,21 +1,16 @@
 package tech.ula.utils
 
-import android.content.res.Resources
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.never
 import com.nhaarman.mockitokotlin2.verify
-import kotlinx.coroutines.experimental.runBlocking
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
-import tech.ula.R
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
-import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 
 @RunWith(MockitoJUnitRunner::class)
@@ -26,31 +21,13 @@ class SessionControllerTest {
     val testFilesystem = Filesystem(name = "testFS", id = 1)
 
     @Mock
-    lateinit var resources: Resources
-
-    @Mock
     lateinit var assetRepository: AssetRepository
 
     @Mock
     lateinit var filesystemUtility: FilesystemUtility
 
     @Mock
-    lateinit var progressBarUpdater: (String, String) -> Unit
-
-    @Mock
     lateinit var networkUtility: NetworkUtility
-
-    @Mock
-    lateinit var downloadBroadcastReceiver: DownloadBroadcastReceiver
-
-    @Mock
-    lateinit var downloadUtility: DownloadUtility
-
-    val filesystemExtractLogger: (String) -> Unit = {
-        System.out.println("filesystem extract logger called with line: $it")
-    }
-
-    val session = Session(name = "testSession", id = 1, filesystemName = "testFS", filesystemId = 1)
 
     lateinit var sessionController: SessionController
 
@@ -124,7 +101,7 @@ class SessionControllerTest {
 
         val expectedRequirements = listOf(asset)
         assertTrue(result is RequiredAssetsResult)
-        if(result is RequiredAssetsResult) assertEquals(expectedRequirements, result.assetList)
+        if (result is RequiredAssetsResult) assertEquals(expectedRequirements, result.assetList)
     }
 
     @Test
@@ -144,6 +121,6 @@ class SessionControllerTest {
 
         val expectedRequirements = listOf(regularAsset)
         assertTrue(result is RequiredAssetsResult)
-        if(result is RequiredAssetsResult) assertEquals(expectedRequirements, result.assetList)
+        if (result is RequiredAssetsResult) assertEquals(expectedRequirements, result.assetList)
     }
 }
