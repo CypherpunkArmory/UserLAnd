@@ -17,7 +17,6 @@
     <string name="delete">Delete</string>
     <string name="save">Save</string>
     <string name="add">Add</string>
-    <string name="update_assets">Update Assets</string>
 
     <!-- Hints -->
     <string name="hint_filesystem_name">Filesystem name</string>
