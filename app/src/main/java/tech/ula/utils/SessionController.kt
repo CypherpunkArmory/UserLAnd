@@ -1,5 +1,6 @@
 package tech.ula.utils
 
+import android.content.res.Resources
 import kotlinx.coroutines.experimental.delay
 import tech.ula.R
 import tech.ula.model.entities.Asset
@@ -9,40 +10,24 @@ import tech.ula.model.repositories.AssetRepository
 
 class SessionController(
     private val filesystem: Filesystem,
-    resourcesFetcher: ResourcesFetcher,
     private val assetRepository: AssetRepository,
-    private val filesystemUtility: FilesystemUtility,
-    private val progressBarUpdater: (String, String) -> Unit,
-    private val dialogBroadcaster: (String) -> Unit
+    private val filesystemUtility: FilesystemUtility
 ) {
 
-    private val resources = resourcesFetcher.getAppResources()
+    fun getAssetLists(networkUtility: NetworkUtility): List<List<Asset>> {
 
-    fun getAssetLists(
-        networkUtility: NetworkUtility
-    ): List<List<Asset>> {
-
-        progressBarUpdater(resources.getString(R.string.progress_fetching_asset_lists), "")
-        val assetLists = if (!networkUtility.networkIsActive()) {
+        return if (!networkUtility.networkIsActive()) {
             assetRepository.getCachedAssetLists()
         } else {
             assetRepository.retrieveAllRemoteAssetLists(networkUtility.httpsIsAccessible())
         }
-        if (assetLists.any { it.isEmpty() }) {
-            dialogBroadcaster("errorFetchingAssetLists")
-            return listOf(listOf())
-        }
-        return assetLists
     }
 
-    // Return value represents whether wifi is required for downloads.
-    suspend fun downloadRequirements(
+    fun getDownloadRequirements(
         assetLists: List<List<Asset>>,
         forceDownloads: Boolean,
-        downloadBroadcastReceiver: DownloadBroadcastReceiver,
-        downloadUtility: DownloadUtility,
         networkUtility: NetworkUtility
-    ): Boolean {
+    ): DownloadRequirementsResult {
         var wifiRequired = false
         val requiredDownloads: List<Asset> = assetLists.map { assetList ->
             assetList.filter { asset ->
@@ -56,7 +41,6 @@ class SessionController(
 
                     if (!forceDownloads && !networkUtility.wifiIsEnabled()) {
                         wifiRequired = true
-                        dialogBroadcaster("wifiRequired")
                         return@map listOf<Asset>()
                     }
                 }
@@ -64,8 +48,17 @@ class SessionController(
             }
         }.flatten()
 
-        if (wifiRequired) return true
+        if (wifiRequired) return RequiresWifiResult(isRequired = true)
+        return RequiredAssetsResult(requiredDownloads)
+    }
 
+    suspend fun downloadRequirements(
+        requiredDownloads: List<Asset>,
+        downloadBroadcastReceiver: DownloadBroadcastReceiver,
+        downloadUtility: DownloadUtility,
+        progressBarUpdater: (String, String) -> Unit,
+        resources: Resources
+    ) {
         val downloadedIds = ArrayList<Long>()
         downloadBroadcastReceiver.setDoOnReceived { downloadedIds.add(it) }
         val downloadIds = downloadUtility.downloadRequirements(requiredDownloads)
@@ -75,8 +68,9 @@ class SessionController(
                             downloadedIds.size, downloadIds.size))
             delay(500)
         }
+
+        progressBarUpdater(resources.getString(R.string.progress_copying_downloads), "")
         downloadUtility.moveAssetsToCorrectLocalDirectory()
-        return false
     }
 
     // Return value represents successful extraction. Also true if extraction is unnecessary.
@@ -85,18 +79,13 @@ class SessionController(
         if (!filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
             filesystemUtility.copyDistributionAssetsToFilesystem(filesystemDirectoryName, filesystem.distributionType)
 
-            val extractionSuccess = asyncAwait {
+            return asyncAwait {
                 filesystemUtility.extractFilesystem(filesystemDirectoryName, filesystemExtractLogger)
                 while (!filesystemUtility.isExtractionComplete(filesystemDirectoryName)) {
                     delay(500)
                 }
                 return@asyncAwait filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)
             }
-
-            if (!extractionSuccess) {
-                dialogBroadcaster("extractionFailed")
-            }
-            return extractionSuccess
         }
         return true
     }
@@ -120,3 +109,7 @@ class SessionController(
         return session
     }
 }
+
+sealed class DownloadRequirementsResult
+data class RequiresWifiResult(val isRequired: Boolean) : DownloadRequirementsResult()
+data class RequiredAssetsResult(val assetList: List<Asset>) : DownloadRequirementsResult()

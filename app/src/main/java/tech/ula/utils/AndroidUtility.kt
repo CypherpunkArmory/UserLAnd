@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.content.res.Resources
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -144,12 +143,6 @@ class RequestGenerator {
 class EnvironmentWrapper {
     fun getDownloadsDirectory(): File {
         return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-    }
-}
-
-class ResourcesFetcher(private val context: Context) {
-    fun getAppResources(): Resources {
-        return context.resources
     }
 }
 
