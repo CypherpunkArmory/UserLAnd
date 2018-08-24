@@ -7,13 +7,13 @@ import java.io.File
 class DownloadUtility(
     private val downloadManager: DownloadManager,
     private val timestampPreferences: TimestampPreferences,
-    private val requestGenerator: RequestGenerator,
+    private val downloadManagerWrapper: DownloadManagerWrapper,
     private val downloadDirectory: File,
     private val applicationFilesDir: File
 ) {
 
-    fun downloadRequirements(assetList: List<Asset>): List<Long> {
-        return assetList.map { download(it) }
+    fun downloadRequirements(assetList: List<Asset>): List<Pair<Asset, Long>> {
+        return assetList.map { it to download(it) }
     }
 
     private fun download(asset: Asset): Long {
@@ -21,10 +21,8 @@ class DownloadUtility(
                 "${asset.distributionType}/raw/master/assets/" +
                 "${asset.architectureType}/${asset.name}"
         val destination = "UserLAnd:${asset.concatenatedName}"
-        val request = requestGenerator.generateTypicalDownloadRequest(url, destination)
+        val request = downloadManagerWrapper.generateDownloadRequest(url, destination)
         deletePreviousDownload(asset)
-
-        timestampPreferences.setSavedTimestampForFileToNow(asset.concatenatedName)
 
         return downloadManager.enqueue(request)
     }
@@ -37,6 +35,15 @@ class DownloadUtility(
             downloadsDirectoryFile.delete()
         if (localFile.exists())
             localFile.delete()
+    }
+
+    fun setTimestampForDownloadedFile(id: Long) {
+        val query = downloadManagerWrapper.generateQuery(id)
+        val cursor = downloadManagerWrapper.generateCursor(downloadManager, query)
+        val titleName = downloadManagerWrapper.getDownloadTitle(cursor)
+        if (titleName == "" || !titleName.contains("UserLAnd")) return
+        val assetConcatenatedName = titleName.substringAfter(":")
+        timestampPreferences.setSavedTimestampForFileToNow(assetConcatenatedName)
     }
 
     fun moveAssetsToCorrectLocalDirectory() {

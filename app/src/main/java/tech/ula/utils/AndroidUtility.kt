@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -128,15 +129,33 @@ class ConnectionUtility {
     }
 }
 
-class RequestGenerator {
-    fun generateTypicalDownloadRequest(url: String, destination: String): DownloadManager.Request {
+class DownloadManagerWrapper {
+    fun generateDownloadRequest(url: String, destination: String): DownloadManager.Request {
         val uri = Uri.parse(url)
         val request = DownloadManager.Request(uri)
         request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
+        request.setTitle(destination)
         request.setDescription("Downloading ${destination.substringAfterLast(":")}.")
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
         request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, destination)
         return request
+    }
+
+    fun generateQuery(id: Long): DownloadManager.Query {
+        val query = DownloadManager.Query()
+        query.setFilterById(id)
+        return query
+    }
+
+    fun generateCursor(downloadManager: DownloadManager, query: DownloadManager.Query): Cursor {
+        return downloadManager.query(query)
+    }
+
+    fun getDownloadTitle(cursor: Cursor): String {
+        if (cursor.moveToFirst()) {
+            return cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_TITLE))
+        }
+        return ""
     }
 }
 

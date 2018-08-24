@@ -60,7 +60,10 @@ class SessionController(
         resources: Resources
     ) {
         val downloadedIds = ArrayList<Long>()
-        downloadBroadcastReceiver.setDoOnReceived { downloadedIds.add(it) }
+        downloadBroadcastReceiver.setDoOnReceived {
+            downloadedIds.add(it)
+            downloadUtility.setTimestampForDownloadedFile(it)
+        }
         val downloadIds = downloadUtility.downloadRequirements(requiredDownloads)
         while (downloadIds.size != downloadedIds.size) {
             progressBarUpdater(resources.getString(R.string.progress_downloading),
