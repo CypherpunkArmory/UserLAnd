@@ -19,4 +19,10 @@ class LogUtility {
     fun d(tag: String, message: String) {
         Log.d(tag, message)
     }
+
+    fun runtimeErrorForCommand(functionName: String, command: String, err: Exception) {
+        val errorMessage = "Error while executing " +
+                "`$functionName()` with command: $command \n\tError = $err"
+        this.e(tag = "RuntimeError", message = errorMessage)
+    }
 }
