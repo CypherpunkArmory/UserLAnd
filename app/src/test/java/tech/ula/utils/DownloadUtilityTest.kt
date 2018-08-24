@@ -1,6 +1,7 @@
 package tech.ula.utils
 
 import android.app.DownloadManager
+import android.database.Cursor
 import com.nhaarman.mockitokotlin2.verify
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
@@ -8,6 +9,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers
 import org.mockito.Mock
 import org.mockito.Mockito.* // ktlint-disable no-wildcard-imports
 import org.mockito.junit.MockitoJUnitRunner
@@ -28,10 +30,16 @@ class DownloadUtilityTest {
     lateinit var timestampPreferences: TimestampPreferences
 
     @Mock
-    lateinit var requestGenerator: RequestGenerator
+    lateinit var downloadManagerWrapper: DownloadManagerWrapper
 
     @Mock
     lateinit var requestReturn: DownloadManager.Request
+
+    @Mock
+    lateinit var queryReturn: DownloadManager.Query
+
+    @Mock
+    lateinit var cursor: Cursor
 
     lateinit var downloadDirectory: File
 
@@ -45,7 +53,7 @@ class DownloadUtilityTest {
     @Before
     fun setup() {
         downloadDirectory = tempFolder.newFolder("downloads")
-        downloadUtility = DownloadUtility(downloadManager, timestampPreferences, requestGenerator,
+        downloadUtility = DownloadUtility(downloadManager, timestampPreferences, downloadManagerWrapper,
                 downloadDirectory, applicationFilesDir = tempFolder.root)
 
         asset1 = Asset("name1", "distType1", "archType1", 0)
@@ -54,11 +62,11 @@ class DownloadUtilityTest {
 
         val url1 = getDownloadUrl(asset1.distributionType, asset1.architectureType, asset1.name)
         val destination1 = "UserLAnd:${asset1.concatenatedName}"
-        `when`(requestGenerator.generateTypicalDownloadRequest(url1, destination1)).thenReturn(requestReturn)
+        `when`(downloadManagerWrapper.generateDownloadRequest(url1, destination1)).thenReturn(requestReturn)
 
         val url2 = getDownloadUrl(asset1.distributionType, asset1.architectureType, asset1.name)
         val destination2 = "UserLAnd:${asset1.concatenatedName}"
-        `when`(requestGenerator.generateTypicalDownloadRequest(url2, destination2)).thenReturn(requestReturn)
+        `when`(downloadManagerWrapper.generateDownloadRequest(url2, destination2)).thenReturn(requestReturn)
     }
 
     fun getDownloadUrl(distType: String, archType: String, name: String): String {
@@ -66,11 +74,9 @@ class DownloadUtilityTest {
     }
 
     @Test
-    fun enqueuesDownloadAndUpdatesTimestamps() {
+    fun enqueuesDownload() {
         downloadUtility.downloadRequirements(assetList)
 
-        verify(timestampPreferences).setSavedTimestampForFileToNow(asset1.concatenatedName)
-        verify(timestampPreferences).setSavedTimestampForFileToNow(asset2.concatenatedName)
         verify(downloadManager, times(2)).enqueue(any())
     }
 
@@ -99,6 +105,33 @@ class DownloadUtilityTest {
         assertFalse(asset2File.exists())
         assertFalse(asset1DownloadsFile.exists())
         assertFalse(asset2DownloadsFile.exists())
+    }
+
+    @Test
+    fun setsTimestampWhenTitleIsRelevant() {
+        val id = 1L
+        val assetConcatenatedName = "type:name"
+        val titleName = "UserLAnd:$assetConcatenatedName"
+        `when`(downloadManagerWrapper.generateQuery(id)).thenReturn(queryReturn)
+        `when`(downloadManagerWrapper.generateCursor(downloadManager, queryReturn)).thenReturn(cursor)
+        `when`(downloadManagerWrapper.getDownloadTitle(cursor)).thenReturn(titleName)
+
+        downloadUtility.setTimestampForDownloadedFile(id)
+
+        verify(timestampPreferences).setSavedTimestampForFileToNow(assetConcatenatedName)
+    }
+
+    @Test
+    fun ignoresIrrelevantDownloads() {
+        val id = 1L
+        val titleName = "notuserland"
+        `when`(downloadManagerWrapper.generateQuery(id)).thenReturn(queryReturn)
+        `when`(downloadManagerWrapper.generateCursor(downloadManager, queryReturn)).thenReturn(cursor)
+        `when`(downloadManagerWrapper.getDownloadTitle(cursor)).thenReturn(titleName)
+
+        downloadUtility.setTimestampForDownloadedFile(id)
+
+        verify(timestampPreferences, never()).setSavedTimestampForFileToNow(ArgumentMatchers.anyString())
     }
 
     @Test
