@@ -91,10 +91,10 @@ class ServerService : Service() {
         return null
     }
 
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
-        val intentType = intent.getStringExtra("type")
+        val intentType = intent?.getStringExtra("type")
         when (intentType) {
             "start" -> {
                 val session: Session = intent.getParcelableExtra("session")
@@ -119,7 +119,6 @@ class ServerService : Service() {
             "isProgressBarActive" -> isProgressBarActive()
         }
 
-        // TODO this is causing crashes. should potentially be START_REDELIVER_INTENT
         return Service.START_STICKY
     }
 
