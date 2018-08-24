@@ -51,31 +51,29 @@ class ServerUtility(
     }
 
     private fun startSSHServer(session: Session): Long {
-        var processPid = -1L
         val targetDirectoryName = session.filesystemId.toString()
         deletePidFile(session)
         val command = "../support/execInProot.sh /bin/bash -c /support/startSSHServer.sh"
-        try {
+        return try {
             val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, doWait = false)
-            processPid = process.pid()
+            process.pid()
         } catch (err: Exception) {
-            logger.runtimeErrorForCommand(functionName = "startSSHServer", command = command, err = err)
+            logger.logRuntimeErrorForCommand(functionName = "startSSHServer", command = command, err = err)
+            -1
         }
-        return processPid
     }
 
     private fun startVNCServer(session: Session): Long {
-        var processPid = -1L
         val targetDirectoryName = session.filesystemId.toString()
         deletePidFile(session)
         val command = "../support/execInProot.sh /bin/bash -c /support/startVNCServer.sh"
-        try {
+        return try {
             val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, doWait = false)
-            processPid = process.pid()
+            process.pid()
         } catch (err: Exception) {
-            logger.runtimeErrorForCommand(functionName = "startVNCServer", command = command, err = err)
+            logger.logRuntimeErrorForCommand(functionName = "startVNCServer", command = command, err = err)
+            -1
         }
-        return processPid
     }
 
     fun stopService(session: Session) {
@@ -85,7 +83,7 @@ class ServerUtility(
         try {
             execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command)
         } catch (err: Exception) {
-            logger.runtimeErrorForCommand(functionName = "stopService", command = command, err = err)
+            logger.logRuntimeErrorForCommand(functionName = "stopService", command = command, err = err)
         }
     }
 
@@ -97,7 +95,7 @@ class ServerUtility(
             if (process.exitValue() != 0) // isServerInProcTree returns a 1 if it didn't find a server
                 return false
         } catch (err: Exception) {
-            logger.runtimeErrorForCommand(functionName = "isServerRunning", command = command, err = err)
+            logger.logRuntimeErrorForCommand(functionName = "isServerRunning", command = command, err = err)
         }
         return true
     }

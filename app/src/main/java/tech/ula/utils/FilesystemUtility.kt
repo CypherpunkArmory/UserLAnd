@@ -43,7 +43,7 @@ class FilesystemUtility(
         try {
             execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, listener)
         } catch (err: Exception) {
-            logger.runtimeErrorForCommand(functionName = "extractFilesystem", command = command, err = err)
+            logger.logRuntimeErrorForCommand(functionName = "extractFilesystem", command = command, err = err)
         }
     }
 
