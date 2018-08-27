@@ -40,7 +40,11 @@ class FilesystemUtility(
 
     fun extractFilesystem(targetDirectoryName: String, listener: (String) -> Any) {
         val command = "../support/execInProot.sh /support/extractFilesystem.sh"
-        execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, listener)
+        try {
+            execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, listener)
+        } catch (err: Exception) {
+            logger.logRuntimeErrorForCommand(functionName = "extractFilesystem", command = command, err = err)
+        }
     }
 
     fun isExtractionComplete(targetDirectoryName: String): Boolean {

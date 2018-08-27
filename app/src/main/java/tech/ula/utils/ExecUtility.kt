@@ -12,7 +12,8 @@ import kotlin.text.Charsets.UTF_8
 class ExecUtility(
     private val applicationFilesDirPath: String,
     private val externalStoragePath: String,
-    private val defaultPreferences: DefaultPreferences
+    private val defaultPreferences: DefaultPreferences,
+    private val logger: LogUtility = LogUtility()
 ) {
 
     companion object {
@@ -73,7 +74,8 @@ class ExecUtility(
             return process
         } catch (err: Exception) {
             listener("Exec: $err")
-            throw RuntimeException(err)
+            val errorMessage = "\n\tError while executing ExecLocal: $err"
+            throw RuntimeException(errorMessage)
         }
     }
 
@@ -109,7 +111,8 @@ class ExecUtility(
             return execLocal(executionDirectory, command, listener, doWait, wrapped = true)
         } catch (err: Exception) {
             listener("Exec: $err")
-            throw RuntimeException(err)
+            val errorMessage = "Error while executing BusyBox: \nCommand = $command\n\tError = $err"
+            throw RuntimeException(errorMessage)
         }
     }
 }
