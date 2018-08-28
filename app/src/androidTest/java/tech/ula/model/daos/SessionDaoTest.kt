@@ -25,7 +25,7 @@ class SessionDaoTest {
     private lateinit var db: AppDatabase
 
     @get:Rule
-    var instantExecutorRule = InstantTaskExecutorRule()
+    val instantExecutorRule = InstantTaskExecutorRule()
 
     @Mock
     private lateinit var observer: Observer<List<Session>>

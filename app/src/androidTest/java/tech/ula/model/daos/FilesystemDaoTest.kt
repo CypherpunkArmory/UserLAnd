@@ -18,7 +18,7 @@ import tech.ula.model.entities.Filesystem
 class FilesystemDaoTest {
 
     @get:Rule
-    var instantExecutorRule = InstantTaskExecutorRule()
+    val instantExecutorRule = InstantTaskExecutorRule()
 
     private lateinit var db: AppDatabase
 
