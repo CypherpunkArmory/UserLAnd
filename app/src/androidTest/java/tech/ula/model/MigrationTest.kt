@@ -4,7 +4,6 @@ import android.arch.persistence.db.SupportSQLiteDatabase
 import android.arch.persistence.db.framework.FrameworkSQLiteOpenHelperFactory
 import android.arch.persistence.room.Room
 import android.arch.persistence.room.testing.MigrationTestHelper
-import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
@@ -14,11 +13,14 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import tech.ula.model.repositories.AppDatabase
 import tech.ula.model.repositories.Migration1To2
+import tech.ula.model.repositories.Migration2To3
 import java.io.IOException
 
 @RunWith(AndroidJUnit4::class)
 class MigrationTest {
     private val TEST_DB = "migration-test"
+
+    private val migrationHelper = MigrationHelper()
 
     @get:Rule
     val helper = MigrationTestHelper(InstrumentationRegistry.getInstrumentation(),
@@ -37,7 +39,7 @@ class MigrationTest {
 
         helper.runMigrationsAndValidate(TEST_DB, 2, true, Migration1To2())
 
-        val migratedDb = getMigratedDatabase1To2()
+        val migratedDb = getMigratedDatabase()
         val fs = migratedDb.filesystemDao().getFilesystemByName("firstFs")
         val session = migratedDb.sessionDao().getSessionByName("firstSession")
 
@@ -47,10 +49,20 @@ class MigrationTest {
         assert(session.bindings == "")
     }
 
-    private fun getMigratedDatabase1To2(): AppDatabase {
+    @Test
+    @Throws(IOException::class)
+    fun migrate2To3() {
+        val db = helper.createDatabase(TEST_DB, 2)
+
+        db.close()
+
+        helper.runMigrationsAndValidate(TEST_DB, 3, true, Migration2To3())
+    }
+
+    private fun getMigratedDatabase(): AppDatabase {
         val db = Room.databaseBuilder(InstrumentationRegistry.getTargetContext(),
                 AppDatabase::class.java, TEST_DB)
-                .addMigrations(Migration1To2())
+                .addMigrations(Migration1To2(), Migration2To3())
                 .build()
 
         helper.closeWhenFinished(db)
@@ -58,36 +70,12 @@ class MigrationTest {
     }
 
     private fun insertVersion1Filesystem(id: Long, name: String, db: SupportSQLiteDatabase) {
-        val filesystemValues = ContentValues()
-        filesystemValues.put("id", id)
-        filesystemValues.put("name", name)
-        filesystemValues.put("distributionType", "dummy")
-        filesystemValues.put("archType", "dummy")
-        filesystemValues.put("defaultUsername", "dummy")
-        filesystemValues.put("defaultPassword", "dummy")
-        filesystemValues.put("location", "dummy")
-        filesystemValues.put("dateCreated", "dummy")
-        filesystemValues.put("realRoot", 0)
-        db.insert("filesystem", SQLiteDatabase.CONFLICT_REPLACE, filesystemValues)
+        val filesystem = migrationHelper.getVersion1Filesystem(id, name)
+        db.insert("filesystem", SQLiteDatabase.CONFLICT_REPLACE, filesystem)
     }
 
     private fun insertVersion1Session(id: Long, name: String, db: SupportSQLiteDatabase) {
-        val sessionValues = ContentValues()
-        sessionValues.put("id", id)
-        sessionValues.put("name", name)
-        sessionValues.put("filesystemId", 1)
-        sessionValues.put("filesystemName", "firstFs")
-        sessionValues.put("active", 0)
-        sessionValues.put("username", "dummy")
-        sessionValues.put("password", "dummy")
-        sessionValues.put("geometry", "dummy")
-        sessionValues.put("serviceType", "dummy")
-        sessionValues.put("clientType", "dummy")
-        sessionValues.put("port", 0)
-        sessionValues.put("pid", 0)
-        sessionValues.put("startupScript", "dummy")
-        sessionValues.put("runAtDeviceStartup", 0)
-        sessionValues.put("initialCommand", "dummy")
-        db.insert("session", SQLiteDatabase.CONFLICT_REPLACE, sessionValues)
+        val session = migrationHelper.getVersion1Session(id, name)
+        db.insert("session", SQLiteDatabase.CONFLICT_REPLACE, session)
     }
 }
