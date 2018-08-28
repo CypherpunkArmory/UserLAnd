@@ -19,11 +19,10 @@ class ExecUtilityTest {
     @get:Rule
     val tempFolder = TemporaryFolder()
 
-    @Mock
-    lateinit var fileUtility: FileUtility
+    lateinit var externalStoragePath: String
 
     @Mock
-    lateinit var defaultPreferenceUtility: DefaultPreferenceUtility
+    lateinit var defaultPreferences: DefaultPreferences
 
     private val logCollector = ArrayList<String>()
     private val testLogger: (line: String) -> Unit = { logCollector.add(it) }
@@ -35,9 +34,10 @@ class ExecUtilityTest {
     @Before
     fun setup() {
         testDirectory = tempFolder.root
+        externalStoragePath = tempFolder.newFolder("external").path
         logCollector.clear()
 
-        execUtility = ExecUtility(fileUtility, defaultPreferenceUtility)
+        execUtility = ExecUtility(testDirectory.path, externalStoragePath, defaultPreferences)
     }
 
     @Test
@@ -61,9 +61,9 @@ class ExecUtilityTest {
     fun loggingIsCapturedIfSettingIsEnabled() {
         val debugFile = File("${testDirectory.path}/debugLog.txt")
 
-        `when`(defaultPreferenceUtility.getProotDebuggingEnabled()).thenReturn(true)
-        `when`(defaultPreferenceUtility.getProotDebuggingLevel()).thenReturn("9")
-        `when`(defaultPreferenceUtility.getProotDebugLogLocation()).thenReturn(debugFile.path)
+        `when`(defaultPreferences.getProotDebuggingEnabled()).thenReturn(true)
+        `when`(defaultPreferences.getProotDebuggingLevel()).thenReturn("9")
+        `when`(defaultPreferences.getProotDebugLogLocation()).thenReturn(debugFile.path)
 
         val commandToRun = arrayListOf("echo", "execInProot")
         val doWait = true

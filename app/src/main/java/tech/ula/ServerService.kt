@@ -2,21 +2,23 @@ package tech.ula
 
 import android.app.DownloadManager
 import android.app.Service
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.net.Uri
+import android.os.Environment
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
-import android.widget.Toast
-import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.launch
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.doAsync
-import tech.ula.model.AppDatabase
+import tech.ula.model.entities.Asset
+import tech.ula.model.repositories.AppDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
+import tech.ula.model.repositories.AssetRepository
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 
 class ServerService : Service() {
@@ -32,57 +34,47 @@ class ServerService : Service() {
 
     private lateinit var broadcaster: LocalBroadcastManager
 
-    private val downloadList = ArrayList<Long>()
-
-    private val downloadedList = ArrayList<Long>()
-
-    private val downloadBroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            val downloadedId = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-            downloadedId?.let { downloadedList.add(it) }
-        }
-    }
-
-    private lateinit var downloadUtility: DownloadUtility
+    private val downloadBroadcastReceiver = DownloadBroadcastReceiver()
 
     private val notificationManager: NotificationUtility by lazy {
         NotificationUtility(this)
     }
 
-    private val fileUtility by lazy {
-        FileUtility(this.filesDir.path)
+    private val timestampPreferences by lazy {
+        TimestampPreferences(this.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE))
+    }
+
+    private val assetListPreferences by lazy {
+        AssetListPreferences(this.getSharedPreferences("assetLists", Context.MODE_PRIVATE))
+    }
+
+    private val networkUtility by lazy {
+        val connectivityManager = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        NetworkUtility(connectivityManager, ConnectionUtility())
     }
 
     private val execUtility by lazy {
-        ExecUtility(fileUtility, DefaultPreferenceUtility(this.defaultSharedPreferences))
+        val externalStoragePath = Environment.getExternalStorageDirectory().absolutePath
+        ExecUtility(this.filesDir.path, externalStoragePath, DefaultPreferences(this.defaultSharedPreferences))
     }
 
     private val filesystemUtility by lazy {
-        FilesystemUtility(execUtility, fileUtility, BuildUtility())
+        FilesystemUtility(this.filesDir.path, execUtility)
     }
 
     private val serverUtility by lazy {
-        ServerUtility(execUtility, fileUtility)
-    }
-
-    private fun initializeDownloadUtility(
-        session: Session = lastActivatedSession,
-        filesystem: Filesystem = lastActivatedFilesystem
-    ): DownloadUtility {
-        val downloadManager = this.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        val prefs = this.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE)
-        val applicationFilesDirPath = this.filesDir.path
-        val connectivityManager = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-
-        return DownloadUtility(session, filesystem,
-                downloadManager, TimestampPreferenceUtility(prefs),
-                applicationFilesDirPath, connectivityManager,
-                ConnectionUtility(), RequestUtility(), EnvironmentUtility())
+        ServerUtility(this.filesDir.path, execUtility)
     }
 
     private val filesystemExtractLogger = { line: String -> Unit
-        updateProgressBar(getString(R.string.progress_setting_up),
+        progressBarUpdater(getString(R.string.progress_setting_up),
                 getString(R.string.progress_setting_up_extract_text, line))
+    }
+
+    private fun initDownloadUtility(): DownloadUtility {
+        val downloadManager = this.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        return DownloadUtility(downloadManager, timestampPreferences,
+                DownloadManagerWrapper(), EnvironmentWrapper().getDownloadsDirectory(), this.filesDir)
     }
 
     override fun onCreate() {
@@ -99,17 +91,19 @@ class ServerService : Service() {
         return null
     }
 
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
-        val intentType = intent.getStringExtra("type")
+        val intentType = intent?.getStringExtra("type")
         when (intentType) {
             "start" -> {
                 val session: Session = intent.getParcelableExtra("session")
                 val filesystem: Filesystem = intent.getParcelableExtra("filesystem")
-                startSession(session, filesystem)
+                startSession(session, filesystem, forceDownloads = false)
             }
-            "continue" -> continueStartSession()
+            "forceDownloads" -> {
+                startSession(lastActivatedSession, lastActivatedFilesystem, forceDownloads = true)
+            }
             "restartRunningSession" -> {
                 val session: Session = intent.getParcelableExtra("session")
                 startClient(session)
@@ -122,13 +116,9 @@ class ServerService : Service() {
                 val filesystemId: Long = intent.getLongExtra("filesystemId", -1)
                 cleanUpFilesystem(filesystemId)
             }
-            "forceAssetUpdate" -> {
-                val session: Session = intent.getParcelableExtra("session")
-                val filesystem: Filesystem = intent.getParcelableExtra("filesystem")
-                forceAssetUpdate(session, filesystem)
-            }
             "isProgressBarActive" -> isProgressBarActive()
         }
+
         return Service.START_STICKY
     }
 
@@ -138,11 +128,6 @@ class ServerService : Service() {
         super.onTaskRemoved(rootIntent)
         stopForeground(true)
         stopSelf()
-    }
-
-    private fun addSession(session: Session) {
-        activeSessions[session.pid] = session
-        startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
     }
 
     private fun removeSession(session: Session) {
@@ -164,131 +149,72 @@ class ServerService : Service() {
         updateSession(session)
     }
 
-    private fun startSession(session: Session, filesystem: Filesystem) {
+    private fun startSession(session: Session, filesystem: Filesystem, forceDownloads: Boolean) {
         lastActivatedSession = session
         lastActivatedFilesystem = filesystem
 
-        downloadUtility = initializeDownloadUtility()
+        val assetRepository = AssetRepository(BuildWrapper().getArchType(),
+                filesystem.distributionType,
+                this.filesDir.path,
+                timestampPreferences,
+                assetListPreferences)
+        val sessionController = SessionController(filesystem, assetRepository, filesystemUtility)
 
-        val filesystemDirectoryName = session.filesystemId.toString()
-        session.isExtracted = fileUtility
-                .statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")
+        launch(CommonPool) {
 
-        filesystem.isDownloaded = fileUtility.distributionAssetsExist(filesystemDirectoryName)
-
-        if (!downloadUtility.internetIsAccessible()) {
-            if (session.isExtracted || filesystem.isDownloaded) {
-                continueStartSession()
-                return
-            }
-            val resultIntent = Intent(SERVER_SERVICE_RESULT)
-            resultIntent.putExtra("type", "networkUnavailable")
-            broadcaster.sendBroadcast(resultIntent)
-            return
-        }
-
-        if (downloadUtility.largeAssetRequiredAndNoWifi()) {
-            displayNetworkChoices()
-        } else {
-            continueStartSession()
-        }
-    }
-
-    private fun continueStartSession() {
-        val filesystemDirectoryName = lastActivatedSession.filesystemId.toString()
-        var assetsWereDownloaded = false
-
-        launchAsync {
             startProgressBar()
 
-            try {
-                asyncAwait {
-                    assetsWereDownloaded = downloadAssets()
-                }
-            } catch (err: Exception) {
-                if (err.message == "Error getting asset list") {
-                    val resultIntent = Intent(SERVER_SERVICE_RESULT)
-                    resultIntent.putExtra("type", "assetListFailure")
-                    broadcaster.sendBroadcast(resultIntent)
-                    killProgressBar()
-                    return@launchAsync
-                }
+            progressBarUpdater(resources.getString(R.string.progress_fetching_asset_lists), "")
+            val assetLists = asyncAwait {
+                sessionController.getAssetLists(networkUtility)
+            }
+            if (assetLists.any { it.isEmpty() }) {
+                dialogBroadcaster("errorFetchingAssetLists")
+                return@launch
             }
 
-            updateProgressBar(getString(R.string.progress_setting_up), "")
-            if (assetsWereDownloaded || !filesystemUtility.assetsArePresent(filesystemDirectoryName)) {
-                asyncAwait {
-                    val distType = lastActivatedFilesystem.distributionType
-                    fileUtility.copyDistributionAssetsToFilesystem(filesystemDirectoryName, distType)
-                    if (!lastActivatedSession.isExtracted) {
-                        filesystemUtility.extractFilesystem(filesystemDirectoryName, filesystemExtractLogger)
-                    }
+            val downloadRequirementsResult = sessionController
+                    .getDownloadRequirements(assetLists, forceDownloads, networkUtility)
+
+            val requiredDownloads: List<Asset>
+            when (downloadRequirementsResult) {
+                is RequiresWifiResult -> {
+                    dialogBroadcaster("wifiRequired")
+                    return@launch
                 }
-
-                if (!fileUtility.statusFileExists(filesystemDirectoryName, ".success_filesystem_extraction")) {
-                    Toast.makeText(this@ServerService, R.string.filesystem_extraction_failed, Toast.LENGTH_LONG).show()
-                    killProgressBar()
-                    return@launchAsync
-                }
-                filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
-                lastActivatedSession.isExtracted = true
-            }
-
-            updateProgressBar(getString(R.string.progress_starting), "")
-            asyncAwait {
-
-                lastActivatedSession.pid = serverUtility.startServer(lastActivatedSession)
-                addSession(lastActivatedSession)
-
-                while (!serverUtility.isServerRunning(lastActivatedSession)) {
-                    delay(500)
-                }
+                is RequiredAssetsResult -> requiredDownloads = downloadRequirementsResult.assetList
             }
 
             asyncAwait {
-                startClient(lastActivatedSession)
+                sessionController.downloadRequirements(requiredDownloads, downloadBroadcastReceiver,
+                        initDownloadUtility(), progressBarUpdater, resources)
             }
 
-            lastActivatedSession.active = true
-            updateSession(lastActivatedSession)
+            progressBarUpdater(getString(R.string.progress_setting_up), "")
+            val wasExtractionSuccessful = asyncAwait {
+                sessionController.extractFilesystemIfNeeded(filesystemExtractLogger)
+            }
+            if (!wasExtractionSuccessful) {
+                dialogBroadcaster("extractionFailed")
+                return@launch
+            }
 
+            sessionController.ensureFilesystemHasRequiredAssets()
+
+            val updatedSession = asyncAwait { sessionController.activateSession(session, serverUtility) }
+
+            startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
+            updatedSession.active = true
+            updateSession(updatedSession)
             killProgressBar()
+            startClient(updatedSession)
         }
-    }
-
-    private suspend fun downloadAssets(updateIsBeingForced: Boolean = false): Boolean {
-        updateProgressBar(getString(R.string.progress_downloading),
-                getString(R.string.progress_downloading_check_updates))
-
-        var assetsWereDownloaded = false
-        downloadList.clear()
-        downloadedList.clear()
-        downloadList.addAll(downloadUtility.downloadRequirements(updateIsBeingForced))
-
-        if (downloadList.isNotEmpty())
-            assetsWereDownloaded = true
-
-        while (downloadList.size != downloadedList.size) {
-            updateProgressBar(getString(R.string.progress_downloading),
-                    getString(R.string.progress_downloading_out_of,
-                            downloadedList.size,
-                            downloadList.size))
-            delay(500)
-        }
-
-        if (assetsWereDownloaded) {
-            fileUtility.moveAssetsToCorrectSharedDirectory()
-            fileUtility.correctFilePermissions(lastActivatedFilesystem.distributionType)
-        }
-
-        return assetsWereDownloaded
     }
 
     private fun startClient(session: Session) {
         when (session.clientType) {
             "ConnectBot" -> startSshClient(session, "org.connectbot")
             "bVNC" -> startVncClient(session, "com.iiordanov.freebVNC")
-//            "xsdl" -> return // TODO
             else -> sendToastBroadcast(R.string.client_not_found)
         }
     }
@@ -343,36 +269,9 @@ class ServerService : Service() {
         filesystemUtility.deleteFilesystem(filesystemId)
     }
 
-    private fun forceAssetUpdate(session: Session, filesystem: Filesystem) {
-        lastActivatedSession = session
-        lastActivatedFilesystem = filesystem
-
-        downloadUtility = initializeDownloadUtility(session, filesystem)
-        var assetsWereDownloaded = true
-        launchAsync {
-            try {
-                asyncAwait { assetsWereDownloaded = downloadAssets(updateIsBeingForced = true) }
-            } catch (err: Exception) {
-                if (err.message == "Error getting asset list") {
-                    val resultIntent = Intent(SERVER_SERVICE_RESULT)
-                    resultIntent.putExtra("type", "assetListFailure")
-                    broadcaster.sendBroadcast(resultIntent)
-                    killProgressBar()
-                    return@launchAsync
-                }
-            }
-            killProgressBar()
-            if (!assetsWereDownloaded) {
-                sendToastBroadcast(R.string.no_assets_need_updating)
-                return@launchAsync
-            }
-            fileUtility.copyDistributionAssetsToFilesystem(filesystem.id.toString(), filesystem.distributionType)
-        }
-    }
-
     private fun startProgressBar() {
         val intent = Intent(SERVER_SERVICE_RESULT)
-        intent.putExtra("type", "startProgressBar")
+                .putExtra("type", "startProgressBar")
         broadcaster.sendBroadcast(intent)
 
         progressBarActive = true
@@ -380,36 +279,41 @@ class ServerService : Service() {
 
     private fun killProgressBar() {
         val intent = Intent(SERVER_SERVICE_RESULT)
-        intent.putExtra("type", "killProgressBar")
+                .putExtra("type", "killProgressBar")
         broadcaster.sendBroadcast(intent)
 
         progressBarActive = false
     }
 
-    private fun updateProgressBar(step: String, details: String) {
+    private val progressBarUpdater: (String, String) -> Unit = {
+        step: String, details: String ->
         val intent = Intent(SERVER_SERVICE_RESULT)
-        intent.putExtra("type", "updateProgressBar")
-        intent.putExtra("step", step)
-        intent.putExtra("details", details)
+                .putExtra("type", "updateProgressBar")
+                .putExtra("step", step)
+                .putExtra("details", details)
         broadcaster.sendBroadcast(intent)
     }
 
     private fun isProgressBarActive() {
         val intent = Intent(SERVER_SERVICE_RESULT)
-        intent.putExtra("type", "isProgressBarActive")
-        intent.putExtra("isProgressBarActive", progressBarActive)
-        broadcaster.sendBroadcast(intent)
-    }
-
-    private fun displayNetworkChoices() {
-        val intent = Intent(SERVER_SERVICE_RESULT)
-        intent.putExtra("type", "displayNetworkChoices")
+                .putExtra("type", "isProgressBarActive")
+                .putExtra("isProgressBarActive", progressBarActive)
         broadcaster.sendBroadcast(intent)
     }
 
     private fun sendToastBroadcast(id: Int) {
         val intent = Intent(SERVER_SERVICE_RESULT)
-        intent.putExtra("id", id)
+                .putExtra("type", "toast")
+                .putExtra("id", id)
+        broadcaster.sendBroadcast(intent)
+    }
+
+    private val dialogBroadcaster: (String) -> Unit = {
+        type: String ->
+        killProgressBar()
+        val intent = Intent(SERVER_SERVICE_RESULT)
+                .putExtra("type", "dialog")
+                .putExtra("dialogType", type)
         broadcaster.sendBroadcast(intent)
     }
 }

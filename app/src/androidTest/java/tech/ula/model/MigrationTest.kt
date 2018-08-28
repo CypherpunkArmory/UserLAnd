@@ -12,6 +12,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import tech.ula.model.repositories.AppDatabase
+import tech.ula.model.repositories.Migration1To2
 import java.io.IOException
 
 @RunWith(AndroidJUnit4::class)

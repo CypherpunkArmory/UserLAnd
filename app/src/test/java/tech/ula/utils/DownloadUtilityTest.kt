@@ -1,10 +1,7 @@
 package tech.ula.utils
 
 import android.app.DownloadManager
-import android.net.ConnectivityManager
-import android.net.Network
-import android.net.NetworkCapabilities
-import android.net.NetworkInfo
+import android.database.Cursor
 import com.nhaarman.mockitokotlin2.verify
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
@@ -12,14 +9,13 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers
 import org.mockito.Mock
 import org.mockito.Mockito.* // ktlint-disable no-wildcard-imports
 import org.mockito.junit.MockitoJUnitRunner
-import tech.ula.model.entities.Filesystem
-import tech.ula.model.entities.Session
+import tech.ula.model.entities.Asset
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileWriter
+import kotlin.text.Charsets.UTF_8
 
 @RunWith(MockitoJUnitRunner::class)
 class DownloadUtilityTest {
@@ -31,277 +27,142 @@ class DownloadUtilityTest {
     lateinit var downloadManager: DownloadManager
 
     @Mock
-    lateinit var timestampPreferenceUtility: TimestampPreferenceUtility
+    lateinit var timestampPreferences: TimestampPreferences
 
     @Mock
-    lateinit var connectivityManager: ConnectivityManager
-
-    @Mock
-    lateinit var network: Network
-
-    @Mock
-    lateinit var networkInfo: NetworkInfo
-
-    @Mock
-    lateinit var networkCapabilities: NetworkCapabilities
-
-    @Mock
-    lateinit var connectionUtility: ConnectionUtility
-
-    @Mock
-    lateinit var requestUtility: RequestUtility
-
-    @Mock
-    lateinit var environmentUtility: EnvironmentUtility
+    lateinit var downloadManagerWrapper: DownloadManagerWrapper
 
     @Mock
     lateinit var requestReturn: DownloadManager.Request
 
+    @Mock
+    lateinit var queryReturn: DownloadManager.Query
+
+    @Mock
+    lateinit var cursor: Cursor
+
+    lateinit var downloadDirectory: File
+
+    lateinit var asset1: Asset
+    lateinit var asset2: Asset
+    lateinit var assetList: List<Asset>
     lateinit var downloadUtility: DownloadUtility
 
-    lateinit var applicationFilesDirPath: String
-
-    val filename = "asset1"
-    lateinit var assetFile: File
-    val remotetimestamp = 1000
-    val repo = "repo"
-    val scope = "scope"
     val branch = "master"
-    val assetListUrl = "https://github.com/CypherpunkArmory/UserLAnd-Assets-$repo/raw/$branch/assets/$scope/assets.txt"
-    val downloadUrl = "https://github.com/CypherpunkArmory/UserLAnd-Assets-$repo/raw/$branch/assets/$scope/$filename"
-    val destination = "UserLAnd:$repo:$filename"
-    val assetListTypes = listOf(repo to scope)
-    lateinit var assetList: File
 
     @Before
     fun setup() {
-        applicationFilesDirPath = tempFolder.root.path
+        downloadDirectory = tempFolder.newFolder("downloads")
+        downloadUtility = DownloadUtility(downloadManager, timestampPreferences, downloadManagerWrapper,
+                downloadDirectory, applicationFilesDir = tempFolder.root)
+
+        asset1 = Asset("name1", "distType1", "archType1", 0)
+        asset2 = Asset("name2", "distType2", "archType2", 0)
+        assetList = listOf(asset1, asset2)
+
+        val url1 = getDownloadUrl(asset1.distributionType, asset1.architectureType, asset1.name)
+        val destination1 = "UserLAnd:${asset1.concatenatedName}"
+        `when`(downloadManagerWrapper.generateDownloadRequest(url1, destination1)).thenReturn(requestReturn)
+
+        val url2 = getDownloadUrl(asset1.distributionType, asset1.architectureType, asset1.name)
+        val destination2 = "UserLAnd:${asset1.concatenatedName}"
+        `when`(downloadManagerWrapper.generateDownloadRequest(url2, destination2)).thenReturn(requestReturn)
     }
 
-    fun initDownloadUtility(session: Session, filesystem: Filesystem): DownloadUtility {
-        return DownloadUtility(session, filesystem,
-                downloadManager, timestampPreferenceUtility,
-                applicationFilesDirPath, connectivityManager,
-                connectionUtility, requestUtility, environmentUtility)
-    }
-
-    fun setupDownloadTest(includeRootfsFile: Boolean = false) {
-        assetList = File("${tempFolder.root.path}/assets.txt")
-        assetList.delete()
-        val writer = FileWriter(assetList)
-        writer.write("$filename $remotetimestamp")
-        if (includeRootfsFile) writer.write("\nrootfs.tar.gz $remotetimestamp")
-        writer.flush()
-        writer.close()
-
-        tempFolder.newFolder(repo)
-        assetFile = File("${tempFolder.root.path}/$repo/$filename")
-        if (assetFile.exists()) assetFile.delete()
-
-        val inputStream = FileInputStream(assetList)
-        `when`(connectivityManager.activeNetworkInfo).thenReturn(networkInfo)
-        `when`(connectionUtility.getAssetListConnection(assetListUrl)).thenReturn(inputStream)
-        `when`(requestUtility.generateTypicalDownloadRequest(downloadUrl, destination)).thenReturn(requestReturn)
-        `when`(environmentUtility.getDownloadsDirectory()).thenReturn(tempFolder.root)
+    fun getDownloadUrl(distType: String, archType: String, name: String): String {
+        return "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/$name"
     }
 
     @Test
-    fun largeAssetIsRequiredAndThereIsNoWifi() {
-        val session = Session(0, filesystemId = 0, isExtracted = false)
-        val filesystem = Filesystem(0, isDownloaded = false)
-        downloadUtility = initDownloadUtility(session, filesystem)
+    fun enqueuesDownload() {
+        downloadUtility.downloadRequirements(assetList)
 
-        `when`(connectivityManager.allNetworks).thenReturn(arrayOf())
-
-        assertTrue(downloadUtility.largeAssetRequiredAndNoWifi())
-    }
-
-    @Test
-    fun largeAssetIsRequiredAndThereIsWifi() {
-        val session = Session(0, filesystemId = 0, isExtracted = false)
-        val filesystem = Filesystem(0, isDownloaded = false)
-        downloadUtility = initDownloadUtility(session, filesystem)
-
-        `when`(connectivityManager.allNetworks).thenReturn(arrayOf(network))
-        `when`(connectivityManager.getNetworkCapabilities(network)).thenReturn(networkCapabilities)
-        `when`(networkCapabilities.hasTransport(anyInt())).thenReturn(true)
-
-        assertFalse(downloadUtility.largeAssetRequiredAndNoWifi())
-    }
-
-    @Test
-    fun largeAssetIsNotRequired() {
-        val session = Session(0, filesystemId = 0, isExtracted = true)
-        val filesystem = Filesystem(0, isDownloaded = true)
-        downloadUtility = initDownloadUtility(session, filesystem)
-
-        assertFalse(downloadUtility.largeAssetRequiredAndNoWifi())
-    }
-
-    @Test
-    fun internetIsAccessibleWhenActiveNetworkInfoPresent() {
-        val session = Session(0, filesystemId = 0)
-        val filesystem = Filesystem(0)
-        downloadUtility = initDownloadUtility(session, filesystem)
-
-        `when`(connectivityManager.activeNetworkInfo).thenReturn(networkInfo)
-        assertTrue(downloadUtility.internetIsAccessible())
-    }
-
-    @Test
-    fun internetIsAccessibleWhenActiveNetworkInfoNotPresent() {
-        val session = Session(0, filesystemId = 0)
-        val filesystem = Filesystem(0)
-        downloadUtility = initDownloadUtility(session, filesystem)
-
-        assertFalse(downloadUtility.internetIsAccessible())
-    }
-
-    @Test
-    fun rethrowsExceptionCorrectlyIfAssetListCantBeRetrieved() {
-        val session = Session(0, filesystemId = 0)
-        val filesystem = Filesystem(0)
-        downloadUtility = initDownloadUtility(session, filesystem)
-
-        `when`(connectivityManager.activeNetworkInfo).thenReturn(networkInfo)
-        `when`(connectionUtility.getAssetListConnection(assetListUrl)).thenThrow(Exception::class.java)
-        try {
-            downloadUtility.downloadRequirements(updateIsBeingForced = false, assetListTypes = assetListTypes)
-        } catch (err: Exception) {
-            assertEquals("Error getting asset list", err.message)
-        }
-    }
-
-    @Test
-    fun downloadsRequirementsWhenForced() {
-        val session = Session(0, filesystemId = 0)
-        val filesystem = Filesystem(0)
-        downloadUtility = initDownloadUtility(session, filesystem)
-
-        setupDownloadTest()
-        assetFile.createNewFile()
-
-        downloadUtility.downloadRequirements(updateIsBeingForced = true, assetListTypes = assetListTypes)
-
-        verify(timestampPreferenceUtility).setLastUpdateCheck(anyLong())
-        verify(timestampPreferenceUtility).setSavedTimestampForFile(anyString(), anyLong())
-        verify(downloadManager).enqueue(any())
-    }
-
-    @Test
-    fun doesNotUpdateIfLastCheckedIsWithinADayOfNow() {
-        val session = Session(0, filesystemId = 0, isExtracted = true)
-        val filesystem = Filesystem(0)
-        downloadUtility = initDownloadUtility(session, filesystem)
-
-        setupDownloadTest()
-        assetFile.createNewFile()
-
-        val lastUpdateChecked = currentTimeSeconds()
-        `when`(timestampPreferenceUtility.getLastUpdateCheck()).thenReturn(lastUpdateChecked)
-
-        downloadUtility.downloadRequirements(updateIsBeingForced = false, assetListTypes = assetListTypes)
-
-        verify(downloadManager, never()).enqueue(any())
-    }
-
-    @Test
-    fun downloadsIfTheAssetDoesNotExist() {
-        val session = Session(0, filesystemId = 0, isExtracted = true)
-        val filesystem = Filesystem(0)
-        downloadUtility = initDownloadUtility(session, filesystem)
-
-        setupDownloadTest()
-
-        downloadUtility.downloadRequirements(updateIsBeingForced = false, assetListTypes = assetListTypes)
-
-        verify(timestampPreferenceUtility).setLastUpdateCheck(anyLong())
-        verify(timestampPreferenceUtility).setSavedTimestampForFile(anyString(), anyLong())
-        verify(downloadManager).enqueue(any())
-    }
-
-    @Test
-    fun downloadsIfTheSessionIsNotExtracted() {
-        val session = Session(0, filesystemId = 0, isExtracted = false)
-        val filesystem = Filesystem(0)
-        downloadUtility = initDownloadUtility(session, filesystem)
-
-        setupDownloadTest()
-        assetFile.createNewFile()
-
-        downloadUtility.downloadRequirements(updateIsBeingForced = false, assetListTypes = assetListTypes)
-
-        verify(timestampPreferenceUtility).setLastUpdateCheck(anyLong())
-        verify(timestampPreferenceUtility).setSavedTimestampForFile(anyString(), anyLong())
-        verify(downloadManager).enqueue(any())
-    }
-
-    @Test
-    fun deletesAssetIfLocalTimestampIsLessThanRemote() {
-        val session = Session(0, filesystemId = 0, isExtracted = false)
-        val filesystem = Filesystem(0)
-        downloadUtility = initDownloadUtility(session, filesystem)
-
-        setupDownloadTest()
-        assetFile.createNewFile()
-
-        val localTimestamp = 1L
-        `when`(timestampPreferenceUtility.getSavedTimestampForFile("$repo:$filename")).thenReturn(localTimestamp)
-
-        downloadUtility.downloadRequirements(updateIsBeingForced = false, assetListTypes = assetListTypes)
-
-        assertFalse(assetFile.exists())
-        verify(timestampPreferenceUtility).setLastUpdateCheck(anyLong())
-        verify(timestampPreferenceUtility).setSavedTimestampForFile(anyString(), anyLong())
-        verify(downloadManager).enqueue(any())
-    }
-
-    @Test
-    fun doesNotUpdateRootfsButDoesUpdateAssetsIfSessionIsExtracted() {
-        val session = Session(0, filesystemId = 0, isExtracted = true)
-        val filesystem = Filesystem(0)
-        downloadUtility = initDownloadUtility(session, filesystem)
-
-        setupDownloadTest(includeRootfsFile = true)
-        assetFile.createNewFile()
-
-        downloadUtility.downloadRequirements(updateIsBeingForced = false, assetListTypes = assetListTypes)
-
-        verify(timestampPreferenceUtility, times(1)).setLastUpdateCheck(anyLong())
-        verify(timestampPreferenceUtility, times(1)).setSavedTimestampForFile(anyString(), anyLong())
-        verify(downloadManager, times(1)).enqueue(any())
-    }
-
-    @Test
-    fun updatesRootfsIfSessionIsNotExtracted() {
-        val session = Session(0, filesystemId = 0, isExtracted = false)
-        val filesystem = Filesystem(0)
-        downloadUtility = initDownloadUtility(session, filesystem)
-
-        setupDownloadTest(includeRootfsFile = true)
-        assetFile.createNewFile()
-
-        downloadUtility.downloadRequirements(updateIsBeingForced = false, assetListTypes = assetListTypes)
-
-        verify(timestampPreferenceUtility, times(2)).setLastUpdateCheck(anyLong())
-        verify(timestampPreferenceUtility, times(2)).setSavedTimestampForFile(anyString(), anyLong())
         verify(downloadManager, times(2)).enqueue(any())
     }
 
     @Test
-    fun deletesDownloadedFilesIfTheyStillExist() {
-        val session = Session(0, filesystemId = 0)
-        val filesystem = Filesystem(0)
-        downloadUtility = initDownloadUtility(session, filesystem)
+    fun deletesPreviousDownloads() {
+        tempFolder.newFolder("distType1")
+        tempFolder.newFolder("distType2")
+        val asset1File = File("${tempFolder.root.path}/distType1/name1")
+        val asset2File = File("${tempFolder.root.path}/distType2/name2")
+        asset1File.createNewFile()
+        asset2File.createNewFile()
+        assertTrue(asset1File.exists())
+        assertTrue(asset2File.exists())
 
-        setupDownloadTest()
-        val previousDownloadFile = File("${tempFolder.root.path}/UserLAnd:$repo:$filename")
-        previousDownloadFile.createNewFile()
-        assertTrue(previousDownloadFile.exists())
+        val asset1DownloadsFile = File("${downloadDirectory.path}/UserLAnd:${asset1.concatenatedName}")
+        val asset2DownloadsFile = File("${downloadDirectory.path}/UserLAnd:${asset2.concatenatedName}")
+        asset1DownloadsFile.createNewFile()
+        asset2DownloadsFile.createNewFile()
+        assertTrue(asset1DownloadsFile.exists())
+        assertTrue(asset2DownloadsFile.exists())
 
-        downloadUtility.downloadRequirements(updateIsBeingForced = false, assetListTypes = assetListTypes)
+        downloadUtility.downloadRequirements(assetList)
+        verify(downloadManager, times(2)).enqueue(any())
 
-        verify(environmentUtility).getDownloadsDirectory()
-        assertFalse(previousDownloadFile.exists())
+        assertFalse(asset1File.exists())
+        assertFalse(asset2File.exists())
+        assertFalse(asset1DownloadsFile.exists())
+        assertFalse(asset2DownloadsFile.exists())
+    }
+
+    @Test
+    fun setsTimestampWhenTitleIsRelevant() {
+        val id = 1L
+        val assetConcatenatedName = "type:name"
+        val titleName = "UserLAnd:$assetConcatenatedName"
+        `when`(downloadManagerWrapper.generateQuery(id)).thenReturn(queryReturn)
+        `when`(downloadManagerWrapper.generateCursor(downloadManager, queryReturn)).thenReturn(cursor)
+        `when`(downloadManagerWrapper.getDownloadTitle(cursor)).thenReturn(titleName)
+
+        downloadUtility.setTimestampForDownloadedFile(id)
+
+        verify(timestampPreferences).setSavedTimestampForFileToNow(assetConcatenatedName)
+    }
+
+    @Test
+    fun ignoresIrrelevantDownloads() {
+        val id = 1L
+        val titleName = "notuserland"
+        `when`(downloadManagerWrapper.generateQuery(id)).thenReturn(queryReturn)
+        `when`(downloadManagerWrapper.generateCursor(downloadManager, queryReturn)).thenReturn(cursor)
+        `when`(downloadManagerWrapper.getDownloadTitle(cursor)).thenReturn(titleName)
+
+        downloadUtility.setTimestampForDownloadedFile(id)
+
+        verify(timestampPreferences, never()).setSavedTimestampForFileToNow(ArgumentMatchers.anyString())
+    }
+
+    @Test
+    fun movesAssetsToCorrectLocationAndUpdatesPermissions() {
+        val asset1DownloadsFile = File("${downloadDirectory.path}/UserLAnd:${asset1.concatenatedName}")
+        val asset2DownloadsFile = File("${downloadDirectory.path}/UserLAnd:${asset2.concatenatedName}")
+        asset1DownloadsFile.createNewFile()
+        asset2DownloadsFile.createNewFile()
+
+        val asset1File = File("${tempFolder.root.path}/distType1/name1")
+        val asset2File = File("${tempFolder.root.path}/distType2/name2")
+        assertFalse(asset1File.exists())
+        assertFalse(asset2File.exists())
+
+        downloadUtility.moveAssetsToCorrectLocalDirectory()
+
+        assertTrue(asset1File.exists())
+        assertTrue(asset2File.exists())
+
+        var output = ""
+        val proc1 = Runtime.getRuntime().exec("ls -l ${asset1File.path}")
+
+        proc1.inputStream.bufferedReader(UTF_8).forEachLine { output += it }
+        val permissions1 = output.substring(0, 10)
+        assertTrue(permissions1 == "-rwxrwxrwx")
+
+        output = ""
+        val proc2 = Runtime.getRuntime().exec("ls -l ${asset2File.path}")
+
+        proc2.inputStream.bufferedReader(UTF_8).forEachLine { output += it }
+        val permissions2 = output.substring(0, 10)
+        assertTrue(permissions2 == "-rwxrwxrwx")
     }
 }

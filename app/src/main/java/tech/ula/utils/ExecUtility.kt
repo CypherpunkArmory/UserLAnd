@@ -1,6 +1,5 @@
 package tech.ula.utils
 
-import android.os.Environment
 import android.util.Log
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
@@ -10,7 +9,12 @@ import java.util.ArrayList
 import java.lang.ProcessBuilder
 import kotlin.text.Charsets.UTF_8
 
-class ExecUtility(val fileUtility: FileUtility, val defaultPreferenceUtility: DefaultPreferenceUtility) {
+class ExecUtility(
+    private val applicationFilesDirPath: String,
+    private val externalStoragePath: String,
+    private val defaultPreferences: DefaultPreferences,
+    private val logger: LogUtility = LogUtility()
+) {
 
     companion object {
         val EXEC_DEBUG_LOGGER = { line: String -> Unit
@@ -29,17 +33,17 @@ class ExecUtility(val fileUtility: FileUtility, val defaultPreferenceUtility: De
     ): Process {
 
         // TODO refactor naming convention to command debugging log
-        val prootDebuggingEnabled = defaultPreferenceUtility.getProotDebuggingEnabled()
+        val prootDebuggingEnabled = defaultPreferences.getProotDebuggingEnabled()
         val prootDebuggingLevel =
-                if (prootDebuggingEnabled) defaultPreferenceUtility.getProotDebuggingLevel()
+                if (prootDebuggingEnabled) defaultPreferences.getProotDebuggingLevel()
                 else "-1"
-        val prootDebugLogLocation = defaultPreferenceUtility.getProotDebugLogLocation()
+        val prootDebugLogLocation = defaultPreferences.getProotDebugLogLocation()
 
-        val env = if (wrapped) hashMapOf("LD_LIBRARY_PATH" to (fileUtility.getSupportDirPath()),
-                "ROOT_PATH" to fileUtility.getFilesDirPath(),
-                "ROOTFS_PATH" to "${fileUtility.getFilesDirPath()}/${executionDirectory.name}",
+        val env = if (wrapped) hashMapOf("LD_LIBRARY_PATH" to "$applicationFilesDirPath/support",
+                "ROOT_PATH" to applicationFilesDirPath,
+                "ROOTFS_PATH" to "$applicationFilesDirPath/${executionDirectory.name}",
                 "PROOT_DEBUG_LEVEL" to prootDebuggingLevel,
-                "EXTRA_BINDINGS" to "-b ${Environment.getExternalStorageDirectory().getAbsolutePath()}:/sdcard")
+                "EXTRA_BINDINGS" to "-b $externalStoragePath:/sdcard")
         else hashMapOf()
 
         try {
@@ -70,7 +74,8 @@ class ExecUtility(val fileUtility: FileUtility, val defaultPreferenceUtility: De
             return process
         } catch (err: Exception) {
             listener("Exec: $err")
-            throw RuntimeException(err)
+            val errorMessage = "\n\tError while executing ExecLocal: $err"
+            throw RuntimeException(errorMessage)
         }
     }
 
@@ -85,7 +90,6 @@ class ExecUtility(val fileUtility: FileUtility, val defaultPreferenceUtility: De
     }
 
     private fun writeDebugLogFile(inputStream: InputStream, debugLogLocation: String) {
-        // TODO Fix this bug. If logging is enabled and it doesn't write to a file, isServerInProcTree can't find dropbear.
         launch(CommonPool) {
             async {
                 val reader = inputStream.bufferedReader(UTF_8)
@@ -101,13 +105,14 @@ class ExecUtility(val fileUtility: FileUtility, val defaultPreferenceUtility: De
     }
 
     fun wrapWithBusyboxAndExecute(targetDirectoryName: String, commandToWrap: String, listener: (String) -> Any = NOOP_CONSUMER, doWait: Boolean = true): Process {
-        val executionDirectory = fileUtility.createAndGetDirectory(targetDirectoryName)
+        val executionDirectory = File("$applicationFilesDirPath/$targetDirectoryName")
         val command = arrayListOf("../support/busybox", "sh", "-c", commandToWrap)
         try {
             return execLocal(executionDirectory, command, listener, doWait, wrapped = true)
         } catch (err: Exception) {
             listener("Exec: $err")
-            throw RuntimeException(err)
+            val errorMessage = "Error while executing BusyBox: \nCommand = $command\n\tError = $err"
+            throw RuntimeException(errorMessage)
         }
     }
 }

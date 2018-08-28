@@ -7,9 +7,9 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
+import tech.ula.model.entities.Asset
 import java.io.File
 
 @RunWith(MockitoJUnitRunner::class)
@@ -18,23 +18,25 @@ class FilesystemUtilityTest {
     @get:Rule
     val tempFolder = TemporaryFolder()
 
+    lateinit var applicationFilesDirPath: String
+
     @Mock
     lateinit var execUtility: ExecUtility
 
     @Mock
-    lateinit var fileUtility: FileUtility
-
-    @Mock
-    lateinit var buildUtility: BuildUtility
+    lateinit var logger: LogUtility
 
     val statelessListener: (line: String) -> Unit = { }
 
     lateinit var filesystemUtility: FilesystemUtility
 
+    private val filesystemExtractionSuccess = ".success_filesystem_extraction"
+    private val filesystemExtractionFailure = ".failure_filesystem_extraction"
+
     @Before
     fun setup() {
-        `when`(fileUtility.getFilesDirPath()).thenReturn(tempFolder.root.path)
-        filesystemUtility = FilesystemUtility(execUtility, fileUtility, buildUtility)
+        applicationFilesDirPath = tempFolder.root.path
+        filesystemUtility = FilesystemUtility(applicationFilesDirPath, execUtility, logger)
     }
 
     @Test
@@ -44,6 +46,98 @@ class FilesystemUtilityTest {
 
         filesystemUtility.extractFilesystem(targetDirectoryName, statelessListener)
         verify(execUtility).wrapWithBusyboxAndExecute(targetDirectoryName, command, statelessListener)
+    }
+
+    @Test
+    fun copiesDistributionAssetsToCorrectFilesystem() {
+        val filenames = listOf("asset1", "asset2", "asset3", "asset4")
+
+        val targetDirectory = File("${tempFolder.root.path}/target/support")
+        val targetFiles = filenames.map { File("${targetDirectory.path}/$it") }
+
+        val sharedDirectory = tempFolder.newFolder("shared")
+        val sharedFiles = filenames.map { File("${sharedDirectory.path}/$it") }
+        sharedFiles.forEach { it.createNewFile() }
+
+        assertFalse(targetDirectory.exists())
+        targetFiles.forEach { assertFalse(it.exists()) }
+        sharedFiles.forEach { assertTrue(it.exists()) }
+
+        filesystemUtility.copyDistributionAssetsToFilesystem("target", "shared")
+
+        assertTrue(targetDirectory.exists())
+        targetFiles.forEach {
+            assertTrue(it.exists())
+            var output = ""
+            val proc = Runtime.getRuntime().exec("ls -l ${it.path}")
+
+            proc.inputStream.bufferedReader(Charsets.UTF_8).forEachLine { output += it }
+            val permissions = output.substring(0, 10)
+            assertTrue(permissions == "-rwxrwxrwx")
+        }
+    }
+
+    @Test
+    fun extractionIsIncompleteIfNeitherStatusFileExists() {
+        val supportDirectory = tempFolder.newFolder("target", "support")
+
+        assertFalse(File("${supportDirectory.path}/$filesystemExtractionSuccess").exists())
+        assertFalse(File("${supportDirectory.path}/$filesystemExtractionFailure").exists())
+
+        assertFalse(filesystemUtility.isExtractionComplete("target"))
+    }
+
+    @Test
+    fun extractionIsCompleteIfEitherStatusFileExists() {
+        val supportDirectory = tempFolder.newFolder("target", "support")
+        val successFile = File("${supportDirectory.path}/$filesystemExtractionSuccess")
+        val failureFile = File("${supportDirectory.path}/$filesystemExtractionFailure")
+
+        assertFalse(successFile.exists())
+        assertFalse(failureFile.exists())
+
+        assertFalse(filesystemUtility.isExtractionComplete("target"))
+
+        successFile.createNewFile()
+        assertTrue(filesystemUtility.isExtractionComplete("target"))
+        successFile.delete()
+
+        assertFalse(filesystemUtility.isExtractionComplete("target"))
+
+        failureFile.createNewFile()
+        assertTrue(filesystemUtility.isExtractionComplete("target"))
+    }
+
+    @Test
+    fun filesystemHasOnlyBeenSuccessfullyExtractedIfSuccessStatusFileExists() {
+        val supportDirectory = tempFolder.newFolder("target", "support")
+        val successFile = File("${supportDirectory.path}/$filesystemExtractionSuccess")
+        val failureFile = File("${supportDirectory.path}/$filesystemExtractionFailure")
+
+        failureFile.createNewFile()
+        assertFalse(filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("target"))
+
+        successFile.createNewFile()
+        assertTrue(filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("target"))
+    }
+
+    @Test
+    fun onlySucceedsIfAllRequiredAssetsArePresent() {
+        val assets = listOf(
+                Asset("name1", "dist1", "arch1", 0),
+                Asset("name2", "dist2", "arch2", 0))
+
+        // Should fail if the directory doesn't exist
+        assertFalse(filesystemUtility.areAllRequiredAssetsPresent("target", assets))
+
+        val supportDirectory = tempFolder.newFolder("target", "support")
+        assertFalse(filesystemUtility.areAllRequiredAssetsPresent("target", assets))
+
+        File("${supportDirectory.path}/name1").createNewFile()
+        assertFalse(filesystemUtility.areAllRequiredAssetsPresent("target", assets))
+
+        File("${supportDirectory.path}/name2").createNewFile()
+        assertTrue(filesystemUtility.areAllRequiredAssetsPresent("target", assets))
     }
 
     @Test
@@ -74,40 +168,9 @@ class FilesystemUtilityTest {
         files.forEach { it.createNewFile() }
         files.forEach { assertTrue(it.exists()) }
 
-        `when`(fileUtility.createAndGetDirectory("0")).thenReturn(filesystemRoot)
-
         filesystemUtility.deleteFilesystem(filesystemId)
+        Thread.sleep(500)
 
         files.forEach { assertFalse(it.exists()) }
-    }
-
-    @Test
-    fun getsCorrectSupportedAbis() {
-
-        `when`(buildUtility.getSupportedAbis()).thenReturn(arrayOf("arm64-v8a"))
-        var archType = filesystemUtility.getArchType()
-        assertEquals("arm64", archType)
-
-        `when`(buildUtility.getSupportedAbis()).thenReturn(arrayOf("armeabi-v7a"))
-        archType = filesystemUtility.getArchType()
-        assertEquals("arm", archType)
-
-        `when`(buildUtility.getSupportedAbis()).thenReturn(arrayOf("x86_64"))
-        archType = filesystemUtility.getArchType()
-        assertEquals("x86_64", archType)
-
-        `when`(buildUtility.getSupportedAbis()).thenReturn(arrayOf("x86"))
-        archType = filesystemUtility.getArchType()
-        assertEquals("x86", archType)
-
-        `when`(buildUtility.getSupportedAbis()).thenReturn(arrayOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86"))
-        archType = filesystemUtility.getArchType()
-        assertEquals("arm64", archType)
-    }
-
-    @Test(expected = Exception::class)
-    fun throwsExceptionWhenNoSupportAbi() {
-        `when`(buildUtility.getSupportedAbis()).thenReturn(arrayOf())
-        filesystemUtility.getArchType()
     }
 }

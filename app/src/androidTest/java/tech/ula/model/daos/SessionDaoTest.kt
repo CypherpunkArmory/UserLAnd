@@ -14,10 +14,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
-import tech.ula.model.AppDatabase
+import tech.ula.model.repositories.AppDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.utils.blockingObserve
+import tech.ula.blockingObserve
 
 @RunWith(AndroidJUnit4::class)
 class SessionDaoTest {

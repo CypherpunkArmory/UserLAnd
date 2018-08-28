@@ -11,7 +11,6 @@ import android.widget.AdapterView
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_edit.* // ktlint-disable no-wildcard-imports
-import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
@@ -31,18 +30,6 @@ class FilesystemEditFragment : Fragment() {
 
     private val filesystemEditViewModel: FilesystemEditViewModel by lazy {
         ViewModelProviders.of(this).get(FilesystemEditViewModel::class.java)
-    }
-
-    private val fileUtility: FileUtility by lazy {
-        FileUtility(activityContext.filesDir.path)
-    }
-
-    private val execUtility: ExecUtility by lazy {
-        ExecUtility(fileUtility, DefaultPreferenceUtility(activityContext.defaultSharedPreferences))
-    }
-
-    private val filesystemUtility: FilesystemUtility by lazy {
-        FilesystemUtility(execUtility, fileUtility, BuildUtility())
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -107,7 +94,7 @@ class FilesystemEditFragment : Fragment() {
                 navController.popBackStack()
             } else {
                 try {
-                    filesystem.archType = filesystemUtility.getArchType()
+                    filesystem.archType = BuildWrapper().getArchType()
                 } catch (err: Exception) {
                     Toast.makeText(activityContext, R.string.no_supported_architecture, Toast.LENGTH_LONG).show()
                     return true
