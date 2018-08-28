@@ -56,6 +56,7 @@ class DownloadUtility(
                     val targetDestination = File(targetDestinationPath)
                     it.copyTo(targetDestination, overwrite = true)
                     makePermissionsUsable(containingDirectoryPath, filename)
+                    it.delete()
                 }
     }
 }
