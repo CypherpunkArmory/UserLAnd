@@ -148,6 +148,8 @@ class DownloadUtilityTest {
 
         downloadUtility.moveAssetsToCorrectLocalDirectory()
 
+        assertFalse(asset1DownloadsFile.exists())
+        assertFalse(asset2DownloadsFile.exists())
         assertTrue(asset1File.exists())
         assertTrue(asset2File.exists())
 
