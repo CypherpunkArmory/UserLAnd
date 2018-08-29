@@ -37,35 +37,33 @@ class SessionControllerTest {
     }
 
     @Test
-    fun retrievesCachedAssetsIfNetworkIsUnavaialable() {
+    fun retrievesRemoteAssetLists() {
         val asset = Asset("name", "dist", "arch", 0)
-        `when`(networkUtility.networkIsActive()).thenReturn(false)
-        `when`(assetRepository.getCachedAssetLists()).thenReturn(listOf(listOf(asset)))
+        `when`(assetRepository.retrieveAllRemoteAssetLists()).thenReturn(listOf(listOf(asset)))
 
-        val assetLists = sessionController.getAssetLists(networkUtility)
+        val assetLists = sessionController.getAssetLists()
 
         val expectedNumberOfLists = 1
         val expectedNumberOfAssetsInList = 1
         val retrievedAsset = assetLists.first().first()
-        verify(assetRepository).getCachedAssetLists()
+        verify(assetRepository).retrieveAllRemoteAssetLists()
         assertEquals(expectedNumberOfLists, assetLists.size)
         assertEquals(expectedNumberOfAssetsInList, assetLists.first().size)
         assertEquals(asset, retrievedAsset)
     }
 
     @Test
-    fun retrievesRemoteAssetListsWhenNetworkIsAvailable() {
+    fun retrievesCachedAssetsIfRemoteRetrievalFails() {
         val asset = Asset("name", "dist", "arch", 0)
-        `when`(networkUtility.networkIsActive()).thenReturn(true)
-        `when`(networkUtility.httpsIsAccessible()).thenReturn(true)
-        `when`(assetRepository.retrieveAllRemoteAssetLists(true)).thenReturn(listOf(listOf(asset)))
+        `when`(assetRepository.retrieveAllRemoteAssetLists()).thenThrow(Exception())
+        `when`(assetRepository.getCachedAssetLists()).thenReturn(listOf(listOf(asset)))
 
-        val assetLists = sessionController.getAssetLists(networkUtility)
+        val assetLists = sessionController.getAssetLists()
 
         val expectedNumberOfLists = 1
         val expectedNumberOfAssetsInList = 1
         val retrievedAsset = assetLists.first().first()
-        verify(assetRepository).retrieveAllRemoteAssetLists(true)
+        verify(assetRepository).getCachedAssetLists()
         assertEquals(expectedNumberOfLists, assetLists.size)
         assertEquals(expectedNumberOfAssetsInList, assetLists.first().size)
         assertEquals(asset, retrievedAsset)

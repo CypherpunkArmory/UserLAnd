@@ -38,11 +38,12 @@ class AssetRepository(
         return allAssets.filter { !(it.name.contains("rootfs.tar.gz")) }
     }
 
-    fun retrieveAllRemoteAssetLists(httpsIsAccessible: Boolean): List<List<Asset>> {
+    @Throws(Exception::class)
+    fun retrieveAllRemoteAssetLists(): List<List<Asset>> {
         val allAssetLists = ArrayList<List<Asset>>()
         allAssetListTypes.forEach {
             (assetType, architectureType) ->
-            val assetList = retrieveAndParseAssetList(assetType, architectureType, httpsIsAccessible)
+            val assetList = retrieveAndParseAssetList(assetType, architectureType)
             allAssetLists.add(assetList)
             assetListPreferences.setAssetList(assetType, architectureType, assetList)
         }
@@ -52,11 +53,9 @@ class AssetRepository(
     private fun retrieveAndParseAssetList(
         assetType: String,
         architectureType: String,
-        httpsIsAccessible: Boolean,
-        retries: Int = 0
+        protocol: String = "https"
     ): List<Asset> {
         val assetList = ArrayList<Asset>()
-        val protocol = if (httpsIsAccessible) "https" else "http"
 
         val url = "$protocol://github.com/CypherpunkArmory/UserLAnd-Assets-" +
                 "$assetType/raw/master/assets/$architectureType/assets.txt"
@@ -72,10 +71,9 @@ class AssetRepository(
 
             reader.close()
             return assetList.toList()
-        } catch (err: SSLHandshakeException) { // TODO nothing is done with these
-            if (retries >= 5) throw object : Exception("Error getting asset list") {}
-            return retrieveAndParseAssetList(assetType, architectureType,
-                    httpsIsAccessible, retries + 1)
+        } catch (err: SSLHandshakeException) {
+            // Try again with http if https fails
+            return retrieveAndParseAssetList(assetType, architectureType, "http")
         } catch (err: Exception) {
             throw object : Exception("Error getting asset list") {}
         }

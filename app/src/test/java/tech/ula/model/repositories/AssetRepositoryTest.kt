@@ -20,6 +20,7 @@ import tech.ula.utils.TimestampPreferences
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.InputStream
+import javax.net.ssl.SSLHandshakeException
 
 @RunWith(MockitoJUnitRunner::class)
 class AssetRepositoryTest {
@@ -80,34 +81,22 @@ class AssetRepositoryTest {
     }
 
     @Test
-    fun formatsUrlBasedOnHttpsAccessibility() {
-        val inputStream = ByteArrayInputStream("asset 0".toByteArray()) as InputStream
-        `when`(connectionUtility.getUrlInputStream(anyString())).thenReturn(inputStream)
-
+    fun usesHttpIfHttpsIsInaccessible() {
         val allUrlsWithoutProtocols = allAssetListTypes.map { (dist, arch) ->
             "://github.com/CypherpunkArmory/UserLAnd-Assets-" +
                     "$dist/raw/master/assets/$arch/assets.txt"
         }
+        val inputStream = ByteArrayInputStream("asset 0".toByteArray()) as InputStream
 
-        argumentCaptor<String>().apply {
-            assetRepository.retrieveAllRemoteAssetLists(httpsIsAccessible = true)
-            verify(connectionUtility, times(allAssetListTypes.size))
-                    .getUrlInputStream(capture())
-            allUrlsWithoutProtocols.forEach {
-                assertTrue(allValues.contains("https$it"))
-            }
+        allUrlsWithoutProtocols.forEach {
+            `when`(connectionUtility.getUrlInputStream("https$it")).thenThrow(SSLHandshakeException::class.java)
+            `when`(connectionUtility.getUrlInputStream("http$it")).thenReturn(inputStream)
         }
 
-        argumentCaptor<String>().apply {
-            assetRepository.retrieveAllRemoteAssetLists(httpsIsAccessible = false)
-            // The mock tracks how many times a method is invoked since instantiation, so it will be
-            // called once for each element in the list of asset types in the first part of the test,
-            // then that an additional time for each element in the second part of the test.
-            verify(connectionUtility, times(allAssetListTypes.size + allAssetListTypes.size))
-                    .getUrlInputStream(capture())
-            allUrlsWithoutProtocols.forEach {
-                assertTrue(allValues.contains("http$it"))
-            }
+        assetRepository.retrieveAllRemoteAssetLists()
+
+        allUrlsWithoutProtocols.forEach {
+            verify(connectionUtility).getUrlInputStream("http$it")
         }
     }
 
