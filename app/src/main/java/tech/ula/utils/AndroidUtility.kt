@@ -166,7 +166,7 @@ class EnvironmentWrapper {
 }
 
 class DownloadBroadcastReceiver : BroadcastReceiver() {
-    private lateinit var doOnReceived: (Long) -> Unit
+    private var doOnReceived: (Long) -> Unit = {}
 
     fun setDoOnReceived(action: (Long) -> Unit) {
         doOnReceived = action
