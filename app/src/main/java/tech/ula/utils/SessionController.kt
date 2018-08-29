@@ -14,12 +14,12 @@ class SessionController(
     private val filesystemUtility: FilesystemUtility
 ) {
 
-    fun getAssetLists(networkUtility: NetworkUtility): List<List<Asset>> {
+    fun getAssetLists(): List<List<Asset>> {
 
-        return if (!networkUtility.networkIsActive()) {
+        return try {
+            assetRepository.retrieveAllRemoteAssetLists()
+        } catch (err: Exception) {
             assetRepository.getCachedAssetLists()
-        } else {
-            assetRepository.retrieveAllRemoteAssetLists(networkUtility.httpsIsAccessible())
         }
     }
 
