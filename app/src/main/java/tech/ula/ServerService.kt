@@ -166,7 +166,7 @@ class ServerService : Service() {
 
             progressBarUpdater(resources.getString(R.string.progress_fetching_asset_lists), "")
             val assetLists = asyncAwait {
-                sessionController.getAssetLists(networkUtility)
+                sessionController.getAssetLists()
             }
             if (assetLists.any { it.isEmpty() }) {
                 dialogBroadcaster("errorFetchingAssetLists")
