@@ -61,11 +61,11 @@ class DownloadUtilityTest {
         assetList = listOf(asset1, asset2)
 
         val url1 = getDownloadUrl(asset1.distributionType, asset1.architectureType, asset1.name)
-        val destination1 = "UserLAnd:${asset1.concatenatedName}"
+        val destination1 = asset1.concatenatedName
         `when`(downloadManagerWrapper.generateDownloadRequest(url1, destination1)).thenReturn(requestReturn)
 
-        val url2 = getDownloadUrl(asset1.distributionType, asset1.architectureType, asset1.name)
-        val destination2 = "UserLAnd:${asset1.concatenatedName}"
+        val url2 = getDownloadUrl(asset2.distributionType, asset2.architectureType, asset2.name)
+        val destination2 = asset2.concatenatedName
         `when`(downloadManagerWrapper.generateDownloadRequest(url2, destination2)).thenReturn(requestReturn)
     }
 
@@ -91,8 +91,8 @@ class DownloadUtilityTest {
         assertTrue(asset1File.exists())
         assertTrue(asset2File.exists())
 
-        val asset1DownloadsFile = File("${downloadDirectory.path}/UserLAnd:${asset1.concatenatedName}")
-        val asset2DownloadsFile = File("${downloadDirectory.path}/UserLAnd:${asset2.concatenatedName}")
+        val asset1DownloadsFile = File("${downloadDirectory.path}/${asset1.concatenatedName}")
+        val asset2DownloadsFile = File("${downloadDirectory.path}/${asset2.concatenatedName}")
         asset1DownloadsFile.createNewFile()
         asset2DownloadsFile.createNewFile()
         assertTrue(asset1DownloadsFile.exists())
@@ -110,15 +110,13 @@ class DownloadUtilityTest {
     @Test
     fun setsTimestampWhenTitleIsRelevant() {
         val id = 1L
-        val assetConcatenatedName = "type:name"
-        val titleName = "UserLAnd:$assetConcatenatedName"
         `when`(downloadManagerWrapper.generateQuery(id)).thenReturn(queryReturn)
         `when`(downloadManagerWrapper.generateCursor(downloadManager, queryReturn)).thenReturn(cursor)
-        `when`(downloadManagerWrapper.getDownloadTitle(cursor)).thenReturn(titleName)
+        `when`(downloadManagerWrapper.getDownloadTitle(cursor)).thenReturn(asset1.concatenatedName)
 
         downloadUtility.setTimestampForDownloadedFile(id)
 
-        verify(timestampPreferences).setSavedTimestampForFileToNow(assetConcatenatedName)
+        verify(timestampPreferences).setSavedTimestampForFileToNow(asset1.concatenatedName)
     }
 
     @Test
@@ -136,8 +134,8 @@ class DownloadUtilityTest {
 
     @Test
     fun movesAssetsToCorrectLocationAndUpdatesPermissions() {
-        val asset1DownloadsFile = File("${downloadDirectory.path}/UserLAnd:${asset1.concatenatedName}")
-        val asset2DownloadsFile = File("${downloadDirectory.path}/UserLAnd:${asset2.concatenatedName}")
+        val asset1DownloadsFile = File("${downloadDirectory.path}/${asset1.concatenatedName}")
+        val asset2DownloadsFile = File("${downloadDirectory.path}/${asset2.concatenatedName}")
         asset1DownloadsFile.createNewFile()
         asset2DownloadsFile.createNewFile()
 
