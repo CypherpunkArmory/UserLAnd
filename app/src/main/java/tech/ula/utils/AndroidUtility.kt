@@ -9,6 +9,7 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.provider.ContactsContract
 import android.util.Log
 import tech.ula.model.entities.Asset
 import java.io.File
@@ -139,6 +140,7 @@ class DownloadManagerWrapper {
         request.setDescription("Downloading ${destination.substringAfterLast(":")}.")
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
         request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, destination)
+        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).mkdirs()
         return request
     }
 
