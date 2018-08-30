@@ -21,7 +21,7 @@ class DownloadUtility(
         val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-" +
                 "${asset.distributionType}/raw/master/assets/" +
                 "${asset.architectureType}/${asset.name}"
-        val destination = "UserLAnd:${asset.concatenatedName}"
+        val destination = asset.concatenatedName
         val request = downloadManagerWrapper.generateDownloadRequest(url, destination)
         deletePreviousDownload(asset)
 
@@ -29,7 +29,7 @@ class DownloadUtility(
     }
 
     private fun deletePreviousDownload(asset: Asset) {
-        val downloadsDirectoryFile = File(downloadDirectory, "UserLAnd:${asset.concatenatedName}")
+        val downloadsDirectoryFile = File(downloadDirectory, asset.concatenatedName)
         val localFile = File(applicationFilesDir, asset.pathName)
 
         if (downloadsDirectoryFile.exists())
@@ -43,15 +43,15 @@ class DownloadUtility(
         val cursor = downloadManagerWrapper.generateCursor(downloadManager, query)
         val titleName = downloadManagerWrapper.getDownloadTitle(cursor)
         if (titleName == "" || !titleName.contains("UserLAnd")) return
-        val assetConcatenatedName = titleName.substringAfter(":")
-        timestampPreferences.setSavedTimestampForFileToNow(assetConcatenatedName)
+        // Title should be asset.concatenatedName
+        timestampPreferences.setSavedTimestampForFileToNow(titleName)
     }
 
     fun moveAssetsToCorrectLocalDirectory() {
         downloadDirectory.walkBottomUp()
-                .filter { it.name.contains("UserLAnd:") }
+                .filter { it.name.contains("UserLAnd") }
                 .forEach {
-                    val (_, directory, filename) = it.name.split(":")
+                    val (_, directory, filename) = it.name.split("-")
                     val containingDirectory = File("${applicationFilesDir.path}/$directory")
                     val targetDestination = File("${containingDirectory.path}/$filename")
                     val fileAsByteArray = it.readBytes()

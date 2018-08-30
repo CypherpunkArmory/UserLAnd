@@ -41,13 +41,13 @@ class DefaultPreferences(private val prefs: SharedPreferences) {
 }
 
 class TimestampPreferences(private val prefs: SharedPreferences) {
-    fun getSavedTimestampForFile(filename: String): Long {
-        return prefs.getLong(filename, 0)
+    fun getSavedTimestampForFile(assetConcatenatedName: String): Long {
+        return prefs.getLong(assetConcatenatedName, 0)
     }
 
-    fun setSavedTimestampForFileToNow(filename: String) {
+    fun setSavedTimestampForFileToNow(assetConcatenatedName: String) {
         with(prefs.edit()) {
-            putLong(filename, currentTimeSeconds())
+            putLong(assetConcatenatedName, currentTimeSeconds())
             apply()
         }
     }
@@ -58,9 +58,9 @@ class AssetListPreferences(private val prefs: SharedPreferences) {
         val assetLists = ArrayList<List<Asset>>()
         allAssetListTypes.forEach {
             (assetType, architectureType) ->
-            val allEntries = prefs.getStringSet("$assetType:$architectureType", setOf()) ?: setOf()
+            val allEntries = prefs.getStringSet("$assetType-$architectureType", setOf()) ?: setOf()
             val assetList: List<Asset> = allEntries.map {
-                val (filename, remoteTimestamp) = it.split(":")
+                val (filename, remoteTimestamp) = it.split("-")
                 Asset(filename, assetType, architectureType, remoteTimestamp.toLong())
             }
             assetLists.add(assetList)
@@ -70,10 +70,10 @@ class AssetListPreferences(private val prefs: SharedPreferences) {
 
     fun setAssetList(assetType: String, architectureType: String, assetList: List<Asset>) {
         val entries = assetList.map {
-            "${it.name}:${it.remoteTimestamp}"
+            "${it.name}-${it.remoteTimestamp}"
         }.toSet()
         with(prefs.edit()) {
-            putStringSet("$assetType:$architectureType", entries)
+            putStringSet("$assetType-$architectureType", entries)
             apply()
         }
     }
@@ -135,10 +135,9 @@ class DownloadManagerWrapper {
         val request = DownloadManager.Request(uri)
         request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
         request.setTitle(destination)
-        request.setDescription("Downloading ${destination.substringAfterLast(":")}.")
+        request.setDescription("Downloading ${destination.substringAfterLast("-")}.")
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
         request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, destination)
-        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).mkdirs()
         return request
     }
 
