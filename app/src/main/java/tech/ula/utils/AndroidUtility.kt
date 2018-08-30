@@ -9,8 +9,6 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
-import android.provider.ContactsContract
-import android.util.Log
 import tech.ula.model.entities.Asset
 import java.io.File
 import java.io.InputStream

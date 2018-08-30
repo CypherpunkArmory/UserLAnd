@@ -52,12 +52,13 @@ class DownloadUtility(
                 .filter { it.name.contains("UserLAnd:") }
                 .forEach {
                     val (_, directory, filename) = it.name.split(":")
-                    val containingDirectoryPath = "${applicationFilesDir.path}/$directory"
-                    val targetDestinationPath = "$containingDirectoryPath/$filename"
-                    val targetDestination = File(targetDestinationPath)
+                    val containingDirectory = File("${applicationFilesDir.path}/$directory")
+                    val targetDestination = File("${containingDirectory.path}/$filename")
                     val fileAsByteArray = it.readBytes()
+                    containingDirectory.mkdirs()
+                    targetDestination.createNewFile()
                     targetDestination.writeBytes(fileAsByteArray)
-                    makePermissionsUsable(containingDirectoryPath, filename)
+                    makePermissionsUsable(containingDirectory.path, filename)
                     it.delete()
                 }
     }

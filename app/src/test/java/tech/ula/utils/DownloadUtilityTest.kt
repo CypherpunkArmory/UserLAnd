@@ -53,8 +53,8 @@ class DownloadUtilityTest {
     @Before
     fun setup() {
         downloadDirectory = tempFolder.newFolder("downloads")
-        downloadUtility = DownloadUtility(downloadManager, timestampPreferences, downloadManagerWrapper,
-                downloadDirectory, applicationFilesDir = tempFolder.root)
+        `when`(downloadManagerWrapper.getDownloadsDirectory()).thenReturn(downloadDirectory)
+        downloadUtility = DownloadUtility(downloadManager, timestampPreferences, downloadManagerWrapper, applicationFilesDir = tempFolder.root)
 
         asset1 = Asset("name1", "distType1", "archType1", 0)
         asset2 = Asset("name2", "distType2", "archType2", 0)
