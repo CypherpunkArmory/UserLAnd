@@ -9,6 +9,7 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.util.Log
 import tech.ula.model.entities.Asset
 import java.io.File
 import java.io.InputStream
@@ -157,9 +158,7 @@ class DownloadManagerWrapper {
         }
         return ""
     }
-}
 
-class EnvironmentWrapper {
     fun getDownloadsDirectory(): File {
         return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
     }

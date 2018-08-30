@@ -74,7 +74,7 @@ class ServerService : Service() {
     private fun initDownloadUtility(): DownloadUtility {
         val downloadManager = this.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         return DownloadUtility(downloadManager, timestampPreferences,
-                DownloadManagerWrapper(), EnvironmentWrapper().getDownloadsDirectory(), this.filesDir)
+                DownloadManagerWrapper(), this.filesDir)
     }
 
     override fun onCreate() {

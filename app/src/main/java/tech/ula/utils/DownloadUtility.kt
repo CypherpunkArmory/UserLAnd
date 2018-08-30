@@ -8,9 +8,10 @@ class DownloadUtility(
     private val downloadManager: DownloadManager,
     private val timestampPreferences: TimestampPreferences,
     private val downloadManagerWrapper: DownloadManagerWrapper,
-    private val downloadDirectory: File,
     private val applicationFilesDir: File
 ) {
+
+    private val downloadDirectory = downloadManagerWrapper.getDownloadsDirectory()
 
     fun downloadRequirements(assetList: List<Asset>): List<Pair<Asset, Long>> {
         return assetList.map { it to download(it) }
@@ -54,7 +55,8 @@ class DownloadUtility(
                     val containingDirectoryPath = "${applicationFilesDir.path}/$directory"
                     val targetDestinationPath = "$containingDirectoryPath/$filename"
                     val targetDestination = File(targetDestinationPath)
-                    it.copyTo(targetDestination, overwrite = true)
+                    val fileAsByteArray = it.readBytes()
+                    targetDestination.writeBytes(fileAsByteArray)
                     makePermissionsUsable(containingDirectoryPath, filename)
                     it.delete()
                 }
