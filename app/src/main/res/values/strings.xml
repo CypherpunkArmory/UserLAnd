@@ -3,6 +3,7 @@
     <string name="welcome">Welcome to UserLAnd!</string>
 
     <!-- Labels -->
+    <string name="apps">Applications</string>
     <string name="sessions">Sessions</string>
     <string name="edit_session">Edit Session</string>
     <string name="filesystems">Filesystems</string>

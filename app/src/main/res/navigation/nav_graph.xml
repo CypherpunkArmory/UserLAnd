@@ -4,6 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     app:startDestination="@id/session_list_fragment">
     <fragment
+        android:id="@+id/app_list_fragment"
+        android:name="tech.ula.ui.AppListFragment"
+        android:label="@string/apps"
+        tools:layout="@layout/frag_app_list" >
+    </fragment>
+
+    <fragment
         android:id="@+id/session_list_fragment"
         android:name="tech.ula.ui.SessionListFragment"
         android:label="@string/sessions"
