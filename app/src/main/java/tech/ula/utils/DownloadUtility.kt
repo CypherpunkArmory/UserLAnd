@@ -52,6 +52,7 @@ class DownloadUtility(
                 .filter { it.name.contains("UserLAnd-") }
                 .forEach {
                     val delimitedContents = it.name.split("-")
+                    if (delimitedContents.size != 3) return@forEach
                     val (_, directory, filename) = delimitedContents
                     val containingDirectory = File("${applicationFilesDir.path}/$directory")
                     val targetDestination = File("${containingDirectory.path}/$filename")
