@@ -49,15 +49,13 @@ class DownloadUtility(
 
     fun moveAssetsToCorrectLocalDirectory() {
         downloadDirectory.walkBottomUp()
-                .filter { it.name.contains("UserLAnd") }
+                .filter { it.name.contains("UserLAnd-") }
                 .forEach {
-                    val (_, directory, filename) = it.name.split("-")
+                    val delimitedContents = it.name.split("-")
+                    val (_, directory, filename) = delimitedContents
                     val containingDirectory = File("${applicationFilesDir.path}/$directory")
                     val targetDestination = File("${containingDirectory.path}/$filename")
-                    val fileAsByteArray = it.readBytes()
-                    containingDirectory.mkdirs()
-                    targetDestination.createNewFile()
-                    targetDestination.writeBytes(fileAsByteArray)
+                    it.copyTo(targetDestination, overwrite = true)
                     makePermissionsUsable(containingDirectory.path, filename)
                     it.delete()
                 }
