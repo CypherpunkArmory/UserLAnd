@@ -3,7 +3,7 @@ Thanks for throwing some effort into helping us improve our project!
 This is a set of guidelines to contributing to the UserLAnd Android application.
 These are intended as just that: guidelines, so use your best judgement when submitting contributions.
 
-All contributions must follow the UserLAnd [Code of Conduct](https://https://github.com/CypherpunkArmory/UserLAnd/CODE_OF_CONDUCT.md).
+All contributions must follow the UserLAnd [Code of Conduct](https://github.com/CypherpunkArmory/UserLAnd/blob/master/CODE_OF_CONDUCT.md).
 
 ## Steps to Follow
 
