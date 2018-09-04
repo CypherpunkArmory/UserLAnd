@@ -15,7 +15,7 @@ import kotlinx.coroutines.experimental.launch
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.doAsync
 import tech.ula.model.entities.Asset
-import tech.ula.model.repositories.AppDatabase
+import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
@@ -139,7 +139,7 @@ class ServerService : Service() {
     }
 
     private fun updateSession(session: Session) {
-        doAsync { AppDatabase.getInstance(this@ServerService).sessionDao().updateSession(session) }
+        doAsync { UlaDatabase.getInstance(this@ServerService).sessionDao().updateSession(session) }
     }
 
     private fun killSession(session: Session) {

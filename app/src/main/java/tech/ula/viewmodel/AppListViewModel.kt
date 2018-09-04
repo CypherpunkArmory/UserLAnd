@@ -1,43 +1,43 @@
 package tech.ula.viewmodel
 
-import android.app.Application as App
+import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
 import android.database.sqlite.SQLiteConstraintException
 import kotlinx.coroutines.experimental.launch
-import tech.ula.model.repositories.AppDatabase
-import tech.ula.model.entities.Application
+import tech.ula.model.entities.App
+import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import kotlin.coroutines.experimental.Continuation
 import kotlin.coroutines.experimental.suspendCoroutine
 
-class AppListViewModel(application: App) : AndroidViewModel(application) {
+class AppListViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val appDatabase: AppDatabase by lazy {
-        AppDatabase.getInstance(application)
+    private val ulaDatabase: UlaDatabase by lazy {
+        UlaDatabase.getInstance(application)
     }
 
-    private val internalApps: LiveData<List<Application>> by lazy {
-        appDatabase.applicationDao().getAllApplications()
+    private val internalApps: LiveData<List<App>> by lazy {
+        ulaDatabase.appsDao().getAllApps()
     }
 
-    private val apps: LiveData<List<Application>> = internalApps
+    private val apps: LiveData<List<App>> = internalApps
 
-    fun getAllApps(): LiveData<List<Application>> {
+    fun getAllApps(): LiveData<List<App>> {
         return apps
     }
 
     // TODO: Implement
-    fun getAppsByName(name: String): Application {
-        return Application(id = 0)
+    fun getAppsByName(name: String): App {
+        return App(id = 0)
     }
 
-    suspend fun insertApplication(application: Application): Boolean {
+    suspend fun insertApplication(app: App): Boolean {
         lateinit var result: Continuation<Boolean>
         launch {
             async {
                 try {
-                    appDatabase.applicationDao().insertApplication(application = application)
+                    ulaDatabase.appsDao().insertApp(app)
                     result.resume(true)
                 } catch (err: SQLiteConstraintException) {
                     result.resume(false)

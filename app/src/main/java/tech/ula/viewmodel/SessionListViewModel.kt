@@ -7,7 +7,7 @@ import android.arch.lifecycle.Transformations
 import android.os.Environment
 import kotlinx.coroutines.experimental.launch
 import org.jetbrains.anko.defaultSharedPreferences
-import tech.ula.model.repositories.AppDatabase
+import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
@@ -23,12 +23,12 @@ class SessionListViewModel(application: Application) : AndroidViewModel(applicat
         ServerUtility(application.filesDir.path, execUtility)
     }
 
-    private val appDatabase: AppDatabase by lazy {
-        AppDatabase.getInstance(application)
+    private val ulaDatabase: UlaDatabase by lazy {
+        UlaDatabase.getInstance(application)
     }
 
     private val internalSessions: LiveData<List<Session>> by lazy {
-        appDatabase.sessionDao().getAllSessions()
+        ulaDatabase.sessionDao().getAllSessions()
     }
 
     var activeSessions: Boolean = false
@@ -43,7 +43,7 @@ class SessionListViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     private val filesystems: LiveData<List<Filesystem>> by lazy {
-        appDatabase.filesystemDao().getAllFilesystems()
+        ulaDatabase.filesystemDao().getAllFilesystems()
     }
 
     fun getAllSessions(): LiveData<List<Session>> {
@@ -51,7 +51,7 @@ class SessionListViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun deleteSessionById(id: Long) {
-        launch { async { appDatabase.sessionDao().deleteSessionById(id) } }
+        launch { async { ulaDatabase.sessionDao().deleteSessionById(id) } }
     }
 
     fun getAllFilesystems(): LiveData<List<Filesystem>> {

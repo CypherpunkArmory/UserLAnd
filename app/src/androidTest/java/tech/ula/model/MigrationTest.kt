@@ -11,7 +11,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import tech.ula.model.repositories.AppDatabase
+import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.repositories.Migration1To2
 import tech.ula.model.repositories.Migration2To3
 import java.io.IOException
@@ -24,7 +24,7 @@ class MigrationTest {
 
     @get:Rule
     val helper = MigrationTestHelper(InstrumentationRegistry.getInstrumentation(),
-        AppDatabase::class.java.canonicalName,
+        UlaDatabase::class.java.canonicalName,
         FrameworkSQLiteOpenHelperFactory())
 
     @Test
@@ -59,9 +59,9 @@ class MigrationTest {
         helper.runMigrationsAndValidate(TEST_DB, 3, true, Migration2To3())
     }
 
-    private fun getMigratedDatabase(): AppDatabase {
+    private fun getMigratedDatabase(): UlaDatabase {
         val db = Room.databaseBuilder(InstrumentationRegistry.getTargetContext(),
-                AppDatabase::class.java, TEST_DB)
+                UlaDatabase::class.java, TEST_DB)
                 .addMigrations(Migration1To2(), Migration2To3())
                 .build()
 

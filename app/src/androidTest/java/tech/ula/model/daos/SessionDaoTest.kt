@@ -14,7 +14,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
-import tech.ula.model.repositories.AppDatabase
+import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.blockingObserve
@@ -22,7 +22,7 @@ import tech.ula.blockingObserve
 @RunWith(AndroidJUnit4::class)
 class SessionDaoTest {
 
-    private lateinit var db: AppDatabase
+    private lateinit var db: UlaDatabase
 
     @get:Rule
     val instantExecutorRule = InstantTaskExecutorRule()
@@ -35,7 +35,7 @@ class SessionDaoTest {
         MockitoAnnotations.initMocks(this)
 
         db = Room.inMemoryDatabaseBuilder(InstrumentationRegistry.getContext(),
-                AppDatabase::class.java)
+                UlaDatabase::class.java)
                 .allowMainThreadQueries()
                 .build()
         db.filesystemDao().insertFilesystem(Filesystem(0, name = DEFAULT_FS_NAME))
