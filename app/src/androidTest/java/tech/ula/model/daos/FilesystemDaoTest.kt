@@ -11,7 +11,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import tech.ula.model.repositories.AppDatabase
+import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Filesystem
 
 @RunWith(AndroidJUnit4::class)
@@ -20,12 +20,12 @@ class FilesystemDaoTest {
     @get:Rule
     val instantExecutorRule = InstantTaskExecutorRule()
 
-    private lateinit var db: AppDatabase
+    private lateinit var db: UlaDatabase
 
     @Before
     fun initDb() {
         db = Room.inMemoryDatabaseBuilder(InstrumentationRegistry.getContext(),
-                AppDatabase::class.java)
+                UlaDatabase::class.java)
                 .allowMainThreadQueries()
                 .build()
     }

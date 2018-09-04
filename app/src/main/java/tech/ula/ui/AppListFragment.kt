@@ -9,21 +9,21 @@ import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
 import kotlinx.android.synthetic.main.frag_app_list.*
 import tech.ula.R
-import tech.ula.model.entities.Application
+import tech.ula.model.entities.App
 import tech.ula.utils.launchAsync
 import tech.ula.viewmodel.AppListViewModel
 class AppListFragment : Fragment() {
 
     private lateinit var activityContext: Activity
 
-    private lateinit var appList: List<Application>
+    private lateinit var appList: List<App>
     private lateinit var appAdapter: AppListAdapter
 
     private val appListViewModel: AppListViewModel by lazy {
         ViewModelProviders.of(this).get(AppListViewModel::class.java)
     }
 
-    private val appChangeObserver = Observer<List<Application>> {
+    private val appChangeObserver = Observer<List<App>> {
         it?.let {
             appList = it
             appAdapter = AppListAdapter(activityContext, appList)
@@ -89,10 +89,10 @@ class AppListFragment : Fragment() {
     private fun insertApp(): Boolean {
 
         val randomId = (1..20).shuffled().last().toLong()
-        val newApp = Application(id = randomId, name = "NAME$randomId", category = "CATEGORY$randomId", isPaidApplication = true)
+        val newApp = App(id = randomId, name = "NAME$randomId", category = "CATEGORY$randomId", isPaidApplication = true)
 
         launchAsync {
-            appListViewModel.insertApplication(application = newApp)
+            appListViewModel.insertApplication(newApp)
         }
 
         return true

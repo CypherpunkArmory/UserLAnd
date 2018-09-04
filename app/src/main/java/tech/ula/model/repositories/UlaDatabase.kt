@@ -6,26 +6,26 @@ import android.arch.persistence.room.Room
 import android.arch.persistence.room.RoomDatabase
 import android.arch.persistence.room.migration.Migration
 import android.content.Context
-import tech.ula.model.daos.ApplicationDao
+import tech.ula.model.daos.AppsDao
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
-import tech.ula.model.entities.Application
+import tech.ula.model.entities.App
 
-@Database(entities = [Session::class, Filesystem::class, Application::class], version = 3, exportSchema = true)
-abstract class AppDatabase : RoomDatabase() {
+@Database(entities = [Session::class, Filesystem::class, App::class], version = 3, exportSchema = true)
+abstract class UlaDatabase : RoomDatabase() {
 
     abstract fun sessionDao(): SessionDao
     abstract fun filesystemDao(): FilesystemDao
-    abstract fun applicationDao(): ApplicationDao
+    abstract fun appsDao(): AppsDao
 
     companion object {
 
         @Volatile
-        private var INSTANCE: AppDatabase? = null
+        private var INSTANCE: UlaDatabase? = null
 
-        fun getInstance(context: Context): AppDatabase =
+        fun getInstance(context: Context): UlaDatabase =
                 INSTANCE ?: synchronized(this) {
                     INSTANCE
                             ?: buildDatabase(context).also { INSTANCE = it }
@@ -33,7 +33,7 @@ abstract class AppDatabase : RoomDatabase() {
 
         private fun buildDatabase(context: Context) =
                 Room.databaseBuilder(context.applicationContext,
-                        AppDatabase::class.java, "Data.db")
+                        UlaDatabase::class.java, "Data.db")
                         .addMigrations(Migration1To2(), Migration2To3())
                         .build()
     }
@@ -51,7 +51,7 @@ class Migration1To2 : Migration(1, 2) {
 
 class Migration2To3 : Migration(2, 3) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("CREATE TABLE application (" +
+        database.execSQL("CREATE TABLE apps (" +
                 "name TEXT NOT NULL, " +
                 "id INTEGER NOT NULL, " +
                 "category TEXT NOT NULL, " +
@@ -64,6 +64,6 @@ class Migration2To3 : Migration(2, 3) {
                 "userHasPurchased INTEGER NOT NULL, " +
                 "PRIMARY KEY(`id`))")
 
-        database.execSQL("CREATE UNIQUE INDEX index_application_name ON application (name)")
+        database.execSQL("CREATE UNIQUE INDEX index_apps_name ON apps (name)")
     }
 }

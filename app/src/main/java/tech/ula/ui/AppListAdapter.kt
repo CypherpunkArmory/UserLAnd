@@ -9,9 +9,9 @@ import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.TextView
 import tech.ula.R
-import tech.ula.model.entities.Application
+import tech.ula.model.entities.App
 
-class AppListAdapter(private var activity: Activity, private var items: List<Application>) : BaseAdapter() {
+class AppListAdapter(private var activity: Activity, private var items: List<App>) : BaseAdapter() {
     private class ViewHolder(row: View) {
         var imageViewActive: ImageView = row.findViewById(R.id.image_list_item_active)
         var textViewServiceType: TextView = row.findViewById(R.id.text_list_item_service_type)
@@ -49,7 +49,7 @@ class AppListAdapter(private var activity: Activity, private var items: List<App
         return view as View
     }
 
-    override fun getItem(position: Int): Application {
+    override fun getItem(position: Int): App {
         return items[position]
     }
 
