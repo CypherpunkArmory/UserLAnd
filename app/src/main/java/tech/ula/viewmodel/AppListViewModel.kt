@@ -29,7 +29,7 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
 
     // TODO: Implement
     fun getAppsByName(name: String): App {
-        return App(id = 0)
+        return App(name)
     }
 
     suspend fun insertApplication(app: App): Boolean {

@@ -89,7 +89,7 @@ class AppListFragment : Fragment() {
     private fun insertApp(): Boolean {
 
         val randomId = (1..20).shuffled().last().toLong()
-        val newApp = App(id = randomId, name = "NAME$randomId", category = "CATEGORY$randomId", isPaidApplication = true)
+        val newApp = App(name = "NAME$randomId", category = "CATEGORY$randomId", isPaidApplication = true)
 
         launchAsync {
             appListViewModel.insertApplication(newApp)

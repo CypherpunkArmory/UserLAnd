@@ -53,16 +53,12 @@ class Migration2To3 : Migration(2, 3) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("CREATE TABLE apps (" +
                 "name TEXT NOT NULL, " +
-                "id INTEGER NOT NULL, " +
                 "category TEXT NOT NULL, " +
                 "supportsCli INTEGER NOT NULL, " +
                 "supportsGui INTEGER NOT NULL, " +
-                "script TEXT NOT NULL, " +
-                "icon TEXT NOT NULL, " +
-                "remoteTimestamp INTEGER NOT NULL, " +
                 "isPaidApplication INTEGER NOT NULL, " +
-                "userHasPurchased INTEGER NOT NULL, " +
-                "PRIMARY KEY(`id`))")
+                "version INTEGER NOT NULL, " +
+                "PRIMARY KEY(`name`))")
 
         database.execSQL("CREATE UNIQUE INDEX index_apps_name ON apps (name)")
     }
