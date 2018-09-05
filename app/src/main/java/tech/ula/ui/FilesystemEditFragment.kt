@@ -14,6 +14,7 @@ import android.widget.AdapterView
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_edit.* // ktlint-disable no-wildcard-imports
+import kotlinx.coroutines.experimental.launch
 import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
@@ -97,14 +98,11 @@ class FilesystemEditFragment : Fragment() {
         }
 
         restore_filesystem_button.setOnClickListener {
-
             val intent = Intent(Intent.ACTION_GET_CONTENT)
             //intent.type = "file/*"
             //intent.type = "application/gzip"
             intent.type = "*/*"
             startActivityForResult(intent,  0)
-            startActivity(intent)
-
         }
     }
 
@@ -114,11 +112,13 @@ class FilesystemEditFragment : Fragment() {
             //Uri return from external activity
             val orgUri = data!!.data
             if (orgUri != null) {
-                try {
-                    filesystemUtility.restoreFilesystemByLocation("/support",activity = activityContext, backupUri = orgUri, restoreDirName = "${filesystem.id}")
-                } catch (e: Exception) {
-                    Toast.makeText(activityContext, e.message, Toast.LENGTH_LONG).show()
-                }
+                launch { async {
+                    try {
+                        filesystemUtility.restoreFilesystemByLocation("/support", activity = activityContext, backupUri = orgUri, restoreDirName = "${filesystem.id}")
+                    } catch (e: Exception) {
+                        Toast.makeText(activityContext, e.message, Toast.LENGTH_LONG).show()
+                    }
+                }}
             } else {
                 Toast.makeText(activityContext, R.string.error_restore_no_filesystem, Toast.LENGTH_LONG).show()
             }

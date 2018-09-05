@@ -161,10 +161,13 @@ class FilesystemUtility(
         val restoreDirNameTmp = "${restoreDirName}.restore.tmp"
         val restoreFileTmp = "${applicationFilesDirPath}/${restoreFileNameTmp}"
         val restoreDirTmp = "${applicationFilesDirPath}/${restoreDirNameTmp}"
+        val restoreDirTmpContentDir = "${restoreDirTmp}/${restoreDirName}"
         val filesystemDir = "${applicationFilesDirPath}/${restoreDirName}"
-        val commandExtract = "rm -rf ${restoreDirTmp} && tar xpvzf ${restoreFileTmp} -C ${restoreDirTmp} && rm -rf ${filesystemDir} && mv ${restoreDirTmp} ${filesystemDir}"
+        val commandExtract = "rm -rf ${restoreDirTmp} && mkdir ${restoreDirTmp} && tar xpvzf ${restoreFileTmp} -C ${restoreDirTmp} && rm -rf ${filesystemDir} && mv ${restoreDirTmpContentDir} ${filesystemDir}"
         copyFileFromUri(context = activity, saveFilePath = restoreFileTmp, fileUri = backupUri)
         //backFile.copyTo(File(restoreFileTmp), overwrite = true)
         execUtility.wrapWithBusyboxAndExecute(execDirectory, commandExtract, doWait = true)
+        File(restoreDirTmp).deleteRecursively()
+        File(restoreFileTmp).deleteRecursively()
     }
 }

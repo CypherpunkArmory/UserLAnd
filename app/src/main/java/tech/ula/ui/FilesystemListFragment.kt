@@ -19,6 +19,7 @@ import android.net.Uri
 import android.os.Environment
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import android.widget.Toast
+import kotlinx.coroutines.experimental.launch
 import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.utils.ExecUtility
 
@@ -112,14 +113,16 @@ class FilesystemListFragment : Fragment() {
     }
 
     private fun backupFilesystem(filesystem: Filesystem): Boolean {
-        try {
-            // TODO exec only if session is not running and block starting session if backup or restore is in progress
-            // TODO progress notification
-            val backupLocation = "${filesystem.id}.tar.gz"
-            filesystemUtility.backupFilesystemByLocation("/support","${filesystem.id}", "${backupLocation}", Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS))
-        } catch (e: Exception){
-            Toast.makeText(activityContext, e.message, Toast.LENGTH_LONG).show()
-        }
+        launch { async {
+            try {
+                // TODO exec only if session is not running and block starting session if backup or restore is in progress
+                // TODO progress notification
+                val backupLocation = "${filesystem.id}.tar.gz"
+                filesystemUtility.backupFilesystemByLocation("/support", "${filesystem.id}", "${backupLocation}", Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS))
+            } catch (e: Exception) {
+                Toast.makeText(activityContext, e.message, Toast.LENGTH_LONG).show()
+            }
+        }}
         return true
     }
 }
