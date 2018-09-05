@@ -11,6 +11,6 @@ data class App(
     var category: String = "",
     var supportsCli: Boolean = false,
     var supportsGui: Boolean = false,
-    var isPaidApplication: Boolean = false,
+    var isPaidApp: Boolean = false,
     var version: Long = 0
 )
