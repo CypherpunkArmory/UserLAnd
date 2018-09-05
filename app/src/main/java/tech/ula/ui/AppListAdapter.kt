@@ -44,7 +44,6 @@ class AppListAdapter(private var activity: Activity, private var items: List<App
 
         viewHolder.textViewServiceType.text = app.category
         viewHolder.textViewSessionName.text = app.name
-        viewHolder.textViewFilesystemName.text = app.script
 
         return view as View
     }

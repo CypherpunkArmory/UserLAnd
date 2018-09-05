@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "c06e3c16a03e451202423df503a724f6",
+    "identityHash": "ffd7c1be27f018b51221636d8fbfd942",
     "entities": [
       {
         "tableName": "session",
@@ -240,14 +240,8 @@
       },
       {
         "tableName": "apps",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `category` TEXT NOT NULL, `supportsCli` INTEGER NOT NULL, `supportsGui` INTEGER NOT NULL, `script` TEXT NOT NULL, `icon` TEXT NOT NULL, `remoteTimestamp` INTEGER NOT NULL, `isPaidApplication` INTEGER NOT NULL, `userHasPurchased` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `category` TEXT NOT NULL, `supportsCli` INTEGER NOT NULL, `supportsGui` INTEGER NOT NULL, `version` INTEGER NOT NULL, `isPaidApplication` INTEGER NOT NULL, PRIMARY KEY(`name`))",
         "fields": [
-          {
-            "fieldPath": "id",
-            "columnName": "id",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
           {
             "fieldPath": "name",
             "columnName": "name",
@@ -273,20 +267,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "script",
-            "columnName": "script",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "icon",
-            "columnName": "icon",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "remoteTimestamp",
-            "columnName": "remoteTimestamp",
+            "fieldPath": "version",
+            "columnName": "version",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -295,19 +277,13 @@
             "columnName": "isPaidApplication",
             "affinity": "INTEGER",
             "notNull": true
-          },
-          {
-            "fieldPath": "userHasPurchased",
-            "columnName": "userHasPurchased",
-            "affinity": "INTEGER",
-            "notNull": true
           }
         ],
         "primaryKey": {
           "columnNames": [
-            "id"
+            "name"
           ],
-          "autoGenerate": true
+          "autoGenerate": false
         },
         "indices": [
           {
@@ -324,7 +300,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"c06e3c16a03e451202423df503a724f6\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"ffd7c1be27f018b51221636d8fbfd942\")"
     ]
   }
 }
