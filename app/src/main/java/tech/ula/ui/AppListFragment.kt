@@ -10,8 +10,12 @@ import android.widget.AdapterView
 import kotlinx.android.synthetic.main.frag_app_list.*
 import tech.ula.R
 import tech.ula.model.entities.App
-import tech.ula.utils.launchAsync
+import tech.ula.model.remote.GithubAppsFetcher
+import tech.ula.model.repositories.AppsRepository
+import tech.ula.model.repositories.UlaDatabase
 import tech.ula.viewmodel.AppListViewModel
+import tech.ula.viewmodel.AppListViewModelFactory
+
 class AppListFragment : Fragment() {
 
     private lateinit var activityContext: Activity
@@ -20,7 +24,9 @@ class AppListFragment : Fragment() {
     private lateinit var appAdapter: AppListAdapter
 
     private val appListViewModel: AppListViewModel by lazy {
-        ViewModelProviders.of(this).get(AppListViewModel::class.java)
+        val ulaDatabase = UlaDatabase.getInstance(activityContext)
+        val appsRepository = AppsRepository(ulaDatabase, GithubAppsFetcher())
+        ViewModelProviders.of(this, AppListViewModelFactory(appsRepository)).get(AppListViewModel::class.java)
     }
 
     private val appChangeObserver = Observer<List<App>> {
@@ -42,7 +48,6 @@ class AppListFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        insertApp()
         return super.onOptionsItemSelected(item)
     }
 
@@ -53,9 +58,9 @@ class AppListFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+        activityContext = activity!!
         appListViewModel.getAllApps().observe(viewLifecycleOwner, appChangeObserver)
 
-        activityContext = activity!!
 
         registerForContextMenu(list_apps)
         list_apps.onItemClickListener = AdapterView.OnItemClickListener {
@@ -70,7 +75,7 @@ class AppListFragment : Fragment() {
         super.onCreateContextMenu(menu, v, menuInfo)
         val app = appList[info.position]
         when {
-            app.isPaidApplication ->
+            app.isPaidApp ->
                 activityContext.menuInflater.inflate(R.menu.context_menu_active_sessions, menu)
             else ->
                 activityContext.menuInflater.inflate(R.menu.context_menu_inactive_sessions, menu)
@@ -83,18 +88,6 @@ class AppListFragment : Fragment() {
         val app = appList[position]
 
         super.onContextItemSelected(item)
-        return true
-    }
-
-    private fun insertApp(): Boolean {
-
-        val randomId = (1..20).shuffled().last().toLong()
-        val newApp = App(name = "NAME$randomId", category = "CATEGORY$randomId", isPaidApplication = true)
-
-        launchAsync {
-            appListViewModel.insertApplication(newApp)
-        }
-
         return true
     }
 }

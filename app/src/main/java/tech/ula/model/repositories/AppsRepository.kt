@@ -20,19 +20,23 @@ class AppsRepository(private val ulaDatabase: UlaDatabase, private val remoteApp
     }
 
     fun refreshData() {
-        currentStatus = UpdateStatus.ACTIVE
+        setStatus(UpdateStatus.ACTIVE)
         launch(CommonPool) {
             asyncAwait {
                 remoteAppsSource.fetchAppsList().forEach {
                     ulaDatabase.appsDao().insertApp(it)
                 }
             }
-            currentStatus = UpdateStatus.INACTIVE
+            setStatus(UpdateStatus.INACTIVE)
         }
     }
 
     fun getStatus(): UpdateStatus {
         return currentStatus
+    }
+
+    fun setStatus(status: UpdateStatus) {
+        currentStatus = status
     }
 }
 

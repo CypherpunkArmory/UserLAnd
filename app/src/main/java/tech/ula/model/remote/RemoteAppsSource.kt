@@ -17,12 +17,12 @@ interface RemoteAppsSource {
     suspend fun fetchAppScript(): File
 }
 
-class githubAppsFetcher(private val connectionUtility: ConnectionUtility = ConnectionUtility()) : RemoteAppsSource {
+class GithubAppsFetcher(private val connectionUtility: ConnectionUtility = ConnectionUtility()) : RemoteAppsSource {
 
     // Allows destructing of the list of application elements
     operator fun <T> List<T>.component6() = get(5)
 
-    private val baseUrl = "://github.com/CypherpunkArmory/UserLAnd-Assets-Support/raw/master"
+    private val baseUrl = "://github.com/CypherpunkArmory/UserLAnd-Assets-Support/raw/staging" // TODO change to master
     private var protocol = "https"
 
     @Throws
@@ -30,12 +30,12 @@ class githubAppsFetcher(private val connectionUtility: ConnectionUtility = Conne
         val appsList = ArrayList<App>()
 
         val url = "$protocol$baseUrl/applications/applications.txt"
+        val numLinesToSkip = 1 // Skip first line defining schema
         return try {
             val reader = BufferedReader(InputStreamReader(connectionUtility.getUrlInputStream(url)))
-            reader.readLine() // Skip first line
-            reader.forEachLine {
+            reader.readLines().drop(numLinesToSkip).forEach {
                 val (name, category, supportsCli, supportsGui, isPaidApp, version) =
-                        it.split(",")
+                        it.split(", ")
                 appsList.add(
                         App(name, category, supportsCli.toBoolean(), supportsGui.toBoolean(),
                                 isPaidApp.toBoolean(), version.toLong()))

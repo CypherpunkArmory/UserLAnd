@@ -34,7 +34,7 @@ class AppListAdapter(private var activity: Activity, private var items: List<App
 
         val app = items[position]
 
-        if (app.isPaidApplication) {
+        if (app.isPaidApp) {
             viewHolder.imageViewActive.setImageResource(R.drawable.ic_check_circle_green_24dp)
             viewHolder.imageViewActive.contentDescription = activity.getString(R.string.desc_active)
         } else {
