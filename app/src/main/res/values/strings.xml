@@ -14,6 +14,7 @@
     <!-- Context Menus -->
     <string name="kill_service">Kill Service</string>
     <string name="edit">Edit</string>
+    <string name="backup">Backup</string>
     <string name="delete">Delete</string>
     <string name="save">Save</string>
     <string name="add">Add</string>
@@ -28,6 +29,7 @@
     <string name="error_filesystem_name">You must provide a filesystem name</string>
     <string name="error_username">You must provide a username</string>
     <string name="error_empty_field">Each field must be entered!</string>
+    <string name="error_restore_no_filesystem">No file selected</string>
 
     <!-- Prompts -->
     <string name="prompt_filesystem">Filesystem:</string>

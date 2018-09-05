@@ -5,6 +5,9 @@
         android:id="@+id/menu_item_filesystem_edit"
         android:title="@string/edit" />
     <item
+        android:id="@+id/menu_item_filesystem_backup"
+        android:title="@string/backup" />
+    <item
         android:id="@+id/menu_item_filesystem_delete"
         android:title="@string/delete" />
 

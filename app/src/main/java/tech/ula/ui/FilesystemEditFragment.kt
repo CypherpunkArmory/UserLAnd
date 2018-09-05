@@ -1,8 +1,11 @@
 package tech.ula.ui
 
 import android.app.Activity
+import android.app.Activity.RESULT_OK
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Intent
 import android.os.Bundle
+import android.os.Environment
 import android.support.v4.app.Fragment
 import android.text.Editable
 import android.text.TextWatcher
@@ -11,6 +14,8 @@ import android.widget.AdapterView
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_edit.* // ktlint-disable no-wildcard-imports
+import kotlinx.coroutines.experimental.launch
+import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
@@ -31,6 +36,16 @@ class FilesystemEditFragment : Fragment() {
     private val filesystemEditViewModel: FilesystemEditViewModel by lazy {
         ViewModelProviders.of(this).get(FilesystemEditViewModel::class.java)
     }
+
+    private val execUtility: ExecUtility by lazy {
+        val externalStoragePath = Environment.getExternalStorageDirectory().absolutePath
+        ExecUtility(activityContext.filesDir.path, externalStoragePath, DefaultPreferences(activityContext.defaultSharedPreferences))
+    }
+
+    private val filesystemUtility by lazy {
+        FilesystemUtility(activityContext.filesDir.path, execUtility)
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,6 +94,33 @@ class FilesystemEditFragment : Fragment() {
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 filesystem.distributionType = parent?.getItemAtPosition(position).toString()
+            }
+        }
+
+        restore_filesystem_button.setOnClickListener {
+            val intent = Intent(Intent.ACTION_GET_CONTENT)
+            //intent.type = "file/*"
+            //intent.type = "application/gzip"
+            intent.type = "*/*"
+            startActivityForResult(intent,  0)
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == RESULT_OK) {
+            //Uri return from external activity
+            val orgUri = data!!.data
+            if (orgUri != null) {
+                launch { async {
+                    try {
+                        filesystemUtility.restoreFilesystemByLocation("/support", activity = activityContext, backupUri = orgUri, restoreDirName = "${filesystem.id}")
+                    } catch (e: Exception) {
+                        Toast.makeText(activityContext, e.message, Toast.LENGTH_LONG).show()
+                    }
+                }}
+            } else {
+                Toast.makeText(activityContext, R.string.error_restore_no_filesystem, Toast.LENGTH_LONG).show()
             }
         }
     }

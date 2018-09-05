@@ -3,6 +3,7 @@ package tech.ula.ui
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
+import android.arch.lifecycle.LifecycleOwner
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.BroadcastReceiver
@@ -120,8 +121,8 @@ class SessionListFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        sessionListViewModel.getAllSessions().observe(viewLifecycleOwner, sessionChangeObserver)
-        sessionListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
+        sessionListViewModel.getAllSessions().observe(this ,sessionChangeObserver)
+        sessionListViewModel.getAllFilesystems().observe(this ,filesystemChangeObserver)
 
         activityContext = activity!!
 
