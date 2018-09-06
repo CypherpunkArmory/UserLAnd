@@ -2,15 +2,12 @@ package tech.ula.model.repositories
 
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
-import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
-import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
-import tech.ula.model.entities.App
 import tech.ula.model.remote.RemoteAppsSource
 
 @RunWith(MockitoJUnitRunner::class)

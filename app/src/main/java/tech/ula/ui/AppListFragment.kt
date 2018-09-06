@@ -61,7 +61,6 @@ class AppListFragment : Fragment() {
         activityContext = activity!!
         appListViewModel.getAllApps().observe(viewLifecycleOwner, appChangeObserver)
 
-
         registerForContextMenu(list_apps)
         list_apps.onItemClickListener = AdapterView.OnItemClickListener {
             _, _, position, _ ->
