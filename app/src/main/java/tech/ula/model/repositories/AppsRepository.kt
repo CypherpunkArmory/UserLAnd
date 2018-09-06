@@ -2,6 +2,7 @@ package tech.ula.model.repositories
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
+import android.util.Log
 import tech.ula.model.daos.AppsDao
 import tech.ula.model.entities.App
 import tech.ula.model.remote.RemoteAppsSource
@@ -19,15 +20,21 @@ class AppsRepository(private val appsDao: AppsDao, private val remoteAppsSource:
         return appsDao.getAppByName(name)
     }
 
+    // TODO download images and descriptions. skip cached?
     suspend fun refreshData() {
         asyncAwait {
             refreshStatus.postValue(RefreshStatus.ACTIVE)
             try {
                 remoteAppsSource.fetchAppsList().forEach {
-                    appsDao.insertApp(it)
+                    app ->
+                    appsDao.insertApp(app)
+                    remoteAppsSource.fetchAppIcon(app)
+                    remoteAppsSource.fetchAppDescription(app)
+                    remoteAppsSource.fetchAppScript(app)
                 }
             } catch (err: Exception) {
                 refreshStatus.postValue(RefreshStatus.FAILED)
+                Log.e("refresh", err.message)
                 return@asyncAwait
             }
             refreshStatus.postValue(RefreshStatus.FINISHED)

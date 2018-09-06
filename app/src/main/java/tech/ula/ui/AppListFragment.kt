@@ -25,7 +25,7 @@ class AppListFragment : Fragment() {
 
     private val appListViewModel: AppListViewModel by lazy {
         val ulaDatabase = UlaDatabase.getInstance(activityContext)
-        val appsRepository = AppsRepository(ulaDatabase.appsDao(), GithubAppsFetcher())
+        val appsRepository = AppsRepository(ulaDatabase.appsDao(), GithubAppsFetcher("${activityContext.filesDir}"))
         ViewModelProviders.of(this, AppListViewModelFactory(appsRepository)).get(AppListViewModel::class.java)
     }
 
