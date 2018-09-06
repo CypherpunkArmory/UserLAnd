@@ -1,45 +1,44 @@
 package tech.ula.model.repositories
 
 import android.arch.lifecycle.LiveData
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.launch
+import android.arch.lifecycle.MutableLiveData
+import tech.ula.model.daos.AppsDao
 import tech.ula.model.entities.App
 import tech.ula.model.remote.RemoteAppsSource
 import tech.ula.utils.asyncAwait
 
-class AppsRepository(private val ulaDatabase: UlaDatabase, private val remoteAppsSource: RemoteAppsSource) {
+class AppsRepository(private val appsDao: AppsDao, private val remoteAppsSource: RemoteAppsSource) {
 
-    private var currentStatus = UpdateStatus.INACTIVE
+    private val refreshStatus = MutableLiveData<RefreshStatus>()
 
     fun getAllApps(): LiveData<List<App>> {
-        return ulaDatabase.appsDao().getAllApps()
+        return appsDao.getAllApps()
     }
 
     fun getAppByName(name: String): App {
-        return ulaDatabase.appsDao().getAppByName(name)
+        return appsDao.getAppByName(name)
     }
 
-    fun refreshData() {
-        setStatus(UpdateStatus.ACTIVE)
-        launch(CommonPool) {
-            asyncAwait {
+    suspend fun refreshData() {
+        asyncAwait {
+            refreshStatus.postValue(RefreshStatus.ACTIVE)
+            try {
                 remoteAppsSource.fetchAppsList().forEach {
-                    ulaDatabase.appsDao().insertApp(it)
+                    appsDao.insertApp(it)
                 }
+            } catch (err: Exception) {
+                refreshStatus.postValue(RefreshStatus.FAILED)
+                return@asyncAwait
             }
-            setStatus(UpdateStatus.INACTIVE)
+            refreshStatus.postValue(RefreshStatus.FINISHED)
         }
     }
 
-    fun getStatus(): UpdateStatus {
-        return currentStatus
-    }
-
-    fun setStatus(status: UpdateStatus) {
-        currentStatus = status
+    fun getRefreshStatus(): LiveData<RefreshStatus> {
+        return refreshStatus
     }
 }
 
-enum class UpdateStatus {
-    ACTIVE, INACTIVE
+enum class RefreshStatus {
+    ACTIVE, FINISHED, FAILED
 }

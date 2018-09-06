@@ -25,7 +25,7 @@ class AppListFragment : Fragment() {
 
     private val appListViewModel: AppListViewModel by lazy {
         val ulaDatabase = UlaDatabase.getInstance(activityContext)
-        val appsRepository = AppsRepository(ulaDatabase, GithubAppsFetcher())
+        val appsRepository = AppsRepository(ulaDatabase.appsDao(), GithubAppsFetcher())
         ViewModelProviders.of(this, AppListViewModelFactory(appsRepository)).get(AppListViewModel::class.java)
     }
 
@@ -60,7 +60,6 @@ class AppListFragment : Fragment() {
 
         activityContext = activity!!
         appListViewModel.getAllApps().observe(viewLifecycleOwner, appChangeObserver)
-
 
         registerForContextMenu(list_apps)
         list_apps.onItemClickListener = AdapterView.OnItemClickListener {
