@@ -2,7 +2,6 @@ package tech.ula.ui
 
 import android.app.Activity
 import android.content.Context
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,8 +23,6 @@ class AppListAdapter(private var activity: Activity, private var items: List<App
         if (convertView == null) {
             val inflater = activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
             view = inflater.inflate(R.layout.list_item_app, parent, false)
-
-            view.setBackgroundColor(Color.parseColor("#2f5ff1"))
 
             viewHolder = ViewHolder(view)
             view?.tag = viewHolder

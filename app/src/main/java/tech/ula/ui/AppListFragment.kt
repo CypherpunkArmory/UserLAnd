@@ -7,7 +7,9 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
+import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_app_list.*
+import org.jetbrains.anko.bundleOf
 import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.model.remote.GithubAppsFetcher
@@ -65,7 +67,9 @@ class AppListFragment : Fragment() {
         list_apps.onItemClickListener = AdapterView.OnItemClickListener {
             _, _, position, _ ->
             val selectedApp = appList[position]
-            println("Clicked on APP: ${selectedApp.name}")
+
+            // TODO: Only show if not installed
+            showAppDetails(app = selectedApp)
         }
     }
 
@@ -79,7 +83,15 @@ class AppListFragment : Fragment() {
         val position = menuInfo.position
         val app = appList[position]
 
-        super.onContextItemSelected(item)
+        return when (item.itemId) {
+            R.id.menu_item_app_details -> showAppDetails(app)
+            else -> super.onContextItemSelected(item)
+        }
+    }
+
+    private fun showAppDetails(app: App): Boolean {
+        val bundle = bundleOf("app" to app)
+        NavHostFragment.findNavController(this).navigate(R.id.menu_item_app_details, bundle)
         return true
     }
 }
