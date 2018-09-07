@@ -43,13 +43,5 @@ class AppsRepositoryTest {
 
     @Test
     fun updatesStatusWhileFetchingRemoteApps() {
-//        whenever(runBlocking { remoteAppsSource.fetchAppsList() }).thenReturn(listOf())
-
-        runBlocking {
-            launch {
-                whenever(remoteAppsSource.fetchAppsList()).thenReturn(listOf())
-                appsRepository.refreshData()
-            }.join()
-        }
     }
 }

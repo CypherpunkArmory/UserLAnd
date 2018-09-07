@@ -15,7 +15,6 @@ class SessionController(
 ) {
 
     fun getAssetLists(): List<List<Asset>> {
-
         return try {
             assetRepository.retrieveAllRemoteAssetLists()
         } catch (err: Exception) {

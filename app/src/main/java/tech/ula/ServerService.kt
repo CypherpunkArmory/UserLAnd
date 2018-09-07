@@ -14,6 +14,7 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.doAsync
+import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Filesystem
@@ -101,8 +102,8 @@ class ServerService : Service() {
                 val filesystem: Filesystem = intent.getParcelableExtra("filesystem")
                 startSession(session, filesystem, forceDownloads = false)
             }
-            "forceDownloads" -> {
-                startSession(lastActivatedSession, lastActivatedFilesystem, forceDownloads = true)
+            "startApp" -> {
+                val app: App = intent.getParcelableExtra("app")
             }
             "restartRunningSession" -> {
                 val session: Session = intent.getParcelableExtra("session")
