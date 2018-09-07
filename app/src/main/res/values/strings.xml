@@ -13,6 +13,7 @@
     <string name="toc">Terms &amp; Conditions</string>
 
     <!-- Context Menus -->
+    <string name="app_info">App Info</string>
     <string name="kill_service">Kill Service</string>
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>

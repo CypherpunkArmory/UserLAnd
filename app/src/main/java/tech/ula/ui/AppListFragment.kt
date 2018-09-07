@@ -70,15 +70,8 @@ class AppListFragment : Fragment() {
     }
 
     override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo) {
-        val info = menuInfo as AdapterView.AdapterContextMenuInfo
         super.onCreateContextMenu(menu, v, menuInfo)
-        val app = appList[info.position]
-        when {
-            app.isPaidApp ->
-                activityContext.menuInflater.inflate(R.menu.context_menu_active_sessions, menu)
-            else ->
-                activityContext.menuInflater.inflate(R.menu.context_menu_inactive_sessions, menu)
-        }
+        activityContext.menuInflater.inflate(R.menu.context_menu_app_description, menu)
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
