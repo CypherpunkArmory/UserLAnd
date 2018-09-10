@@ -79,7 +79,7 @@ class AppListFragment : Fragment() {
                 SwipeRefreshLayout.OnRefreshListener {
                     appListViewModel.refreshAppsList()
                     while (appListViewModel.getRefreshStatus() == RefreshStatus.ACTIVE) {
-                        Thread.sleep(2000)
+                        Thread.sleep(500)
                     }
 
                     setPulldownPromptVisibilityForAppList()
