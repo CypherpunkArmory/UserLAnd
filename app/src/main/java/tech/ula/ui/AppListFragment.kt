@@ -7,15 +7,20 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v4.widget.SwipeRefreshLayout
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
+import android.widget.TextView
+import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_app_list.*
 import tech.ula.OnFragmentDataPassed
+import org.jetbrains.anko.bundleOf
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.App
 import tech.ula.model.remote.GithubAppsFetcher
 import tech.ula.model.repositories.AppsRepository
+import tech.ula.model.repositories.RefreshStatus
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.arePermissionsGranted
 import tech.ula.viewmodel.AppListViewModel
@@ -40,6 +45,7 @@ class AppListFragment : Fragment() {
             appList = it
             appAdapter = AppListAdapter(activityContext, appList)
             list_apps.adapter = appAdapter
+            setPulldownPromptVisibilityForAppList()
         }
     }
 
@@ -68,10 +74,8 @@ class AppListFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-
         activityContext = activity!!
         appListViewModel.getAllApps().observe(viewLifecycleOwner, appChangeObserver)
-
         registerForContextMenu(list_apps)
         list_apps.onItemClickListener = AdapterView.OnItemClickListener {
             _, _, position, _ ->
@@ -85,20 +89,38 @@ class AppListFragment : Fragment() {
                 activityContext.startService(serviceIntent)
             } else {
                 passDataToActivity("permissionsRequired")
+                return
             }
+          
+            // TODO: Only show if not installed
+            showAppDetails(app = selectedApp)
+        }
+
+        val swipeLayout = activityContext.findViewById<SwipeRefreshLayout>(R.id.swipe_refresh)
+        swipeLayout.setOnRefreshListener(
+                SwipeRefreshLayout.OnRefreshListener {
+                    appListViewModel.refreshAppsList()
+                    while (appListViewModel.getRefreshStatus() == RefreshStatus.ACTIVE) {
+                        Thread.sleep(500)
+                    }
+
+                    setPulldownPromptVisibilityForAppList()
+                    swipeLayout.isRefreshing = false
+                }
+        )
+    }
+
+    fun setPulldownPromptVisibilityForAppList() {
+        val empty_apps = activityContext.findViewById<TextView>(R.id.empty_apps_list)
+        empty_apps.visibility = when (appList.isEmpty()) {
+            true -> View.VISIBLE
+            false -> View.INVISIBLE
         }
     }
 
     override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo) {
-        val info = menuInfo as AdapterView.AdapterContextMenuInfo
         super.onCreateContextMenu(menu, v, menuInfo)
-        val app = appList[info.position]
-        when {
-            app.isPaidApp ->
-                activityContext.menuInflater.inflate(R.menu.context_menu_active_sessions, menu)
-            else ->
-                activityContext.menuInflater.inflate(R.menu.context_menu_inactive_sessions, menu)
-        }
+        activityContext.menuInflater.inflate(R.menu.context_menu_app_description, menu)
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
@@ -106,7 +128,15 @@ class AppListFragment : Fragment() {
         val position = menuInfo.position
         val app = appList[position]
 
-        super.onContextItemSelected(item)
+        return when (item.itemId) {
+            R.id.menu_item_app_details -> showAppDetails(app)
+            else -> super.onContextItemSelected(item)
+        }
+    }
+
+    private fun showAppDetails(app: App): Boolean {
+        val bundle = bundleOf("app" to app)
+        NavHostFragment.findNavController(this).navigate(R.id.menu_item_app_details, bundle)
         return true
     }
 

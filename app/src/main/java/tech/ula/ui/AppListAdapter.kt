@@ -23,6 +23,7 @@ class AppListAdapter(private var activity: Activity, private var items: List<App
         if (convertView == null) {
             val inflater = activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
             view = inflater.inflate(R.layout.list_item_app, parent, false)
+
             viewHolder = ViewHolder(view)
             view?.tag = viewHolder
         } else {
@@ -32,7 +33,7 @@ class AppListAdapter(private var activity: Activity, private var items: List<App
 
         val app = items[position]
 
-        viewHolder.imageView.setImageResource(R.drawable.ic_app_icon_24dp)
+        viewHolder.imageView.setImageResource(R.drawable.octave)
         viewHolder.appName.text = app.name
 
         return view as View
