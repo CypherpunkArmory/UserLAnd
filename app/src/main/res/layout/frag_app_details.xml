@@ -34,14 +34,14 @@
 
     <TextView
         android:id="@+id/apps_description"
-        android:layout_width="wrap_content"
+        android:layout_width="450dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="32dp"
-        android:text="@string/welcome"
+        android:text="GNU Octave is a high-level language, primarily intended for numerical computations. \n\nIt is typically used for such problems as solving linear and nonlinear equations, numerical linear algebra, statistical analysis, and for performing other numerical experiments. \n\nIt may also be used as a batch-oriented language for automated data processing. "
         android:textColor="#FFFFFF"
         android:textSize="16sp"
         android:letterSpacing="0.15"
