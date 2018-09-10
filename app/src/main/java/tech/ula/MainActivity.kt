@@ -8,13 +8,16 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.wifi.WifiManager
 import android.os.Bundle
+import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.animation.AlphaAnimation
 import android.widget.Toast
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination
 import androidx.navigation.Navigation
 import androidx.navigation.findNavController
 import androidx.navigation.ui.NavigationUI
@@ -27,9 +30,10 @@ interface OnFragmentDataPassed {
     fun onFragmentDataPassed(data: String)
 }
 
-class MainActivity : AppCompatActivity(), OnFragmentDataPassed {
+class MainActivity : AppCompatActivity(), NavController.OnNavigatedListener, OnFragmentDataPassed {
 
     private val permissionRequestCode = 1000
+    private var currentFragmentDisplaysProgressDialog = false
 
     private val navController: NavController by lazy {
         findNavController(R.id.nav_host_fragment)
@@ -63,11 +67,23 @@ class MainActivity : AppCompatActivity(), OnFragmentDataPassed {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
         notificationManager.createServiceNotificationChannel() // Android O requirement
+        navController.addOnNavigatedListener { _, destination ->
+            currentFragmentDisplaysProgressDialog =
+                    destination.label == "Sessions" ||
+                    destination.label == "Applications"
+            if (!currentFragmentDisplaysProgressDialog) killProgressBar()
+        }
 
         setupWithNavController(bottom_nav_view, navController)
     }
 
     override fun onSupportNavigateUp() = navController.navigateUp()
+
+    override fun onNavigated(controller: NavController, destination: NavDestination) {
+        val id = destination.id
+        val label = destination.label
+        Log.i("activity", "$id $label")
+    }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_options, menu)
@@ -76,7 +92,8 @@ class MainActivity : AppCompatActivity(), OnFragmentDataPassed {
 
     override fun onStart() {
         super.onStart()
-        registerReceiver(serverServiceBroadcastReceiver, IntentFilter(ServerService.SERVER_SERVICE_RESULT))
+        LocalBroadcastManager.getInstance(this)
+                .registerReceiver(serverServiceBroadcastReceiver, IntentFilter(ServerService.SERVER_SERVICE_RESULT))
     }
 
     override fun onResume() {
@@ -95,7 +112,8 @@ class MainActivity : AppCompatActivity(), OnFragmentDataPassed {
 
     override fun onStop() {
         super.onStop()
-        unregisterReceiver(serverServiceBroadcastReceiver)
+        LocalBroadcastManager.getInstance(this)
+                .unregisterReceiver(serverServiceBroadcastReceiver)
     }
 
     override fun onFragmentDataPassed(data: String) {
@@ -186,6 +204,8 @@ class MainActivity : AppCompatActivity(), OnFragmentDataPassed {
     }
 
     private fun startProgressBar() {
+        if (!currentFragmentDisplaysProgressDialog) return
+
         val inAnimation = AlphaAnimation(0f, 1f)
         inAnimation.duration = 200
         layout_progress.animation = inAnimation
@@ -204,6 +224,8 @@ class MainActivity : AppCompatActivity(), OnFragmentDataPassed {
     }
 
     private fun updateProgressBar(intent: Intent) {
+        if (!currentFragmentDisplaysProgressDialog) return
+
         layout_progress.visibility = View.VISIBLE
         layout_progress.isFocusable = true
         layout_progress.isClickable = true

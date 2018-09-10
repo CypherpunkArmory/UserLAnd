@@ -35,18 +35,18 @@
 
     <android.support.constraint.ConstraintLayout
         android:id="@+id/layout_progress"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:animateLayoutChanges="true"
         android:alpha="0.4"
         android:background="#000000"
         android:visibility="gone"
         android:clickable="true"
         android:focusable="true"
-        app:layout_constraintTop_toTopOf="@+id/nav_host_fragment"
-        app:layout_constraintBottom_toBottomOf="@+id/nav_host_fragment"
-        app:layout_constraintStart_toStartOf="@+id/nav_host_fragment"
-        app:layout_constraintEnd_toEndOf="@+id/nav_host_fragment">
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintBottom_toTopOf="@id/bottom_nav_view"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <ProgressBar
             style="@style/Widget.AppCompat.ProgressBar"
