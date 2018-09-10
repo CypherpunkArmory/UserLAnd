@@ -91,7 +91,7 @@ class AppListFragment : Fragment() {
                 passDataToActivity("permissionsRequired")
                 return
             }
-          
+
             // TODO: Only show if not installed
             showAppDetails(app = selectedApp)
         }
