@@ -12,7 +12,6 @@ import tech.ula.model.entities.App
 
 class AppDetailsFragment : Fragment() {
 
-
     private val app: App by lazy {
         arguments?.getParcelable("app") as App
     }
@@ -27,6 +26,5 @@ class AppDetailsFragment : Fragment() {
         val appsIcon = view.findViewById<ImageView>(R.id.apps_icon)
         appsTitle.setText(app.name)
         appsIcon.setImageResource(R.drawable.octave)
-
     }
 }
