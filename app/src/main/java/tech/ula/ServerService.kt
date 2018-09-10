@@ -226,12 +226,12 @@ class ServerService : Service() {
         val sessionController = SessionController(assetRepository, filesystemUtility)
 
         val filesystemDao = UlaDatabase.getInstance(this).filesystemDao()
-        val appsFilesystem = runBlocking {
+        val appsFilesystem = runBlocking(CommonPool) {
             sessionController.ensureAppsFilesystemIsInDatabase(filesystemDao)
         }
 
         val sessionDao = UlaDatabase.getInstance(this).sessionDao()
-        val appSession = runBlocking {
+        val appSession = runBlocking(CommonPool) {
             sessionController.ensureAppSessionIsInDatabase(app.name, serviceType, appsFilesystem, sessionDao)
         }
 
