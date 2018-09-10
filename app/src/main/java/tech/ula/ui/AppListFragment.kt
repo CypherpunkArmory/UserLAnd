@@ -9,14 +9,19 @@ import android.support.v4.app.Fragment
 import android.support.v4.widget.SwipeRefreshLayout
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
+import android.widget.TextView
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_app_list.*
 import org.jetbrains.anko.bundleOf
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.doAsyncResult
 import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.model.remote.GithubAppsFetcher
 import tech.ula.model.repositories.AppsRepository
+import tech.ula.model.repositories.RefreshStatus
 import tech.ula.model.repositories.UlaDatabase
+import tech.ula.utils.async
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
 
@@ -38,6 +43,7 @@ class AppListFragment : Fragment() {
             appList = it
             appAdapter = AppListAdapter(activityContext, appList)
             list_apps.adapter = appAdapter
+            setPulldownPromptVisibilityForAppList()
         }
     }
 
@@ -61,10 +67,8 @@ class AppListFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-
         activityContext = activity!!
         appListViewModel.getAllApps().observe(viewLifecycleOwner, appChangeObserver)
-
         registerForContextMenu(list_apps)
         list_apps.onItemClickListener = AdapterView.OnItemClickListener {
             _, _, position, _ ->
@@ -77,15 +81,25 @@ class AppListFragment : Fragment() {
         val swipeLayout = activityContext.findViewById<SwipeRefreshLayout>(R.id.swipe_refresh)
         swipeLayout.setOnRefreshListener(
                 SwipeRefreshLayout.OnRefreshListener {
-                    Handler().postDelayed(Runnable {
-                        kotlin.run {
-                            appListViewModel.refreshAppsList()
-                            swipeLayout.isRefreshing = false
-                        }
-                    }, 4000)
+                    appListViewModel.refreshAppsList()
+                    while (appListViewModel.getRefreshStatus() == RefreshStatus.ACTIVE) {
+                        Thread.sleep(2000)
+                    }
+
+                    setPulldownPromptVisibilityForAppList()
+                    swipeLayout.isRefreshing = false
                 }
         )
     }
+
+    fun setPulldownPromptVisibilityForAppList() {
+        val empty_apps = activityContext.findViewById<TextView>(R.id.empty_apps_list)
+        empty_apps.visibility = when (appList.isEmpty()) {
+            true -> View.VISIBLE
+            false -> View.INVISIBLE
+        }
+    }
+
 
     override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo)
