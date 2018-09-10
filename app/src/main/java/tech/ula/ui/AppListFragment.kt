@@ -5,13 +5,22 @@ import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v4.widget.SwipeRefreshLayout
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
+import android.widget.TextView
+import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_app_list.*
+import org.jetbrains.anko.bundleOf
 import tech.ula.R
 import tech.ula.model.entities.App
-import tech.ula.utils.launchAsync
+import tech.ula.model.remote.GithubAppsFetcher
+import tech.ula.model.repositories.AppsRepository
+import tech.ula.model.repositories.RefreshStatus
+import tech.ula.model.repositories.UlaDatabase
 import tech.ula.viewmodel.AppListViewModel
+import tech.ula.viewmodel.AppListViewModelFactory
+
 class AppListFragment : Fragment() {
 
     private lateinit var activityContext: Activity
@@ -20,7 +29,9 @@ class AppListFragment : Fragment() {
     private lateinit var appAdapter: AppListAdapter
 
     private val appListViewModel: AppListViewModel by lazy {
-        ViewModelProviders.of(this).get(AppListViewModel::class.java)
+        val ulaDatabase = UlaDatabase.getInstance(activityContext)
+        val appsRepository = AppsRepository(ulaDatabase.appsDao(), GithubAppsFetcher("${activityContext.filesDir}"))
+        ViewModelProviders.of(this, AppListViewModelFactory(appsRepository)).get(AppListViewModel::class.java)
     }
 
     private val appChangeObserver = Observer<List<App>> {
@@ -28,6 +39,7 @@ class AppListFragment : Fragment() {
             appList = it
             appAdapter = AppListAdapter(activityContext, appList)
             list_apps.adapter = appAdapter
+            setPulldownPromptVisibilityForAppList()
         }
     }
 
@@ -42,7 +54,6 @@ class AppListFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        insertApp()
         return super.onOptionsItemSelected(item)
     }
 
@@ -52,29 +63,42 @@ class AppListFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-
-        appListViewModel.getAllApps().observe(viewLifecycleOwner, appChangeObserver)
-
         activityContext = activity!!
-
+        appListViewModel.getAllApps().observe(viewLifecycleOwner, appChangeObserver)
         registerForContextMenu(list_apps)
         list_apps.onItemClickListener = AdapterView.OnItemClickListener {
             _, _, position, _ ->
             val selectedApp = appList[position]
-            println("Clicked on APP: ${selectedApp.name}")
+
+            // TODO: Only show if not installed
+            showAppDetails(app = selectedApp)
+        }
+
+        val swipeLayout = activityContext.findViewById<SwipeRefreshLayout>(R.id.swipe_refresh)
+        swipeLayout.setOnRefreshListener(
+                SwipeRefreshLayout.OnRefreshListener {
+                    appListViewModel.refreshAppsList()
+                    while (appListViewModel.getRefreshStatus() == RefreshStatus.ACTIVE) {
+                        Thread.sleep(2000)
+                    }
+
+                    setPulldownPromptVisibilityForAppList()
+                    swipeLayout.isRefreshing = false
+                }
+        )
+    }
+
+    fun setPulldownPromptVisibilityForAppList() {
+        val empty_apps = activityContext.findViewById<TextView>(R.id.empty_apps_list)
+        empty_apps.visibility = when (appList.isEmpty()) {
+            true -> View.VISIBLE
+            false -> View.INVISIBLE
         }
     }
 
     override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo) {
-        val info = menuInfo as AdapterView.AdapterContextMenuInfo
         super.onCreateContextMenu(menu, v, menuInfo)
-        val app = appList[info.position]
-        when {
-            app.isPaidApplication ->
-                activityContext.menuInflater.inflate(R.menu.context_menu_active_sessions, menu)
-            else ->
-                activityContext.menuInflater.inflate(R.menu.context_menu_inactive_sessions, menu)
-        }
+        activityContext.menuInflater.inflate(R.menu.context_menu_app_description, menu)
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
@@ -82,19 +106,15 @@ class AppListFragment : Fragment() {
         val position = menuInfo.position
         val app = appList[position]
 
-        super.onContextItemSelected(item)
-        return true
+        return when (item.itemId) {
+            R.id.menu_item_app_details -> showAppDetails(app)
+            else -> super.onContextItemSelected(item)
+        }
     }
 
-    private fun insertApp(): Boolean {
-
-        val randomId = (1..20).shuffled().last().toLong()
-        val newApp = App(name = "NAME$randomId", category = "CATEGORY$randomId", isPaidApplication = true)
-
-        launchAsync {
-            appListViewModel.insertApplication(newApp)
-        }
-
+    private fun showAppDetails(app: App): Boolean {
+        val bundle = bundleOf("app" to app)
+        NavHostFragment.findNavController(this).navigate(R.id.menu_item_app_details, bundle)
         return true
     }
 }

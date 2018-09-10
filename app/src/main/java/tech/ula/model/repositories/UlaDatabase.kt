@@ -56,7 +56,7 @@ class Migration2To3 : Migration(2, 3) {
                 "category TEXT NOT NULL, " +
                 "supportsCli INTEGER NOT NULL, " +
                 "supportsGui INTEGER NOT NULL, " +
-                "isPaidApplication INTEGER NOT NULL, " +
+                "isPaidApp INTEGER NOT NULL, " +
                 "version INTEGER NOT NULL, " +
                 "PRIMARY KEY(`name`))")
 
