@@ -30,7 +30,7 @@ interface OnFragmentDataPassed {
     fun onFragmentDataPassed(data: String)
 }
 
-class MainActivity : AppCompatActivity(), NavController.OnNavigatedListener, OnFragmentDataPassed {
+class MainActivity : AppCompatActivity(), OnFragmentDataPassed {
 
     private val permissionRequestCode = 1000
     private var currentFragmentDisplaysProgressDialog = false
@@ -78,12 +78,6 @@ class MainActivity : AppCompatActivity(), NavController.OnNavigatedListener, OnF
     }
 
     override fun onSupportNavigateUp() = navController.navigateUp()
-
-    override fun onNavigated(controller: NavController, destination: NavDestination) {
-        val id = destination.id
-        val label = destination.label
-        Log.i("activity", "$id $label")
-    }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_options, menu)
