@@ -10,7 +10,6 @@ import android.support.v4.app.Fragment
 import android.support.v4.widget.SwipeRefreshLayout
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
-import android.widget.TextView
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_app_list.*
 import tech.ula.OnFragmentDataPassed
@@ -64,10 +63,6 @@ class AppListFragment : Fragment() {
         inflater.inflate(R.menu.menu_create, menu)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return super.onOptionsItemSelected(item)
-    }
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.frag_app_list, container, false)
     }
@@ -80,8 +75,8 @@ class AppListFragment : Fragment() {
         list_apps.onItemClickListener = AdapterView.OnItemClickListener {
             _, _, position, _ ->
             if (arePermissionsGranted(activityContext)) {
+                // TODO show description fragment if first time
                 val selectedApp = appList[position]
-                println("Clicked on APP: ${selectedApp.name}")
                 val serviceIntent = Intent(activityContext, ServerService::class.java)
                         .putExtra("type", "startApp")
                         .putExtra("app", selectedApp)
@@ -89,16 +84,11 @@ class AppListFragment : Fragment() {
                 activityContext.startService(serviceIntent)
             } else {
                 passDataToActivity("permissionsRequired")
-                return
             }
-
-            // TODO: Only show if not installed
-            showAppDetails(app = selectedApp)
         }
 
         val swipeLayout = activityContext.findViewById<SwipeRefreshLayout>(R.id.swipe_refresh)
-        swipeLayout.setOnRefreshListener(
-                SwipeRefreshLayout.OnRefreshListener {
+        swipeLayout.setOnRefreshListener {
                     appListViewModel.refreshAppsList()
                     while (appListViewModel.getRefreshStatus() == RefreshStatus.ACTIVE) {
                         Thread.sleep(500)
@@ -107,12 +97,10 @@ class AppListFragment : Fragment() {
                     setPulldownPromptVisibilityForAppList()
                     swipeLayout.isRefreshing = false
                 }
-        )
     }
 
-    fun setPulldownPromptVisibilityForAppList() {
-        val empty_apps = activityContext.findViewById<TextView>(R.id.empty_apps_list)
-        empty_apps.visibility = when (appList.isEmpty()) {
+    private fun setPulldownPromptVisibilityForAppList() {
+        empty_apps_list.visibility = when (appList.isEmpty()) {
             true -> View.VISIBLE
             false -> View.INVISIBLE
         }
