@@ -1,18 +1,54 @@
 package tech.ula.utils
 
 import android.content.res.Resources
+import android.database.sqlite.SQLiteConstraintException
 import kotlinx.coroutines.experimental.delay
 import tech.ula.R
+import tech.ula.model.daos.FilesystemDao
+import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 
 class SessionController(
-    private val filesystem: Filesystem,
     private val assetRepository: AssetRepository,
     private val filesystemUtility: FilesystemUtility
 ) {
+
+    @Throws // If device architecture is unsupported
+    suspend fun ensureAppsFilesystemIsInDatabase(
+        filesystemDao: FilesystemDao,
+        buildWrapper: BuildWrapper = BuildWrapper()
+    ): Filesystem {
+        try {
+            val fsToInsert = Filesystem(0, name = "apps", distributionType = "debian")
+            fsToInsert.archType = buildWrapper.getArchType()
+            filesystemDao.insertFilesystem(fsToInsert)
+        } catch (err: SQLiteConstraintException) { } // Failure is fine, that just means the filesystem exists already.
+        return asyncAwait {
+            filesystemDao.getFilesystemByName("apps")
+        }
+    }
+
+    // TODO remove unique constraint on names, return list from name query. search list by service type
+    suspend fun ensureAppSessionIsInDatabase(
+        appName: String,
+        serviceType: String,
+        appsFilesystem: Filesystem,
+        sessionDao: SessionDao
+    ): Session {
+        try {
+            val clientType = if (serviceType == "ssh") "ConnectBot" else "bVNC"
+            val sessionToInsert = Session(id = 0, name = appName, filesystemId = appsFilesystem.id,
+                    filesystemName = appsFilesystem.name, serviceType = serviceType,
+                    clientType = clientType, username = "user")
+            sessionDao.insertSession(sessionToInsert)
+        } catch (err: SQLiteConstraintException) { }
+        return asyncAwait {
+            sessionDao.getSessionByName(appName)
+        }
+    }
 
     fun getAssetLists(): List<List<Asset>> {
         return try {
@@ -23,6 +59,7 @@ class SessionController(
     }
 
     fun getDownloadRequirements(
+        filesystem: Filesystem,
         assetLists: List<List<Asset>>,
         forceDownloads: Boolean,
         networkUtility: NetworkUtility
@@ -76,7 +113,7 @@ class SessionController(
     }
 
     // Return value represents successful extraction. Also true if extraction is unnecessary.
-    suspend fun extractFilesystemIfNeeded(filesystemExtractLogger: (line: String) -> Unit): Boolean {
+    suspend fun extractFilesystemIfNeeded(filesystem: Filesystem, filesystemExtractLogger: (line: String) -> Unit): Boolean {
         val filesystemDirectoryName = "${filesystem.id}"
         if (!filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
             filesystemUtility.copyDistributionAssetsToFilesystem(filesystemDirectoryName, filesystem.distributionType)
@@ -92,7 +129,7 @@ class SessionController(
         return true
     }
 
-    fun ensureFilesystemHasRequiredAssets() {
+    fun ensureFilesystemHasRequiredAssets(filesystem: Filesystem) {
         val filesystemDirectoryName = "${filesystem.id}"
         val requiredDistributionAssets = assetRepository.getDistributionAssetsList(filesystem.distributionType)
         if (!filesystemUtility.areAllRequiredAssetsPresent(filesystemDirectoryName, requiredDistributionAssets)) {

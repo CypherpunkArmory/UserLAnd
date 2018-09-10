@@ -24,7 +24,7 @@ class AppDetailsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val appsTitle = view.findViewById<TextView>(R.id.apps_title)
         val appsIcon = view.findViewById<ImageView>(R.id.apps_icon)
-        appsTitle.setText(app.name)
+        appsTitle.text = app.name
         appsIcon.setImageResource(R.drawable.octave)
     }
 }

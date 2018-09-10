@@ -1,38 +1,31 @@
 package tech.ula.ui
 
-import android.Manifest
 import android.app.Activity
-import android.app.AlertDialog
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
-import android.content.pm.PackageManager
-import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v4.content.ContextCompat
-import android.support.v4.content.LocalBroadcastManager
 import android.view.* // ktlint-disable no-wildcard-imports
-import android.view.animation.AlphaAnimation
 import android.widget.AdapterView
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_session_list.* // ktlint-disable no-wildcard-imports
 import kotlinx.android.synthetic.main.list_item_session.view.* // ktlint-disable no-wildcard-imports
 import org.jetbrains.anko.bundleOf
+import tech.ula.OnFragmentDataPassed
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
+import tech.ula.utils.arePermissionsGranted
 import tech.ula.viewmodel.SessionListViewModel
 
 class SessionListFragment : Fragment() {
 
-    private val permissionRequestCode = 1000
     private lateinit var activityContext: Activity
+    private lateinit var dataPasser: OnFragmentDataPassed
 
     private lateinit var sessionList: List<Session>
     private lateinit var sessionAdapter: SessionListAdapter
@@ -59,43 +52,9 @@ class SessionListFragment : Fragment() {
         }
     }
 
-    private val serverServiceBroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            activityContext.runOnUiThread {
-                intent?.let {
-                    val type = it.getStringExtra("type")
-                    when (type) {
-                        "startProgressBar" -> startProgressBar()
-                        "updateProgressBar" -> updateProgressBar(it)
-                        "killProgressBar" -> killProgressBar()
-                        "isProgressBarActive" -> syncProgressBarDisplayedWithService(it)
-                        "networkUnavailable" -> displayNetworkUnavailableDialog()
-                        "assetListFailure" -> displayAssetListFailureDialog()
-                        "displayNetworkChoices" -> displayNetworkChoicesDialog()
-                        "toast" -> showToast(it)
-                        "dialog" -> showDialog(it)
-                    }
-                }
-            }
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            permissionRequestCode -> {
-
-                val grantedPermissions = (grantResults.isNotEmpty() &&
-                        grantResults[0] == PackageManager.PERMISSION_GRANTED &&
-                        grantResults[1] == PackageManager.PERMISSION_GRANTED)
-
-                if (grantedPermissions) {
-                    handleSessionSelection(lastSelectedSession)
-                } else {
-                    showPermissionsNecessaryDialog()
-                }
-            }
-        }
+    override fun onAttach(context: Context?) {
+        super.onAttach(context)
+        dataPasser = context as OnFragmentDataPassed
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -130,11 +89,10 @@ class SessionListFragment : Fragment() {
             _, _, position, _ ->
             lastSelectedSession = sessionList[position]
 
-            if (arePermissionsGranted()) {
+            if (arePermissionsGranted(activityContext)) {
                 handleSessionSelection(lastSelectedSession)
             } else {
-                showPermissionsNecessaryDialog()
-                return@OnItemClickListener
+                passDataToActivity("permissionsRequired")
             }
         }
     }
@@ -151,44 +109,8 @@ class SessionListFragment : Fragment() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        LocalBroadcastManager.getInstance(activityContext).registerReceiver(serverServiceBroadcastReceiver, IntentFilter(ServerService.SERVER_SERVICE_RESULT))
-
-        val intent = Intent(activityContext, ServerService::class.java)
-        intent.putExtra("type", "isProgressBarActive")
-        activityContext.startService(intent)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        LocalBroadcastManager.getInstance(activityContext).unregisterReceiver(serverServiceBroadcastReceiver)
-    }
-
-    private fun arePermissionsGranted(): Boolean {
-        return (ContextCompat.checkSelfPermission(activityContext,
-                Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-
-                ContextCompat.checkSelfPermission(activityContext,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
-    }
-
-    private fun showPermissionsNecessaryDialog() {
-        val builder = AlertDialog.Builder(activityContext)
-        builder.setMessage(R.string.alert_permissions_necessary_message)
-                .setTitle(R.string.alert_permissions_necessary_title)
-                .setPositiveButton(R.string.alert_permissions_necessary_ok_button) {
-                    dialog, _ ->
-                    requestPermissions(arrayOf(
-                            Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                            permissionRequestCode)
-                    dialog.dismiss()
-                }
-                .setNegativeButton(R.string.alert_permissions_necessary_cancel_button) {
-                    dialog, _ ->
-                    dialog.dismiss()
-                }
-        builder.create().show()
+    private fun passDataToActivity(data: String) {
+        dataPasser.onFragmentDataPassed(data)
     }
 
     override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo) {
@@ -255,132 +177,5 @@ class SessionListFragment : Fragment() {
         serviceIntent.putExtra("type", "restartRunningSession")
         serviceIntent.putExtra("session", session)
         activityContext.startService(serviceIntent)
-    }
-
-    private fun startProgressBar() {
-        val inAnimation = AlphaAnimation(0f, 1f)
-        inAnimation.duration = 200
-        layout_progress.animation = inAnimation
-        layout_progress.visibility = View.VISIBLE
-        layout_progress.isFocusable = true
-        layout_progress.isClickable = true
-    }
-
-    private fun killProgressBar() {
-        val outAnimation = AlphaAnimation(1f, 0f)
-        outAnimation.duration = 200
-        layout_progress.animation = outAnimation
-        layout_progress.visibility = View.GONE
-        layout_progress.isFocusable = false
-        layout_progress.isClickable = false
-    }
-
-    private fun updateProgressBar(intent: Intent) {
-        layout_progress.visibility = View.VISIBLE
-        layout_progress.isFocusable = true
-        layout_progress.isClickable = true
-
-        val step = intent.getStringExtra("step")
-        val details = intent.getStringExtra("details")
-        text_session_list_progress_step.text = step
-        text_session_list_progress_details.text = details
-    }
-
-    private fun syncProgressBarDisplayedWithService(intent: Intent) {
-        val isActive = intent.getBooleanExtra("isProgressBarActive", false)
-        if (isActive) startProgressBar()
-        else killProgressBar()
-    }
-
-    private fun showToast(intent: Intent) {
-        val content = intent.getIntExtra("id", -1)
-        if (content == -1) return
-        Toast.makeText(activityContext, content, Toast.LENGTH_LONG).show()
-    }
-
-    private fun showDialog(intent: Intent) {
-        when (intent.getStringExtra("dialogType")) {
-            "errorFetchingAssetLists" -> displayAssetListFailureDialog()
-            "wifiRequired" -> displayNetworkChoicesDialog()
-            "extractionFailed" -> displayExtractionFailedDialog()
-            "filesystemIsMissingRequiredAssets" -> displayFilesystemMissingRequiredAssets()
-        }
-    }
-
-    private fun displayNetworkUnavailableDialog() {
-        val builder = AlertDialog.Builder(activityContext)
-        builder.setMessage(R.string.alert_network_unavailable_message)
-                .setTitle(R.string.alert_network_unavailable_title)
-                .setPositiveButton(R.string.alert_network_unavailable_cancel_button) {
-                    dialog, _ ->
-                    dialog.dismiss()
-                }
-                .create()
-                .show()
-    }
-
-    private fun displayAssetListFailureDialog() {
-        val builder = AlertDialog.Builder(activityContext)
-        builder.setMessage(R.string.alert_asset_list_failure_message)
-                .setTitle(R.string.alert_asset_list_failure_title)
-                .setPositiveButton(R.string.alert_asset_list_failure_positive_button) {
-                    dialog, _ ->
-                    dialog.dismiss()
-                }
-                .create()
-                .show()
-    }
-
-    private fun displayNetworkChoicesDialog() {
-        val builder = AlertDialog.Builder(activityContext)
-        builder.setMessage(R.string.alert_wifi_disabled_message)
-                .setTitle(R.string.alert_wifi_disabled_title)
-                .setPositiveButton(R.string.alert_wifi_disabled_continue_button) {
-                    dialog, _ ->
-                    dialog.dismiss()
-                    val serviceIntent = Intent(activityContext, ServerService::class.java)
-                    serviceIntent.putExtra("type", "forceDownloads")
-                    activityContext.startService(serviceIntent)
-                }
-                .setNegativeButton(R.string.alert_wifi_disabled_turn_on_wifi_button) {
-                    dialog, _ ->
-                    dialog.dismiss()
-                    startActivity(Intent(WifiManager.ACTION_PICK_WIFI_NETWORK))
-                    killProgressBar()
-                }
-                .setNeutralButton(R.string.alert_wifi_disabled_cancel_button) {
-                    dialog, _ ->
-                    dialog.dismiss()
-                    killProgressBar()
-                }
-                .setOnCancelListener {
-                    killProgressBar()
-                }
-                .create()
-                .show()
-    }
-
-    private fun displayExtractionFailedDialog() {
-        val builder = AlertDialog.Builder(activityContext)
-        builder.setMessage(R.string.alert_extraction_failure_message)
-                .setTitle(R.string.alert_extraction_failure_title)
-                .setPositiveButton(R.string.alert_extraction_failure_positive_button) {
-                    dialog, _ ->
-                    dialog.dismiss()
-                }
-                .create()
-                .show()
-    }
-
-    private fun displayFilesystemMissingRequiredAssets() {
-        val builder = AlertDialog.Builder(activityContext)
-        builder.setMessage(R.string.alert_filesystem_missing_requirements_message)
-                .setTitle(R.string.alert_filesystem_missing_requirements_title)
-                .setPositiveButton(R.string.alert_filesystem_missing_requirements_positive_button) {
-                    dialog, _ ->
-                    dialog.dismiss()
-                }
-                .create()
-                .show()
     }
 }

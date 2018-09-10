@@ -3,27 +3,32 @@ package tech.ula.ui
 import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.widget.SwipeRefreshLayout
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
-import android.widget.TextView
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_app_list.*
+import tech.ula.OnFragmentDataPassed
 import org.jetbrains.anko.bundleOf
 import tech.ula.R
+import tech.ula.ServerService
 import tech.ula.model.entities.App
 import tech.ula.model.remote.GithubAppsFetcher
 import tech.ula.model.repositories.AppsRepository
 import tech.ula.model.repositories.RefreshStatus
 import tech.ula.model.repositories.UlaDatabase
+import tech.ula.utils.arePermissionsGranted
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
 
 class AppListFragment : Fragment() {
 
     private lateinit var activityContext: Activity
+    private lateinit var dataPasser: OnFragmentDataPassed
 
     private lateinit var appList: List<App>
     private lateinit var appAdapter: AppListAdapter
@@ -43,6 +48,11 @@ class AppListFragment : Fragment() {
         }
     }
 
+    override fun onAttach(context: Context?) {
+        super.onAttach(context)
+        dataPasser = context as OnFragmentDataPassed
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
@@ -51,10 +61,6 @@ class AppListFragment : Fragment() {
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.menu_create, menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return super.onOptionsItemSelected(item)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -68,15 +74,21 @@ class AppListFragment : Fragment() {
         registerForContextMenu(list_apps)
         list_apps.onItemClickListener = AdapterView.OnItemClickListener {
             _, _, position, _ ->
-            val selectedApp = appList[position]
-
-            // TODO: Only show if not installed
-            showAppDetails(app = selectedApp)
+            if (arePermissionsGranted(activityContext)) {
+                // TODO show description fragment if first time
+                val selectedApp = appList[position]
+                val serviceIntent = Intent(activityContext, ServerService::class.java)
+                        .putExtra("type", "startApp")
+                        .putExtra("app", selectedApp)
+                        .putExtra("serviceType", "ssh")
+                activityContext.startService(serviceIntent)
+            } else {
+                passDataToActivity("permissionsRequired")
+            }
         }
 
         val swipeLayout = activityContext.findViewById<SwipeRefreshLayout>(R.id.swipe_refresh)
-        swipeLayout.setOnRefreshListener(
-                SwipeRefreshLayout.OnRefreshListener {
+        swipeLayout.setOnRefreshListener {
                     appListViewModel.refreshAppsList()
                     while (appListViewModel.getRefreshStatus() == RefreshStatus.ACTIVE) {
                         Thread.sleep(500)
@@ -85,12 +97,10 @@ class AppListFragment : Fragment() {
                     setPulldownPromptVisibilityForAppList()
                     swipeLayout.isRefreshing = false
                 }
-        )
     }
 
-    fun setPulldownPromptVisibilityForAppList() {
-        val empty_apps = activityContext.findViewById<TextView>(R.id.empty_apps_list)
-        empty_apps.visibility = when (appList.isEmpty()) {
+    private fun setPulldownPromptVisibilityForAppList() {
+        empty_apps_list.visibility = when (appList.isEmpty()) {
             true -> View.VISIBLE
             false -> View.INVISIBLE
         }
@@ -116,5 +126,9 @@ class AppListFragment : Fragment() {
         val bundle = bundleOf("app" to app)
         NavHostFragment.findNavController(this).navigate(R.id.menu_item_app_details, bundle)
         return true
+    }
+
+    private fun passDataToActivity(data: String) {
+        dataPasser.onFragmentDataPassed(data)
     }
 }

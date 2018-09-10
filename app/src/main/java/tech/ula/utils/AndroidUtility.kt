@@ -1,14 +1,17 @@
 package tech.ula.utils
 
+import android.Manifest
 import android.app.DownloadManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.support.v4.content.ContextCompat
 import tech.ula.model.entities.Asset
 import java.io.File
 import java.io.InputStream
@@ -23,6 +26,14 @@ fun makePermissionsUsable(containingDirectoryPath: String, filename: String) {
 
     val process = pb.start()
     process.waitFor()
+}
+
+fun arePermissionsGranted(context: Context): Boolean {
+    return (ContextCompat.checkSelfPermission(context,
+            Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+
+            ContextCompat.checkSelfPermission(context,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
 }
 
 class DefaultPreferences(private val prefs: SharedPreferences) {

@@ -12,6 +12,7 @@ import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.runBlocking
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.doAsync
 import tech.ula.model.entities.App
@@ -104,6 +105,8 @@ class ServerService : Service() {
             }
             "startApp" -> {
                 val app: App = intent.getParcelableExtra("app")
+                val serviceType = intent.getStringExtra("serviceType")
+                startApp(app, serviceType)
             }
             "restartRunningSession" -> {
                 val session: Session = intent.getParcelableExtra("session")
@@ -159,7 +162,8 @@ class ServerService : Service() {
                 this.filesDir.path,
                 timestampPreferences,
                 assetListPreferences)
-        val sessionController = SessionController(filesystem, assetRepository, filesystemUtility)
+
+        val sessionController = SessionController(assetRepository, filesystemUtility)
 
         launch(CommonPool) {
 
@@ -175,7 +179,7 @@ class ServerService : Service() {
             }
 
             val downloadRequirementsResult = sessionController
-                    .getDownloadRequirements(assetLists, forceDownloads, networkUtility)
+                    .getDownloadRequirements(filesystem, assetLists, forceDownloads, networkUtility)
 
             val requiredDownloads: List<Asset>
             when (downloadRequirementsResult) {
@@ -193,14 +197,14 @@ class ServerService : Service() {
 
             progressBarUpdater(getString(R.string.progress_setting_up), "")
             val wasExtractionSuccessful = asyncAwait {
-                sessionController.extractFilesystemIfNeeded(filesystemExtractLogger)
+                sessionController.extractFilesystemIfNeeded(filesystem, filesystemExtractLogger)
             }
             if (!wasExtractionSuccessful) {
                 dialogBroadcaster("extractionFailed")
                 return@launch
             }
 
-            sessionController.ensureFilesystemHasRequiredAssets()
+            sessionController.ensureFilesystemHasRequiredAssets(filesystem)
 
             val updatedSession = asyncAwait { sessionController.activateSession(session, serverUtility) }
 
@@ -210,6 +214,29 @@ class ServerService : Service() {
             killProgressBar()
             startClient(updatedSession)
         }
+    }
+
+    // TODO needs to receive force downloads parameter
+    private fun startApp(app: App, serviceType: String) {
+        val appsFilesystemDistType = "debian"
+
+        val assetRepository = AssetRepository(BuildWrapper().getArchType(),
+                appsFilesystemDistType, this.filesDir.path, timestampPreferences,
+                assetListPreferences)
+        val sessionController = SessionController(assetRepository, filesystemUtility)
+
+        val filesystemDao = UlaDatabase.getInstance(this).filesystemDao()
+        val appsFilesystem = runBlocking {
+            sessionController.ensureAppsFilesystemIsInDatabase(filesystemDao)
+        }
+
+        val sessionDao = UlaDatabase.getInstance(this).sessionDao()
+        val appSession = runBlocking {
+            sessionController.ensureAppSessionIsInDatabase(app.name, serviceType, appsFilesystem, sessionDao)
+        }
+
+        // TODO apps directory will still use ID for name generation
+        startSession(appSession, appsFilesystem, forceDownloads = false)
     }
 
     private fun startClient(session: Session) {
