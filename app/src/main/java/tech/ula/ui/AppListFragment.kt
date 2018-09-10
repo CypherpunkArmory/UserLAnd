@@ -3,22 +3,28 @@ package tech.ula.ui
 import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
 import kotlinx.android.synthetic.main.frag_app_list.*
+import tech.ula.OnFragmentDataPassed
 import tech.ula.R
+import tech.ula.ServerService
 import tech.ula.model.entities.App
 import tech.ula.model.remote.GithubAppsFetcher
 import tech.ula.model.repositories.AppsRepository
 import tech.ula.model.repositories.UlaDatabase
+import tech.ula.utils.arePermissionsGranted
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
 
 class AppListFragment : Fragment() {
 
     private lateinit var activityContext: Activity
+    private lateinit var dataPasser: OnFragmentDataPassed
 
     private lateinit var appList: List<App>
     private lateinit var appAdapter: AppListAdapter
@@ -35,6 +41,11 @@ class AppListFragment : Fragment() {
             appAdapter = AppListAdapter(activityContext, appList)
             list_apps.adapter = appAdapter
         }
+    }
+
+    override fun onAttach(context: Context?) {
+        super.onAttach(context)
+        dataPasser = context as OnFragmentDataPassed
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,8 +75,18 @@ class AppListFragment : Fragment() {
         registerForContextMenu(list_apps)
         list_apps.onItemClickListener = AdapterView.OnItemClickListener {
             _, _, position, _ ->
-            val selectedApp = appList[position]
-            println("Clicked on APP: ${selectedApp.name}")
+            if (arePermissionsGranted(activityContext)) {
+                val selectedApp = appList[position]
+                println("Clicked on APP: ${selectedApp.name}")
+                val serviceIntent = Intent(activityContext, ServerService::class.java)
+                        .putExtra("type", "startApp")
+                        .putExtra("app", selectedApp)
+                        .putExtra("serviceType", "ssh")
+                activityContext.startService(serviceIntent)
+            }
+            else {
+                passDataToActivity("permissionsRequired")
+            }
         }
     }
 
@@ -88,5 +109,9 @@ class AppListFragment : Fragment() {
 
         super.onContextItemSelected(item)
         return true
+    }
+
+    private fun passDataToActivity(data: String) {
+        dataPasser.onFragmentDataPassed(data)
     }
 }

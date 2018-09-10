@@ -104,6 +104,8 @@ class ServerService : Service() {
             }
             "startApp" -> {
                 val app: App = intent.getParcelableExtra("app")
+                val serviceType = intent.getStringExtra("serviceType")
+                startApp(app, serviceType)
             }
             "restartRunningSession" -> {
                 val session: Session = intent.getParcelableExtra("session")
@@ -159,7 +161,8 @@ class ServerService : Service() {
                 this.filesDir.path,
                 timestampPreferences,
                 assetListPreferences)
-        val sessionController = SessionController(filesystem, assetRepository, filesystemUtility)
+
+        val sessionController = SessionController(assetRepository, filesystemUtility)
 
         launch(CommonPool) {
 
@@ -175,7 +178,7 @@ class ServerService : Service() {
             }
 
             val downloadRequirementsResult = sessionController
-                    .getDownloadRequirements(assetLists, forceDownloads, networkUtility)
+                    .getDownloadRequirements(filesystem, assetLists, forceDownloads, networkUtility)
 
             val requiredDownloads: List<Asset>
             when (downloadRequirementsResult) {
@@ -193,14 +196,14 @@ class ServerService : Service() {
 
             progressBarUpdater(getString(R.string.progress_setting_up), "")
             val wasExtractionSuccessful = asyncAwait {
-                sessionController.extractFilesystemIfNeeded(filesystemExtractLogger)
+                sessionController.extractFilesystemIfNeeded(filesystem, filesystemExtractLogger)
             }
             if (!wasExtractionSuccessful) {
                 dialogBroadcaster("extractionFailed")
                 return@launch
             }
 
-            sessionController.ensureFilesystemHasRequiredAssets()
+            sessionController.ensureFilesystemHasRequiredAssets(filesystem)
 
             val updatedSession = asyncAwait { sessionController.activateSession(session, serverUtility) }
 
@@ -209,6 +212,37 @@ class ServerService : Service() {
             updateSession(updatedSession)
             killProgressBar()
             startClient(updatedSession)
+        }
+    }
+
+    // TODO needs to receive force downloads parameter
+    private fun startApp(app: App, serviceType: String) {
+        val appsFilesystemDistType = "debian"
+        val appsFilesystemName = "apps"
+
+        val assetRepository = AssetRepository(BuildWrapper().getArchType(),
+                appsFilesystemDistType, this.filesDir.path, timestampPreferences,
+                assetListPreferences)
+        val sessionController = SessionController(assetRepository, filesystemUtility)
+
+        // TODO does this actually need to be in the database?
+        val filesystemDao = UlaDatabase.getInstance(this).filesystemDao()
+        launch {
+            sessionController.ensureAppsFilesystemIsInDatabase(filesystemDao)
+
+            val appsFilesystemResult = filesystemDao.getFilesystemByName(appsFilesystemName)
+            if (appsFilesystemResult.isEmpty()) {
+                return@launch // TODO better error handling
+            }
+            val appsFilesystem = appsFilesystemResult.first()
+
+            val clientType = if (serviceType == "ssh") "ConnectBot" else "bVNC"
+            val appsSession = Session(id = 0, name = "apps", filesystemId = appsFilesystem.id,
+                    filesystemName = appsFilesystem.name, serviceType = serviceType,
+                    clientType = clientType, username = "user") // TODO support nondefault user/pass
+
+            // TODO apps directory will still use ID for name generation
+            startSession(appsSession, appsFilesystem, forceDownloads = false)
         }
     }
 

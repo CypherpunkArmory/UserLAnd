@@ -1,6 +1,8 @@
 package tech.ula.utils
 
+import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
+import com.nhaarman.mockitokotlin2.whenever
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -9,6 +11,7 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
+import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.repositories.AssetRepository
@@ -21,6 +24,9 @@ class SessionControllerTest {
     val testFilesystem = Filesystem(name = "testFS", id = 1)
 
     @Mock
+    lateinit var buildWrapper: BuildWrapper
+
+    @Mock
     lateinit var assetRepository: AssetRepository
 
     @Mock
@@ -29,11 +35,25 @@ class SessionControllerTest {
     @Mock
     lateinit var networkUtility: NetworkUtility
 
+    @Mock
+    lateinit var filesystemDao: FilesystemDao
+
     lateinit var sessionController: SessionController
 
     @Before
     fun setup() {
-        sessionController = SessionController(testFilesystem, assetRepository, filesystemUtility)
+        sessionController = SessionController(assetRepository, filesystemUtility)
+    }
+
+    @Test
+    fun insertsAppsFilesystemIntoDatabaseIfNotPresent() {
+        val fs = Filesystem(0, name = "apps", distributionType = "debian", archType = "x86_64")
+        whenever(filesystemDao.getFilesystemByName("apps")).thenReturn(listOf())
+        whenever(buildWrapper.getArchType()).thenReturn("x86_64")
+
+        sessionController.ensureAppsFilesystemIsInDatabase(filesystemDao, buildWrapper)
+
+        verify(filesystemDao).insertFilesystem(fs)
     }
 
     @Test
@@ -80,7 +100,7 @@ class SessionControllerTest {
                 .thenReturn(false)
         `when`(networkUtility.wifiIsEnabled()).thenReturn(false)
 
-        val result = sessionController.getDownloadRequirements(assetLists, forceDownload, networkUtility)
+        val result = sessionController.getDownloadRequirements(testFilesystem, assetLists, forceDownload, networkUtility)
 
         assertTrue(result is RequiresWifiResult)
     }
@@ -95,7 +115,7 @@ class SessionControllerTest {
         `when`(filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${testFilesystem.id}"))
                 .thenReturn(false)
 
-        val result = sessionController.getDownloadRequirements(assetLists, forceDownload, networkUtility)
+        val result = sessionController.getDownloadRequirements(testFilesystem, assetLists, forceDownload, networkUtility)
 
         val expectedRequirements = listOf(asset)
         assertTrue(result is RequiredAssetsResult)
@@ -115,7 +135,7 @@ class SessionControllerTest {
         `when`(filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${testFilesystem.id}"))
                 .thenReturn(true)
 
-        val result = sessionController.getDownloadRequirements(assetLists, forceDownload, networkUtility)
+        val result = sessionController.getDownloadRequirements(testFilesystem, assetLists, forceDownload, networkUtility)
 
         val expectedRequirements = listOf(regularAsset)
         assertTrue(result is RequiredAssetsResult)
@@ -131,7 +151,7 @@ class SessionControllerTest {
         `when`(filesystemUtility.areAllRequiredAssetsPresent(filesystemDirectoryName, distAssetList))
                 .thenReturn(false)
 
-        sessionController.ensureFilesystemHasRequiredAssets()
+        sessionController.ensureFilesystemHasRequiredAssets(testFilesystem)
 
         verify(filesystemUtility).copyDistributionAssetsToFilesystem(filesystemDirectoryName, testFilesystem.distributionType)
         verify(filesystemUtility).removeRootfsFilesFromFilesystem(filesystemDirectoryName)

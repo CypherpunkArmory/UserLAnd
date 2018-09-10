@@ -2,17 +2,31 @@ package tech.ula.utils
 
 import android.content.res.Resources
 import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.launch
 import tech.ula.R
+import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 
 class SessionController(
-    private val filesystem: Filesystem,
     private val assetRepository: AssetRepository,
     private val filesystemUtility: FilesystemUtility
 ) {
+
+    @Throws // If device architecture is unsupported
+    suspend fun ensureAppsFilesystemIsInDatabase(filesystemDao: FilesystemDao,
+                                   buildWrapper: BuildWrapper = BuildWrapper()) {
+        val fs = asyncAwait {
+            filesystemDao.getFilesystemByName("apps")
+        }
+        if (fs.isEmpty()) {
+            val fsToInsert = Filesystem(0, name = "apps", distributionType = "debian")
+            fsToInsert.archType = buildWrapper.getArchType()
+            filesystemDao.insertFilesystem(fsToInsert)
+        }
+    }
 
     fun getAssetLists(): List<List<Asset>> {
         return try {
@@ -23,6 +37,7 @@ class SessionController(
     }
 
     fun getDownloadRequirements(
+            filesystem: Filesystem,
         assetLists: List<List<Asset>>,
         forceDownloads: Boolean,
         networkUtility: NetworkUtility
@@ -76,7 +91,7 @@ class SessionController(
     }
 
     // Return value represents successful extraction. Also true if extraction is unnecessary.
-    suspend fun extractFilesystemIfNeeded(filesystemExtractLogger: (line: String) -> Unit): Boolean {
+    suspend fun extractFilesystemIfNeeded(filesystem: Filesystem, filesystemExtractLogger: (line: String) -> Unit): Boolean {
         val filesystemDirectoryName = "${filesystem.id}"
         if (!filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
             filesystemUtility.copyDistributionAssetsToFilesystem(filesystemDirectoryName, filesystem.distributionType)
@@ -92,7 +107,7 @@ class SessionController(
         return true
     }
 
-    fun ensureFilesystemHasRequiredAssets() {
+    fun ensureFilesystemHasRequiredAssets(filesystem: Filesystem) {
         val filesystemDirectoryName = "${filesystem.id}"
         val requiredDistributionAssets = assetRepository.getDistributionAssetsList(filesystem.distributionType)
         if (!filesystemUtility.areAllRequiredAssetsPresent(filesystemDirectoryName, requiredDistributionAssets)) {
