@@ -117,7 +117,7 @@ class MainActivity : AppCompatActivity(), NavController.OnNavigatedListener, OnF
     }
 
     override fun onFragmentDataPassed(data: String) {
-        when(data) {
+        when (data) {
             "permissionsRequired" -> showPermissionsNecessaryDialog()
         }
     }

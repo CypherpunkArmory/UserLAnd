@@ -14,7 +14,7 @@ interface FilesystemDao {
     fun getAllFilesystems(): LiveData<List<Filesystem>>
 
     @Query("select * from filesystem where name = :name")
-    fun getFilesystemByName(name: String): List<Filesystem>
+    fun getFilesystemByName(name: String): Filesystem
 
     @Insert(onConflict = OnConflictStrategy.FAIL)
     fun insertFilesystem(filesystem: Filesystem)

@@ -43,7 +43,7 @@ class MigrationTest {
         val fs = migratedDb.filesystemDao().getFilesystemByName("firstFs")
         val session = migratedDb.sessionDao().getSessionByName("firstSession")
 
-        assertFalse(fs.first().isDownloaded)
+        assertFalse(fs.isDownloaded)
         assertFalse(session.isExtracted)
         assert(session.lastUpdated == 0L)
         assert(session.bindings == "")

@@ -83,8 +83,7 @@ class AppListFragment : Fragment() {
                         .putExtra("app", selectedApp)
                         .putExtra("serviceType", "ssh")
                 activityContext.startService(serviceIntent)
-            }
-            else {
+            } else {
                 passDataToActivity("permissionsRequired")
             }
         }

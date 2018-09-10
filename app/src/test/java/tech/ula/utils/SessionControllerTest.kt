@@ -1,8 +1,10 @@
 package tech.ula.utils
 
+import android.database.sqlite.SQLiteConstraintException
 import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
+import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -46,14 +48,17 @@ class SessionControllerTest {
     }
 
     @Test
-    fun insertsAppsFilesystemIntoDatabaseIfNotPresent() {
+    fun catchesAndIgnoresConstraintExceptionForFilesystem() {
         val fs = Filesystem(0, name = "apps", distributionType = "debian", archType = "x86_64")
-        whenever(filesystemDao.getFilesystemByName("apps")).thenReturn(listOf())
+
         whenever(buildWrapper.getArchType()).thenReturn("x86_64")
+        whenever(filesystemDao.insertFilesystem(fs)).thenThrow(SQLiteConstraintException::class.java)
+        whenever(filesystemDao.getFilesystemByName("apps")).thenReturn(fs)
 
-        sessionController.ensureAppsFilesystemIsInDatabase(filesystemDao, buildWrapper)
+        val returnedFs = runBlocking { sessionController.ensureAppsFilesystemIsInDatabase(filesystemDao, buildWrapper) }
 
-        verify(filesystemDao).insertFilesystem(fs)
+        verify(filesystemDao).getFilesystemByName("apps")
+        assertEquals(fs, returnedFs)
     }
 
     @Test

@@ -12,6 +12,7 @@ import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.runBlocking
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.doAsync
 import tech.ula.model.entities.App
@@ -218,32 +219,24 @@ class ServerService : Service() {
     // TODO needs to receive force downloads parameter
     private fun startApp(app: App, serviceType: String) {
         val appsFilesystemDistType = "debian"
-        val appsFilesystemName = "apps"
 
         val assetRepository = AssetRepository(BuildWrapper().getArchType(),
                 appsFilesystemDistType, this.filesDir.path, timestampPreferences,
                 assetListPreferences)
         val sessionController = SessionController(assetRepository, filesystemUtility)
 
-        // TODO does this actually need to be in the database?
         val filesystemDao = UlaDatabase.getInstance(this).filesystemDao()
-        launch {
+        val appsFilesystem = runBlocking {
             sessionController.ensureAppsFilesystemIsInDatabase(filesystemDao)
-
-            val appsFilesystemResult = filesystemDao.getFilesystemByName(appsFilesystemName)
-            if (appsFilesystemResult.isEmpty()) {
-                return@launch // TODO better error handling
-            }
-            val appsFilesystem = appsFilesystemResult.first()
-
-            val clientType = if (serviceType == "ssh") "ConnectBot" else "bVNC"
-            val appsSession = Session(id = 0, name = "apps", filesystemId = appsFilesystem.id,
-                    filesystemName = appsFilesystem.name, serviceType = serviceType,
-                    clientType = clientType, username = "user") // TODO support nondefault user/pass
-
-            // TODO apps directory will still use ID for name generation
-            startSession(appsSession, appsFilesystem, forceDownloads = false)
         }
+
+        val sessionDao = UlaDatabase.getInstance(this).sessionDao()
+        val appSession = runBlocking {
+            sessionController.ensureAppSessionIsInDatabase(app.name, serviceType, appsFilesystem, sessionDao)
+        }
+
+        // TODO apps directory will still use ID for name generation
+        startSession(appSession, appsFilesystem, forceDownloads = false)
     }
 
     private fun startClient(session: Session) {

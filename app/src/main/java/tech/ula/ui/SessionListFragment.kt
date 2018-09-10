@@ -1,29 +1,22 @@
 package tech.ula.ui
 
-import android.Manifest
 import android.app.Activity
-import android.app.AlertDialog
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
-import android.content.pm.PackageManager
-import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v4.content.ContextCompat
-import android.support.v4.content.LocalBroadcastManager
 import android.view.* // ktlint-disable no-wildcard-imports
-import android.view.animation.AlphaAnimation
 import android.widget.AdapterView
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_session_list.* // ktlint-disable no-wildcard-imports
 import kotlinx.android.synthetic.main.list_item_session.view.* // ktlint-disable no-wildcard-imports
 import org.jetbrains.anko.bundleOf
-import tech.ula.*
+import tech.ula.OnFragmentDataPassed
+import tech.ula.R
+import tech.ula.ServerService
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.utils.arePermissionsGranted
@@ -62,7 +55,6 @@ class SessionListFragment : Fragment() {
     override fun onAttach(context: Context?) {
         super.onAttach(context)
         dataPasser = context as OnFragmentDataPassed
-
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

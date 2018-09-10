@@ -92,18 +92,18 @@ class SessionDaoTest {
         val fs = db.filesystemDao().getFilesystemByName(DEFAULT_FS_NAME)
 
         for (i in 0..9) {
-            db.sessionDao().insertSession(Session(DEFAULT_ID, name = "session$i", filesystemId = fs.first().id))
+            db.sessionDao().insertSession(Session(DEFAULT_ID, name = "session$i", filesystemId = fs.id))
         }
 
-        fs.first().name = "end"
+        fs.name = "end"
 
-        db.filesystemDao().updateFilesystem(fs.first())
+        db.filesystemDao().updateFilesystem(fs)
         val sessions = db.sessionDao().getAllSessions().blockingObserve()!!
-        for (session in sessions) assertNotEquals(session.filesystemName, fs.first().name)
+        for (session in sessions) assertNotEquals(session.filesystemName, fs.name)
 
         db.sessionDao().updateFilesystemNamesForAllSessions()
         val updatedSessions = db.sessionDao().getAllSessions().blockingObserve()!!
-        for (session in updatedSessions) assertEquals(session.filesystemName, fs.first().name)
+        for (session in updatedSessions) assertEquals(session.filesystemName, fs.name)
     }
 
     companion object {
