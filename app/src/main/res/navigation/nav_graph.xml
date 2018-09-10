@@ -11,6 +11,13 @@
     </fragment>
 
     <fragment
+        android:id="@+id/menu_item_app_details"
+        android:name="tech.ula.ui.AppDetailsFragment"
+        android:label="App Description"
+        tools:layout="@layout/frag_app_details" >
+    </fragment>
+
+    <fragment
         android:id="@+id/session_list_fragment"
         android:name="tech.ula.ui.SessionListFragment"
         android:label="@string/sessions"
