@@ -235,6 +235,10 @@ class ServerService : Service() {
             sessionController.ensureAppSessionIsInDatabase(app.name, serviceType, appsFilesystem, sessionDao)
         }
 
+        // TODO handle file not downloaded/found case
+        // TODO determine if moving the script to profile.d before extraction is harmful
+        filesystemUtility.moveAppScriptToRequiredLocations(app.name, appsFilesystem)
+
         // TODO apps directory will still use ID for name generation
         startSession(appSession, appsFilesystem, forceDownloads = false)
     }
