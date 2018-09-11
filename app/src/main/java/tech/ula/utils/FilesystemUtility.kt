@@ -3,6 +3,7 @@ package tech.ula.utils
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
 import tech.ula.model.entities.Asset
+import tech.ula.model.entities.Filesystem
 import java.io.File
 
 class FilesystemUtility(
@@ -86,5 +87,14 @@ class FilesystemUtility(
                 logger.e("Filesystem Delete", errorMessage)
             }
         }
+    }
+
+    fun moveAppScriptToRequiredLocations(appName: String, appFilesystem: Filesystem) {
+        // TODO add error cases
+        val appScriptSource = File("$applicationFilesDirPath/apps/$appName/$appName.sh")
+        val appScriptSupportTarget = File("$applicationFilesDirPath/${appFilesystem.id}/support/$appName.sh")
+        val appScriptProfileDTarget = File("$applicationFilesDirPath/${appFilesystem.id}/etc/profile.d/$appName.sh")
+        appScriptSource.copyTo(appScriptSupportTarget, overwrite = true)
+        appScriptSource.copyTo(appScriptProfileDTarget, overwrite = true)
     }
 }
