@@ -17,18 +17,25 @@ class SessionController(
 ) {
 
     @Throws // If device architecture is unsupported
-    suspend fun ensureAppsFilesystemIsInDatabase(
+    suspend fun findAppsFilesystems(
+            requiredFilesystemType: String,
         filesystemDao: FilesystemDao,
         buildWrapper: BuildWrapper = BuildWrapper()
     ): Filesystem {
-        try {
-            val fsToInsert = Filesystem(0, name = "apps", distributionType = "debian")
-            fsToInsert.archType = buildWrapper.getArchType()
-            filesystemDao.insertFilesystem(fsToInsert)
-        } catch (err: SQLiteConstraintException) { } // Failure is fine, that just means the filesystem exists already.
-        return asyncAwait {
-            filesystemDao.getFilesystemByName("apps")
+        val potentialAppFilesystem = asyncAwait {
+            filesystemDao.findAppsFilesytemByType(requiredFilesystemType)
         }
+
+        if (potentialAppFilesystem.isEmpty()) {
+            try {
+                val deviceArchitecture = buildWrapper.getArchType()
+                val fsToInsert = Filesystem(0, name = "apps", archType = deviceArchitecture,
+                        distributionType = requiredFilesystemType, isAppsFilesystem = true)
+                asyncAwait { filesystemDao.insertFilesystem(fsToInsert) }
+            } catch(err: SQLiteConstraintException) { } // Filesystem exists already
+        }
+
+        return asyncAwait { filesystemDao.findAppsFilesytemByType(requiredFilesystemType).first() }
     }
 
     // TODO remove unique constraint on names, return list from name query. search list by service type
