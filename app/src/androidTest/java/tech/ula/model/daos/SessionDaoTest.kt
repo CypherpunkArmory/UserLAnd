@@ -47,14 +47,8 @@ class SessionDaoTest {
     // Session Tests
     @Test(expected = SQLiteConstraintException::class)
     fun dbEnforcesUniqueSessionIdConstraint() {
-        db.sessionDao().insertSession(DEFAULT_SESSION)
-        db.sessionDao().insertSession(DEFAULT_SESSION)
-    }
-
-    @Test(expected = SQLiteConstraintException::class)
-    fun dbEnforcesUniqueSessionNameConstraint() {
-        val session1 = Session(0, name = DEFAULT_NAME, filesystemId = DEFAULT_FS_ID)
-        val session2 = Session(100, name = DEFAULT_NAME, filesystemId = DEFAULT_FS_ID)
+        val session1 = Session(1, name = DEFAULT_NAME, filesystemId = DEFAULT_FS_ID)
+        val session2 = Session(1, name = DEFAULT_NAME, filesystemId = DEFAULT_FS_ID)
         db.sessionDao().insertSession(session1)
         db.sessionDao().insertSession(session2)
     }
