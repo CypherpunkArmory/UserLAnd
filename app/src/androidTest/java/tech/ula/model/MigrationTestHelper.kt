@@ -68,7 +68,7 @@ class MigrationTest {
         assertFalse(fs.isAppsFilesystem)
 
         val session1 = Session(1, name = "test", filesystemId = 1, filesystemName = "fs")
-        val session2 = Session(2, name = "test", filesystemId = 1, filesystemName = "fs")
+        val session2 = Session(2, name = "test", filesystemId = 1, filesystemName = "fs", isAppsSession = true)
         runBlocking {
             migratedDb.sessionDao().insertSession(session1)
             migratedDb.sessionDao().insertSession(session2)
@@ -78,6 +78,13 @@ class MigrationTest {
         assertEquals(2, sessions.size)
         assertTrue(sessions.contains(session1))
         assertTrue(sessions.contains(session2))
+
+        val returnedSession1 = sessions[0]
+        val returnedSession2 = sessions[1]
+        assertEquals(session1, returnedSession1)
+        assertEquals(session2, returnedSession2)
+        assertFalse(returnedSession1.isAppsSession)
+        assertTrue(returnedSession2.isAppsSession)
     }
 
     private fun getMigratedDatabase(): UlaDatabase {
@@ -103,10 +110,5 @@ class MigrationTest {
     private fun insertVersion2Filesystem(id: Long, name: String, db: SupportSQLiteDatabase) {
         val filesystem = migrationHelper.getVersion2Filesystem(id, name)
         db.insert("filesystem", SQLiteDatabase.CONFLICT_REPLACE, filesystem)
-    }
-
-    private fun insertVersion2Session(id: Long, name: String, db: SupportSQLiteDatabase) {
-        val session = migrationHelper.getVersion2Session(id, name)
-        db.insert("session", SQLiteDatabase.CONFLICT_FAIL, session)
     }
 }

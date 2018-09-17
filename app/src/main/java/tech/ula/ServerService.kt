@@ -218,7 +218,7 @@ class ServerService : Service() {
 
     // TODO needs to receive force downloads parameter
     private fun startApp(app: App, serviceType: String) {
-        val appsFilesystemDistType = "debian"
+        val appsFilesystemDistType = app.filesystemRequired
 
         val assetRepository = AssetRepository(BuildWrapper().getArchType(),
                 appsFilesystemDistType, this.filesDir.path, timestampPreferences,
@@ -232,14 +232,13 @@ class ServerService : Service() {
 
         val sessionDao = UlaDatabase.getInstance(this).sessionDao()
         val appSession = runBlocking(CommonPool) {
-            sessionController.ensureAppSessionIsInDatabase(app.name, serviceType, appsFilesystem, sessionDao)
+            sessionController.findAppSession(app.name, serviceType, appsFilesystem, sessionDao)
         }
 
         // TODO handle file not downloaded/found case
         // TODO determine if moving the script to profile.d before extraction is harmful
         filesystemUtility.moveAppScriptToRequiredLocations(app.name, appsFilesystem)
 
-        // TODO apps directory will still use ID for name generation
         startSession(appSession, appsFilesystem, forceDownloads = false)
     }
 

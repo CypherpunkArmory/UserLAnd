@@ -16,6 +16,9 @@ interface SessionDao {
     @Query("select * from session where name = :name")
     fun getSessionByName(name: String): Session
 
+    @Query("select * from session where name = :appType and serviceType = :serviceType and isAppsSession = 1")
+    fun findAppsSession(appType: String, serviceType: String): List<Session>
+
     @Insert(onConflict = OnConflictStrategy.FAIL)
     fun insertSession(session: Session)
 

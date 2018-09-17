@@ -27,33 +27,35 @@ class SessionController(
         }
 
         if (potentialAppFilesystem.isEmpty()) {
-            try {
-                val deviceArchitecture = buildWrapper.getArchType()
-                val fsToInsert = Filesystem(0, name = "apps", archType = deviceArchitecture,
-                        distributionType = requiredFilesystemType, isAppsFilesystem = true)
-                asyncAwait { filesystemDao.insertFilesystem(fsToInsert) }
-            } catch(err: SQLiteConstraintException) { } // Filesystem exists already
+            val deviceArchitecture = buildWrapper.getArchType()
+            val fsToInsert = Filesystem(0, name = "apps", archType = deviceArchitecture,
+                    distributionType = requiredFilesystemType, isAppsFilesystem = true)
+            asyncAwait { filesystemDao.insertFilesystem(fsToInsert) }
         }
 
         return asyncAwait { filesystemDao.findAppsFilesytemByType(requiredFilesystemType).first() }
     }
 
-    // TODO remove unique constraint on names, return list from name query. search list by service type
-    suspend fun ensureAppSessionIsInDatabase(
+    suspend fun findAppSession(
         appName: String,
         serviceType: String,
         appsFilesystem: Filesystem,
         sessionDao: SessionDao
     ): Session {
-        try {
-            val clientType = if (serviceType == "ssh") "ConnectBot" else "bVNC"
+        val potentialAppSession = asyncAwait {
+            sessionDao.findAppsSession(appName, serviceType)
+        }
+
+        if (potentialAppSession.isEmpty()) {
+            val clientType = if (serviceType == "ssh") "ConnectBot" else "bVNC" // TODO update clients dynamically somehow
             val sessionToInsert = Session(id = 0, name = appName, filesystemId = appsFilesystem.id,
                     filesystemName = appsFilesystem.name, serviceType = serviceType,
-                    clientType = clientType, username = "user")
-            sessionDao.insertSession(sessionToInsert)
-        } catch (err: SQLiteConstraintException) { }
+                    clientType = clientType, username = "user", isAppsSession = true) // TODO update username and password dynamically
+            asyncAwait { sessionDao.insertSession(sessionToInsert) }
+        }
+
         return asyncAwait {
-            sessionDao.getSessionByName(appName)
+            sessionDao.findAppsSession(appName, serviceType).first()
         }
     }
 

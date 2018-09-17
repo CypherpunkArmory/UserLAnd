@@ -66,5 +66,6 @@ class Migration2To3 : Migration(2, 3) {
         database.execSQL("ALTER TABLE filesystem ADD COLUMN isAppsFilesystem INTEGER NOT NULL DEFAULT 0")
 
         database.execSQL("DROP INDEX index_session_name")
+        database.execSQL("ALTER TABLE session ADD COLUMN isAppsSession INTEGER NOT NULL DEFAULT 0")
     }
 }

@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "56281ff67c425434cc11502fb49b0f0a",
+    "identityHash": "1469bab2b109d0886e74f098a189a538",
     "entities": [
       {
         "tableName": "session",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `filesystemId` INTEGER NOT NULL, `filesystemName` TEXT NOT NULL, `active` INTEGER NOT NULL, `username` TEXT NOT NULL, `password` TEXT NOT NULL, `geometry` TEXT NOT NULL, `serviceType` TEXT NOT NULL, `clientType` TEXT NOT NULL, `port` INTEGER NOT NULL, `pid` INTEGER NOT NULL, `startupScript` TEXT NOT NULL, `runAtDeviceStartup` INTEGER NOT NULL, `initialCommand` TEXT NOT NULL, `isExtracted` INTEGER NOT NULL, `lastUpdated` INTEGER NOT NULL, `bindings` TEXT NOT NULL, FOREIGN KEY(`filesystemId`) REFERENCES `filesystem`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `filesystemId` INTEGER NOT NULL, `filesystemName` TEXT NOT NULL, `active` INTEGER NOT NULL, `username` TEXT NOT NULL, `password` TEXT NOT NULL, `geometry` TEXT NOT NULL, `serviceType` TEXT NOT NULL, `clientType` TEXT NOT NULL, `port` INTEGER NOT NULL, `pid` INTEGER NOT NULL, `startupScript` TEXT NOT NULL, `runAtDeviceStartup` INTEGER NOT NULL, `initialCommand` TEXT NOT NULL, `isExtracted` INTEGER NOT NULL, `lastUpdated` INTEGER NOT NULL, `bindings` TEXT NOT NULL, `isAppsSession` INTEGER NOT NULL, FOREIGN KEY(`filesystemId`) REFERENCES `filesystem`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -114,6 +114,12 @@
             "fieldPath": "bindings",
             "columnName": "bindings",
             "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isAppsSession",
+            "columnName": "isAppsSession",
+            "affinity": "INTEGER",
             "notNull": true
           }
         ],
@@ -304,7 +310,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"56281ff67c425434cc11502fb49b0f0a\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"1469bab2b109d0886e74f098a189a538\")"
     ]
   }
 }
