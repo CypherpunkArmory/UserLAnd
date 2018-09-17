@@ -54,9 +54,14 @@ class MigrationTest {
     fun migrate2To3() {
         val db = helper.createDatabase(TEST_DB, 2)
 
+        insertVersion2Filesystem(1, "fs", db)
         db.close()
 
         helper.runMigrationsAndValidate(TEST_DB, 3, true, Migration2To3())
+        val migratedDb = getMigratedDatabase()
+        val fs = migratedDb.filesystemDao().getFilesystemByName("fs")
+
+        assertFalse(fs.isAppsFilesystem)
     }
 
     private fun getMigratedDatabase(): UlaDatabase {
@@ -77,5 +82,10 @@ class MigrationTest {
     private fun insertVersion1Session(id: Long, name: String, db: SupportSQLiteDatabase) {
         val session = migrationHelper.getVersion1Session(id, name)
         db.insert("session", SQLiteDatabase.CONFLICT_REPLACE, session)
+    }
+
+    private fun insertVersion2Filesystem(id: Long, name: String, db: SupportSQLiteDatabase) {
+        val filesystem = migrationHelper.getVersion2Filesystem(id, name)
+        db.insert("filesystem", SQLiteDatabase.CONFLICT_REPLACE, filesystem)
     }
 }

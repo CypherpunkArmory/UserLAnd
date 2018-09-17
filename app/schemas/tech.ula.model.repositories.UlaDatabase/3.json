@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "9466931263a2e9872facbd47efbc2d7c",
+    "identityHash": "9896bf3f86643ad58ad3cf911bc37e42",
     "entities": [
       {
         "tableName": "session",
@@ -157,7 +157,7 @@
       },
       {
         "tableName": "filesystem",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `distributionType` TEXT NOT NULL, `archType` TEXT NOT NULL, `defaultUsername` TEXT NOT NULL, `defaultPassword` TEXT NOT NULL, `location` TEXT NOT NULL, `dateCreated` TEXT NOT NULL, `realRoot` INTEGER NOT NULL, `isDownloaded` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `distributionType` TEXT NOT NULL, `archType` TEXT NOT NULL, `defaultUsername` TEXT NOT NULL, `defaultPassword` TEXT NOT NULL, `isAppsFilesystem` INTEGER NOT NULL, `location` TEXT NOT NULL, `dateCreated` TEXT NOT NULL, `realRoot` INTEGER NOT NULL, `isDownloaded` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -193,6 +193,12 @@
             "fieldPath": "defaultPassword",
             "columnName": "defaultPassword",
             "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isAppsFilesystem",
+            "columnName": "isAppsFilesystem",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
@@ -240,7 +246,7 @@
       },
       {
         "tableName": "apps",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `category` TEXT NOT NULL, `supportsCli` INTEGER NOT NULL, `supportsGui` INTEGER NOT NULL, `isPaidApp` INTEGER NOT NULL, `version` INTEGER NOT NULL, PRIMARY KEY(`name`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `category` TEXT NOT NULL, `filesystemRequired` TEXT NOT NULL, `supportsCli` INTEGER NOT NULL, `supportsGui` INTEGER NOT NULL, `isPaidApp` INTEGER NOT NULL, `version` INTEGER NOT NULL, PRIMARY KEY(`name`))",
         "fields": [
           {
             "fieldPath": "name",
@@ -251,6 +257,12 @@
           {
             "fieldPath": "category",
             "columnName": "category",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "filesystemRequired",
+            "columnName": "filesystemRequired",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -300,7 +312,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"9466931263a2e9872facbd47efbc2d7c\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"9896bf3f86643ad58ad3cf911bc37e42\")"
     ]
   }
 }
