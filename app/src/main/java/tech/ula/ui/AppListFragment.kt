@@ -80,7 +80,7 @@ class AppListFragment : Fragment() {
                 val serviceIntent = Intent(activityContext, ServerService::class.java)
                         .putExtra("type", "startApp")
                         .putExtra("app", selectedApp)
-                        .putExtra("serviceType", "ssh")
+                        .putExtra("serviceType", "ssh") // TODO update this dynamically based on user preference
                 activityContext.startService(serviceIntent)
             } else {
                 passDataToActivity("permissionsRequired")

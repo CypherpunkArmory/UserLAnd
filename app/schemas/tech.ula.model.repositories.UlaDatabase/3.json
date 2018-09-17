@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "9896bf3f86643ad58ad3cf911bc37e42",
+    "identityHash": "56281ff67c425434cc11502fb49b0f0a",
     "entities": [
       {
         "tableName": "session",
@@ -124,14 +124,6 @@
           "autoGenerate": true
         },
         "indices": [
-          {
-            "name": "index_session_name",
-            "unique": true,
-            "columnNames": [
-              "name"
-            ],
-            "createSql": "CREATE UNIQUE INDEX `index_session_name` ON `${TABLE_NAME}` (`name`)"
-          },
           {
             "name": "index_session_filesystemId",
             "unique": false,
@@ -312,7 +304,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"9896bf3f86643ad58ad3cf911bc37e42\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"56281ff67c425434cc11502fb49b0f0a\")"
     ]
   }
 }
