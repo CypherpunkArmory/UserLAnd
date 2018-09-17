@@ -1,7 +1,6 @@
 package tech.ula.utils
 
 import android.content.res.Resources
-import android.database.sqlite.SQLiteConstraintException
 import kotlinx.coroutines.experimental.delay
 import tech.ula.R
 import tech.ula.model.daos.FilesystemDao
@@ -18,7 +17,7 @@ class SessionController(
 
     @Throws // If device architecture is unsupported
     suspend fun findAppsFilesystems(
-            requiredFilesystemType: String,
+        requiredFilesystemType: String,
         filesystemDao: FilesystemDao,
         buildWrapper: BuildWrapper = BuildWrapper()
     ): Filesystem {

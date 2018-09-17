@@ -1,6 +1,5 @@
 package tech.ula.utils
 
-import android.database.sqlite.SQLiteConstraintException
 import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
@@ -15,7 +14,6 @@ import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
-import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
