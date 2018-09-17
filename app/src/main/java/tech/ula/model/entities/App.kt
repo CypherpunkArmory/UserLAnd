@@ -12,6 +12,7 @@ data class App(
     @PrimaryKey()
     val name: String,
     var category: String = "",
+    var filesystemRequired: String = "",
     var supportsCli: Boolean = false,
     var supportsGui: Boolean = false,
     var isPaidApp: Boolean = false,

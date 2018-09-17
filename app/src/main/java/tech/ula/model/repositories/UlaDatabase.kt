@@ -54,6 +54,7 @@ class Migration2To3 : Migration(2, 3) {
         database.execSQL("CREATE TABLE apps (" +
                 "name TEXT NOT NULL, " +
                 "category TEXT NOT NULL, " +
+                "filesystemRequired TEXT NOT NULL, " +
                 "supportsCli INTEGER NOT NULL, " +
                 "supportsGui INTEGER NOT NULL, " +
                 "isPaidApp INTEGER NOT NULL, " +
@@ -61,5 +62,7 @@ class Migration2To3 : Migration(2, 3) {
                 "PRIMARY KEY(`name`))")
 
         database.execSQL("CREATE UNIQUE INDEX index_apps_name ON apps (name)")
+
+        database.execSQL("ALTER TABLE filesystem ADD COLUMN isAppsFilesystem INTEGER NOT NULL DEFAULT 0")
     }
 }

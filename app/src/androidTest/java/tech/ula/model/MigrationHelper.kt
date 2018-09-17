@@ -36,4 +36,19 @@ class MigrationHelper {
         sessionValues.put("initialCommand", "dummy")
         return sessionValues
     }
+
+    fun getVersion2Filesystem(id: Long, name: String): ContentValues {
+        val filesystemValues = ContentValues()
+        filesystemValues.put("id", id)
+        filesystemValues.put("name", name)
+        filesystemValues.put("distributionType", "dummy")
+        filesystemValues.put("archType", "dummy")
+        filesystemValues.put("defaultUsername", "dummy")
+        filesystemValues.put("defaultPassword", "dummy")
+        filesystemValues.put("location", "dummy")
+        filesystemValues.put("dateCreated", "dummy")
+        filesystemValues.put("realRoot", 0)
+        filesystemValues.put("isDownloaded", 0)
+        return filesystemValues
+    }
 }
