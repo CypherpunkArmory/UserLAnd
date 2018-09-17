@@ -48,17 +48,25 @@ class SessionControllerTest {
     }
 
     @Test
-    fun catchesAndIgnoresConstraintExceptionForFilesystem() {
-        val fs = Filesystem(0, name = "apps", distributionType = "debian", archType = "x86_64")
+    fun insertsAppsFilesystemIfItDidNotExist() {
+        val requiredFilesystemType = "testDist"
+        val fakeArchitecture = "testArch"
+        val appsFilesystem = Filesystem(0, "apps",
+                archType = fakeArchitecture, distributionType = requiredFilesystemType, isAppsFilesystem = true)
 
-        whenever(buildWrapper.getArchType()).thenReturn("x86_64")
-        whenever(filesystemDao.insertFilesystem(fs)).thenThrow(SQLiteConstraintException::class.java)
-        whenever(filesystemDao.getFilesystemByName("apps")).thenReturn(fs)
+        whenever(buildWrapper.getArchType()).thenReturn(fakeArchitecture)
+        whenever(filesystemDao.findAppsFilesytemByType(requiredFilesystemType))
+                .thenReturn(listOf())
+                .thenReturn(listOf(appsFilesystem))
 
-        val returnedFs = runBlocking { sessionController.ensureAppsFilesystemIsInDatabase(filesystemDao, buildWrapper) }
+        val returnedFs = runBlocking { sessionController.findAppsFilesystems(requiredFilesystemType, filesystemDao, buildWrapper) }
 
-        verify(filesystemDao).getFilesystemByName("apps")
-        assertEquals(fs, returnedFs)
+        verify(filesystemDao).insertFilesystem(appsFilesystem)
+        verify(filesystemDao, times(2)).findAppsFilesytemByType(requiredFilesystemType)
+        assertEquals(appsFilesystem.name, returnedFs.name)
+        assertEquals(appsFilesystem.archType, returnedFs.archType)
+        assertEquals(appsFilesystem.distributionType, returnedFs.distributionType)
+        assertEquals(appsFilesystem.isAppsFilesystem, returnedFs.isAppsFilesystem)
     }
 
     @Test
