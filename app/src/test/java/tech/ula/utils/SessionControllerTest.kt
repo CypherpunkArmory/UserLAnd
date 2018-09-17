@@ -14,8 +14,11 @@ import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.daos.FilesystemDao
+import tech.ula.model.daos.SessionDao
+import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
+import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 
 @RunWith(MockitoJUnitRunner::class)
@@ -39,6 +42,9 @@ class SessionControllerTest {
 
     @Mock
     lateinit var filesystemDao: FilesystemDao
+
+    @Mock
+    lateinit var sessionDao: SessionDao
 
     lateinit var sessionController: SessionController
 
@@ -67,6 +73,29 @@ class SessionControllerTest {
         assertEquals(appsFilesystem.archType, returnedFs.archType)
         assertEquals(appsFilesystem.distributionType, returnedFs.distributionType)
         assertEquals(appsFilesystem.isAppsFilesystem, returnedFs.isAppsFilesystem)
+    }
+
+    @Test
+    fun insertsAppSessionIfItDidNotExist() {
+        val fakeArchitecture = "testArch"
+        val requiredFilesystemType = "testDist"
+        val appsFilesystem = Filesystem(0, "apps",
+                archType = fakeArchitecture, distributionType = requiredFilesystemType, isAppsFilesystem = true)
+
+        val appName = "testApp"
+        val serviceType = "ssh"
+        val appSession = Session(0, name = appName, filesystemId = 0, filesystemName = "apps",
+                serviceType = serviceType, username = "user", clientType = "ConnectBot", isAppsSession = true)
+
+        whenever(sessionDao.findAppsSession(appName, serviceType))
+                .thenReturn(listOf())
+                .thenReturn(listOf(appSession))
+
+        val returnedSession = runBlocking { sessionController.findAppSession(appName, serviceType, appsFilesystem, sessionDao) }
+
+        verify(sessionDao).insertSession(appSession)
+        verify(sessionDao, times(2)).findAppsSession(appName, serviceType)
+        assertEquals(appSession, returnedSession)
     }
 
     @Test
