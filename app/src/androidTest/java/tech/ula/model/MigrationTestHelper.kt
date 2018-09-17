@@ -7,10 +7,13 @@ import android.arch.persistence.room.testing.MigrationTestHelper
 import android.database.sqlite.SQLiteDatabase
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
-import org.junit.Assert.assertFalse
+import kotlinx.coroutines.experimental.runBlocking
+import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import tech.ula.blockingObserve
+import tech.ula.model.entities.Session
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.repositories.Migration1To2
 import tech.ula.model.repositories.Migration2To3
@@ -20,7 +23,7 @@ import java.io.IOException
 class MigrationTest {
     private val TEST_DB = "migration-test"
 
-    private val migrationHelper = MigrationHelper()
+    private val migrationHelper = MigrationTestHelper()
 
     @get:Rule
     val helper = MigrationTestHelper(InstrumentationRegistry.getInstrumentation(),
@@ -58,10 +61,23 @@ class MigrationTest {
         db.close()
 
         helper.runMigrationsAndValidate(TEST_DB, 3, true, Migration2To3())
-        val migratedDb = getMigratedDatabase()
-        val fs = migratedDb.filesystemDao().getFilesystemByName("fs")
 
+        val migratedDb = getMigratedDatabase()
+
+        val fs = migratedDb.filesystemDao().getFilesystemByName("fs")
         assertFalse(fs.isAppsFilesystem)
+
+        val session1 = Session(1, name = "test", filesystemId = 1, filesystemName = "fs")
+        val session2 = Session(2, name = "test", filesystemId = 1, filesystemName = "fs")
+        runBlocking {
+            migratedDb.sessionDao().insertSession(session1)
+            migratedDb.sessionDao().insertSession(session2)
+        }
+
+        val sessions = migratedDb.sessionDao().getAllSessions().blockingObserve()!!
+        assertEquals(2, sessions.size)
+        assertTrue(sessions.contains(session1))
+        assertTrue(sessions.contains(session2))
     }
 
     private fun getMigratedDatabase(): UlaDatabase {
@@ -87,5 +103,10 @@ class MigrationTest {
     private fun insertVersion2Filesystem(id: Long, name: String, db: SupportSQLiteDatabase) {
         val filesystem = migrationHelper.getVersion2Filesystem(id, name)
         db.insert("filesystem", SQLiteDatabase.CONFLICT_REPLACE, filesystem)
+    }
+
+    private fun insertVersion2Session(id: Long, name: String, db: SupportSQLiteDatabase) {
+        val session = migrationHelper.getVersion2Session(id, name)
+        db.insert("session", SQLiteDatabase.CONFLICT_FAIL, session)
     }
 }

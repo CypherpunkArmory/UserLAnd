@@ -64,5 +64,7 @@ class Migration2To3 : Migration(2, 3) {
         database.execSQL("CREATE UNIQUE INDEX index_apps_name ON apps (name)")
 
         database.execSQL("ALTER TABLE filesystem ADD COLUMN isAppsFilesystem INTEGER NOT NULL DEFAULT 0")
+
+        database.execSQL("DROP INDEX index_session_name")
     }
 }

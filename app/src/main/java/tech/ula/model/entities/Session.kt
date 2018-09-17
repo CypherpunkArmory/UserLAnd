@@ -15,7 +15,6 @@ import kotlinx.android.parcel.Parcelize
                 childColumns = arrayOf("filesystemId"),
                 onDelete = ForeignKey.CASCADE)],
         indices = [
-            Index(value = ["name"], unique = true),
             Index(value = ["filesystemId"])
         ])
 data class Session(
