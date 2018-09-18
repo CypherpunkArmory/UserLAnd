@@ -37,10 +37,9 @@ class AppListFragment : Fragment() {
 
     private lateinit var activeSessions: List<Session>
 
-    private val ulaDatabase by lazy { UlaDatabase.getInstance(activityContext) }
-    private val sessionDao by lazy { ulaDatabase.sessionDao() }
-
     private val appListViewModel: AppListViewModel by lazy {
+        val ulaDatabase = UlaDatabase.getInstance(activityContext)
+        val sessionDao = ulaDatabase.sessionDao()
         val appsRepository = AppsRepository(ulaDatabase.appsDao(), GithubAppsFetcher("${activityContext.filesDir}"))
         ViewModelProviders.of(this, AppListViewModelFactory(appsRepository, sessionDao)).get(AppListViewModel::class.java)
     }
@@ -93,9 +92,7 @@ class AppListFragment : Fragment() {
 
                 if (activeSessions.isNotEmpty()) {
                     if (activeSessions.any { it.name == selectedApp.name }) {
-                        val session = activeSessions.find {
-                            it.name == selectedApp.name
-                        }
+                        val session = activeSessions.find { it.name == selectedApp.name }
                         val serviceIntent = Intent(activityContext, ServerService::class.java)
                                 .putExtra("type", "restartRunningSession")
                                 .putExtra("session", session)
@@ -112,6 +109,7 @@ class AppListFragment : Fragment() {
                         .putExtra("app", selectedApp)
                         .putExtra("serviceType", "ssh") // TODO update this dynamically based on user preference
                 activityContext.startService(serviceIntent)
+
             } else {
                 passDataToActivity("permissionsRequired")
             }

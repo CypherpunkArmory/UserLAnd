@@ -1,7 +1,6 @@
 package tech.ula.viewmodel
 
 import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.Transformations
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
 import kotlinx.coroutines.experimental.launch
@@ -23,10 +22,6 @@ class AppListViewModel(private val appsRepository: AppsRepository, private val s
 
     fun getAllApps(): LiveData<List<App>> {
         return appsRepository.getAllApps()
-    }
-
-    fun getAppsByName(name: String): App {
-        return appsRepository.getAppByName(name)
     }
 
     fun refreshAppsList() {

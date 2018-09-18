@@ -16,10 +16,6 @@ class AppsRepository(private val appsDao: AppsDao, private val remoteAppsSource:
         return appsDao.getAllApps()
     }
 
-    fun getAppByName(name: String): App {
-        return appsDao.getAppByName(name)
-    }
-
     // TODO skip cached?
     suspend fun refreshData() {
         asyncAwait {
