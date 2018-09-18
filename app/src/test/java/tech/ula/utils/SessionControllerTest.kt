@@ -89,7 +89,9 @@ class SessionControllerTest {
                 .thenReturn(listOf())
                 .thenReturn(listOf(appSession))
 
-        val returnedSession = runBlocking { sessionController.findAppSession(appName, serviceType, appsFilesystem, sessionDao) }
+        val returnedSession = runBlocking {
+            sessionController.findAppSession(appName, serviceType, appsFilesystem, sessionDao)
+        }
 
         verify(sessionDao).insertSession(appSession)
         verify(sessionDao, times(2)).findAppsSession(appName)

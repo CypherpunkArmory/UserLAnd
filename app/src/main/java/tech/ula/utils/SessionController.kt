@@ -55,7 +55,6 @@ class SessionController(
 
         return asyncAwait {
             sessionDao.findAppsSession(appName).first()
-            sessionDao.findAppsSession(appName).first()
         }
     }
 
