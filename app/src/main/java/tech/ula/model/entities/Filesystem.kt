@@ -1,7 +1,6 @@
 package tech.ula.model.entities
 
 import android.arch.persistence.room.Entity
-import android.arch.persistence.room.Index
 import android.arch.persistence.room.PrimaryKey
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize

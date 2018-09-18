@@ -1,6 +1,7 @@
 package tech.ula.viewmodel
 
 import android.arch.lifecycle.LiveData
+import android.arch.lifecycle.Transformations
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
 import kotlinx.coroutines.experimental.launch
@@ -18,6 +19,15 @@ class AppListViewModel(private val appsRepository: AppsRepository, private val s
 
     fun getAllActiveSessions(): LiveData<List<Session>> {
         return activeSessions
+    }
+
+    fun getAllActiveSessionNames(): LiveData<List<String>> = Transformations.map(activeSessions) {
+        sessions ->
+        val sessionNames = arrayListOf<String>()
+        for (session in sessions) {
+            sessionNames.add(session.name)
+        }
+        sessionNames.toList()
     }
 
     fun getAllApps(): LiveData<List<App>> {

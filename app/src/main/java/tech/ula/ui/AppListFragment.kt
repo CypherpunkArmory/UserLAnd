@@ -10,6 +10,7 @@ import android.support.v4.app.Fragment
 import android.support.v4.widget.SwipeRefreshLayout
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
+import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_app_list.*
 import tech.ula.OnFragmentDataPassed
@@ -35,11 +36,13 @@ class AppListFragment : Fragment() {
     private lateinit var appAdapter: AppListAdapter
 
     private lateinit var activeSessions: List<Session>
+    private lateinit var activeSessionNames: List<String>
+
+    private val ulaDatabase by lazy { UlaDatabase.getInstance(activityContext) }
+    private val sessionDao by lazy { ulaDatabase.sessionDao() }
 
     private val appListViewModel: AppListViewModel by lazy {
-        val ulaDatabase = UlaDatabase.getInstance(activityContext)
         val appsRepository = AppsRepository(ulaDatabase.appsDao(), GithubAppsFetcher("${activityContext.filesDir}"))
-        val sessionDao = ulaDatabase.sessionDao()
         ViewModelProviders.of(this, AppListViewModelFactory(appsRepository, sessionDao)).get(AppListViewModel::class.java)
     }
 
@@ -52,9 +55,15 @@ class AppListFragment : Fragment() {
         }
     }
 
-    private val activeSessionChangeObserver = Observer<List<Session>> {
+    private val activeSessionsChangeObserver = Observer<List<Session>> {
         it?.let {
             activeSessions = it
+        }
+    }
+
+    private val activeSessionNamesChangeObserver = Observer<List<String>> {
+        it?.let {
+            activeSessionNames = it
         }
     }
 
@@ -81,13 +90,31 @@ class AppListFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         activityContext = activity!!
         appListViewModel.getAllApps().observe(viewLifecycleOwner, appChangeObserver)
-        appListViewModel.getAllActiveSessions().observe(viewLifecycleOwner, activeSessionChangeObserver)
+        appListViewModel.getAllActiveSessions().observe(viewLifecycleOwner, activeSessionsChangeObserver)
+        appListViewModel.getAllActiveSessionNames().observe(viewLifecycleOwner, activeSessionNamesChangeObserver)
         registerForContextMenu(list_apps)
         list_apps.onItemClickListener = AdapterView.OnItemClickListener {
             _, _, position, _ ->
             if (arePermissionsGranted(activityContext)) {
                 // TODO show description fragment if first time
                 val selectedApp = appList[position]
+
+                if (activeSessionNames.isNotEmpty()) {
+                    if (activeSessionNames.contains(selectedApp.name)) {
+                        val session = activeSessions.find {
+                            it.name == selectedApp.name
+                        }
+                        val serviceIntent = Intent(activityContext, ServerService::class.java)
+                                .putExtra("type", "restartRunningSession")
+                                .putExtra("session", session)
+                        activityContext.startService(serviceIntent)
+                    } else {
+                        Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG)
+                                .show()
+                    }
+                    return@OnItemClickListener
+                }
+
                 val serviceIntent = Intent(activityContext, ServerService::class.java)
                         .putExtra("type", "startApp")
                         .putExtra("app", selectedApp)

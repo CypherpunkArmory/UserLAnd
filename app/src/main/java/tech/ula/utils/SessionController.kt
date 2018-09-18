@@ -42,7 +42,7 @@ class SessionController(
         sessionDao: SessionDao
     ): Session {
         val potentialAppSession = asyncAwait {
-            sessionDao.findAppsSession(appName, serviceType)
+            sessionDao.findAppsSession(appName)
         }
 
         if (potentialAppSession.isEmpty()) {
@@ -54,7 +54,7 @@ class SessionController(
         }
 
         return asyncAwait {
-            sessionDao.findAppsSession(appName, serviceType).first()
+            sessionDao.findAppsSession(appName).first()
         }
     }
 

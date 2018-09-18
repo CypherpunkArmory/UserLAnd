@@ -85,14 +85,14 @@ class SessionControllerTest {
         val appSession = Session(0, name = appName, filesystemId = 0, filesystemName = "apps",
                 serviceType = serviceType, username = "user", clientType = "ConnectBot", isAppsSession = true)
 
-        whenever(sessionDao.findAppsSession(appName, serviceType))
+        whenever(sessionDao.findAppsSession(appName))
                 .thenReturn(listOf())
                 .thenReturn(listOf(appSession))
 
         val returnedSession = runBlocking { sessionController.findAppSession(appName, serviceType, appsFilesystem, sessionDao) }
 
         verify(sessionDao).insertSession(appSession)
-        verify(sessionDao, times(2)).findAppsSession(appName, serviceType)
+        verify(sessionDao, times(2)).findAppsSession(appName)
         assertEquals(appSession, returnedSession)
     }
 

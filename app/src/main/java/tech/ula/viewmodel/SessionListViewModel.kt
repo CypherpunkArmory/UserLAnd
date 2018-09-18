@@ -3,10 +3,7 @@ package tech.ula.viewmodel
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.Transformations
-import android.os.Environment
 import kotlinx.coroutines.experimental.launch
-import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
