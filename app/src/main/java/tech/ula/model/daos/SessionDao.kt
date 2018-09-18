@@ -10,6 +10,9 @@ import tech.ula.model.entities.Session
 
 @Dao
 interface SessionDao {
+    @Query("update session set active = 0")
+    fun resetSessionActivity()
+
     @Query("select * from Session")
     fun getAllSessions(): LiveData<List<Session>>
 
@@ -18,6 +21,9 @@ interface SessionDao {
 
     @Query("select * from session where name = :appType and serviceType = :serviceType and isAppsSession = 1")
     fun findAppsSession(appType: String, serviceType: String): List<Session>
+
+    @Query("select * from session where active = 1")
+    fun findActiveSessions(): LiveData<List<Session>>
 
     @Insert(onConflict = OnConflictStrategy.FAIL)
     fun insertSession(session: Session)

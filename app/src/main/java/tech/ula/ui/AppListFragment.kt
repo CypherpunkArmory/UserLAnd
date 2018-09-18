@@ -17,6 +17,7 @@ import org.jetbrains.anko.bundleOf
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.App
+import tech.ula.model.entities.Session
 import tech.ula.model.remote.GithubAppsFetcher
 import tech.ula.model.repositories.AppsRepository
 import tech.ula.model.repositories.RefreshStatus
@@ -33,10 +34,13 @@ class AppListFragment : Fragment() {
     private lateinit var appList: List<App>
     private lateinit var appAdapter: AppListAdapter
 
+    private lateinit var activeSessions: List<Session>
+
     private val appListViewModel: AppListViewModel by lazy {
         val ulaDatabase = UlaDatabase.getInstance(activityContext)
         val appsRepository = AppsRepository(ulaDatabase.appsDao(), GithubAppsFetcher("${activityContext.filesDir}"))
-        ViewModelProviders.of(this, AppListViewModelFactory(appsRepository)).get(AppListViewModel::class.java)
+        val sessionDao = ulaDatabase.sessionDao()
+        ViewModelProviders.of(this, AppListViewModelFactory(appsRepository, sessionDao)).get(AppListViewModel::class.java)
     }
 
     private val appChangeObserver = Observer<List<App>> {
@@ -45,6 +49,12 @@ class AppListFragment : Fragment() {
             appAdapter = AppListAdapter(activityContext, appList)
             list_apps.adapter = appAdapter
             setPulldownPromptVisibilityForAppList()
+        }
+    }
+
+    private val activeSessionChangeObserver = Observer<List<Session>> {
+        it?.let {
+            activeSessions = it
         }
     }
 
@@ -71,6 +81,7 @@ class AppListFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         activityContext = activity!!
         appListViewModel.getAllApps().observe(viewLifecycleOwner, appChangeObserver)
+        appListViewModel.getAllActiveSessions().observe(viewLifecycleOwner, activeSessionChangeObserver)
         registerForContextMenu(list_apps)
         list_apps.onItemClickListener = AdapterView.OnItemClickListener {
             _, _, position, _ ->

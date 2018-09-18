@@ -4,11 +4,21 @@ import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
 import kotlinx.coroutines.experimental.launch
+import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
+import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AppsRepository
 import tech.ula.model.repositories.RefreshStatus
 
-class AppListViewModel(private val appsRepository: AppsRepository) : ViewModel() {
+class AppListViewModel(private val appsRepository: AppsRepository, private val sessionDao: SessionDao) : ViewModel() {
+
+    private val activeSessions: LiveData<List<Session>> by lazy {
+        sessionDao.findActiveSessions()
+    }
+
+    fun getAllActiveSessions(): LiveData<List<Session>> {
+        return activeSessions
+    }
 
     fun getAllApps(): LiveData<List<App>> {
         return appsRepository.getAllApps()
@@ -27,8 +37,8 @@ class AppListViewModel(private val appsRepository: AppsRepository) : ViewModel()
     }
 }
 
-class AppListViewModelFactory(private val appsRepository: AppsRepository) : ViewModelProvider.NewInstanceFactory() {
+class AppListViewModelFactory(private val appsRepository: AppsRepository, private val sessionDao: SessionDao) : ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return AppListViewModel(appsRepository) as T
+        return AppListViewModel(appsRepository, sessionDao) as T
     }
 }
