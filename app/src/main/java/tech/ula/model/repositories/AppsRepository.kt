@@ -16,11 +16,7 @@ class AppsRepository(private val appsDao: AppsDao, private val remoteAppsSource:
         return appsDao.getAllApps()
     }
 
-    fun getAppByName(name: String): App {
-        return appsDao.getAppByName(name)
-    }
-
-    // TODO download images and descriptions. skip cached?
+    // TODO skip cached?
     suspend fun refreshData() {
         asyncAwait {
             refreshStatus.postValue(RefreshStatus.ACTIVE)

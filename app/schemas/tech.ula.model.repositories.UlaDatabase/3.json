@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "9466931263a2e9872facbd47efbc2d7c",
+    "identityHash": "c8a791a07b14bf78bd51315788206c5e",
     "entities": [
       {
         "tableName": "session",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `filesystemId` INTEGER NOT NULL, `filesystemName` TEXT NOT NULL, `active` INTEGER NOT NULL, `username` TEXT NOT NULL, `password` TEXT NOT NULL, `geometry` TEXT NOT NULL, `serviceType` TEXT NOT NULL, `clientType` TEXT NOT NULL, `port` INTEGER NOT NULL, `pid` INTEGER NOT NULL, `startupScript` TEXT NOT NULL, `runAtDeviceStartup` INTEGER NOT NULL, `initialCommand` TEXT NOT NULL, `isExtracted` INTEGER NOT NULL, `lastUpdated` INTEGER NOT NULL, `bindings` TEXT NOT NULL, FOREIGN KEY(`filesystemId`) REFERENCES `filesystem`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `filesystemId` INTEGER NOT NULL, `filesystemName` TEXT NOT NULL, `active` INTEGER NOT NULL, `username` TEXT NOT NULL, `password` TEXT NOT NULL, `geometry` TEXT NOT NULL, `serviceType` TEXT NOT NULL, `clientType` TEXT NOT NULL, `port` INTEGER NOT NULL, `pid` INTEGER NOT NULL, `startupScript` TEXT NOT NULL, `runAtDeviceStartup` INTEGER NOT NULL, `initialCommand` TEXT NOT NULL, `isExtracted` INTEGER NOT NULL, `lastUpdated` INTEGER NOT NULL, `bindings` TEXT NOT NULL, `isAppsSession` INTEGER NOT NULL, FOREIGN KEY(`filesystemId`) REFERENCES `filesystem`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -115,6 +115,12 @@
             "columnName": "bindings",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "isAppsSession",
+            "columnName": "isAppsSession",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -124,14 +130,6 @@
           "autoGenerate": true
         },
         "indices": [
-          {
-            "name": "index_session_name",
-            "unique": true,
-            "columnNames": [
-              "name"
-            ],
-            "createSql": "CREATE UNIQUE INDEX `index_session_name` ON `${TABLE_NAME}` (`name`)"
-          },
           {
             "name": "index_session_filesystemId",
             "unique": false,
@@ -157,7 +155,7 @@
       },
       {
         "tableName": "filesystem",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `distributionType` TEXT NOT NULL, `archType` TEXT NOT NULL, `defaultUsername` TEXT NOT NULL, `defaultPassword` TEXT NOT NULL, `location` TEXT NOT NULL, `dateCreated` TEXT NOT NULL, `realRoot` INTEGER NOT NULL, `isDownloaded` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `distributionType` TEXT NOT NULL, `archType` TEXT NOT NULL, `defaultUsername` TEXT NOT NULL, `defaultPassword` TEXT NOT NULL, `isAppsFilesystem` INTEGER NOT NULL, `location` TEXT NOT NULL, `dateCreated` TEXT NOT NULL, `realRoot` INTEGER NOT NULL, `isDownloaded` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -196,6 +194,12 @@
             "notNull": true
           },
           {
+            "fieldPath": "isAppsFilesystem",
+            "columnName": "isAppsFilesystem",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
             "fieldPath": "location",
             "columnName": "location",
             "affinity": "TEXT",
@@ -226,21 +230,12 @@
           ],
           "autoGenerate": true
         },
-        "indices": [
-          {
-            "name": "index_filesystem_name",
-            "unique": true,
-            "columnNames": [
-              "name"
-            ],
-            "createSql": "CREATE UNIQUE INDEX `index_filesystem_name` ON `${TABLE_NAME}` (`name`)"
-          }
-        ],
+        "indices": [],
         "foreignKeys": []
       },
       {
         "tableName": "apps",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `category` TEXT NOT NULL, `supportsCli` INTEGER NOT NULL, `supportsGui` INTEGER NOT NULL, `isPaidApp` INTEGER NOT NULL, `version` INTEGER NOT NULL, PRIMARY KEY(`name`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `category` TEXT NOT NULL, `filesystemRequired` TEXT NOT NULL, `supportsCli` INTEGER NOT NULL, `supportsGui` INTEGER NOT NULL, `isPaidApp` INTEGER NOT NULL, `version` INTEGER NOT NULL, PRIMARY KEY(`name`))",
         "fields": [
           {
             "fieldPath": "name",
@@ -251,6 +246,12 @@
           {
             "fieldPath": "category",
             "columnName": "category",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "filesystemRequired",
+            "columnName": "filesystemRequired",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -300,7 +301,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"9466931263a2e9872facbd47efbc2d7c\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"c8a791a07b14bf78bd51315788206c5e\")"
     ]
   }
 }

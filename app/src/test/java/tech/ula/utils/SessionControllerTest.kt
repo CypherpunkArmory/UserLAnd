@@ -1,6 +1,5 @@
 package tech.ula.utils
 
-import android.database.sqlite.SQLiteConstraintException
 import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
@@ -14,8 +13,10 @@ import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.daos.FilesystemDao
+import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
+import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 
 @RunWith(MockitoJUnitRunner::class)
@@ -40,6 +41,9 @@ class SessionControllerTest {
     @Mock
     lateinit var filesystemDao: FilesystemDao
 
+    @Mock
+    lateinit var sessionDao: SessionDao
+
     lateinit var sessionController: SessionController
 
     @Before
@@ -48,17 +52,50 @@ class SessionControllerTest {
     }
 
     @Test
-    fun catchesAndIgnoresConstraintExceptionForFilesystem() {
-        val fs = Filesystem(0, name = "apps", distributionType = "debian", archType = "x86_64")
+    fun insertsAppsFilesystemIfItDidNotExist() {
+        val requiredFilesystemType = "testDist"
+        val fakeArchitecture = "testArch"
+        val appsFilesystem = Filesystem(0, "apps",
+                archType = fakeArchitecture, distributionType = requiredFilesystemType, isAppsFilesystem = true)
 
-        whenever(buildWrapper.getArchType()).thenReturn("x86_64")
-        whenever(filesystemDao.insertFilesystem(fs)).thenThrow(SQLiteConstraintException::class.java)
-        whenever(filesystemDao.getFilesystemByName("apps")).thenReturn(fs)
+        whenever(buildWrapper.getArchType()).thenReturn(fakeArchitecture)
+        whenever(filesystemDao.findAppsFilesytemByType(requiredFilesystemType))
+                .thenReturn(listOf())
+                .thenReturn(listOf(appsFilesystem))
 
-        val returnedFs = runBlocking { sessionController.ensureAppsFilesystemIsInDatabase(filesystemDao, buildWrapper) }
+        val returnedFs = runBlocking { sessionController.findAppsFilesystems(requiredFilesystemType, filesystemDao, buildWrapper) }
 
-        verify(filesystemDao).getFilesystemByName("apps")
-        assertEquals(fs, returnedFs)
+        verify(filesystemDao).insertFilesystem(appsFilesystem)
+        verify(filesystemDao, times(2)).findAppsFilesytemByType(requiredFilesystemType)
+        assertEquals(appsFilesystem.name, returnedFs.name)
+        assertEquals(appsFilesystem.archType, returnedFs.archType)
+        assertEquals(appsFilesystem.distributionType, returnedFs.distributionType)
+        assertEquals(appsFilesystem.isAppsFilesystem, returnedFs.isAppsFilesystem)
+    }
+
+    @Test
+    fun insertsAppSessionIfItDidNotExist() {
+        val fakeArchitecture = "testArch"
+        val requiredFilesystemType = "testDist"
+        val appsFilesystem = Filesystem(0, "apps",
+                archType = fakeArchitecture, distributionType = requiredFilesystemType, isAppsFilesystem = true)
+
+        val appName = "testApp"
+        val serviceType = "ssh"
+        val appSession = Session(0, name = appName, filesystemId = 0, filesystemName = "apps",
+                serviceType = serviceType, username = "user", clientType = "ConnectBot", isAppsSession = true)
+
+        whenever(sessionDao.findAppsSession(appName))
+                .thenReturn(listOf())
+                .thenReturn(listOf(appSession))
+
+        val returnedSession = runBlocking {
+            sessionController.findAppSession(appName, serviceType, appsFilesystem, sessionDao)
+        }
+
+        verify(sessionDao).insertSession(appSession)
+        verify(sessionDao, times(2)).findAppsSession(appName)
+        assertEquals(appSession, returnedSession)
     }
 
     @Test

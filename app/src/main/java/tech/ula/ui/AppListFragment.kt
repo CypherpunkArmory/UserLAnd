@@ -10,6 +10,7 @@ import android.support.v4.app.Fragment
 import android.support.v4.widget.SwipeRefreshLayout
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
+import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_app_list.*
 import tech.ula.OnFragmentDataPassed
@@ -17,6 +18,7 @@ import org.jetbrains.anko.bundleOf
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.App
+import tech.ula.model.entities.Session
 import tech.ula.model.remote.GithubAppsFetcher
 import tech.ula.model.repositories.AppsRepository
 import tech.ula.model.repositories.RefreshStatus
@@ -33,10 +35,13 @@ class AppListFragment : Fragment() {
     private lateinit var appList: List<App>
     private lateinit var appAdapter: AppListAdapter
 
+    private lateinit var activeSessions: List<Session>
+
     private val appListViewModel: AppListViewModel by lazy {
         val ulaDatabase = UlaDatabase.getInstance(activityContext)
+        val sessionDao = ulaDatabase.sessionDao()
         val appsRepository = AppsRepository(ulaDatabase.appsDao(), GithubAppsFetcher("${activityContext.filesDir}"))
-        ViewModelProviders.of(this, AppListViewModelFactory(appsRepository)).get(AppListViewModel::class.java)
+        ViewModelProviders.of(this, AppListViewModelFactory(appsRepository, sessionDao)).get(AppListViewModel::class.java)
     }
 
     private val appChangeObserver = Observer<List<App>> {
@@ -45,6 +50,12 @@ class AppListFragment : Fragment() {
             appAdapter = AppListAdapter(activityContext, appList)
             list_apps.adapter = appAdapter
             setPulldownPromptVisibilityForAppList()
+        }
+    }
+
+    private val activeSessionsChangeObserver = Observer<List<Session>> {
+        it?.let {
+            activeSessions = it
         }
     }
 
@@ -71,16 +82,32 @@ class AppListFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         activityContext = activity!!
         appListViewModel.getAllApps().observe(viewLifecycleOwner, appChangeObserver)
+        appListViewModel.getAllActiveSessions().observe(viewLifecycleOwner, activeSessionsChangeObserver)
         registerForContextMenu(list_apps)
         list_apps.onItemClickListener = AdapterView.OnItemClickListener {
             _, _, position, _ ->
             if (arePermissionsGranted(activityContext)) {
                 // TODO show description fragment if first time
                 val selectedApp = appList[position]
+
+                if (activeSessions.isNotEmpty()) {
+                    if (activeSessions.any { it.name == selectedApp.name }) {
+                        val session = activeSessions.find { it.name == selectedApp.name }
+                        val serviceIntent = Intent(activityContext, ServerService::class.java)
+                                .putExtra("type", "restartRunningSession")
+                                .putExtra("session", session)
+                        activityContext.startService(serviceIntent)
+                    } else {
+                        Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG)
+                                .show()
+                    }
+                    return@OnItemClickListener
+                }
+
                 val serviceIntent = Intent(activityContext, ServerService::class.java)
                         .putExtra("type", "startApp")
                         .putExtra("app", selectedApp)
-                        .putExtra("serviceType", "ssh")
+                        .putExtra("serviceType", "ssh") // TODO update this dynamically based on user preference
                 activityContext.startService(serviceIntent)
             } else {
                 passDataToActivity("permissionsRequired")

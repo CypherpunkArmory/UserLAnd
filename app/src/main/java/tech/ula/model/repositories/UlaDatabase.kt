@@ -6,6 +6,8 @@ import android.arch.persistence.room.Room
 import android.arch.persistence.room.RoomDatabase
 import android.arch.persistence.room.migration.Migration
 import android.content.Context
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.launch
 import tech.ula.model.daos.AppsDao
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
@@ -31,10 +33,19 @@ abstract class UlaDatabase : RoomDatabase() {
                             ?: buildDatabase(context).also { INSTANCE = it }
                 }
 
-        private fun buildDatabase(context: Context) =
+        private fun buildDatabase(context: Context): UlaDatabase =
                 Room.databaseBuilder(context.applicationContext,
                         UlaDatabase::class.java, "Data.db")
                         .addMigrations(Migration1To2(), Migration2To3())
+                        .addCallback(object : RoomDatabase.Callback() {
+                            override fun onOpen(db: SupportSQLiteDatabase) {
+                                super.onOpen(db)
+                                // Since this should only be called when the app is restarted, all
+                                // all child processes should have been killed and sessions should be
+                                // inactive.
+                                launch(CommonPool) { getInstance(context).sessionDao().resetSessionActivity() }
+                            }
+                        })
                         .build()
     }
 }
@@ -54,6 +65,7 @@ class Migration2To3 : Migration(2, 3) {
         database.execSQL("CREATE TABLE apps (" +
                 "name TEXT NOT NULL, " +
                 "category TEXT NOT NULL, " +
+                "filesystemRequired TEXT NOT NULL, " +
                 "supportsCli INTEGER NOT NULL, " +
                 "supportsGui INTEGER NOT NULL, " +
                 "isPaidApp INTEGER NOT NULL, " +
@@ -61,5 +73,11 @@ class Migration2To3 : Migration(2, 3) {
                 "PRIMARY KEY(`name`))")
 
         database.execSQL("CREATE UNIQUE INDEX index_apps_name ON apps (name)")
+
+        database.execSQL("DROP INDEX index_filesystem_name")
+        database.execSQL("ALTER TABLE filesystem ADD COLUMN isAppsFilesystem INTEGER NOT NULL DEFAULT 0")
+
+        database.execSQL("DROP INDEX index_session_name")
+        database.execSQL("ALTER TABLE session ADD COLUMN isAppsSession INTEGER NOT NULL DEFAULT 0")
     }
 }

@@ -36,16 +36,8 @@ class FilesystemDaoTest {
     // Filesystem tests
     @Test(expected = SQLiteConstraintException::class)
     fun dbEnforcesUniqueFsIdConstraint() {
-        val fs1 = Filesystem(0)
-        val fs2 = Filesystem(0)
-        db.filesystemDao().insertFilesystem(fs1)
-        db.filesystemDao().insertFilesystem(fs2)
-    }
-
-    @Test(expected = SQLiteConstraintException::class)
-    fun dbEnforcesUniqueFsNameConstraint() {
-        val fs1 = Filesystem(0, name = DEFAULT_NAME)
-        val fs2 = Filesystem(100, name = DEFAULT_NAME)
+        val fs1 = Filesystem(1)
+        val fs2 = Filesystem(1)
         db.filesystemDao().insertFilesystem(fs1)
         db.filesystemDao().insertFilesystem(fs2)
     }

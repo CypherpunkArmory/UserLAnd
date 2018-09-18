@@ -24,6 +24,7 @@ class GithubAppsFetcher(private val applicationFilesDir: String, private val con
 
     // Allows destructing of the list of application elements
     operator fun <T> List<T>.component6() = get(5)
+    operator fun <T> List<T>.component7() = get(6)
 
     private val baseUrl = "://github.com/CypherpunkArmory/UserLAnd-Assets-Support/raw/staging/applications" // TODO change to master
     private var protocol = "https"
@@ -32,15 +33,15 @@ class GithubAppsFetcher(private val applicationFilesDir: String, private val con
     override suspend fun fetchAppsList(): List<App> {
         val appsList = ArrayList<App>()
 
-        val url = "$protocol$baseUrl/applications.txt"
+        val url = "$protocol$baseUrl/apps.txt"
         val numLinesToSkip = 1 // Skip first line defining schema
         return try {
             val reader = BufferedReader(InputStreamReader(connectionUtility.getUrlInputStream(url)))
             reader.readLines().drop(numLinesToSkip).forEach {
-                val (name, category, supportsCli, supportsGui, isPaidApp, version) =
+                val (name, category, filesystemRequired, supportsCli, supportsGui, isPaidApp, version) =
                         it.split(", ")
                 appsList.add(
-                        App(name, category, supportsCli.toBoolean(), supportsGui.toBoolean(),
+                        App(name, category, filesystemRequired, supportsCli.toBoolean(), supportsGui.toBoolean(),
                                 isPaidApp.toBoolean(), version.toLong()))
             }
             reader.close()

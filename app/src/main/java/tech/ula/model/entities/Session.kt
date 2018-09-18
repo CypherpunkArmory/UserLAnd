@@ -15,7 +15,6 @@ import kotlinx.android.parcel.Parcelize
                 childColumns = arrayOf("filesystemId"),
                 onDelete = ForeignKey.CASCADE)],
         indices = [
-            Index(value = ["name"], unique = true),
             Index(value = ["filesystemId"])
         ])
 data class Session(
@@ -37,5 +36,6 @@ data class Session(
     val initialCommand: String = "",
     var isExtracted: Boolean = false,
     var lastUpdated: Long = 0,
-    var bindings: String = ""
+    var bindings: String = "",
+    val isAppsSession: Boolean = false
 ) : Parcelable

@@ -1,7 +1,6 @@
 package tech.ula.utils
 
 import android.content.res.Resources
-import android.database.sqlite.SQLiteConstraintException
 import kotlinx.coroutines.experimental.delay
 import tech.ula.R
 import tech.ula.model.daos.FilesystemDao
@@ -17,36 +16,45 @@ class SessionController(
 ) {
 
     @Throws // If device architecture is unsupported
-    suspend fun ensureAppsFilesystemIsInDatabase(
+    suspend fun findAppsFilesystems(
+        requiredFilesystemType: String,
         filesystemDao: FilesystemDao,
         buildWrapper: BuildWrapper = BuildWrapper()
     ): Filesystem {
-        try {
-            val fsToInsert = Filesystem(0, name = "apps", distributionType = "debian")
-            fsToInsert.archType = buildWrapper.getArchType()
-            filesystemDao.insertFilesystem(fsToInsert)
-        } catch (err: SQLiteConstraintException) { } // Failure is fine, that just means the filesystem exists already.
-        return asyncAwait {
-            filesystemDao.getFilesystemByName("apps")
+        val potentialAppFilesystem = asyncAwait {
+            filesystemDao.findAppsFilesytemByType(requiredFilesystemType)
         }
+
+        if (potentialAppFilesystem.isEmpty()) {
+            val deviceArchitecture = buildWrapper.getArchType()
+            val fsToInsert = Filesystem(0, name = "apps", archType = deviceArchitecture,
+                    distributionType = requiredFilesystemType, isAppsFilesystem = true)
+            asyncAwait { filesystemDao.insertFilesystem(fsToInsert) }
+        }
+
+        return asyncAwait { filesystemDao.findAppsFilesytemByType(requiredFilesystemType).first() }
     }
 
-    // TODO remove unique constraint on names, return list from name query. search list by service type
-    suspend fun ensureAppSessionIsInDatabase(
+    suspend fun findAppSession(
         appName: String,
         serviceType: String,
         appsFilesystem: Filesystem,
         sessionDao: SessionDao
     ): Session {
-        try {
-            val clientType = if (serviceType == "ssh") "ConnectBot" else "bVNC"
+        val potentialAppSession = asyncAwait {
+            sessionDao.findAppsSession(appName)
+        }
+
+        if (potentialAppSession.isEmpty()) {
+            val clientType = if (serviceType == "ssh") "ConnectBot" else "bVNC" // TODO update clients dynamically somehow
             val sessionToInsert = Session(id = 0, name = appName, filesystemId = appsFilesystem.id,
                     filesystemName = appsFilesystem.name, serviceType = serviceType,
-                    clientType = clientType, username = "user")
-            sessionDao.insertSession(sessionToInsert)
-        } catch (err: SQLiteConstraintException) { }
+                    clientType = clientType, username = "user", isAppsSession = true) // TODO update username and password dynamically
+            asyncAwait { sessionDao.insertSession(sessionToInsert) }
+        }
+
         return asyncAwait {
-            sessionDao.getSessionByName(appName)
+            sessionDao.findAppsSession(appName).first()
         }
     }
 
