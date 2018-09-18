@@ -33,7 +33,7 @@ class GithubAppsFetcher(private val applicationFilesDir: String, private val con
     override suspend fun fetchAppsList(): List<App> {
         val appsList = ArrayList<App>()
 
-        val url = "$protocol$baseUrl/applications.txt"
+        val url = "$protocol$baseUrl/apps.txt"
         val numLinesToSkip = 1 // Skip first line defining schema
         return try {
             val reader = BufferedReader(InputStreamReader(connectionUtility.getUrlInputStream(url)))

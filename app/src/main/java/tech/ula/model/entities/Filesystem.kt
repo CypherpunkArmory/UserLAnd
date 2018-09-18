@@ -8,7 +8,7 @@ import kotlinx.android.parcel.Parcelize
 import java.util.Date
 
 @Parcelize
-@Entity(tableName = "filesystem", indices = [(Index(value = ["name"], unique = true))])
+@Entity(tableName = "filesystem")
 data class Filesystem(
     @PrimaryKey(autoGenerate = true)
     val id: Long,

@@ -13,6 +13,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import tech.ula.blockingObserve
+import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.repositories.Migration1To2
@@ -64,9 +65,17 @@ class MigrationTest {
 
         val migratedDb = getMigratedDatabase()
 
+        // Added isAppsFilesystem field.
         val fs = migratedDb.filesystemDao().getFilesystemByName("fs")
         assertFalse(fs.isAppsFilesystem)
 
+        // Removed filesystem name index
+        val fs2 = Filesystem(2, "fs")
+        runBlocking { migratedDb.filesystemDao().insertFilesystem(fs2) }
+        val filesystems = migratedDb.filesystemDao().getAllFilesystems().blockingObserve()!!
+        assertEquals(2, filesystems.size)
+
+        // Remove session name index and added isAppsSession field.
         val session1 = Session(1, name = "test", filesystemId = 1, filesystemName = "fs")
         val session2 = Session(2, name = "test", filesystemId = 1, filesystemName = "fs", isAppsSession = true)
         runBlocking {

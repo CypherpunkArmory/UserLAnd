@@ -106,7 +106,11 @@ class ServerService : Service() {
             "startApp" -> {
                 val app: App = intent.getParcelableExtra("app")
                 val serviceType = intent.getStringExtra("serviceType")
+
                 startApp(app, serviceType)
+            }
+            "forceDownloads" -> {
+                startSession(lastActivatedSession, lastActivatedFilesystem, forceDownloads = true)
             }
             "restartRunningSession" -> {
                 val session: Session = intent.getParcelableExtra("session")
