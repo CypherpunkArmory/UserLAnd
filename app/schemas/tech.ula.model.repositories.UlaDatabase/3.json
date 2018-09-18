@@ -2,7 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
+<<<<<<< HEAD
     "identityHash": "c8a791a07b14bf78bd51315788206c5e",
+=======
+    "identityHash": "1469bab2b109d0886e74f098a189a538",
+>>>>>>> 87f04b53494e6c7c58c0744cb96c46af6ddb9a73
     "entities": [
       {
         "tableName": "session",
@@ -301,7 +305,11 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+<<<<<<< HEAD
       "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"c8a791a07b14bf78bd51315788206c5e\")"
+=======
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"1469bab2b109d0886e74f098a189a538\")"
+>>>>>>> 87f04b53494e6c7c58c0744cb96c46af6ddb9a73
     ]
   }
 }

@@ -15,9 +15,9 @@ import org.junit.runner.RunWith
 import tech.ula.blockingObserve
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.repositories.Migration1To2
 import tech.ula.model.repositories.Migration2To3
+import tech.ula.model.repositories.UlaDatabase
 import java.io.IOException
 
 @RunWith(AndroidJUnit4::class)

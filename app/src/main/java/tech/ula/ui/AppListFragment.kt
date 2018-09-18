@@ -109,7 +109,6 @@ class AppListFragment : Fragment() {
                         .putExtra("app", selectedApp)
                         .putExtra("serviceType", "ssh") // TODO update this dynamically based on user preference
                 activityContext.startService(serviceIntent)
-
             } else {
                 passDataToActivity("permissionsRequired")
             }
