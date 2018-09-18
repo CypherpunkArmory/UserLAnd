@@ -21,15 +21,6 @@ class AppListViewModel(private val appsRepository: AppsRepository, private val s
         return activeSessions
     }
 
-    fun getAllActiveSessionNames(): LiveData<List<String>> = Transformations.map(activeSessions) {
-        sessions ->
-        val sessionNames = arrayListOf<String>()
-        for (session in sessions) {
-            sessionNames.add(session.name)
-        }
-        sessionNames.toList()
-    }
-
     fun getAllApps(): LiveData<List<App>> {
         return appsRepository.getAllApps()
     }

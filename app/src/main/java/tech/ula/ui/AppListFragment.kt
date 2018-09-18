@@ -36,7 +36,6 @@ class AppListFragment : Fragment() {
     private lateinit var appAdapter: AppListAdapter
 
     private lateinit var activeSessions: List<Session>
-    private lateinit var activeSessionNames: List<String>
 
     private val ulaDatabase by lazy { UlaDatabase.getInstance(activityContext) }
     private val sessionDao by lazy { ulaDatabase.sessionDao() }
@@ -58,12 +57,6 @@ class AppListFragment : Fragment() {
     private val activeSessionsChangeObserver = Observer<List<Session>> {
         it?.let {
             activeSessions = it
-        }
-    }
-
-    private val activeSessionNamesChangeObserver = Observer<List<String>> {
-        it?.let {
-            activeSessionNames = it
         }
     }
 
@@ -91,7 +84,6 @@ class AppListFragment : Fragment() {
         activityContext = activity!!
         appListViewModel.getAllApps().observe(viewLifecycleOwner, appChangeObserver)
         appListViewModel.getAllActiveSessions().observe(viewLifecycleOwner, activeSessionsChangeObserver)
-        appListViewModel.getAllActiveSessionNames().observe(viewLifecycleOwner, activeSessionNamesChangeObserver)
         registerForContextMenu(list_apps)
         list_apps.onItemClickListener = AdapterView.OnItemClickListener {
             _, _, position, _ ->
@@ -99,8 +91,8 @@ class AppListFragment : Fragment() {
                 // TODO show description fragment if first time
                 val selectedApp = appList[position]
 
-                if (activeSessionNames.isNotEmpty()) {
-                    if (activeSessionNames.contains(selectedApp.name)) {
+                if (activeSessions.isNotEmpty()) {
+                    if (activeSessions.any { it.name == selectedApp.name }) {
                         val session = activeSessions.find {
                             it.name == selectedApp.name
                         }
