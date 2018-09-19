@@ -4,14 +4,17 @@ import android.Manifest
 import android.app.DownloadManager
 import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
+import android.content.ContentResolver
 import android.content.SharedPreferences
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.support.v4.content.ContextCompat
+import tech.ula.R
 import tech.ula.model.entities.Asset
 import java.io.File
 import java.io.InputStream
@@ -187,5 +190,23 @@ class DownloadBroadcastReceiver : BroadcastReceiver() {
             if (it == -1L) return@let
             doOnReceived(it)
         }
+    }
+}
+
+class IconLocator(private val applicationFilesDir: String, private val resources: Resources) {
+    fun findFilesystemIconUri(filesystemType: String): Uri {
+        val filesystemIcon =
+                File("$applicationFilesDir/apps/$filesystemType/$filesystemType.png")
+        resources
+        if (filesystemIcon.exists()) return Uri.fromFile(filesystemIcon)
+        return getDefaultIconUri()
+    }
+
+    private fun getDefaultIconUri(): Uri {
+        val resId = R.mipmap.ic_launcher_foreground
+        return Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE +
+                "://" + resources.getResourcePackageName(resId) + '/' +
+                resources.getResourceTypeName(resId) + '/' +
+                resources.getResourceEntryName(resId) )
     }
 }
