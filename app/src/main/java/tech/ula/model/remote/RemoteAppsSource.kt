@@ -39,7 +39,7 @@ class GithubAppsFetcher(private val applicationFilesDir: String, private val con
             val reader = BufferedReader(InputStreamReader(connectionUtility.getUrlInputStream(url)))
             reader.readLines().drop(numLinesToSkip).forEach {
                 val (name, category, filesystemRequired, supportsCli, supportsGui, isPaidApp, version) =
-                        it.split(", ")
+                        it.toLowerCase().split(", ")
                 appsList.add(
                         App(name, category, filesystemRequired, supportsCli.toBoolean(), supportsGui.toBoolean(),
                                 isPaidApp.toBoolean(), version.toLong()))
@@ -57,7 +57,7 @@ class GithubAppsFetcher(private val applicationFilesDir: String, private val con
     @Throws
     override suspend fun fetchAppIcon(app: App) {
         val directoryAndFilename = "${app.name}/${app.name}.png"
-        val url = "$protocol$baseUrl/$directoryAndFilename".toLowerCase()
+        val url = "$protocol$baseUrl/$directoryAndFilename"
         val file = File("$applicationFilesDir/apps/$directoryAndFilename")
         file.parentFile.mkdirs()
         file.createNewFile()
@@ -71,7 +71,7 @@ class GithubAppsFetcher(private val applicationFilesDir: String, private val con
 
     override suspend fun fetchAppDescription(app: App) {
         val directoryAndFilename = "${app.name}/${app.name}.txt"
-        val url = "$protocol$baseUrl/$directoryAndFilename".toLowerCase() // TODO figure out what to do here
+        val url = "$protocol$baseUrl/$directoryAndFilename" // TODO figure out what to do here
         val file = File("$applicationFilesDir/apps/$directoryAndFilename")
         file.parentFile.mkdirs()
         file.createNewFile()
@@ -82,7 +82,7 @@ class GithubAppsFetcher(private val applicationFilesDir: String, private val con
     @Throws
     override suspend fun fetchAppScript(app: App) {
         val directoryAndFilename = "${app.name}/${app.name}.sh"
-        val url = "$protocol$baseUrl/$directoryAndFilename".toLowerCase()
+        val url = "$protocol$baseUrl/$directoryAndFilename"
         val file = File("$applicationFilesDir/apps/$directoryAndFilename")
         file.parentFile.mkdirs()
         file.createNewFile()
