@@ -207,6 +207,6 @@ class IconLocator(private val applicationFilesDir: String, private val resources
         return Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE +
                 "://" + resources.getResourcePackageName(resId) + '/' +
                 resources.getResourceTypeName(resId) + '/' +
-                resources.getResourceEntryName(resId) )
+                resources.getResourceEntryName(resId))
     }
 }

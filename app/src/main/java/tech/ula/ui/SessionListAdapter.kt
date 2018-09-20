@@ -14,9 +14,10 @@ import tech.ula.model.entities.Session
 import tech.ula.utils.IconLocator
 
 class SessionListAdapter(
-        private var activity: Activity,
-        private val sessions: List<Session>,
-        private val filesystems: List<Filesystem>) : BaseAdapter() {
+    private var activity: Activity,
+    private val sessions: List<Session>,
+    private val filesystems: List<Filesystem>
+) : BaseAdapter() {
 
     private class ViewHolder(row: View) {
         var imageViewActive: ImageView = row.findViewById(R.id.image_list_item_active)
