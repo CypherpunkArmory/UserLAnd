@@ -1,20 +1,28 @@
 package tech.ula.ui
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.widget.SwipeRefreshLayout
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_app_list.*
+import kotlinx.android.synthetic.main.frag_preference_dialog.*
+import org.jetbrains.anko.AlertBuilder
 import tech.ula.OnFragmentDataPassed
 import org.jetbrains.anko.bundleOf
+import org.jetbrains.anko.find
+import tech.ula.MainActivity
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.App
@@ -26,6 +34,7 @@ import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.arePermissionsGranted
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
+
 
 class AppListFragment : Fragment() {
 
@@ -108,7 +117,14 @@ class AppListFragment : Fragment() {
                         .putExtra("type", "startApp")
                         .putExtra("app", selectedApp)
                         .putExtra("serviceType", "ssh") // TODO update this dynamically based on user preference
-                activityContext.startService(serviceIntent)
+
+
+                // TODO: Show preference dialog here
+                select_client_preference(selectedApp)
+
+
+                // TODO: Uncomment default behavior
+//                activityContext.startService(serviceIntent)
             } else {
                 passDataToActivity("permissionsRequired")
             }
@@ -158,4 +174,30 @@ class AppListFragment : Fragment() {
     private fun passDataToActivity(data: String) {
         dataPasser.onFragmentDataPassed(data)
     }
+
+    private fun select_client_preference(selectedApp: App) {
+        lateinit var dialog: AlertDialog
+
+        val clients = arrayOf("SSH", "VNC")
+        var currentlySelectedClient = ""
+
+        val builder = AlertDialog.Builder(activityContext)
+        builder.setTitle("Always open with:")
+        builder.setSingleChoiceItems(clients, 0) {_, selected->
+            val choice = clients[selected]
+            currentlySelectedClient = choice
+        }
+
+        builder.setPositiveButton("Continue") { _, which ->
+            // Set the sharedPreference for the app
+            Toast.makeText(activityContext, "$currentlySelectedClient selected", Toast.LENGTH_SHORT).show()
+        }
+
+        dialog = builder.create()
+        dialog.show()
+    }
+}
+
+fun Context.toast(message: String) {
+    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 }
