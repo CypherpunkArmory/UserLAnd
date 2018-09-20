@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string-array name="default_landing_pages">
+        <item>@string/apps</item>
+        <item>@string/sessions</item>
+    </string-array>
+
     <string-array name="proot_debug_levels">
         <item>-1</item>
         <item>0</item>

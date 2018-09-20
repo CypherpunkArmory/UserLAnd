@@ -18,9 +18,11 @@ import android.widget.Toast
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.NavigationUI.setupWithNavController
 import kotlinx.android.synthetic.main.activity_main.*
+import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.utils.NotificationUtility
 
 interface OnFragmentDataPassed {
@@ -64,6 +66,9 @@ class MainActivity : AppCompatActivity(), OnFragmentDataPassed {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
         notificationManager.createServiceNotificationChannel() // Android O requirement
+
+        setNavStartDestination()
+
         navController.addOnNavigatedListener { _, destination ->
             currentFragmentDisplaysProgressDialog =
                     destination.label == "Sessions" ||
@@ -72,6 +77,19 @@ class MainActivity : AppCompatActivity(), OnFragmentDataPassed {
         }
 
         setupWithNavController(bottom_nav_view, navController)
+    }
+
+    private fun setNavStartDestination() {
+        val navHostFragment = nav_host_fragment as NavHostFragment
+        val inflater = navHostFragment.navController.navInflater
+        val graph = inflater.inflate(R.navigation.nav_graph)
+
+        val userPreference = defaultSharedPreferences.getString("pref_default_nav_location", "Apps")
+        graph.startDestination = when (userPreference) {
+            "Sessions" -> R.id.session_list_fragment
+            else -> R.id.app_list_fragment
+        }
+        navHostFragment.navController.graph = graph
     }
 
     override fun onSupportNavigateUp() = navController.navigateUp()
