@@ -194,9 +194,9 @@ class DownloadBroadcastReceiver : BroadcastReceiver() {
 }
 
 class IconLocator(private val applicationFilesDir: String, private val resources: Resources) {
-    fun findFilesystemIconUri(filesystemType: String): Uri {
+    fun findIconUri(type: String): Uri {
         val filesystemIcon =
-                File("$applicationFilesDir/apps/$filesystemType/$filesystemType.png")
+                File("$applicationFilesDir/apps/$type/$type.png")
         resources
         if (filesystemIcon.exists()) return Uri.fromFile(filesystemIcon)
         return getDefaultIconUri()
