@@ -12,6 +12,9 @@
     <string name="help">Help</string>
     <string name="toc">Terms &amp; Conditions</string>
 
+    <!-- Buttons -->
+    <string name="launch">Launch</string>
+
     <!-- Context Menus -->
     <string name="app_info">App Info</string>
     <string name="kill_service">Kill Service</string>
@@ -30,6 +33,7 @@
     <string name="error_filesystem_name">You must provide a filesystem name</string>
     <string name="error_username">You must provide a username</string>
     <string name="error_empty_field">Each field must be entered!</string>
+    <string name="error_app_description_not_found">Could not find a description for this app. Try refreshing.</string>
 
     <!-- Prompts -->
     <string name="prompt_filesystem">Filesystem:</string>

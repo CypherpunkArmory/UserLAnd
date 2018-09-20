@@ -10,7 +10,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import tech.ula.R
 import tech.ula.model.entities.App
-import tech.ula.utils.IconLocator
+import tech.ula.utils.LocalFileLocator
 
 class AppListAdapter(private var activity: Activity, private var items: List<App>) : BaseAdapter() {
     private class ViewHolder(row: View) {
@@ -34,8 +34,8 @@ class AppListAdapter(private var activity: Activity, private var items: List<App
 
         val app = items[position]
 
-        val iconLocator = IconLocator(activity.filesDir.path, activity.resources)
-        viewHolder.imageView.setImageURI(iconLocator.findIconUri(app.name))
+        val localFileLocator = LocalFileLocator(activity.filesDir.path, activity.resources)
+        viewHolder.imageView.setImageURI(localFileLocator.findIconUri(app.name))
         viewHolder.appName.text = app.name
 
         return view as View

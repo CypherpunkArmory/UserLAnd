@@ -7,8 +7,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import kotlinx.android.synthetic.main.frag_app_details.*
 import tech.ula.R
 import tech.ula.model.entities.App
+import tech.ula.utils.LocalFileLocator
 
 class AppDetailsFragment : Fragment() {
 
@@ -20,11 +22,14 @@ class AppDetailsFragment : Fragment() {
         return inflater.inflate(R.layout.frag_app_details, container, false)
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        val appsTitle = view.findViewById<TextView>(R.id.apps_title)
-        val appsIcon = view.findViewById<ImageView>(R.id.apps_icon)
-        appsTitle.text = app.name
-        appsIcon.setImageResource(R.drawable.octave)
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+
+        val activityContext = activity!!
+        val localFileLocator = LocalFileLocator(activityContext.filesDir.path, activityContext.resources)
+
+        apps_icon.setImageURI(localFileLocator.findIconUri(app.name))
+        apps_title.text = app.name
+        apps_description.text = (localFileLocator.findAppDescription(app.name))
     }
 }

@@ -11,7 +11,7 @@ import android.widget.TextView
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.utils.IconLocator
+import tech.ula.utils.LocalFileLocator
 
 class SessionListAdapter(
     private var activity: Activity,
@@ -51,11 +51,11 @@ class SessionListAdapter(
             viewHolder.imageViewActive.contentDescription = activity.getString(R.string.desc_inactive)
         }
 
-        val iconLocator = IconLocator(activity.filesDir.path, activity.resources)
+        val localFileLocator = LocalFileLocator(activity.filesDir.path, activity.resources)
         viewHolder.textViewServiceType.text = session.serviceType
         viewHolder.textViewSessionName.text = session.name
         viewHolder.textViewFilesystemName.text = session.filesystemName
-        viewHolder.imageViewFilesystemIcon.setImageURI(iconLocator.findIconUri(filesystem.distributionType))
+        viewHolder.imageViewFilesystemIcon.setImageURI(localFileLocator.findIconUri(filesystem.distributionType))
 
         return view as View
     }
