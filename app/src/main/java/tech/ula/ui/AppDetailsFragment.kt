@@ -1,6 +1,7 @@
 package tech.ula.ui
 
 import android.app.Activity
+import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
@@ -10,8 +11,10 @@ import android.widget.ImageView
 import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
+import kotlinx.android.synthetic.main.frag_app_details.*
 import tech.ula.R
 import tech.ula.model.entities.App
+import tech.ula.utils.AppsListPreferences
 
 class AppDetailsFragment : Fragment() {
 
@@ -21,27 +24,36 @@ class AppDetailsFragment : Fragment() {
         arguments?.getParcelable("app") as App
     }
 
+    private val appListPreferences by lazy {
+        AppsListPreferences(activityContext.getSharedPreferences("appLists", Context.MODE_PRIVATE))
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.frag_app_details, container, false)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+
         activityContext = activity!!
+
+        apps_title.text = app.name
+        apps_icon.setImageResource(R.drawable.octave)
+
+        setupPreferredClientRadioGroup()
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        val appsTitle = view.findViewById<TextView>(R.id.apps_title)
-        val appsIcon = view.findViewById<ImageView>(R.id.apps_icon)
-        appsTitle.text = app.name
-        appsIcon.setImageResource(R.drawable.octave)
+    fun setupPreferredClientRadioGroup() {
+        val appClientPreference = appListPreferences.getAppClientPreference(app.name)
+        if (appClientPreference == "SSH") {
+            apps_client_preference.check(R.id.apps_ssh_preference)
+        } else {
+            apps_client_preference.check(R.id.apps_vnc_preference)
+        }
 
-        val clientPreferences = view.findViewById<RadioGroup>(R.id.apps_client_preference)
-        clientPreferences.setOnCheckedChangeListener { _, checkedId ->
-            var text = "You selected: "
-            text += if (R.id.apps_ssh_preference == checkedId) "SSH" else "VNC"
-            Toast.makeText(activityContext, text, Toast.LENGTH_SHORT).show()
+        apps_client_preference.setOnCheckedChangeListener { _, checkedId ->
+            val selectedClient = if (R.id.apps_ssh_preference == checkedId) "SSH" else "VNC"
+            appListPreferences.setAppClientPreference(app.name, selectedClient)
         }
     }
 }
