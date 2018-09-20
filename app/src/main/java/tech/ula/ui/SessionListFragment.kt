@@ -30,6 +30,7 @@ class SessionListFragment : Fragment() {
     private lateinit var sessionList: List<Session>
     private lateinit var sessionAdapter: SessionListAdapter
     private lateinit var filesystemList: List<Filesystem>
+    private lateinit var sessionsAndFilesystems: Pair<List<Session>, List<Filesystem>>
 
     private lateinit var lastSelectedSession: Session
 
@@ -41,14 +42,21 @@ class SessionListFragment : Fragment() {
         it?.let {
             sessionList = it
 
-            sessionAdapter = SessionListAdapter(activityContext, sessionList)
-            list_sessions.adapter = sessionAdapter
         }
     }
 
     private val filesystemChangeObserver = Observer<List<Filesystem>> {
         it?.let {
             filesystemList = it
+        }
+    }
+
+    private val sessionsAndFilesystemsChangeObserver = Observer<Pair<List<Session>, List<Filesystem>>> {
+        it?.let {
+            sessionsAndFilesystems = it
+
+            sessionAdapter = SessionListAdapter(activityContext, sessionsAndFilesystems)
+            list_sessions.adapter = sessionAdapter
         }
     }
 
@@ -81,6 +89,7 @@ class SessionListFragment : Fragment() {
 
         sessionListViewModel.getAllSessions().observe(viewLifecycleOwner, sessionChangeObserver)
         sessionListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
+        sessionListViewModel.getSessionsAndFilesystems().observe(viewLifecycleOwner, sessionsAndFilesystemsChangeObserver)
 
         activityContext = activity!!
 
