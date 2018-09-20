@@ -80,6 +80,10 @@
     <string name="support_dropbear">SSH - Dropbear</string>
     <string name="support_tightvnc">VNC - TightVNC</string>
 
+    <!-- Client Types -->
+    <string name="client_ssh">SSH</string>
+    <string name="client_vnc">VNC</string>
+
     <!-- Support Clients -->
     <string name="support_connectbot">SSH - ConnectBot</string>
     <string name="support_bvnc">VNC - bVNC</string>

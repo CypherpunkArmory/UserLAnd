@@ -17,7 +17,6 @@ import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_app_list.*
-import kotlinx.android.synthetic.main.frag_preference_dialog.*
 import org.jetbrains.anko.AlertBuilder
 import tech.ula.OnFragmentDataPassed
 import org.jetbrains.anko.bundleOf
@@ -196,8 +195,7 @@ class AppListFragment : Fragment() {
             preferredClient = choice
         }
 
-        builder.setPositiveButton("Continue") { _, which ->
-            // TODO: Set the sharedPreference for the app
+        builder.setPositiveButton("Continue") { _, _ ->
             appListViewModel.setAppClientPreference(selectedApp, preferredClient)
             Toast.makeText(activityContext, "$preferredClient selected", Toast.LENGTH_SHORT).show()
         }
