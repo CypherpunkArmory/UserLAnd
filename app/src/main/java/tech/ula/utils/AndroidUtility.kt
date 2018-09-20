@@ -193,12 +193,11 @@ class DownloadBroadcastReceiver : BroadcastReceiver() {
     }
 }
 
-class IconLocator(private val applicationFilesDir: String, private val resources: Resources) {
+class LocalFileLocator(private val applicationFilesDir: String, private val resources: Resources) {
     fun findIconUri(type: String): Uri {
-        val filesystemIcon =
+        val icon =
                 File("$applicationFilesDir/apps/$type/$type.png")
-        resources
-        if (filesystemIcon.exists()) return Uri.fromFile(filesystemIcon)
+        if (icon.exists()) return Uri.fromFile(icon)
         return getDefaultIconUri()
     }
 
@@ -208,5 +207,14 @@ class IconLocator(private val applicationFilesDir: String, private val resources
                 "://" + resources.getResourcePackageName(resId) + '/' +
                 resources.getResourceTypeName(resId) + '/' +
                 resources.getResourceEntryName(resId))
+    }
+
+    fun findAppDescription(appName: String): String {
+        val appDescriptionFile =
+                File("$applicationFilesDir/apps/$appName/$appName.txt")
+        if (!appDescriptionFile.exists()) {
+            return resources.getString(R.string.error_app_description_not_found)
+        }
+        return appDescriptionFile.readText()
     }
 }
