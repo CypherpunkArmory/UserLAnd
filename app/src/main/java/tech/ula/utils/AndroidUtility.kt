@@ -90,6 +90,19 @@ class AssetListPreferences(private val prefs: SharedPreferences) {
     }
 }
 
+class AppListPreferences(private val prefs: SharedPreferences) {
+    fun setAppClientPreference(appName: String, clientType: String) {
+        with(prefs.edit()) {
+            putString(appName, clientType)
+            apply()
+        }
+    }
+
+    fun getAppClientPreference(appName: String): String {
+        return prefs.getString(appName, "") ?: ""
+    }
+}
+
 class BuildWrapper {
     fun getSupportedAbis(): Array<String> {
         return Build.SUPPORTED_ABIS
