@@ -11,9 +11,9 @@ import tech.ula.utils.AppsListPreferences
 import tech.ula.utils.asyncAwait
 
 class AppsRepository(
-        private val appsDao: AppsDao,
-        private val remoteAppsSource: RemoteAppsSource,
-        private val appsListPreferences: AppsListPreferences
+    private val appsDao: AppsDao,
+    private val remoteAppsSource: RemoteAppsSource,
+    private val appsListPreferences: AppsListPreferences
 ) {
     private val refreshStatus = MutableLiveData<RefreshStatus>()
 

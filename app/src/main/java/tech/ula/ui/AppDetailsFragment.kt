@@ -7,10 +7,6 @@ import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.RadioGroup
-import android.widget.TextView
-import android.widget.Toast
 import kotlinx.android.synthetic.main.frag_app_details.*
 import tech.ula.R
 import tech.ula.model.entities.App
