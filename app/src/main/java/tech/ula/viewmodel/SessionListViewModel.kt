@@ -25,23 +25,15 @@ class SessionListViewModel(application: Application) : AndroidViewModel(applicat
         ulaDatabase.filesystemDao().getAllFilesystems()
     }
 
-    fun getAllSessions(): LiveData<List<Session>> {
-        return sessions
-    }
-
     fun deleteSessionById(id: Long) {
         launch { async { ulaDatabase.sessionDao().deleteSessionById(id) } }
     }
 
-    fun getAllFilesystems(): LiveData<List<Filesystem>> {
-        return filesystems
-    }
-
     fun getSessionsAndFilesystems(): LiveData<Pair<List<Session>, List<Filesystem>>> {
-        return zipLiveData(sessions, filesystems)
+        return combineSessionsAndFilesystems(sessions, filesystems)
     }
 
-    private fun <A, B> zipLiveData(a: LiveData<A>, b: LiveData<B>): LiveData<Pair<A, B>> {
+    private fun <A, B> combineSessionsAndFilesystems(a: LiveData<A>, b: LiveData<B>): LiveData<Pair<A, B>> {
         return MediatorLiveData<Pair<A, B>>().apply {
             var lastA: A? = null
             var lastB: B? = null

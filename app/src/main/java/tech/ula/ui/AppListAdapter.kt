@@ -35,7 +35,7 @@ class AppListAdapter(private var activity: Activity, private var items: List<App
         val app = items[position]
 
         val iconLocator = IconLocator(activity.filesDir.path, activity.resources)
-        viewHolder.imageView.setImageURI(iconLocator.findFilesystemIconUri(app.filesystemRequired))
+        viewHolder.imageView.setImageURI(iconLocator.findIconUri(app.name))
         viewHolder.appName.text = app.name
 
         return view as View

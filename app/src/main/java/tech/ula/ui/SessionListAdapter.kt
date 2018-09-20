@@ -13,9 +13,10 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.utils.IconLocator
 
-class SessionListAdapter(private var activity: Activity, private var sessionsAndFilesystems: Pair<List<Session>, List<Filesystem>>) : BaseAdapter() {
-    private val sessions = sessionsAndFilesystems.first
-    private val filesystems = sessionsAndFilesystems.second
+class SessionListAdapter(
+        private var activity: Activity,
+        private val sessions: List<Session>,
+        private val filesystems: List<Filesystem>) : BaseAdapter() {
 
     private class ViewHolder(row: View) {
         var imageViewActive: ImageView = row.findViewById(R.id.image_list_item_active)
@@ -53,7 +54,7 @@ class SessionListAdapter(private var activity: Activity, private var sessionsAnd
         viewHolder.textViewServiceType.text = session.serviceType
         viewHolder.textViewSessionName.text = session.name
         viewHolder.textViewFilesystemName.text = session.filesystemName
-        viewHolder.imageViewFilesystemIcon.setImageURI(iconLocator.findFilesystemIconUri(filesystem.distributionType))
+        viewHolder.imageViewFilesystemIcon.setImageURI(iconLocator.findIconUri(filesystem.distributionType))
 
         return view as View
     }
