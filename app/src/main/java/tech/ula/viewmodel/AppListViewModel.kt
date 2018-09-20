@@ -24,6 +24,14 @@ class AppListViewModel(private val appsRepository: AppsRepository, private val s
         return appsRepository.getAllApps()
     }
 
+    fun getAppClientPreference(app: App): String {
+        return appsRepository.getAppClientPreference(app)
+    }
+
+    fun setAppClientPreference(app: App, preferredClient: String) {
+        appsRepository.setAppClientPreference(app, preferredClient)
+    }
+
     fun refreshAppsList() {
         launch { appsRepository.refreshData() }
     }

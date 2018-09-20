@@ -31,6 +31,7 @@ import tech.ula.model.remote.GithubAppsFetcher
 import tech.ula.model.repositories.AppsRepository
 import tech.ula.model.repositories.RefreshStatus
 import tech.ula.model.repositories.UlaDatabase
+import tech.ula.utils.AppsListPreferences
 import tech.ula.utils.arePermissionsGranted
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
@@ -46,10 +47,17 @@ class AppListFragment : Fragment() {
 
     private lateinit var activeSessions: List<Session>
 
+    private val appListPreferences by lazy {
+        AppsListPreferences(activityContext.getSharedPreferences("appLists", Context.MODE_PRIVATE))
+    }
+
     private val appListViewModel: AppListViewModel by lazy {
         val ulaDatabase = UlaDatabase.getInstance(activityContext)
         val sessionDao = ulaDatabase.sessionDao()
-        val appsRepository = AppsRepository(ulaDatabase.appsDao(), GithubAppsFetcher("${activityContext.filesDir}"))
+        val appsDao = ulaDatabase.appsDao()
+        val githubFetcher = GithubAppsFetcher("${activityContext.filesDir}")
+
+        val appsRepository = AppsRepository(appsDao, githubFetcher, appListPreferences)
         ViewModelProviders.of(this, AppListViewModelFactory(appsRepository, sessionDao)).get(AppListViewModel::class.java)
     }
 
@@ -113,18 +121,18 @@ class AppListFragment : Fragment() {
                     return@OnItemClickListener
                 }
 
-                val serviceIntent = Intent(activityContext, ServerService::class.java)
-                        .putExtra("type", "startApp")
-                        .putExtra("app", selectedApp)
-                        .putExtra("serviceType", "ssh") // TODO update this dynamically based on user preference
+                val preferredClient = appListViewModel.getAppClientPreference(appList[position])
+                if (preferredClient.isEmpty()) {
+                    select_client_preference(selectedApp)
+                } else {
+                    val serviceIntent = Intent(activityContext, ServerService::class.java)
+                            .putExtra("type", "startApp")
+                            .putExtra("app", selectedApp)
+                            .putExtra("serviceType", preferredClient.toLowerCase())
 
+                    activityContext.startService(serviceIntent)
+                }
 
-                // TODO: Show preference dialog here
-                select_client_preference(selectedApp)
-
-
-                // TODO: Uncomment default behavior
-//                activityContext.startService(serviceIntent)
             } else {
                 passDataToActivity("permissionsRequired")
             }
@@ -179,25 +187,22 @@ class AppListFragment : Fragment() {
         lateinit var dialog: AlertDialog
 
         val clients = arrayOf("SSH", "VNC")
-        var currentlySelectedClient = ""
+        var preferredClient = "SSH"
 
         val builder = AlertDialog.Builder(activityContext)
         builder.setTitle("Always open with:")
         builder.setSingleChoiceItems(clients, 0) {_, selected->
             val choice = clients[selected]
-            currentlySelectedClient = choice
+            preferredClient = choice
         }
 
         builder.setPositiveButton("Continue") { _, which ->
-            // Set the sharedPreference for the app
-            Toast.makeText(activityContext, "$currentlySelectedClient selected", Toast.LENGTH_SHORT).show()
+            // TODO: Set the sharedPreference for the app
+            appListViewModel.setAppClientPreference(selectedApp, preferredClient)
+            Toast.makeText(activityContext, "$preferredClient selected", Toast.LENGTH_SHORT).show()
         }
 
         dialog = builder.create()
         dialog.show()
     }
-}
-
-fun Context.toast(message: String) {
-    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 }

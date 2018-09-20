@@ -90,7 +90,7 @@ class AssetListPreferences(private val prefs: SharedPreferences) {
     }
 }
 
-class AppListPreferences(private val prefs: SharedPreferences) {
+class AppsListPreferences(private val prefs: SharedPreferences) {
     fun setAppClientPreference(appName: String, clientType: String) {
         with(prefs.edit()) {
             putString(appName, clientType)
