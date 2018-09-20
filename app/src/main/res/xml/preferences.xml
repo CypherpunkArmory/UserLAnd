@@ -7,6 +7,13 @@
             android:key="pref_default_password_message_enabled"
             android:title="@string/pref_enable_default_password_message"
             android:defaultValue="true" />
+        <ListPreference
+            android:key="pref_default_nav_location"
+            android:title="@string/pref_default_landing_page_title"
+            android:summary="@string/pref_default_landing_page_message"
+            android:entries="@array/default_landing_pages"
+            android:entryValues="@array/default_landing_pages"
+            android:defaultValue="@string/apps" />
     </PreferenceCategory>
     <PreferenceCategory
         android:title="@string/pref_proot_category"
