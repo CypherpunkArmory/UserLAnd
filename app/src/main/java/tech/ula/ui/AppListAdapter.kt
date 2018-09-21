@@ -10,9 +10,13 @@ import android.widget.ImageView
 import android.widget.TextView
 import tech.ula.R
 import tech.ula.model.entities.App
+import tech.ula.model.entities.Session
 import tech.ula.utils.LocalFileLocator
 
-class AppListAdapter(private var activity: Activity, private var items: List<App>) : BaseAdapter() {
+class AppListAdapter(
+        private val activity: Activity,
+        private val apps: List<App>,
+        private val activeSessions: List<Session>) : BaseAdapter() {
     private class ViewHolder(row: View) {
         var imageView: ImageView = row.findViewById(R.id.apps_icon)
         var appName: TextView = row.findViewById(R.id.apps_name)
@@ -32,7 +36,15 @@ class AppListAdapter(private var activity: Activity, private var items: List<App
             viewHolder = view.tag as ViewHolder
         }
 
-        val app = items[position]
+        val app = apps[position]
+
+        val activeAppSessions = activeSessions.filter { it.name == app.name }
+        val appIsActive = activeAppSessions.isNotEmpty()
+        if (appIsActive) {
+            view?.setBackgroundResource(R.color.colorAccent)
+        } else {
+            view?.setBackgroundResource(R.color.colorPrimaryDark)
+        }
 
         val localFileLocator = LocalFileLocator(activity.filesDir.path, activity.resources)
         viewHolder.imageView.setImageURI(localFileLocator.findIconUri(app.name))
@@ -42,7 +54,7 @@ class AppListAdapter(private var activity: Activity, private var items: List<App
     }
 
     override fun getItem(position: Int): App {
-        return items[position]
+        return apps[position]
     }
 
     override fun getItemId(position: Int): Long {
@@ -50,6 +62,6 @@ class AppListAdapter(private var activity: Activity, private var items: List<App
     }
 
     override fun getCount(): Int {
-        return items.size
+        return apps.size
     }
 }
