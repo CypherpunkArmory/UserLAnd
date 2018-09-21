@@ -16,6 +16,7 @@ data class Filesystem(
     var archType: String = "",
     val defaultUsername: String = "user",
     val defaultPassword: String = "userland",
+    val defaultVncPassword: String = "userland",
     val isAppsFilesystem: Boolean = false,
     val location: String = "",
     val dateCreated: String = Date().toString(),

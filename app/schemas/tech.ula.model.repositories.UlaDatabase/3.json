@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "c8a791a07b14bf78bd51315788206c5e",
+    "identityHash": "df57758295edf8a86605d6ef4df499c1",
     "entities": [
       {
         "tableName": "session",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `filesystemId` INTEGER NOT NULL, `filesystemName` TEXT NOT NULL, `active` INTEGER NOT NULL, `username` TEXT NOT NULL, `password` TEXT NOT NULL, `geometry` TEXT NOT NULL, `serviceType` TEXT NOT NULL, `clientType` TEXT NOT NULL, `port` INTEGER NOT NULL, `pid` INTEGER NOT NULL, `startupScript` TEXT NOT NULL, `runAtDeviceStartup` INTEGER NOT NULL, `initialCommand` TEXT NOT NULL, `isExtracted` INTEGER NOT NULL, `lastUpdated` INTEGER NOT NULL, `bindings` TEXT NOT NULL, `isAppsSession` INTEGER NOT NULL, FOREIGN KEY(`filesystemId`) REFERENCES `filesystem`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `filesystemId` INTEGER NOT NULL, `filesystemName` TEXT NOT NULL, `active` INTEGER NOT NULL, `username` TEXT NOT NULL, `password` TEXT NOT NULL, `vncPassword` TEXT NOT NULL, `geometry` TEXT NOT NULL, `serviceType` TEXT NOT NULL, `clientType` TEXT NOT NULL, `port` INTEGER NOT NULL, `pid` INTEGER NOT NULL, `startupScript` TEXT NOT NULL, `runAtDeviceStartup` INTEGER NOT NULL, `initialCommand` TEXT NOT NULL, `isExtracted` INTEGER NOT NULL, `lastUpdated` INTEGER NOT NULL, `bindings` TEXT NOT NULL, `isAppsSession` INTEGER NOT NULL, FOREIGN KEY(`filesystemId`) REFERENCES `filesystem`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -47,6 +47,12 @@
           {
             "fieldPath": "password",
             "columnName": "password",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "vncPassword",
+            "columnName": "vncPassword",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -155,7 +161,7 @@
       },
       {
         "tableName": "filesystem",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `distributionType` TEXT NOT NULL, `archType` TEXT NOT NULL, `defaultUsername` TEXT NOT NULL, `defaultPassword` TEXT NOT NULL, `isAppsFilesystem` INTEGER NOT NULL, `location` TEXT NOT NULL, `dateCreated` TEXT NOT NULL, `realRoot` INTEGER NOT NULL, `isDownloaded` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `distributionType` TEXT NOT NULL, `archType` TEXT NOT NULL, `defaultUsername` TEXT NOT NULL, `defaultPassword` TEXT NOT NULL, `defaultVncPassword` TEXT NOT NULL, `isAppsFilesystem` INTEGER NOT NULL, `location` TEXT NOT NULL, `dateCreated` TEXT NOT NULL, `realRoot` INTEGER NOT NULL, `isDownloaded` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -190,6 +196,12 @@
           {
             "fieldPath": "defaultPassword",
             "columnName": "defaultPassword",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "defaultVncPassword",
+            "columnName": "defaultVncPassword",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -301,7 +313,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"c8a791a07b14bf78bd51315788206c5e\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"df57758295edf8a86605d6ef4df499c1\")"
     ]
   }
 }

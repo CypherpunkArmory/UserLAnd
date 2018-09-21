@@ -17,6 +17,7 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.Migration1To2
 import tech.ula.model.repositories.Migration2To3
+import tech.ula.model.repositories.Migration3To4
 import tech.ula.model.repositories.UlaDatabase
 import java.io.IOException
 
@@ -96,10 +97,30 @@ class MigrationTest {
         assertTrue(returnedSession2.isAppsSession)
     }
 
+    @Test
+    @Throws(IOException::class)
+    fun migrate3To4() {
+        val db = helper.createDatabase(TEST_DB, 3)
+
+        insertVersion2Session(1, "testSession", db)
+        insertVersion3Filesystem(1, "testFilesystem", db)
+
+        db.close()
+
+        helper.runMigrationsAndValidate(TEST_DB, 4, true, Migration3To4())
+
+        val migratedDb = getMigratedDatabase()
+        val fs = migratedDb.filesystemDao().getFilesystemByName("testSession")
+        val session = migratedDb.sessionDao().getSessionByName("testFilesystem")
+
+        assert(fs.defaultVncPassword == "userland")
+        assert(session.vncPassword == "userland")
+    }
+
     private fun getMigratedDatabase(): UlaDatabase {
         val db = Room.databaseBuilder(InstrumentationRegistry.getTargetContext(),
                 UlaDatabase::class.java, TEST_DB)
-                .addMigrations(Migration1To2(), Migration2To3())
+                .addMigrations(Migration1To2(), Migration2To3(), Migration3To4())
                 .build()
 
         helper.closeWhenFinished(db)
@@ -118,6 +139,16 @@ class MigrationTest {
 
     private fun insertVersion2Filesystem(id: Long, name: String, db: SupportSQLiteDatabase) {
         val filesystem = migrationHelper.getVersion2Filesystem(id, name)
+        db.insert("filesystem", SQLiteDatabase.CONFLICT_REPLACE, filesystem)
+    }
+
+    private fun insertVersion2Session(id: Long, name: String, db: SupportSQLiteDatabase) {
+        val session = migrationHelper.getVersion2Session(id, name)
+        db.insert("session", SQLiteDatabase.CONFLICT_REPLACE, session)
+    }
+
+    private fun insertVersion3Filesystem(id: Long, name: String, db: SupportSQLiteDatabase) {
+        val filesystem = migrationHelper.getVersion3Filesystem(id, name)
         db.insert("filesystem", SQLiteDatabase.CONFLICT_REPLACE, filesystem)
     }
 }
