@@ -59,16 +59,7 @@ class FilesystemEditFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        input_filesystem_name.setText(filesystem.name)
-        input_filesystem_name.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(p0: Editable?) {
-                filesystem.name = p0.toString()
-            }
-
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
-
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
-        })
+        setupTextInputs()
 
         if (editExisting) {
             spinner_filesystem_type.isEnabled = false
@@ -83,10 +74,40 @@ class FilesystemEditFragment : Fragment() {
         }
     }
 
+    fun setupTextInputs() {
+        input_filesystem_name.setText(filesystem.name)
+        input_filesystem_password.setText(filesystem.defaultPassword)
+        input_filesystem_vncpassword.setText(filesystem.defaultVncPassword)
+
+        input_filesystem_name.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(p0: Editable?) {
+                filesystem.name = p0.toString()
+            }
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+        })
+
+        input_filesystem_password.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(p0: Editable?) {
+                filesystem.defaultPassword = p0.toString()
+            }
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+        })
+
+        input_filesystem_vncpassword.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(p0: Editable?) {
+                filesystem.defaultVncPassword = p0.toString()
+            }
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+        })
+    }
+
     private fun insertFilesystem(): Boolean {
         val navController = NavHostFragment.findNavController(this)
         if (filesystem.name == "") input_filesystem_name.error = getString(R.string.error_filesystem_name)
-        if (filesystem.name == "") {
+        if (filesystem.name.isEmpty() || filesystem.defaultPassword.isEmpty() || filesystem.defaultVncPassword.isEmpty()) {
             Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
         } else {
             if (editExisting) {
