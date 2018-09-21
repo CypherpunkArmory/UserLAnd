@@ -27,7 +27,13 @@
     <string name="hint_filesystem_name">Filesystem name</string>
     <string name="hint_session_name">Session Name</string>
     <string name="hint_username">Username</string>
+    <string name="hint_password">Password</string>
+    <string name="hint_vncpassword">VNC Password</string>
 
+    <!-- Default Values -->
+    <string name="default_username">user</string>
+    <string name="default_password">userland</string>
+    
     <!-- Errors -->
     <string name="error_session_name">You must provide a session name</string>
     <string name="error_filesystem_name">You must provide a filesystem name</string>
