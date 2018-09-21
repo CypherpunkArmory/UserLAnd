@@ -38,7 +38,7 @@ class AppDetailsFragment : Fragment() {
         apps_icon.setImageURI(localFileLocator.findIconUri(app.name))
         apps_title.text = app.name
         apps_description.text = (localFileLocator.findAppDescription(app.name))
-      
+
         setupPreferredServiceTypeRadioGroup()
     }
 
