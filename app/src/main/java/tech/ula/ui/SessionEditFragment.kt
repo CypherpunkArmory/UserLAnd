@@ -216,6 +216,9 @@ class SessionEditFragment : Fragment() {
 
     private fun updateFilesystemDetailsForSession(filesystem: Filesystem) {
         session.filesystemName = filesystem.name
+        session.username = filesystem.defaultUsername
+        session.password = filesystem.defaultPassword
+        session.vncPassword = filesystem.defaultVncPassword
         session.filesystemId = filesystem.id
     }
 }
