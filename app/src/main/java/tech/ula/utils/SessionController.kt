@@ -127,7 +127,7 @@ class SessionController(
             filesystemUtility.copyDistributionAssetsToFilesystem(filesystemDirectoryName, filesystem.distributionType)
 
             return asyncAwait {
-                filesystemUtility.extractFilesystem(filesystemDirectoryName, filesystemExtractLogger)
+                filesystemUtility.extractFilesystem(filesystem, filesystemDirectoryName, filesystemExtractLogger)
                 while (!filesystemUtility.isExtractionComplete(filesystemDirectoryName)) {
                     delay(500)
                 }
