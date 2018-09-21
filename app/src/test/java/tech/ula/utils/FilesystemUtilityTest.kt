@@ -10,6 +10,7 @@ import org.mockito.Mock
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.entities.Asset
+import tech.ula.model.entities.Filesystem
 import java.io.File
 
 @RunWith(MockitoJUnitRunner::class)
@@ -44,8 +45,17 @@ class FilesystemUtilityTest {
         val targetDirectoryName = tempFolder.root.path
         val command = "../support/execInProot.sh /support/extractFilesystem.sh"
 
-        filesystemUtility.extractFilesystem(targetDirectoryName, statelessListener)
-        verify(execUtility).wrapWithBusyboxAndExecute(targetDirectoryName, command, statelessListener)
+        val requiredFilesystemType = "testDist"
+        val fakeArchitecture = "testArch"
+        val filesystem = Filesystem(0, "apps",
+                archType = fakeArchitecture, distributionType = requiredFilesystemType, isAppsFilesystem = true)
+
+        val defaultEnvironmentalVariables = hashMapOf<String, String>("INITIAL_USERNAME" to "user",
+                "INITIAL_PASSWORD" to "userland", "INITIAL_VNC_PASSWORD" to "userland")
+
+        filesystemUtility.extractFilesystem(filesystem, targetDirectoryName, statelessListener)
+        verify(execUtility).wrapWithBusyboxAndExecute(targetDirectoryName, command, statelessListener,
+                environmentVars = defaultEnvironmentalVariables)
     }
 
     @Test
