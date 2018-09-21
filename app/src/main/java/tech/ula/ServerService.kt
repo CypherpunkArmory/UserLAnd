@@ -271,7 +271,7 @@ class ServerService : Service() {
         val bVncIntent = Intent()
         bVncIntent.action = "android.intent.action.VIEW"
         bVncIntent.type = "application/vnd.vnc"
-        bVncIntent.data = Uri.parse("vnc://127.0.0.1:5951/?VncPassword=${session.password}")
+        bVncIntent.data = Uri.parse("vnc://127.0.0.1:5951/?VncUsername=${session.username}&VncPassword=${session.password}")
         bVncIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
 
         if (clientIsPresent(bVncIntent)) {
