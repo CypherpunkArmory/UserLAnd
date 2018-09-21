@@ -3,6 +3,7 @@ package tech.ula.ui
 import android.app.Activity
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
+import android.support.design.widget.TextInputEditText
 import android.support.v4.app.Fragment
 import android.text.Editable
 import android.text.TextWatcher
@@ -76,12 +77,21 @@ class FilesystemEditFragment : Fragment() {
 
     fun setupTextInputs() {
         input_filesystem_name.setText(filesystem.name)
+        input_filesystem_username.setText(filesystem.defaultUsername)
         input_filesystem_password.setText(filesystem.defaultPassword)
         input_filesystem_vncpassword.setText(filesystem.defaultVncPassword)
 
         input_filesystem_name.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
                 filesystem.name = p0.toString()
+            }
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+        })
+
+        input_filesystem_username.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(p0: Editable?) {
+                filesystem.defaultUsername = p0.toString()
             }
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
@@ -106,28 +116,42 @@ class FilesystemEditFragment : Fragment() {
 
     private fun insertFilesystem(): Boolean {
         val navController = NavHostFragment.findNavController(this)
-        if (filesystem.name == "") input_filesystem_name.error = getString(R.string.error_filesystem_name)
-        if (filesystem.name.isEmpty() || filesystem.defaultPassword.isEmpty() || filesystem.defaultVncPassword.isEmpty()) {
-            Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
+        if (!isFilesystemParametersCorrect()) {
+            return false
+        }
+
+        if (editExisting) {
+            filesystemEditViewModel.updateFilesystem(filesystem)
+            navController.popBackStack()
         } else {
-            if (editExisting) {
-                filesystemEditViewModel.updateFilesystem(filesystem)
-                navController.popBackStack()
-            } else {
-                try {
-                    filesystem.archType = BuildWrapper().getArchType()
-                } catch (err: Exception) {
-                    Toast.makeText(activityContext, R.string.no_supported_architecture, Toast.LENGTH_LONG).show()
-                    return true
-                }
-                launchAsync {
-                    when (filesystemEditViewModel.insertFilesystem(filesystem)) {
-                        true -> navController.popBackStack()
-                        false -> Toast.makeText(activityContext, R.string.filesystem_unique_name_required, Toast.LENGTH_LONG).show()
-                    }
+            try {
+                filesystem.archType = BuildWrapper().getArchType()
+            } catch (err: Exception) {
+                Toast.makeText(activityContext, R.string.no_supported_architecture, Toast.LENGTH_LONG).show()
+                return true
+            }
+            launchAsync {
+                when (filesystemEditViewModel.insertFilesystem(filesystem)) {
+                    true -> navController.popBackStack()
+                    false -> Toast.makeText(activityContext, R.string.filesystem_unique_name_required, Toast.LENGTH_LONG).show()
                 }
             }
         }
+
         return true
+    }
+
+    private fun isFilesystemParametersCorrect(): Boolean {
+        if (filesystem.name == "") input_filesystem_name.error = getString(R.string.error_filesystem_name)
+
+        if (filesystem.name.isEmpty() || filesystem.defaultPassword.isEmpty() || filesystem.defaultVncPassword.isEmpty()) {
+            Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
+            return false
+        } else if (filesystem.defaultVncPassword.length > 8) {
+            Toast.makeText(activityContext, R.string.error_vnc_password_too_long, Toast.LENGTH_LONG).show()
+            return false
+        } else {
+            return true
+        }
     }
 }
