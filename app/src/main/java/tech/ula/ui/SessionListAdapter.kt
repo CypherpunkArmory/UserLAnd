@@ -20,7 +20,6 @@ class SessionListAdapter(
 ) : BaseAdapter() {
 
     private class ViewHolder(row: View) {
-        var imageViewActive: ImageView = row.findViewById(R.id.image_list_item_active)
         var textViewServiceType: TextView = row.findViewById(R.id.text_list_item_service_type)
         var textViewSessionName: TextView = row.findViewById(R.id.text_list_item_session_name)
         var textViewFilesystemName: TextView = row.findViewById(R.id.text_list_item_filesystem_name)
@@ -44,11 +43,9 @@ class SessionListAdapter(
         val filesystem = filesystems.find { it.id == session.filesystemId }!!
 
         if (session.active) {
-            viewHolder.imageViewActive.setImageResource(R.drawable.ic_check_circle_green_24dp)
-            viewHolder.imageViewActive.contentDescription = activity.getString(R.string.desc_active)
+            view?.setBackgroundResource(R.color.colorAccent)
         } else {
-            viewHolder.imageViewActive.setImageResource(R.drawable.ic_block_red_24dp)
-            viewHolder.imageViewActive.contentDescription = activity.getString(R.string.desc_inactive)
+            view?.setBackgroundResource(R.color.colorPrimaryDark)
         }
 
         val localFileLocator = LocalFileLocator(activity.filesDir.path, activity.resources)

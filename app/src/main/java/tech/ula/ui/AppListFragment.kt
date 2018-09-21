@@ -44,18 +44,13 @@ class AppListFragment : Fragment() {
         ViewModelProviders.of(this, AppListViewModelFactory(appsRepository, sessionDao)).get(AppListViewModel::class.java)
     }
 
-    private val appChangeObserver = Observer<List<App>> {
+    private val appsAndActiveSessionObserver = Observer<Pair<List<App>, List<Session>>> {
         it?.let {
-            appList = it
-            appAdapter = AppListAdapter(activityContext, appList)
+            appList = it.first
+            activeSessions = it.second
+            appAdapter = AppListAdapter(activityContext, appList, activeSessions)
             list_apps.adapter = appAdapter
             setPulldownPromptVisibilityForAppList()
-        }
-    }
-
-    private val activeSessionsChangeObserver = Observer<List<Session>> {
-        it?.let {
-            activeSessions = it
         }
     }
 
@@ -81,8 +76,7 @@ class AppListFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         activityContext = activity!!
-        appListViewModel.getAllApps().observe(viewLifecycleOwner, appChangeObserver)
-        appListViewModel.getAllActiveSessions().observe(viewLifecycleOwner, activeSessionsChangeObserver)
+        appListViewModel.getAppsAndActiveSessions().observe(viewLifecycleOwner, appsAndActiveSessionObserver)
         registerForContextMenu(list_apps)
         list_apps.onItemClickListener = AdapterView.OnItemClickListener {
             _, _, position, _ ->
