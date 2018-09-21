@@ -71,8 +71,8 @@ class MainActivity : AppCompatActivity(), OnFragmentDataPassed {
 
         navController.addOnNavigatedListener { _, destination ->
             currentFragmentDisplaysProgressDialog =
-                    destination.label == "Sessions" ||
-                    destination.label == "Applications"
+                    destination.label == getString(R.string.sessions) ||
+                    destination.label == getString(R.string.apps)
             if (!currentFragmentDisplaysProgressDialog) killProgressBar()
         }
 
@@ -86,7 +86,7 @@ class MainActivity : AppCompatActivity(), OnFragmentDataPassed {
 
         val userPreference = defaultSharedPreferences.getString("pref_default_nav_location", "Apps")
         graph.startDestination = when (userPreference) {
-            "Sessions" -> R.id.session_list_fragment
+            getString(R.string.sessions) -> R.id.session_list_fragment
             else -> R.id.app_list_fragment
         }
         navHostFragment.navController.graph = graph
