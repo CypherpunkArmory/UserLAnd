@@ -17,7 +17,6 @@ class ValidationUtility() {
         return matcher.matches()
     }
 
-
     fun isPasswordValid(password: String): Boolean {
         val pattern: Pattern
         val matcher: Matcher
