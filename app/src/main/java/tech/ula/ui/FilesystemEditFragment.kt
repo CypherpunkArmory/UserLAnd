@@ -3,18 +3,23 @@ package tech.ula.ui
 import android.app.Activity
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
-import android.support.design.widget.TextInputEditText
 import android.support.v4.app.Fragment
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.* // ktlint-disable no-wildcard-imports
+import android.view.Menu
+import android.view.MenuItem
+import android.view.MenuInflater
+import android.view.View
+import android.view.ViewGroup
+import android.view.LayoutInflater
 import android.widget.AdapterView
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
-import kotlinx.android.synthetic.main.frag_filesystem_edit.* // ktlint-disable no-wildcard-imports
+import kotlinx.android.synthetic.main.frag_filesystem_edit.*
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
-import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import tech.ula.utils.BuildWrapper
+import tech.ula.utils.launchAsync
 import tech.ula.viewmodel.FilesystemEditViewModel
 
 class FilesystemEditFragment : Fragment() {
