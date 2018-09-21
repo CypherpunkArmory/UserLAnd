@@ -19,6 +19,7 @@ import kotlinx.android.synthetic.main.frag_filesystem_edit.*
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.utils.BuildWrapper
+import tech.ula.utils.ValidationUtility
 import tech.ula.utils.launchAsync
 import tech.ula.viewmodel.FilesystemEditViewModel
 
@@ -154,15 +155,24 @@ class FilesystemEditFragment : Fragment() {
 
     private fun isFilesystemParametersCorrect(): Boolean {
         if (filesystem.name == "") input_filesystem_name.error = getString(R.string.error_filesystem_name)
+        val validator = ValidationUtility()
+        var isAllInputsValid = false
 
         if (filesystem.name.isEmpty() || filesystem.defaultPassword.isEmpty() || filesystem.defaultVncPassword.isEmpty()) {
             Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
-            return false
         } else if (filesystem.defaultVncPassword.length > 8) {
             Toast.makeText(activityContext, R.string.error_vnc_password_too_long, Toast.LENGTH_LONG).show()
-            return false
+        } else if (!validator.isUsernameValid(filesystem.defaultUsername)) {
+            Toast.makeText(activityContext, R.string.error_username_invalid, Toast.LENGTH_LONG).show()
+        } else if (!validator.isPasswordValid(filesystem.defaultPassword)) {
+            Toast.makeText(activityContext, R.string.error_password_invalid, Toast.LENGTH_LONG).show()
+        } else if (!validator.isPasswordValid(filesystem.defaultVncPassword)) {
+            Toast.makeText(activityContext, R.string.error_vncpassword_invalid, Toast.LENGTH_LONG).show()
         } else {
-            return true
+            isAllInputsValid = true
+            return isAllInputsValid
         }
+
+        return isAllInputsValid
     }
 }
