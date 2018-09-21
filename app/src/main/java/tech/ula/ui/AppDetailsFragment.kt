@@ -11,6 +11,7 @@ import kotlinx.android.synthetic.main.frag_app_details.*
 import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.utils.AppsPreferences
+import tech.ula.utils.LocalFileLocator
 
 class AppDetailsFragment : Fragment() {
 
@@ -32,10 +33,12 @@ class AppDetailsFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
 
         activityContext = activity!!
+        val localFileLocator = LocalFileLocator(activityContext.filesDir.path, activityContext.resources)
 
+        apps_icon.setImageURI(localFileLocator.findIconUri(app.name))
         apps_title.text = app.name
-        apps_icon.setImageResource(R.drawable.octave)
-
+        apps_description.text = (localFileLocator.findAppDescription(app.name))
+      
         setupPreferredServiceTypeRadioGroup()
     }
 

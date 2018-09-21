@@ -22,7 +22,7 @@ class SessionController(
         buildWrapper: BuildWrapper = BuildWrapper()
     ): Filesystem {
         val potentialAppFilesystem = asyncAwait {
-            filesystemDao.findAppsFilesytemByType(requiredFilesystemType)
+            filesystemDao.findAppsFilesystemByType(requiredFilesystemType)
         }
 
         if (potentialAppFilesystem.isEmpty()) {
@@ -32,7 +32,7 @@ class SessionController(
             asyncAwait { filesystemDao.insertFilesystem(fsToInsert) }
         }
 
-        return asyncAwait { filesystemDao.findAppsFilesytemByType(requiredFilesystemType).first() }
+        return asyncAwait { filesystemDao.findAppsFilesystemByType(requiredFilesystemType).first() }
     }
 
     suspend fun findAppSession(

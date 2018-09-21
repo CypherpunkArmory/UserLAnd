@@ -3,7 +3,7 @@
     <string name="welcome">Welcome to UserLAnd!</string>
 
     <!-- Labels -->
-    <string name="apps">Applications</string>
+    <string name="apps">Apps</string>
     <string name="sessions">Sessions</string>
     <string name="edit_session">Edit Session</string>
     <string name="filesystems">Filesystems</string>
@@ -11,6 +11,9 @@
     <string name="settings">Settings</string>
     <string name="help">Help</string>
     <string name="toc">Terms &amp; Conditions</string>
+
+    <!-- Buttons -->
+    <string name="launch">Launch</string>
 
     <!-- Context Menus -->
     <string name="app_info">App Info</string>
@@ -30,6 +33,7 @@
     <string name="error_filesystem_name">You must provide a filesystem name</string>
     <string name="error_username">You must provide a username</string>
     <string name="error_empty_field">Each field must be entered!</string>
+    <string name="error_app_description_not_found">Could not find a description for this app. Try refreshing.</string>
 
     <!-- Prompts -->
     <string name="prompt_filesystem">Filesystem:</string>
@@ -59,6 +63,8 @@
     <!-- Preferences -->
     <string name="pref_app_category">App Preferences</string>
     <string name="pref_enable_default_password_message">Default Password Message Enabled</string>
+    <string name="pref_default_landing_page_title">Default Landing Page</string>
+    <string name="pref_default_landing_page_message">Select the page you would like to open the app with.</string>
     <string name="pref_proot_category">PRoot Preferences</string>
     <string name="pref_proot_debugging_enabled_title">PRoot Debugging Logs Enabled</string>
     <string name="pref_proot_debugging_enabled_summary">Only necessary if having problems with the app. Log file stored at\n/mnt/sdcard/PRoot_Debug_Log</string>

@@ -59,14 +59,14 @@ class SessionControllerTest {
                 archType = fakeArchitecture, distributionType = requiredFilesystemType, isAppsFilesystem = true)
 
         whenever(buildWrapper.getArchType()).thenReturn(fakeArchitecture)
-        whenever(filesystemDao.findAppsFilesytemByType(requiredFilesystemType))
+        whenever(filesystemDao.findAppsFilesystemByType(requiredFilesystemType))
                 .thenReturn(listOf())
                 .thenReturn(listOf(appsFilesystem))
 
         val returnedFs = runBlocking { sessionController.findAppsFilesystems(requiredFilesystemType, filesystemDao, buildWrapper) }
 
         verify(filesystemDao).insertFilesystem(appsFilesystem)
-        verify(filesystemDao, times(2)).findAppsFilesytemByType(requiredFilesystemType)
+        verify(filesystemDao, times(2)).findAppsFilesystemByType(requiredFilesystemType)
         assertEquals(appsFilesystem.name, returnedFs.name)
         assertEquals(appsFilesystem.archType, returnedFs.archType)
         assertEquals(appsFilesystem.distributionType, returnedFs.distributionType)

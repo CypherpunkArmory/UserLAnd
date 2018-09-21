@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    app:startDestination="@id/session_list_fragment">
+    xmlns:tools="http://schemas.android.com/tools" >
     <fragment
         android:id="@+id/app_list_fragment"
         android:name="tech.ula.ui.AppListFragment"

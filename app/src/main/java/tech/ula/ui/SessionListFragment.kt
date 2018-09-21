@@ -37,18 +37,13 @@ class SessionListFragment : Fragment() {
         ViewModelProviders.of(this).get(SessionListViewModel::class.java)
     }
 
-    private val sessionChangeObserver = Observer<List<Session>> {
+    private val sessionsAndFilesystemsChangeObserver = Observer<Pair<List<Session>, List<Filesystem>>> {
         it?.let {
-            sessionList = it
+            sessionList = it.first
+            filesystemList = it.second
 
-            sessionAdapter = SessionListAdapter(activityContext, sessionList)
+            sessionAdapter = SessionListAdapter(activityContext, sessionList, filesystemList)
             list_sessions.adapter = sessionAdapter
-        }
-    }
-
-    private val filesystemChangeObserver = Observer<List<Filesystem>> {
-        it?.let {
-            filesystemList = it
         }
     }
 
@@ -79,8 +74,7 @@ class SessionListFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        sessionListViewModel.getAllSessions().observe(viewLifecycleOwner, sessionChangeObserver)
-        sessionListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
+        sessionListViewModel.getSessionsAndFilesystems().observe(viewLifecycleOwner, sessionsAndFilesystemsChangeObserver)
 
         activityContext = activity!!
 

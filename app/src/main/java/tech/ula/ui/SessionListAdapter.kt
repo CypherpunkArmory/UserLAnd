@@ -9,14 +9,22 @@ import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.TextView
 import tech.ula.R
+import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
+import tech.ula.utils.LocalFileLocator
 
-class SessionListAdapter(private var activity: Activity, private var items: List<Session>) : BaseAdapter() {
+class SessionListAdapter(
+    private var activity: Activity,
+    private val sessions: List<Session>,
+    private val filesystems: List<Filesystem>
+) : BaseAdapter() {
+
     private class ViewHolder(row: View) {
         var imageViewActive: ImageView = row.findViewById(R.id.image_list_item_active)
         var textViewServiceType: TextView = row.findViewById(R.id.text_list_item_service_type)
         var textViewSessionName: TextView = row.findViewById(R.id.text_list_item_session_name)
         var textViewFilesystemName: TextView = row.findViewById(R.id.text_list_item_filesystem_name)
+        var imageViewFilesystemIcon: ImageView = row.findViewById(R.id.image_list_item_filesystem_icon)
     }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
@@ -32,7 +40,8 @@ class SessionListAdapter(private var activity: Activity, private var items: List
             viewHolder = view.tag as ViewHolder
         }
 
-        val session = items[position]
+        val session = sessions[position]
+        val filesystem = filesystems.find { it.id == session.filesystemId }!!
 
         if (session.active) {
             viewHolder.imageViewActive.setImageResource(R.drawable.ic_check_circle_green_24dp)
@@ -42,15 +51,17 @@ class SessionListAdapter(private var activity: Activity, private var items: List
             viewHolder.imageViewActive.contentDescription = activity.getString(R.string.desc_inactive)
         }
 
+        val localFileLocator = LocalFileLocator(activity.filesDir.path, activity.resources)
         viewHolder.textViewServiceType.text = session.serviceType
         viewHolder.textViewSessionName.text = session.name
         viewHolder.textViewFilesystemName.text = session.filesystemName
+        viewHolder.imageViewFilesystemIcon.setImageURI(localFileLocator.findIconUri(filesystem.distributionType))
 
         return view as View
     }
 
     override fun getItem(position: Int): Session {
-        return items[position]
+        return sessions[position]
     }
 
     override fun getItemId(position: Int): Long {
@@ -58,6 +69,6 @@ class SessionListAdapter(private var activity: Activity, private var items: List
     }
 
     override fun getCount(): Int {
-        return items.size
+        return sessions.size
     }
 }
