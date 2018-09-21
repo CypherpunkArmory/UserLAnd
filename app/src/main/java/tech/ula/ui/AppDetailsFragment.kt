@@ -10,7 +10,7 @@ import android.view.ViewGroup
 import kotlinx.android.synthetic.main.frag_app_details.*
 import tech.ula.R
 import tech.ula.model.entities.App
-import tech.ula.utils.AppsListPreferences
+import tech.ula.utils.AppsPreferences
 
 class AppDetailsFragment : Fragment() {
 
@@ -20,8 +20,8 @@ class AppDetailsFragment : Fragment() {
         arguments?.getParcelable("app") as App
     }
 
-    private val appListPreferences by lazy {
-        AppsListPreferences(activityContext.getSharedPreferences("appLists", Context.MODE_PRIVATE))
+    private val appsPreferences by lazy {
+        AppsPreferences(activityContext.getSharedPreferences("apps", Context.MODE_PRIVATE))
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -36,20 +36,20 @@ class AppDetailsFragment : Fragment() {
         apps_title.text = app.name
         apps_icon.setImageResource(R.drawable.octave)
 
-        setupPreferredClientRadioGroup()
+        setupPreferredServiceTypeRadioGroup()
     }
 
-    fun setupPreferredClientRadioGroup() {
-        val appClientPreference = appListPreferences.getAppClientPreference(app.name)
-        if (appClientPreference == "SSH") {
-            apps_client_preference.check(R.id.apps_ssh_preference)
+    fun setupPreferredServiceTypeRadioGroup() {
+        val appServiceTypePreference = appsPreferences.getAppServiceTypePreference(app.name)
+        if (appServiceTypePreference == "SSH") {
+            apps_service_type_preferences.check(R.id.apps_ssh_preference)
         } else {
-            apps_client_preference.check(R.id.apps_vnc_preference)
+            apps_service_type_preferences.check(R.id.apps_vnc_preference)
         }
 
-        apps_client_preference.setOnCheckedChangeListener { _, checkedId ->
-            val selectedClient = if (R.id.apps_ssh_preference == checkedId) "SSH" else "VNC"
-            appListPreferences.setAppClientPreference(app.name, selectedClient)
+        apps_service_type_preferences.setOnCheckedChangeListener { _, checkedId ->
+            val selectedServiceType = if (R.id.apps_ssh_preference == checkedId) "SSH" else "VNC"
+            appsPreferences.setAppServiceTypePreference(app.name, selectedServiceType)
         }
     }
 }

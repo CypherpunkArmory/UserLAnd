@@ -25,7 +25,7 @@ import tech.ula.model.remote.GithubAppsFetcher
 import tech.ula.model.repositories.AppsRepository
 import tech.ula.model.repositories.RefreshStatus
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.utils.AppsListPreferences
+import tech.ula.utils.AppsPreferences
 import tech.ula.utils.arePermissionsGranted
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
@@ -41,7 +41,7 @@ class AppListFragment : Fragment() {
     private lateinit var activeSessions: List<Session>
 
     private val appListPreferences by lazy {
-        AppsListPreferences(activityContext.getSharedPreferences("appLists", Context.MODE_PRIVATE))
+        AppsPreferences(activityContext.getSharedPreferences("appLists", Context.MODE_PRIVATE))
     }
 
     private val appListViewModel: AppListViewModel by lazy {
@@ -114,7 +114,7 @@ class AppListFragment : Fragment() {
                     return@OnItemClickListener
                 }
 
-                val preferredClient = appListViewModel.getAppClientPreference(appList[position])
+                val preferredClient = appListViewModel.getAppServiceTypePreference(appList[position])
                 if (preferredClient.isEmpty()) {
                     select_client_preference(selectedApp)
                 } else {
@@ -179,18 +179,18 @@ class AppListFragment : Fragment() {
         lateinit var dialog: AlertDialog
 
         val clients = arrayOf("SSH", "VNC")
-        var preferredClient = "SSH"
+        var preferredServiceType = "SSH"
 
         val builder = AlertDialog.Builder(activityContext)
         builder.setTitle("Always open with:")
         builder.setSingleChoiceItems(clients, 0) { _, selected ->
             val choice = clients[selected]
-            preferredClient = choice
+            preferredServiceType = choice
         }
 
         builder.setPositiveButton("Continue") { _, _ ->
-            appListViewModel.setAppClientPreference(selectedApp, preferredClient)
-            Toast.makeText(activityContext, "$preferredClient selected", Toast.LENGTH_SHORT).show()
+            appListViewModel.setAppServiceTypePreference(selectedApp, preferredServiceType)
+            Toast.makeText(activityContext, "$preferredServiceType selected", Toast.LENGTH_SHORT).show()
         }
 
         dialog = builder.create()

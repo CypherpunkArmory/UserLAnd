@@ -58,7 +58,7 @@
         app:layout_constraintTop_toBottomOf="@+id/apps_description" />
 
     <RadioGroup
-        android:id="@+id/apps_client_preference"
+        android:id="@+id/apps_service_type_preferences"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAlignment="center"

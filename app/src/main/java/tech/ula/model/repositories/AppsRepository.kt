@@ -6,14 +6,14 @@ import android.util.Log
 import tech.ula.model.daos.AppsDao
 import tech.ula.model.entities.App
 import tech.ula.model.remote.RemoteAppsSource
-import tech.ula.utils.AppsListPreferences
+import tech.ula.utils.AppsPreferences
 
 import tech.ula.utils.asyncAwait
 
 class AppsRepository(
     private val appsDao: AppsDao,
     private val remoteAppsSource: RemoteAppsSource,
-    private val appsListPreferences: AppsListPreferences
+    private val appsPreferences: AppsPreferences
 ) {
     private val refreshStatus = MutableLiveData<RefreshStatus>()
 
@@ -21,12 +21,12 @@ class AppsRepository(
         return appsDao.getAllApps()
     }
 
-    fun getAppClientPreference(app: App): String {
-        return appsListPreferences.getAppClientPreference(app.name)
+    fun getAppServiceTypePreference(app: App): String {
+        return appsPreferences.getAppServiceTypePreference(app.name)
     }
 
-    fun setAppClientPreference(app: App, preferredClient: String) {
-        appsListPreferences.setAppClientPreference(app.name, preferredClient)
+    fun setAppServiceTypePreference(app: App, preferredServiceType: String) {
+        appsPreferences.setAppServiceTypePreference(app.name, preferredServiceType)
     }
 
     // TODO skip cached?

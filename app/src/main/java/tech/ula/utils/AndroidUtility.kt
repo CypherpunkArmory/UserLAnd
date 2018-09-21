@@ -90,15 +90,15 @@ class AssetListPreferences(private val prefs: SharedPreferences) {
     }
 }
 
-class AppsListPreferences(private val prefs: SharedPreferences) {
-    fun setAppClientPreference(appName: String, clientType: String) {
+class AppsPreferences(private val prefs: SharedPreferences) {
+    fun setAppServiceTypePreference(appName: String, serviceType: String) {
         with(prefs.edit()) {
-            putString(appName, clientType)
+            putString(appName, serviceType)
             apply()
         }
     }
 
-    fun getAppClientPreference(appName: String): String {
+    fun getAppServiceTypePreference(appName: String): String {
         return prefs.getString(appName, "") ?: ""
     }
 }
