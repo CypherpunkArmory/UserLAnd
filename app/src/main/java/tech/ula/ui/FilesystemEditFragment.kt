@@ -81,6 +81,12 @@ class FilesystemEditFragment : Fragment() {
         input_filesystem_password.setText(filesystem.defaultPassword)
         input_filesystem_vncpassword.setText(filesystem.defaultVncPassword)
 
+        if (editExisting) {
+            input_filesystem_username.isEnabled = false
+            input_filesystem_password.isEnabled = false
+            input_filesystem_vncpassword.isEnabled = false
+        }
+
         input_filesystem_name.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
                 filesystem.name = p0.toString()
