@@ -221,7 +221,7 @@ class ServerService : Service() {
             updateSession(updatedSession)
             killProgressBar()
             startClient(updatedSession)
-            activeSessions[updatedSession.id] = updatedSession
+            activeSessions[updatedSession.pid] = updatedSession
         }
     }
 
