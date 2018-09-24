@@ -14,9 +14,10 @@ import tech.ula.model.entities.Session
 import tech.ula.utils.LocalFileLocator
 
 class AppListAdapter(
-        private val activity: Activity,
-        private val apps: List<App>,
-        private val activeSessions: List<Session>) : BaseAdapter() {
+    private val activity: Activity,
+    private val apps: List<App>,
+    private val activeSessions: List<Session>
+) : BaseAdapter() {
     private class ViewHolder(row: View) {
         var imageView: ImageView = row.findViewById(R.id.apps_icon)
         var appName: TextView = row.findViewById(R.id.apps_name)
