@@ -129,7 +129,7 @@ class AppListFragment : Fragment() {
 
     override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo)
-        activityContext.menuInflater.inflate(R.menu.context_menu_app_description, menu)
+        activityContext.menuInflater.inflate(R.menu.context_menu_apps, menu)
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
@@ -139,6 +139,7 @@ class AppListFragment : Fragment() {
 
         return when (item.itemId) {
             R.id.menu_item_app_details -> showAppDetails(app)
+            R.id.menu_item_stop_app -> stopApp(app)
             else -> super.onContextItemSelected(item)
         }
     }
@@ -146,6 +147,14 @@ class AppListFragment : Fragment() {
     private fun showAppDetails(app: App): Boolean {
         val bundle = bundleOf("app" to app)
         NavHostFragment.findNavController(this).navigate(R.id.menu_item_app_details, bundle)
+        return true
+    }
+
+    private fun stopApp(app: App): Boolean {
+        val serviceIntent = Intent(activityContext, ServerService::class.java)
+                .putExtra("type", "stopApp")
+                .putExtra("app", app)
+        activityContext.startService(serviceIntent)
         return true
     }
 
