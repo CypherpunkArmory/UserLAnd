@@ -18,17 +18,45 @@ class AppListAdapter(
     private val apps: List<App>,
     private val activeSessions: List<Session>
 ) : BaseAdapter() {
+
     private class ViewHolder(row: View) {
-        var imageView: ImageView = row.findViewById(R.id.apps_icon)
-        var appName: TextView = row.findViewById(R.id.apps_name)
+        var imageView: ImageView? = row.findViewById(R.id.apps_icon)
+        var appName: TextView? = row.findViewById(R.id.apps_name)
+        var separatorText: TextView? = row.findViewById(R.id.list_item_separator_text)
+    }
+
+    private val ITEM_VIEW_TYPE_APP = 0
+    private val ITEM_VIEW_TYPE_SEPARATOR = 1
+    private val ITEM_VIEW_TYPE_COUNT = 2
+
+    private val appsAndSepators: List<AppsListItem> by lazy {
+        val listBuilder = arrayListOf<AppsListItem>()
+        val categoriesAndApps = HashMap<String, ArrayList<App>>()
+
+        for (app in apps) {
+            categoriesAndApps.getOrPut(app.category) { arrayListOf() }.add(app)
+        }
+
+        categoriesAndApps.forEach {
+            (category, categoryApps) ->
+            listBuilder.add(SeparatorListItem(category))
+            categoryApps.forEach { listBuilder.add(AppListItem(it)) }
+        }
+        listBuilder.toList()
     }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val view: View?
         val viewHolder: ViewHolder
+
+        val item = appsAndSepators[position]
+
         if (convertView == null) {
             val inflater = activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-            view = inflater.inflate(R.layout.list_item_app, parent, false)
+            view = when (item) {
+                is SeparatorListItem -> inflater.inflate(R.layout.list_item_separator, parent, false)
+                is AppListItem -> inflater.inflate(R.layout.list_item_app, parent, false)
+            }
 
             viewHolder = ViewHolder(view)
             view?.tag = viewHolder
@@ -37,19 +65,25 @@ class AppListAdapter(
             viewHolder = view.tag as ViewHolder
         }
 
-        val app = apps[position]
+        when(item) {
+            is SeparatorListItem -> {
+                viewHolder.separatorText?.text = item.category
+            }
+            is AppListItem -> {
+                val app = item.app
+                val activeAppSessions = activeSessions.filter { it.name == app.name }
+                val appIsActive = activeAppSessions.isNotEmpty()
+                if (appIsActive) {
+                    view?.setBackgroundResource(R.color.colorAccent)
+                } else {
+                    view?.setBackgroundResource(R.color.colorPrimaryDark)
+                }
 
-        val activeAppSessions = activeSessions.filter { it.name == app.name }
-        val appIsActive = activeAppSessions.isNotEmpty()
-        if (appIsActive) {
-            view?.setBackgroundResource(R.color.colorAccent)
-        } else {
-            view?.setBackgroundResource(R.color.colorPrimaryDark)
+                val localFileLocator = LocalFileLocator(activity.filesDir.path, activity.resources)
+                viewHolder.imageView?.setImageURI(localFileLocator.findIconUri(app.name))
+                viewHolder.appName?.text = app.name
+            }
         }
-
-        val localFileLocator = LocalFileLocator(activity.filesDir.path, activity.resources)
-        viewHolder.imageView.setImageURI(localFileLocator.findIconUri(app.name))
-        viewHolder.appName.text = app.name
 
         return view as View
     }
@@ -63,6 +97,28 @@ class AppListAdapter(
     }
 
     override fun getCount(): Int {
-        return apps.size
+        return appsAndSepators.size
+    }
+
+    override fun getViewTypeCount(): Int {
+        return ITEM_VIEW_TYPE_COUNT
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return when (appsAndSepators[position]) {
+            is AppListItem -> ITEM_VIEW_TYPE_APP
+            is SeparatorListItem -> ITEM_VIEW_TYPE_SEPARATOR
+        }
+    }
+
+    override fun isEnabled(position: Int): Boolean {
+        return when(appsAndSepators[position]) {
+            is AppListItem -> true
+            is SeparatorListItem -> false
+        }
     }
 }
+
+sealed class AppsListItem
+data class AppListItem(val app: App) : AppsListItem()
+data class SeparatorListItem(val category: String) : AppsListItem()
