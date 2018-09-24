@@ -65,7 +65,7 @@ class AppListAdapter(
             viewHolder = view.tag as ViewHolder
         }
 
-        when(item) {
+        when (item) {
             is SeparatorListItem -> {
                 viewHolder.separatorText?.text = item.category
             }
@@ -112,7 +112,7 @@ class AppListAdapter(
     }
 
     override fun isEnabled(position: Int): Boolean {
-        return when(appsAndSepators[position]) {
+        return when (appsAndSepators[position]) {
             is AppListItem -> true
             is SeparatorListItem -> false
         }
