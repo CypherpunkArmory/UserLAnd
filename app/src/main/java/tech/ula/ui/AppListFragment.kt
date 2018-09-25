@@ -114,14 +114,14 @@ class AppListFragment : Fragment() {
                     return@OnItemClickListener
                 }
 
-                val preferredClient = appListViewModel.getAppServiceTypePreference(appList[position])
-                if (preferredClient.isEmpty()) {
-                    select_client_preference(selectedApp)
+                val preferredServiceType = appListViewModel.getAppServiceTypePreference(appList[position])
+                if (preferredServiceType.isEmpty()) {
+                    selectServiceTypePreference(selectedApp)
                 } else {
                     val serviceIntent = Intent(activityContext, ServerService::class.java)
                             .putExtra("type", "startApp")
                             .putExtra("app", selectedApp)
-                            .putExtra("serviceType", preferredClient.toLowerCase())
+                            .putExtra("serviceType", preferredServiceType.toLowerCase())
 
                     activityContext.startService(serviceIntent)
                 }
@@ -175,18 +175,17 @@ class AppListFragment : Fragment() {
         dataPasser.onFragmentDataPassed(data)
     }
 
-    private fun select_client_preference(selectedApp: App) {
+    private fun selectServiceTypePreference(selectedApp: App) {
         lateinit var dialog: AlertDialog
 
-        val clients = arrayOf("SSH", "VNC")
+        val serviceTypes = arrayOf("SSH", "VNC")
         var preferredServiceType = "SSH"
 
         val builder = AlertDialog.Builder(activityContext)
-        builder.setTitle("Always open with:")
-        builder.setSingleChoiceItems(clients, 0) { _, selected ->
-            val choice = clients[selected]
-            preferredServiceType = choice
-        }
+                .setTitle("Always open with:")
+                .setSingleChoiceItems(serviceTypes, 0) { _, selected ->
+                    preferredServiceType = serviceTypes[selected]
+                }
 
         builder.setPositiveButton("Continue") { _, _ ->
             appListViewModel.setAppServiceTypePreference(selectedApp, preferredServiceType)
