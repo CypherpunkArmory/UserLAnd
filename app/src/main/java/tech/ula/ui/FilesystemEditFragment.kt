@@ -83,7 +83,7 @@ class FilesystemEditFragment : Fragment() {
 
     fun setupTextInputs() {
         input_filesystem_name.setText(filesystem.name)
-        input_filesystem_username.setText(filesystem.defaultUsername)
+        input_filesystem_username.setText("user")
         input_filesystem_password.setText(filesystem.defaultPassword)
         input_filesystem_vncpassword.setText(filesystem.defaultVncPassword)
 
@@ -128,7 +128,7 @@ class FilesystemEditFragment : Fragment() {
 
     private fun insertFilesystem(): Boolean {
         val navController = NavHostFragment.findNavController(this)
-        if (!isFilesystemParametersCorrect()) {
+        if (!filesystemParametersAreCorrect()) {
             return false
         }
 
@@ -153,7 +153,7 @@ class FilesystemEditFragment : Fragment() {
         return true
     }
 
-    private fun isFilesystemParametersCorrect(): Boolean {
+    private fun filesystemParametersAreCorrect(): Boolean {
         if (filesystem.name == "") input_filesystem_name.error = getString(R.string.error_filesystem_name)
         val validator = ValidationUtility()
         var isAllInputsValid = false

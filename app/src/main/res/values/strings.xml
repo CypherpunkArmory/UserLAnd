@@ -32,7 +32,6 @@
     <string name="hint_vncpassword">VNC Password</string>
 
     <!-- Default Values -->
-    <string name="default_username">user</string>
     <string name="default_password">userland</string>
     
     <!-- Errors -->
