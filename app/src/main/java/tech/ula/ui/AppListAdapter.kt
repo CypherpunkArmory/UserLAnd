@@ -29,7 +29,7 @@ class AppListAdapter(
     private val ITEM_VIEW_TYPE_SEPARATOR = 1
     private val ITEM_VIEW_TYPE_COUNT = 2
 
-    private val appsAndSepators: List<AppsListItem> by lazy {
+    private val appsAndSeparators: List<AppsListItem> by lazy {
         val listBuilder = arrayListOf<AppsListItem>()
         val categoriesAndApps = HashMap<String, ArrayList<App>>()
 
@@ -39,8 +39,8 @@ class AppListAdapter(
 
         categoriesAndApps.forEach {
             (category, categoryApps) ->
-            listBuilder.add(SeparatorListItem(category))
-            categoryApps.forEach { listBuilder.add(AppListItem(it)) }
+            listBuilder.add(AppSeparatorItem(category))
+            categoryApps.forEach { listBuilder.add(AppItem(it)) }
         }
         listBuilder.toList()
     }
@@ -49,13 +49,13 @@ class AppListAdapter(
         val view: View?
         val viewHolder: ViewHolder
 
-        val item = appsAndSepators[position]
+        val item = appsAndSeparators[position]
 
         if (convertView == null) {
             val inflater = activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
             view = when (item) {
-                is SeparatorListItem -> inflater.inflate(R.layout.list_item_separator, parent, false)
-                is AppListItem -> inflater.inflate(R.layout.list_item_app, parent, false)
+                is AppSeparatorItem -> inflater.inflate(R.layout.list_item_separator, parent, false)
+                is AppItem -> inflater.inflate(R.layout.list_item_app, parent, false)
             }
 
             viewHolder = ViewHolder(view)
@@ -66,10 +66,10 @@ class AppListAdapter(
         }
 
         when (item) {
-            is SeparatorListItem -> {
+            is AppSeparatorItem -> {
                 viewHolder.separatorText?.text = item.category
             }
-            is AppListItem -> {
+            is AppItem -> {
                 val app = item.app
                 val activeAppSessions = activeSessions.filter { it.name == app.name }
                 val appIsActive = activeAppSessions.isNotEmpty()
@@ -88,8 +88,8 @@ class AppListAdapter(
         return view as View
     }
 
-    override fun getItem(position: Int): App {
-        return apps[position]
+    override fun getItem(position: Int): AppsListItem {
+        return appsAndSeparators[position]
     }
 
     override fun getItemId(position: Int): Long {
@@ -97,7 +97,7 @@ class AppListAdapter(
     }
 
     override fun getCount(): Int {
-        return appsAndSepators.size
+        return appsAndSeparators.size
     }
 
     override fun getViewTypeCount(): Int {
@@ -105,20 +105,20 @@ class AppListAdapter(
     }
 
     override fun getItemViewType(position: Int): Int {
-        return when (appsAndSepators[position]) {
-            is AppListItem -> ITEM_VIEW_TYPE_APP
-            is SeparatorListItem -> ITEM_VIEW_TYPE_SEPARATOR
+        return when (appsAndSeparators[position]) {
+            is AppItem -> ITEM_VIEW_TYPE_APP
+            is AppSeparatorItem -> ITEM_VIEW_TYPE_SEPARATOR
         }
     }
 
     override fun isEnabled(position: Int): Boolean {
-        return when (appsAndSepators[position]) {
-            is AppListItem -> true
-            is SeparatorListItem -> false
+        return when (appsAndSeparators[position]) {
+            is AppItem -> true
+            is AppSeparatorItem -> false
         }
     }
 }
 
 sealed class AppsListItem
-data class AppListItem(val app: App) : AppsListItem()
-data class SeparatorListItem(val category: String) : AppsListItem()
+data class AppItem(val app: App) : AppsListItem()
+data class AppSeparatorItem(val category: String) : AppsListItem()
