@@ -94,8 +94,8 @@ class MigrationTest {
         assertEquals(session2, returnedSession2)
         assertFalse(returnedSession1.isAppsSession)
         assertTrue(returnedSession2.isAppsSession)
-        assert(fs.defaultVncPassword == "userland")
-        assert(session1.vncPassword == "userland")
+        assertEquals(fs.defaultVncPassword, "userland")
+        assertEquals(session1.vncPassword, "userland")
     }
 
     private fun getMigratedDatabase(): UlaDatabase {
