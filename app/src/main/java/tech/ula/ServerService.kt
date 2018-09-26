@@ -109,6 +109,10 @@ class ServerService : Service() {
 
                 startApp(app, serviceType)
             }
+            "stopApp" -> {
+                val app: App = intent.getParcelableExtra("app")
+                stopApp(app)
+            }
             "forceDownloads" -> {
                 startSession(lastActivatedSession, lastActivatedFilesystem, forceDownloads = true)
             }
@@ -217,6 +221,7 @@ class ServerService : Service() {
             updateSession(updatedSession)
             killProgressBar()
             startClient(updatedSession)
+            activeSessions[updatedSession.pid] = updatedSession
         }
     }
 
@@ -244,6 +249,16 @@ class ServerService : Service() {
         filesystemUtility.moveAppScriptToRequiredLocations(app.name, appsFilesystem)
 
         startSession(appSession, appsFilesystem, forceDownloads = false)
+    }
+
+    private fun stopApp(app: App) {
+        val appSessions = activeSessions.filter {
+            (_, session) ->
+            session.name == app.name
+        }
+        appSessions.forEach { (_, session) ->
+            killSession(session)
+        }
     }
 
     private fun startClient(session: Session) {

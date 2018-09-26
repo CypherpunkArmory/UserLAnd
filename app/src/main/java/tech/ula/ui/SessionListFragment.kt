@@ -80,14 +80,25 @@ class SessionListFragment : Fragment() {
 
         registerForContextMenu(list_sessions)
         list_sessions.onItemClickListener = AdapterView.OnItemClickListener {
-            _, _, position, _ ->
-            lastSelectedSession = sessionList[position]
-
-            if (arePermissionsGranted(activityContext)) {
-                handleSessionSelection(lastSelectedSession)
-            } else {
-                passDataToActivity("permissionsRequired")
+            parent, _, position, _ ->
+            val selectedItem = parent.getItemAtPosition(position) as SessionListItem
+            when (selectedItem) {
+                is SessionSeparatorItem -> return@OnItemClickListener
+                is SessionItem -> {
+                    val session = selectedItem.session
+                    doSessionItemClicked(session)
+                }
             }
+        }
+    }
+
+    private fun doSessionItemClicked(session: Session) {
+        lastSelectedSession = session
+
+        if (arePermissionsGranted(activityContext)) {
+            handleSessionSelection(lastSelectedSession)
+        } else {
+            passDataToActivity("permissionsRequired")
         }
     }
 
@@ -108,9 +119,20 @@ class SessionListFragment : Fragment() {
     }
 
     override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo) {
-        val info = menuInfo as AdapterView.AdapterContextMenuInfo
         super.onCreateContextMenu(menu, v, menuInfo)
-        val session = sessionList[info.position]
+        val info = menuInfo as AdapterView.AdapterContextMenuInfo
+        val position = info.position
+        val selectedItem = list_sessions.adapter.getItem(position) as SessionListItem
+        when (selectedItem) {
+            is SessionSeparatorItem -> return
+            is SessionItem -> {
+                val session = selectedItem.session
+                doCreateSessionContextMenu(session, menu)
+            }
+        }
+    }
+
+    private fun doCreateSessionContextMenu(session: Session, menu: ContextMenu) {
         when {
             session.active ->
                 activityContext.menuInflater.inflate(R.menu.context_menu_active_sessions, menu)
@@ -122,7 +144,17 @@ class SessionListFragment : Fragment() {
     override fun onContextItemSelected(item: MenuItem): Boolean {
         val menuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
         val position = menuInfo.position
-        val session = sessionList[position]
+        val selectedItem = list_sessions.adapter.getItem(position) as SessionListItem
+        return when (selectedItem) {
+            is SessionSeparatorItem -> true
+            is SessionItem -> {
+                val session = selectedItem.session
+                doSessionContextItemSelected(session, item)
+            }
+        }
+    }
+
+    private fun doSessionContextItemSelected(session: Session, item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.menu_item_session_kill_service -> stopService(session)
             R.id.menu_item_session_edit -> editSession(session)
@@ -133,9 +165,6 @@ class SessionListFragment : Fragment() {
 
     private fun stopService(session: Session): Boolean {
         if (session.active) {
-            val view = list_sessions.getChildAt(sessionList.indexOf(session))
-            view.image_list_item_active.setImageResource(R.drawable.ic_block_red_24dp)
-
             val serviceIntent = Intent(activityContext, ServerService::class.java)
             serviceIntent.putExtra("type", "kill")
             serviceIntent.putExtra("session", session)

@@ -54,18 +54,13 @@ class AppListFragment : Fragment() {
         ViewModelProviders.of(this, AppListViewModelFactory(appsRepository, sessionDao)).get(AppListViewModel::class.java)
     }
 
-    private val appChangeObserver = Observer<List<App>> {
+    private val appsAndActiveSessionObserver = Observer<Pair<List<App>, List<Session>>> {
         it?.let {
-            appList = it
-            appAdapter = AppListAdapter(activityContext, appList)
+            appList = it.first
+            activeSessions = it.second
+            appAdapter = AppListAdapter(activityContext, appList, activeSessions)
             list_apps.adapter = appAdapter
             setPulldownPromptVisibilityForAppList()
-        }
-    }
-
-    private val activeSessionsChangeObserver = Observer<List<Session>> {
-        it?.let {
-            activeSessions = it
         }
     }
 
@@ -91,29 +86,18 @@ class AppListFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         activityContext = activity!!
-        appListViewModel.getAllApps().observe(viewLifecycleOwner, appChangeObserver)
-        appListViewModel.getAllActiveSessions().observe(viewLifecycleOwner, activeSessionsChangeObserver)
+        appListViewModel.getAppsAndActiveSessions().observe(viewLifecycleOwner, appsAndActiveSessionObserver)
         registerForContextMenu(list_apps)
         list_apps.onItemClickListener = AdapterView.OnItemClickListener {
-            _, _, position, _ ->
-            if (arePermissionsGranted(activityContext)) {
-                // TODO show description fragment if first time
-                val selectedApp = appList[position]
-
-                if (activeSessions.isNotEmpty()) {
-                    if (activeSessions.any { it.name == selectedApp.name }) {
-                        val session = activeSessions.find { it.name == selectedApp.name }
-                        val serviceIntent = Intent(activityContext, ServerService::class.java)
-                                .putExtra("type", "restartRunningSession")
-                                .putExtra("session", session)
-                        activityContext.startService(serviceIntent)
-                    } else {
-                        Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG)
-                                .show()
-                    }
-                    return@OnItemClickListener
+            parent, _, position, _ ->
+            val selectedItem = parent.getItemAtPosition(position) as AppsListItem
+            when (selectedItem) {
+                is AppSeparatorItem -> return@OnItemClickListener
+                is AppItem -> {
+                    val selectedApp = selectedItem.app
+                    doAppItemClicked(selectedApp)
                 }
-
+              
                 val preferredServiceType = appListViewModel.getAppServiceTypePreference(appList[position])
                 if (preferredServiceType.isEmpty()) {
                     selectServiceTypePreference(selectedApp)
@@ -142,6 +126,33 @@ class AppListFragment : Fragment() {
                 }
     }
 
+    private fun doAppItemClicked(selectedApp: App) {
+        if (arePermissionsGranted(activityContext)) {
+            // TODO show description fragment if first time
+            if (activeSessions.isNotEmpty()) {
+                if (activeSessions.any { it.name == selectedApp.name }) {
+                    val session = activeSessions.find { it.name == selectedApp.name }
+                    val serviceIntent = Intent(activityContext, ServerService::class.java)
+                            .putExtra("type", "restartRunningSession")
+                            .putExtra("session", session)
+                    activityContext.startService(serviceIntent)
+                } else {
+                    Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG)
+                            .show()
+                }
+                return
+            }
+
+            val serviceIntent = Intent(activityContext, ServerService::class.java)
+                    .putExtra("type", "startApp")
+                    .putExtra("app", selectedApp)
+                    .putExtra("serviceType", "ssh") // TODO update this dynamically based on user preference
+            activityContext.startService(serviceIntent)
+        } else {
+            passDataToActivity("permissionsRequired")
+        }
+    }
+
     private fun setPulldownPromptVisibilityForAppList() {
         empty_apps_list.visibility = when (appList.isEmpty()) {
             true -> View.VISIBLE
@@ -151,16 +162,26 @@ class AppListFragment : Fragment() {
 
     override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo)
-        activityContext.menuInflater.inflate(R.menu.context_menu_app_description, menu)
+        activityContext.menuInflater.inflate(R.menu.context_menu_apps, menu)
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
         val menuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
         val position = menuInfo.position
-        val app = appList[position]
+        val selectedItem = list_apps.adapter.getItem(position) as AppsListItem
+        return when (selectedItem) {
+            is AppSeparatorItem -> true
+            is AppItem -> {
+                val app = selectedItem.app
+                doContextItemSelected(app, item)
+            }
+        }
+    }
 
+    private fun doContextItemSelected(app: App, item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.menu_item_app_details -> showAppDetails(app)
+            R.id.menu_item_stop_app -> stopApp(app)
             else -> super.onContextItemSelected(item)
         }
     }
@@ -168,6 +189,14 @@ class AppListFragment : Fragment() {
     private fun showAppDetails(app: App): Boolean {
         val bundle = bundleOf("app" to app)
         NavHostFragment.findNavController(this).navigate(R.id.menu_item_app_details, bundle)
+        return true
+    }
+
+    private fun stopApp(app: App): Boolean {
+        val serviceIntent = Intent(activityContext, ServerService::class.java)
+                .putExtra("type", "stopApp")
+                .putExtra("app", app)
+        activityContext.startService(serviceIntent)
         return true
     }
 
