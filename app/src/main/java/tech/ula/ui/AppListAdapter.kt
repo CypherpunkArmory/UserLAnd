@@ -29,6 +29,10 @@ class AppListAdapter(
     private val ITEM_VIEW_TYPE_SEPARATOR = 1
     private val ITEM_VIEW_TYPE_COUNT = 2
 
+    private val topListElement = "distribution"
+    private val freeAnnotation = activity.resources.getString(R.string.free_annotation)
+    private val paidAnnotation = activity.resources.getString(R.string.paid_annotation)
+
     private val appsAndSeparators: List<AppsListItem> by lazy {
         val listBuilder = arrayListOf<AppsListItem>()
         val categoriesAndApps = HashMap<String, ArrayList<App>>()
@@ -37,9 +41,20 @@ class AppListAdapter(
             categoriesAndApps.getOrPut(app.category) { arrayListOf() }.add(app)
         }
 
-        categoriesAndApps.forEach {
+        val categoriesAndAppsWithDistributionsFirst = categoriesAndApps.toSortedMap(Comparator {
+            first, second ->
+            when {
+                first == topListElement -> -1
+                second == topListElement -> 1
+                else -> 0
+            }
+        })
+
+        categoriesAndAppsWithDistributionsFirst.forEach {
             (category, categoryApps) ->
-            listBuilder.add(AppSeparatorItem(category))
+            val categoryWithPaymentInformation = category + " " +
+                    if (category == topListElement) freeAnnotation else paidAnnotation
+            listBuilder.add(AppSeparatorItem(categoryWithPaymentInformation.capitalize()))
             categoryApps.forEach { listBuilder.add(AppItem(it)) }
         }
         listBuilder.toList()
