@@ -214,11 +214,6 @@ class AppListFragment : Fragment() {
                     preferredServiceType = serviceTypes[selected]
                 }
 
-        builder.setPositiveButton("Continue") { _, _ ->
-            appListViewModel.setAppServiceTypePreference(selectedApp, preferredServiceType)
-            Toast.makeText(activityContext, "$preferredServiceType selected", Toast.LENGTH_SHORT).show()
-        }
-
         dialog = builder.create()
         dialog.show()
     }
