@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">UserLAnd</string>
     <string name="welcome">Welcome to UserLAnd!</string>
+    <string name="permission_request_code">1000</string>
 
     <!-- Labels -->
     <string name="apps">Apps</string>

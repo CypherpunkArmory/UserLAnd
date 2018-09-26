@@ -1,11 +1,13 @@
 package tech.ula.ui
 
+import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.widget.SwipeRefreshLayout
@@ -14,9 +16,7 @@ import android.widget.AdapterView
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_app_list.*
-import tech.ula.OnFragmentDataPassed
 import org.jetbrains.anko.bundleOf
-import org.jetbrains.anko.find
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.App
@@ -33,12 +33,16 @@ import tech.ula.viewmodel.AppListViewModelFactory
 class AppListFragment : Fragment() {
 
     private lateinit var activityContext: Activity
-    private lateinit var dataPasser: OnFragmentDataPassed
+    private val permissionRequestCode: Int by lazy {
+        activityContext.resources.getString(R.string.permission_request_code).toInt()
+    }
 
     private lateinit var appList: List<App>
     private lateinit var appAdapter: AppListAdapter
 
     private lateinit var activeSessions: List<Session>
+
+    private lateinit var lastSelectedApp: App
 
     private val appListPreferences by lazy {
         AppsPreferences(activityContext.getSharedPreferences("appLists", Context.MODE_PRIVATE))
@@ -62,11 +66,6 @@ class AppListFragment : Fragment() {
             list_apps.adapter = appAdapter
             setPulldownPromptVisibilityForAppList()
         }
-    }
-
-    override fun onAttach(context: Context?) {
-        super.onAttach(context)
-        dataPasser = context as OnFragmentDataPassed
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -103,34 +102,39 @@ class AppListFragment : Fragment() {
     }
 
     private fun doAppItemClicked(selectedApp: App) {
+        lastSelectedApp = selectedApp
         if (arePermissionsGranted(activityContext)) {
-            if (activeSessions.isNotEmpty()) {
-                if (activeSessions.any { it.name == selectedApp.name }) {
-                    val session = activeSessions.find { it.name == selectedApp.name }
-                    val serviceIntent = Intent(activityContext, ServerService::class.java)
-                            .putExtra("type", "restartRunningSession")
-                            .putExtra("session", session)
-                    activityContext.startService(serviceIntent)
-                } else {
-                    Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG)
-                            .show()
-                }
-                return
-            }
-
-            val preferredServiceType = appListViewModel.getAppServiceTypePreference(selectedApp)
-            if (preferredServiceType.isEmpty()) {
-                selectServiceTypePreference(selectedApp)
-            } else {
-                val serviceIntent = Intent(activityContext, ServerService::class.java)
-                        .putExtra("type", "startApp")
-                        .putExtra("app", selectedApp)
-                        .putExtra("serviceType", preferredServiceType.toLowerCase())
-
-                activityContext.startService(serviceIntent)
-            }
+            handleAppSelection(lastSelectedApp)
         } else {
-            passDataToActivity("permissionsRequired")
+            showPermissionsNecessaryDialog()
+        }
+    }
+
+    private fun handleAppSelection(app: App) {
+        if (activeSessions.isNotEmpty()) {
+            if (activeSessions.any { it.name == app.name }) {
+                val session = activeSessions.find { it.name == app.name }
+                val serviceIntent = Intent(activityContext, ServerService::class.java)
+                        .putExtra("type", "restartRunningSession")
+                        .putExtra("session", session)
+                activityContext.startService(serviceIntent)
+            } else {
+                Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG)
+                        .show()
+            }
+            return
+        }
+
+        val preferredServiceType = appListViewModel.getAppServiceTypePreference(app)
+        if (preferredServiceType.isEmpty()) {
+            selectServiceTypePreference(app)
+        } else {
+            val serviceIntent = Intent(activityContext, ServerService::class.java)
+                    .putExtra("type", "startApp")
+                    .putExtra("app", app)
+                    .putExtra("serviceType", preferredServiceType.toLowerCase())
+
+            activityContext.startService(serviceIntent)
         }
     }
 
@@ -181,13 +185,7 @@ class AppListFragment : Fragment() {
         return true
     }
 
-    private fun passDataToActivity(data: String) {
-        dataPasser.onFragmentDataPassed(data)
-    }
-
     private fun selectServiceTypePreference(selectedApp: App) {
-        lateinit var dialog: AlertDialog
-
         val serviceTypes = arrayOf(AppsPreferences.SSH, AppsPreferences.VNC)
         var preferredServiceType = AppsPreferences.SSH
 
@@ -196,12 +194,47 @@ class AppListFragment : Fragment() {
                 .setSingleChoiceItems(serviceTypes, 0) { _, selected ->
                     preferredServiceType = serviceTypes[selected]
                 }
+                .setPositiveButton(R.string.button_continue) { _, _ ->
+                    appListViewModel.setAppServiceTypePreference(selectedApp, preferredServiceType)
+                    handleAppSelection(selectedApp)
+                }
 
-        builder.setPositiveButton(R.string.button_continue) { _, _ ->
-            appListViewModel.setAppServiceTypePreference(selectedApp, preferredServiceType)
+        builder.create().show()
+    }
+
+    private fun showPermissionsNecessaryDialog() {
+        val builder = AlertDialog.Builder(activityContext)
+        builder.setMessage(R.string.alert_permissions_necessary_message)
+                .setTitle(R.string.alert_permissions_necessary_title)
+                .setPositiveButton(R.string.alert_permissions_necessary_ok_button) {
+                    dialog, _ ->
+                    requestPermissions(arrayOf(
+                            Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                            permissionRequestCode)
+                    dialog.dismiss()
+                }
+                .setNegativeButton(R.string.alert_permissions_necessary_cancel_button) {
+                    dialog, _ ->
+                    dialog.dismiss()
+                }
+        builder.create().show()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            permissionRequestCode -> {
+
+                val grantedPermissions = (grantResults.isNotEmpty() &&
+                        grantResults[0] == PackageManager.PERMISSION_GRANTED &&
+                        grantResults[1] == PackageManager.PERMISSION_GRANTED)
+
+                if (grantedPermissions) {
+                    handleAppSelection(lastSelectedApp)
+                } else {
+                    showPermissionsNecessaryDialog()
+                }
+            }
         }
-
-        dialog = builder.create()
-        dialog.show()
     }
 }
