@@ -93,6 +93,24 @@ class AssetListPreferences(private val prefs: SharedPreferences) {
     }
 }
 
+class AppsPreferences(private val prefs: SharedPreferences) {
+    companion object {
+        val SSH = "SSH"
+        val VNC = "VNC"
+    }
+
+    fun setAppServiceTypePreference(appName: String, serviceType: String) {
+        with(prefs.edit()) {
+            putString(appName, serviceType)
+            apply()
+        }
+    }
+
+    fun getAppServiceTypePreference(appName: String): String {
+        return prefs.getString(appName, "") ?: ""
+    }
+}
+
 class BuildWrapper {
     fun getSupportedAbis(): Array<String> {
         return Build.SUPPORTED_ABIS

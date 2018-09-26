@@ -1,6 +1,7 @@
 package tech.ula.ui
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
@@ -15,6 +16,7 @@ import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_app_list.*
 import tech.ula.OnFragmentDataPassed
 import org.jetbrains.anko.bundleOf
+import org.jetbrains.anko.find
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.App
@@ -23,6 +25,7 @@ import tech.ula.model.remote.GithubAppsFetcher
 import tech.ula.model.repositories.AppsRepository
 import tech.ula.model.repositories.RefreshStatus
 import tech.ula.model.repositories.UlaDatabase
+import tech.ula.utils.AppsPreferences
 import tech.ula.utils.arePermissionsGranted
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
@@ -37,10 +40,17 @@ class AppListFragment : Fragment() {
 
     private lateinit var activeSessions: List<Session>
 
+    private val appListPreferences by lazy {
+        AppsPreferences(activityContext.getSharedPreferences("appLists", Context.MODE_PRIVATE))
+    }
+
     private val appListViewModel: AppListViewModel by lazy {
         val ulaDatabase = UlaDatabase.getInstance(activityContext)
         val sessionDao = ulaDatabase.sessionDao()
-        val appsRepository = AppsRepository(ulaDatabase.appsDao(), GithubAppsFetcher("${activityContext.filesDir}"))
+        val appsDao = ulaDatabase.appsDao()
+        val githubFetcher = GithubAppsFetcher("${activityContext.filesDir}")
+
+        val appsRepository = AppsRepository(appsDao, githubFetcher, appListPreferences)
         ViewModelProviders.of(this, AppListViewModelFactory(appsRepository, sessionDao)).get(AppListViewModel::class.java)
     }
 
@@ -76,6 +86,18 @@ class AppListFragment : Fragment() {
                 is AppItem -> {
                     val selectedApp = selectedItem.app
                     doAppItemClicked(selectedApp)
+
+                    val preferredServiceType = appListViewModel.getAppServiceTypePreference(selectedApp)
+                    if (preferredServiceType.isEmpty()) {
+                        selectServiceTypePreference(selectedApp)
+                    } else {
+                        val serviceIntent = Intent(activityContext, ServerService::class.java)
+                                .putExtra("type", "startApp")
+                                .putExtra("app", selectedApp)
+                                .putExtra("serviceType", preferredServiceType.toLowerCase())
+
+                        activityContext.startService(serviceIntent)
+                    }
                 }
             }
         }
@@ -168,5 +190,25 @@ class AppListFragment : Fragment() {
 
     private fun passDataToActivity(data: String) {
         dataPasser.onFragmentDataPassed(data)
+    }
+
+    private fun selectServiceTypePreference(selectedApp: App) {
+        lateinit var dialog: AlertDialog
+
+        val serviceTypes = arrayOf(AppsPreferences.SSH, AppsPreferences.VNC)
+        var preferredServiceType = AppsPreferences.SSH
+
+        val builder = AlertDialog.Builder(activityContext)
+                .setTitle("Always open with:")
+                .setSingleChoiceItems(serviceTypes, 0) { _, selected ->
+                    preferredServiceType = serviceTypes[selected]
+                }
+
+        builder.setPositiveButton(R.string.button_continue) { _, _ ->
+            appListViewModel.setAppServiceTypePreference(selectedApp, preferredServiceType)
+        }
+
+        dialog = builder.create()
+        dialog.show()
     }
 }

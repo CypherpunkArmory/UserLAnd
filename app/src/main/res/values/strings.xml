@@ -12,6 +12,9 @@
     <string name="help">Help</string>
     <string name="toc">Terms &amp; Conditions</string>
 
+    <!-- Buttons -->
+    <string name="button_continue">Continue</string>
+
     <!-- Context Menus -->
     <string name="app_info">App Info</string>
     <string name="stop_app">Stop App</string>
@@ -92,6 +95,10 @@
     <!-- Supported Services -->
     <string name="support_dropbear">SSH - Dropbear</string>
     <string name="support_tightvnc">VNC - TightVNC</string>
+
+    <!-- Client Types -->
+    <string name="client_ssh">SSH</string>
+    <string name="client_vnc">VNC</string>
 
     <!-- Support Clients -->
     <string name="support_connectbot">SSH - ConnectBot</string>

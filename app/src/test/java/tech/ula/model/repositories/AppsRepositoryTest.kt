@@ -11,6 +11,7 @@ import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.daos.AppsDao
 import tech.ula.model.entities.App
 import tech.ula.model.remote.RemoteAppsSource
+import tech.ula.utils.AppsPreferences
 
 @RunWith(MockitoJUnitRunner::class)
 class AppsRepositoryTest {
@@ -24,11 +25,14 @@ class AppsRepositoryTest {
     @Mock
     lateinit var appsDao: AppsDao
 
+    @Mock
+    lateinit var appsPreferences: AppsPreferences
+
     lateinit var appsRepository: AppsRepository
 
     @Before
     fun setup() {
-        appsRepository = AppsRepository(appsDao, remoteAppsSource)
+        appsRepository = AppsRepository(appsDao, remoteAppsSource, appsPreferences)
     }
 
     @Test
