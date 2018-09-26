@@ -1,6 +1,5 @@
 package tech.ula
 
-import android.Manifest
 import android.app.AlertDialog
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -25,13 +24,8 @@ import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.utils.NotificationUtility
 
-interface OnFragmentDataPassed {
-    fun onFragmentDataPassed(data: String)
-}
+class MainActivity : AppCompatActivity() {
 
-class MainActivity : AppCompatActivity(), OnFragmentDataPassed {
-
-    private val permissionRequestCode = 1000
     private var currentFragmentDisplaysProgressDialog = false
 
     private val navController: NavController by lazy {
@@ -125,34 +119,10 @@ class MainActivity : AppCompatActivity(), OnFragmentDataPassed {
                 .unregisterReceiver(serverServiceBroadcastReceiver)
     }
 
-    override fun onFragmentDataPassed(data: String) {
-        when (data) {
-            "permissionsRequired" -> showPermissionsNecessaryDialog()
-        }
-    }
-
     private fun showToast(intent: Intent) {
         val content = intent.getIntExtra("id", -1)
         if (content == -1) return
         Toast.makeText(this, content, Toast.LENGTH_LONG).show()
-    }
-
-    private fun showPermissionsNecessaryDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setMessage(R.string.alert_permissions_necessary_message)
-                .setTitle(R.string.alert_permissions_necessary_title)
-                .setPositiveButton(R.string.alert_permissions_necessary_ok_button) {
-                    dialog, _ ->
-                    requestPermissions(arrayOf(
-                            Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                            permissionRequestCode)
-                    dialog.dismiss()
-                }
-                .setNegativeButton(R.string.alert_permissions_necessary_cancel_button) {
-                    dialog, _ ->
-                    dialog.dismiss()
-                }
-        builder.create().show()
     }
 
     private fun showDialog(intent: Intent) {
