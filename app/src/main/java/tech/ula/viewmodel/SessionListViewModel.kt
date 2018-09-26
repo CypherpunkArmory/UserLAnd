@@ -18,8 +18,6 @@ class SessionListViewModel(application: Application) : AndroidViewModel(applicat
         ulaDatabase.sessionDao().getAllSessions()
     }
 
-    var activeSessions: Boolean = false
-
     private val filesystems: LiveData<List<Filesystem>> by lazy {
         ulaDatabase.filesystemDao().getAllFilesystems()
     }

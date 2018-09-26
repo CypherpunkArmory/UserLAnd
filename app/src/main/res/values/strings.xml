@@ -13,7 +13,6 @@
     <string name="toc">Terms &amp; Conditions</string>
 
     <!-- Buttons -->
-    <string name="launch">Launch</string>
     <string name="button_continue">Continue</string>
 
     <!-- Context Menus -->
@@ -156,6 +155,12 @@
     <string name="desc_active">Image: session active</string>
     <string name="desc_arrow">Image: Arrow denoting connection between session and filesystem.</string>
     <string name="desc_filesystem_type">Image: Distribution logo</string>
+
+    <!-- Misc -->
+    <string name="free_annotation">(Free)</string>
+    <string name="paid_annotation">(Paid)</string>
+    <string name="custom_sessions">Custom Sessions</string>
+    <string name="apps_sessions">Apps Sessions</string>
 
     <string name="toc_text">End User License Agreement for UserLAnd Software\n\n
         Please read this End User License Agreement (“EULA”) before You purchase the Software and/or subsequently download and use the Software.\n\nBy purchasing and/or downloading and using the Software, You agree, without reservation, to be bound by the terms of this EULA. If You do not agree with the terms of this EULA, please do not purchase the full functionality and/or download and use the Software.\n\n
