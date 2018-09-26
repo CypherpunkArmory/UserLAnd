@@ -205,8 +205,7 @@ class AppListFragment : Fragment() {
     private fun selectServiceTypePreference(selectedApp: App) {
         lateinit var dialog: AlertDialog
 
-        val serviceTypes = arrayOf(appListPreferences.SSH, appListPreferences.VNC)
-        var preferredServiceType = appListPreferences.SSH
+        val serviceTypes = arrayOf(AppsPreferences.SSH, AppsPreferences.VNC)
 
         val builder = AlertDialog.Builder(activityContext)
                 .setTitle("Always open with:")
