@@ -2,90 +2,77 @@
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-<android.support.constraint.ConstraintLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_margin="8dp">
-
-    <ImageView
-        android:id="@+id/apps_icon"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/apps_title"/>
-
-    <TextView
-        android:id="@+id/apps_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:textColor="#FFFFFF"
-        android:textSize="32sp"
-        android:gravity="center"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/apps_icon"
-        app:layout_constraintBottom_toTopOf="@id/apps_description"/>
-
-    <TextView
-        android:id="@+id/apps_description"
+    <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="48dp"
-        android:layout_marginEnd="48dp"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"
-        android:letterSpacing="0.15"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/apps_title" />
+        android:layout_margin="8dp">
 
-    <Button
-        android:id="@+id/launch_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@android:color/holo_blue_dark"
-        android:text="@string/launch"
-        android:layout_marginTop="32dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/apps_description"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        <ImageView
+            android:id="@+id/apps_icon"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/apps_title"/>
 
-    <RadioGroup
-        android:id="@+id/apps_service_type_preferences"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAlignment="center"
-        android:gravity="center"
-        app:layout_constraintTop_toBottomOf="@+id/launch_button"
-        android:paddingTop="32dp">
-
-        <RadioButton
-            android:id="@+id/apps_ssh_preference"
+        <TextView
+            android:id="@+id/apps_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:drawableEnd="@drawable/ic_console_24dp"
-            android:drawablePadding="8dp"
-            android:text="@string/client_ssh"
-            android:padding="10dp" />
+            android:layout_margin="16dp"
+            android:textColor="#FFFFFF"
+            android:textSize="32sp"
+            android:gravity="center"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/apps_icon"
+            app:layout_constraintBottom_toTopOf="@id/apps_description"/>
 
-        <RadioButton
-            android:id="@+id/apps_vnc_preference"
-            android:layout_width="wrap_content"
+        <TextView
+            android:id="@+id/apps_description"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:drawableEnd="@drawable/ic_desktop_windows_black_24dp"
-            android:drawablePadding="8dp"
-            android:text="@string/client_vnc"
-            android:padding="10dp" />
+            android:layout_marginStart="48dp"
+            android:layout_marginEnd="48dp"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:letterSpacing="0.15"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/apps_title" />
 
-    </RadioGroup>
+        <RadioGroup
+            android:id="@+id/apps_service_type_preferences"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:gravity="center"
+            app:layout_constraintTop_toBottomOf="@id/apps_description"
+            android:paddingTop="32dp">
 
-</android.support.constraint.ConstraintLayout>
+            <RadioButton
+                android:id="@+id/apps_ssh_preference"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableEnd="@drawable/ic_console_24dp"
+                android:drawablePadding="8dp"
+                android:text="@string/client_ssh"
+                android:padding="10dp" />
+
+            <RadioButton
+                android:id="@+id/apps_vnc_preference"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableEnd="@drawable/ic_desktop_windows_black_24dp"
+                android:drawablePadding="8dp"
+                android:text="@string/client_vnc"
+                android:padding="10dp" />
+
+        </RadioGroup>
+
+    </android.support.constraint.ConstraintLayout>
 </ScrollView>
