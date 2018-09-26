@@ -114,7 +114,6 @@ class AppListFragment : Fragment() {
 
     private fun doAppItemClicked(selectedApp: App) {
         if (arePermissionsGranted(activityContext)) {
-            // TODO show description fragment if first time
             if (activeSessions.isNotEmpty()) {
                 if (activeSessions.any { it.name == selectedApp.name }) {
                     val session = activeSessions.find { it.name == selectedApp.name }

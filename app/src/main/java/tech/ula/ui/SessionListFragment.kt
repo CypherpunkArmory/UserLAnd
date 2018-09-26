@@ -106,7 +106,7 @@ class SessionListFragment : Fragment() {
         if (session.active) {
             restartRunningSession(session)
         } else {
-            if (sessionList.any { it.active} ) {
+            if (sessionList.any { it.active }) {
                 Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG).show()
             } else {
                 startSession(session)
