@@ -9,9 +9,9 @@ class ValidationUtility() {
         val pattern: Pattern
         val matcher: Matcher
 
-        val PASSWORD_PATTERN = "^[a-zA-Z0-9]*\$"
+        val USERNAME_REGEX = "^[a-zA-Z0-9]*\$"
 
-        pattern = Pattern.compile(PASSWORD_PATTERN)
+        pattern = Pattern.compile(USERNAME_REGEX)
         matcher = pattern.matcher(password)
 
         return matcher.matches()
@@ -21,9 +21,9 @@ class ValidationUtility() {
         val pattern: Pattern
         val matcher: Matcher
 
-        val PASSWORD_PATTERN = "^[a-zA-Z0-9!@#$%^&*()_+=,./?<>:]*\$"
+        val PASSWORD_REGEX = "^[a-zA-Z0-9!@#$%^&*()_+=,./?<>:]*\$"
 
-        pattern = Pattern.compile(PASSWORD_PATTERN)
+        pattern = Pattern.compile(PASSWORD_REGEX)
         matcher = pattern.matcher(password)
 
         return matcher.matches()
