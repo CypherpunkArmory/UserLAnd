@@ -97,7 +97,7 @@ class AppListFragment : Fragment() {
                     val selectedApp = selectedItem.app
                     doAppItemClicked(selectedApp)
 
-                    val preferredServiceType = appListViewModel.getAppServiceTypePreference(appList[position])
+                    val preferredServiceType = appListViewModel.getAppServiceTypePreference(selectedApp)
                     if (preferredServiceType.isEmpty()) {
                         selectServiceTypePreference(selectedApp)
                     } else {
