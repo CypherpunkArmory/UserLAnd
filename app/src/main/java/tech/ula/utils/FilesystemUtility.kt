@@ -39,10 +39,15 @@ class FilesystemUtility(
         }
     }
 
-    fun extractFilesystem(targetDirectoryName: String, listener: (String) -> Any) {
+    fun extractFilesystem(filesystem: Filesystem, targetDirectoryName: String, listener: (String) -> Any) {
         val command = "../support/execInProot.sh /support/extractFilesystem.sh"
         try {
-            execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, listener)
+            val env = HashMap<String, String>()
+            env["INITIAL_USERNAME"] = filesystem.defaultUsername
+            env["INITIAL_PASSWORD"] = filesystem.defaultPassword
+            env["INITIAL_VNC_PASSWORD"] = filesystem.defaultVncPassword
+
+            execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, listener, environmentVars = env)
         } catch (err: Exception) {
             logger.logRuntimeErrorForCommand(functionName = "extractFilesystem", command = command, err = err)
         }

@@ -79,5 +79,8 @@ class Migration2To3 : Migration(2, 3) {
 
         database.execSQL("DROP INDEX index_session_name")
         database.execSQL("ALTER TABLE session ADD COLUMN isAppsSession INTEGER NOT NULL DEFAULT 0")
+
+        database.execSQL("ALTER TABLE filesystem ADD COLUMN defaultVncPassword TEXT NOT NULL DEFAULT 'userland'")
+        database.execSQL("ALTER TABLE session ADD COLUMN vncPassword TEXT NOT NULL DEFAULT 'userland'")
     }
 }

@@ -26,6 +26,7 @@ data class Session(
     var active: Boolean = false,
     var username: String = "",
     var password: String = "userland",
+    var vncPassword: String = "userland",
     var geometry: String = "1024x768",
     var serviceType: String = "",
     var clientType: String = "",
