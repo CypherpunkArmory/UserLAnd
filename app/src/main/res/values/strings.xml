@@ -14,6 +14,7 @@
 
     <!-- Buttons -->
     <string name="launch">Launch</string>
+    <string name="button_continue">Continue</string>
 
     <!-- Context Menus -->
     <string name="app_info">App Info</string>

@@ -206,12 +206,18 @@ class AppListFragment : Fragment() {
         lateinit var dialog: AlertDialog
 
         val serviceTypes = arrayOf(AppsPreferences.SSH, AppsPreferences.VNC)
+        var preferredServiceType = AppsPreferences.SSH
 
         val builder = AlertDialog.Builder(activityContext)
                 .setTitle("Always open with:")
                 .setSingleChoiceItems(serviceTypes, 0) { _, selected ->
                     preferredServiceType = serviceTypes[selected]
                 }
+
+        builder.setPositiveButton(R.string.button_continue) { _, _ ->
+            appListViewModel.setAppServiceTypePreference(selectedApp, preferredServiceType)
+            Toast.makeText(activityContext, "$preferredServiceType selected", Toast.LENGTH_SHORT).show()
+        }
 
         dialog = builder.create()
         dialog.show()
