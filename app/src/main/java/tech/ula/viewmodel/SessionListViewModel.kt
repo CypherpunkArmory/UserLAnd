@@ -3,6 +3,7 @@ package tech.ula.viewmodel
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
+import android.arch.lifecycle.Transformations
 import kotlinx.coroutines.experimental.launch
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Filesystem
@@ -17,8 +18,6 @@ class SessionListViewModel(application: Application) : AndroidViewModel(applicat
     private val sessions: LiveData<List<Session>> by lazy {
         ulaDatabase.sessionDao().getAllSessions()
     }
-
-    var activeSessions: Boolean = false
 
     private val filesystems: LiveData<List<Filesystem>> by lazy {
         ulaDatabase.filesystemDao().getAllFilesystems()
