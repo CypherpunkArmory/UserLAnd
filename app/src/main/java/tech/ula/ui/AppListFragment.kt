@@ -96,18 +96,6 @@ class AppListFragment : Fragment() {
                 is AppItem -> {
                     val selectedApp = selectedItem.app
                     doAppItemClicked(selectedApp)
-
-                    val preferredServiceType = appListViewModel.getAppServiceTypePreference(selectedApp)
-                    if (preferredServiceType.isEmpty()) {
-                        selectServiceTypePreference(selectedApp)
-                    } else {
-                        val serviceIntent = Intent(activityContext, ServerService::class.java)
-                                .putExtra("type", "startApp")
-                                .putExtra("app", selectedApp)
-                                .putExtra("serviceType", preferredServiceType.toLowerCase())
-
-                        activityContext.startService(serviceIntent)
-                    }
                 }
             }
         }
@@ -141,11 +129,17 @@ class AppListFragment : Fragment() {
                 return
             }
 
-            val serviceIntent = Intent(activityContext, ServerService::class.java)
-                    .putExtra("type", "startApp")
-                    .putExtra("app", selectedApp)
-                    .putExtra("serviceType", "ssh") // TODO update this dynamically based on user preference
-            activityContext.startService(serviceIntent)
+            val preferredServiceType = appListViewModel.getAppServiceTypePreference(selectedApp)
+            if (preferredServiceType.isEmpty()) {
+                selectServiceTypePreference(selectedApp)
+            } else {
+                val serviceIntent = Intent(activityContext, ServerService::class.java)
+                        .putExtra("type", "startApp")
+                        .putExtra("app", selectedApp)
+                        .putExtra("serviceType", preferredServiceType.toLowerCase())
+
+                activityContext.startService(serviceIntent)
+            }
         } else {
             passDataToActivity("permissionsRequired")
         }
