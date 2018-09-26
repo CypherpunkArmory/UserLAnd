@@ -40,6 +40,7 @@
     <string name="error_username">You must provide a username</string>
     <string name="error_empty_field">Each field must be entered!</string>
     <string name="error_app_description_not_found">Could not find a description for this app. Try refreshing.</string>
+    <string name="error_password_too_long">Password must be less than 8 characters!</string>
     <string name="error_vnc_password_too_long">VNC Password must be less than 8 characters!</string>
     <string name="error_username_invalid">Username has invalid characters</string>
     <string name="error_password_invalid">Password has invalid characters</string>

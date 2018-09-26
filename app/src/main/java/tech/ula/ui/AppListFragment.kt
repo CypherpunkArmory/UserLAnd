@@ -9,11 +9,20 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.widget.SwipeRefreshLayout
-import android.view.* // ktlint-disable no-wildcard-imports
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import android.view.ContextMenu
+import android.view.View
+import android.view.MenuItem
 import android.widget.AdapterView
+import android.widget.EditText
 import android.widget.Toast
+import android.widget.RadioButton
 import androidx.navigation.fragment.NavHostFragment
+import kotlinx.android.synthetic.main.abc_alert_dialog_material.*
+import kotlinx.android.synthetic.main.design_bottom_sheet_dialog.*
 import kotlinx.android.synthetic.main.frag_app_list.*
+import kotlinx.android.synthetic.main.frag_app_start_dialog.*
 import tech.ula.OnFragmentDataPassed
 import org.jetbrains.anko.bundleOf
 import org.jetbrains.anko.find
@@ -26,6 +35,7 @@ import tech.ula.model.repositories.AppsRepository
 import tech.ula.model.repositories.RefreshStatus
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.AppsPreferences
+import tech.ula.utils.ValidationUtility
 import tech.ula.utils.arePermissionsGranted
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
@@ -120,7 +130,7 @@ class AppListFragment : Fragment() {
 
             val preferredServiceType = appListViewModel.getAppServiceTypePreference(selectedApp)
             if (preferredServiceType.isEmpty()) {
-                selectServiceTypePreference(selectedApp)
+                verifyAndSaveCredentials(selectedApp = selectedApp)
             } else {
                 val serviceIntent = Intent(activityContext, ServerService::class.java)
                         .putExtra("type", "startApp")
@@ -185,23 +195,42 @@ class AppListFragment : Fragment() {
         dataPasser.onFragmentDataPassed(data)
     }
 
-    private fun selectServiceTypePreference(selectedApp: App) {
-        lateinit var dialog: AlertDialog
+    private fun verifyAndSaveCredentials(selectedApp: App) {
 
-        val serviceTypes = arrayOf(AppsPreferences.SSH, AppsPreferences.VNC)
-        var preferredServiceType = AppsPreferences.SSH
+        val dialog = AlertDialog.Builder(activityContext)
+        val dialogView = layoutInflater.inflate(R.layout.frag_app_start_dialog, null)
+        dialog.setView(dialogView)
+        dialog.setCancelable(false)
+        dialog.setPositiveButton(R.string.button_continue, null)
+        val customDialog = dialog.create()
 
-        val builder = AlertDialog.Builder(activityContext)
-                .setTitle("Always open with:")
-                .setSingleChoiceItems(serviceTypes, 0) { _, selected ->
-                    preferredServiceType = serviceTypes[selected]
+        customDialog.setOnShowListener { _ ->
+            customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { _ ->
+                val username = customDialog.find<EditText>(R.id.text_input_username).text
+                val password = customDialog.find<EditText>(R.id.text_input_password).text
+                val sshTypePreference = customDialog.find<RadioButton>(R.id.ssh_radio_button)
+                val validator = ValidationUtility()
+
+                if (username.isEmpty() || password.isEmpty()) {
+                    Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
+                } else if (password.length > 8) {
+                    Toast.makeText(activityContext, R.string.error_password_too_long, Toast.LENGTH_LONG).show()
+                } else if (!validator.isUsernameValid(username.toString())) {
+                    Toast.makeText(activityContext, R.string.error_username_invalid, Toast.LENGTH_LONG).show()
+                } else if (!validator.isPasswordValid(password.toString())) {
+                    Toast.makeText(activityContext, R.string.error_password_invalid, Toast.LENGTH_LONG).show()
+                } else {
+                    if (sshTypePreference.isChecked) {
+                        appListViewModel.setAppServiceTypePreference(selectedApp, AppsPreferences.SSH)
+                    } else {
+                        appListViewModel.setAppServiceTypePreference(selectedApp, AppsPreferences.VNC)
+                    }
+
+                    customDialog.dismiss()
                 }
-
-        builder.setPositiveButton(R.string.button_continue) { _, _ ->
-            appListViewModel.setAppServiceTypePreference(selectedApp, preferredServiceType)
+            }
         }
 
-        dialog = builder.create()
-        dialog.show()
+        customDialog.show()
     }
 }
