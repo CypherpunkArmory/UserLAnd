@@ -25,6 +25,14 @@ class AppListViewModel(private val appsRepository: AppsRepository, private val s
         return zipLiveData(apps, activeSessions)
     }
 
+    fun getAppServiceTypePreference(app: App): String {
+        return appsRepository.getAppServiceTypePreference(app)
+    }
+
+    fun setAppServiceTypePreference(app: App, preferredClient: String) {
+        appsRepository.setAppServiceTypePreference(app, preferredClient)
+    }
+
     fun refreshAppsList() {
         launch { appsRepository.refreshData() }
     }
