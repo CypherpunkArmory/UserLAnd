@@ -44,14 +44,18 @@ class AppDetailsFragment : Fragment() {
 
     fun setupPreferredServiceTypeRadioGroup() {
         val appServiceTypePreference = appsPreferences.getAppServiceTypePreference(app.name)
-        if (appServiceTypePreference == "SSH") {
+        if (appServiceTypePreference == appsPreferences.SSH) {
             apps_service_type_preferences.check(R.id.apps_ssh_preference)
         } else {
             apps_service_type_preferences.check(R.id.apps_vnc_preference)
         }
 
         apps_service_type_preferences.setOnCheckedChangeListener { _, checkedId ->
-            val selectedServiceType = if (R.id.apps_ssh_preference == checkedId) "SSH" else "VNC"
+            val selectedServiceType = when (R.id.apps_ssh_preference) {
+                checkedId -> appsPreferences.SSH
+                else -> appsPreferences.VNC
+            }
+
             appsPreferences.setAppServiceTypePreference(app.name, selectedServiceType)
         }
     }

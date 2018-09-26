@@ -94,6 +94,9 @@ class AssetListPreferences(private val prefs: SharedPreferences) {
 }
 
 class AppsPreferences(private val prefs: SharedPreferences) {
+    val SSH = "SSH"
+    val VNC = "VNC"
+
     fun setAppServiceTypePreference(appName: String, serviceType: String) {
         with(prefs.edit()) {
             putString(appName, serviceType)
