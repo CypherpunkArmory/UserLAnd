@@ -64,7 +64,7 @@
         android:layout_height="wrap_content"
         android:textAlignment="center"
         android:gravity="center"
-        app:layout_constraintTop_toBottomOf="@+id/install_button"
+        app:layout_constraintTop_toBottomOf="@+id/launch_button"
         android:paddingTop="32dp">
 
         <RadioButton

@@ -96,21 +96,19 @@ class AppListFragment : Fragment() {
                 is AppItem -> {
                     val selectedApp = selectedItem.app
                     doAppItemClicked(selectedApp)
-                }
-              
-                val preferredServiceType = appListViewModel.getAppServiceTypePreference(appList[position])
-                if (preferredServiceType.isEmpty()) {
-                    selectServiceTypePreference(selectedApp)
-                } else {
-                    val serviceIntent = Intent(activityContext, ServerService::class.java)
-                            .putExtra("type", "startApp")
-                            .putExtra("app", selectedApp)
-                            .putExtra("serviceType", preferredServiceType.toLowerCase())
 
-                    activityContext.startService(serviceIntent)
+                    val preferredServiceType = appListViewModel.getAppServiceTypePreference(appList[position])
+                    if (preferredServiceType.isEmpty()) {
+                        selectServiceTypePreference(selectedApp)
+                    } else {
+                        val serviceIntent = Intent(activityContext, ServerService::class.java)
+                                .putExtra("type", "startApp")
+                                .putExtra("app", selectedApp)
+                                .putExtra("serviceType", preferredServiceType.toLowerCase())
+
+                        activityContext.startService(serviceIntent)
+                    }
                 }
-            } else {
-                passDataToActivity("permissionsRequired")
             }
         }
 
