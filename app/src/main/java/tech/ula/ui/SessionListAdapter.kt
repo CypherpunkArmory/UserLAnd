@@ -31,19 +31,31 @@ class SessionListAdapter(
     private val ITEM_VIEW_TYPE_SEPARATOR = 1
     private val ITEM_VIEW_TYPE_COUNT = 2
 
+    private val appsString = activity.resources.getString(R.string.apps_sessions)
+    private val customString = activity.resources.getString(R.string.custom_sessions)
+
     private val sessionsAndSeparators: List<SessionListItem> by lazy {
         val listBuilder = arrayListOf<SessionListItem>()
-        val separatorsAndSessions = HashMap<String, ArrayList<Session>>()
+        val separatorsWithSessions = HashMap<String, ArrayList<Session>>()
 
         for (session in sessions) {
             if (session.filesystemName == "apps") {
-                separatorsAndSessions.getOrPut("apps") { arrayListOf() }.add(session)
+                separatorsWithSessions.getOrPut(appsString) { arrayListOf() }.add(session)
             } else {
-                separatorsAndSessions.getOrPut("custom") { arrayListOf() }.add(session)
+                separatorsWithSessions.getOrPut(customString) { arrayListOf() }.add(session)
             }
         }
 
-        separatorsAndSessions.forEach {
+        val separatorsAndSessionsWithCustomFirst = separatorsWithSessions.toSortedMap(Comparator {
+            first, second ->
+            when {
+                first == customString -> -1
+                second == customString -> 1
+                else -> 0
+            }
+        })
+
+        separatorsAndSessionsWithCustomFirst.forEach {
             (separatorText, sectionSessions) ->
             listBuilder.add(SessionSeparatorItem(separatorText))
             sectionSessions.forEach { listBuilder.add(SessionItem(it)) }
