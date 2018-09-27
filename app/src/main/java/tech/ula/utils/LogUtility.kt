@@ -1,23 +1,21 @@
 package tech.ula.utils
 
-import android.util.Log
-
 class LogUtility {
 
     fun e(tag: String, message: String) {
-        Log.e(tag, message)
+        System.out.println("ERROR: $tag: $message")
     }
 
     fun w(tag: String, message: String) {
-        Log.w(tag, message)
+        System.out.println("WARN: $tag: $message")
     }
 
     fun v(tag: String, message: String) {
-        Log.v(tag, message)
+        System.out.println("INFO: $tag: $message")
     }
 
     fun d(tag: String, message: String) {
-        Log.d(tag, message)
+        System.out.println("DEBUG: $tag: $message")
     }
 
     fun logRuntimeErrorForCommand(functionName: String, command: String, err: Exception) {
