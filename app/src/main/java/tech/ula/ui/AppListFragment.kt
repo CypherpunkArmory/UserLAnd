@@ -130,7 +130,7 @@ class AppListFragment : Fragment() {
 
             val preferredServiceType = appListViewModel.getAppServiceTypePreference(selectedApp)
             if (preferredServiceType.isEmpty()) {
-                verifyAndSaveCredentials(selectedApp = selectedApp)
+                getCredentialsAndStart(selectedApp = selectedApp)
             } else {
                 val serviceIntent = Intent(activityContext, ServerService::class.java)
                         .putExtra("type", "startApp")
@@ -195,7 +195,7 @@ class AppListFragment : Fragment() {
         dataPasser.onFragmentDataPassed(data)
     }
 
-    private fun verifyAndSaveCredentials(selectedApp: App) {
+    private fun getCredentialsAndStart(selectedApp: App) {
 
         val dialog = AlertDialog.Builder(activityContext)
         val dialogView = layoutInflater.inflate(R.layout.frag_app_start_dialog, null)
@@ -206,8 +206,8 @@ class AppListFragment : Fragment() {
 
         customDialog.setOnShowListener { _ ->
             customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { _ ->
-                val username = customDialog.find<EditText>(R.id.text_input_username).text
-                val password = customDialog.find<EditText>(R.id.text_input_password).text
+                val username = customDialog.find<EditText>(R.id.text_input_username).text.toString()
+                val password = customDialog.find<EditText>(R.id.text_input_password).text.toString()
                 val sshTypePreference = customDialog.find<RadioButton>(R.id.ssh_radio_button)
                 val validator = ValidationUtility()
 
@@ -215,9 +215,9 @@ class AppListFragment : Fragment() {
                     Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
                 } else if (password.length > 8) {
                     Toast.makeText(activityContext, R.string.error_password_too_long, Toast.LENGTH_LONG).show()
-                } else if (!validator.isUsernameValid(username.toString())) {
+                } else if (!validator.isUsernameValid(username)) {
                     Toast.makeText(activityContext, R.string.error_username_invalid, Toast.LENGTH_LONG).show()
-                } else if (!validator.isPasswordValid(password.toString())) {
+                } else if (!validator.isPasswordValid(password)) {
                     Toast.makeText(activityContext, R.string.error_password_invalid, Toast.LENGTH_LONG).show()
                 } else {
                     if (sshTypePreference.isChecked) {
@@ -225,8 +225,17 @@ class AppListFragment : Fragment() {
                     } else {
                         appListViewModel.setAppServiceTypePreference(selectedApp, AppsPreferences.VNC)
                     }
-
                     customDialog.dismiss()
+
+                    val serviceTypePreference = appListViewModel.getAppServiceTypePreference(selectedApp)
+                    val serviceIntent = Intent(activityContext, ServerService::class.java)
+                            .putExtra("type", "startApp")
+                            .putExtra("username", username)
+                            .putExtra("password", password)
+                            .putExtra("app", selectedApp)
+                            .putExtra("serviceType", serviceTypePreference.toLowerCase())
+
+                    activityContext.startService(serviceIntent)
                 }
             }
         }

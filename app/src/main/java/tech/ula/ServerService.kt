@@ -106,8 +106,10 @@ class ServerService : Service() {
             "startApp" -> {
                 val app: App = intent.getParcelableExtra("app")
                 val serviceType = intent.getStringExtra("serviceType")
+                val username = intent.getStringExtra("username") ?: ""
+                val password = intent.getStringExtra("password") ?: ""
 
-                startApp(app, serviceType)
+                startApp(app, serviceType, username, password)
             }
             "stopApp" -> {
                 val app: App = intent.getParcelableExtra("app")
@@ -226,7 +228,7 @@ class ServerService : Service() {
     }
 
     // TODO needs to receive force downloads parameter
-    private fun startApp(app: App, serviceType: String) {
+    private fun startApp(app: App, serviceType: String, username: String = "", password: String = "") {
         val appsFilesystemDistType = app.filesystemRequired
 
         val assetRepository = AssetRepository(BuildWrapper().getArchType(),
@@ -242,6 +244,18 @@ class ServerService : Service() {
         val sessionDao = UlaDatabase.getInstance(this).sessionDao()
         val appSession = runBlocking(CommonPool) {
             sessionController.findAppSession(app.name, serviceType, appsFilesystem, sessionDao)
+        }
+
+        if (!username.isEmpty()) {
+            appsFilesystem.defaultUsername = username
+            appSession.username = username
+        }
+
+        if (!password.isEmpty()) {
+            appsFilesystem.defaultPassword = password
+            appsFilesystem.defaultVncPassword = password
+            appSession.password = password
+            appSession.vncPassword = password
         }
 
         // TODO handle file not downloaded/found case
