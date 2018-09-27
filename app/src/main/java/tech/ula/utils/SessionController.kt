@@ -1,7 +1,9 @@
 package tech.ula.utils
 
 import android.content.res.Resources
+import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.runBlocking
 import org.jetbrains.anko.doAsync
 import tech.ula.R
 import tech.ula.model.daos.FilesystemDao
@@ -67,6 +69,7 @@ class SessionController(
         filesystemDao: FilesystemDao
     ) {
         if (username.isEmpty()) { return }
+
         appsFilesystem.defaultUsername = username
         appsSession.username = username
         doAsync {
@@ -106,6 +109,17 @@ class SessionController(
         doAsync {
             sessionDao.updateSession(session = appsSession)
             filesystemDao.updateFilesystem(filesystem = appsFilesystem)
+        }
+    }
+
+    fun setAppsServiceType(
+        serviceType: String,
+        appsSession: Session,
+        sessionDao: SessionDao
+    ) {
+        appsSession.serviceType = serviceType
+        runBlocking(CommonPool) {
+            sessionDao.updateSession(session = appsSession)
         }
     }
 

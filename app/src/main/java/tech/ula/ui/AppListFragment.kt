@@ -113,35 +113,36 @@ class AppListFragment : Fragment() {
     }
 
     private fun doAppItemClicked(selectedApp: App) {
-        if (arePermissionsGranted(activityContext)) {
-            if (activeSessions.isNotEmpty()) {
-                if (activeSessions.any { it.name == selectedApp.name }) {
-                    val session = activeSessions.find { it.name == selectedApp.name }
-                    val serviceIntent = Intent(activityContext, ServerService::class.java)
-                            .putExtra("type", "restartRunningSession")
-                            .putExtra("session", session)
-                    activityContext.startService(serviceIntent)
-                } else {
-                    Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG)
-                            .show()
-                }
-                return
-            }
-
-            val preferredServiceType = appListViewModel.getAppServiceTypePreference(selectedApp)
-            if (preferredServiceType.isEmpty()) {
-                getCredentialsAndStart(selectedApp = selectedApp)
-            } else {
-                val serviceIntent = Intent(activityContext, ServerService::class.java)
-                        .putExtra("type", "startApp")
-                        .putExtra("app", selectedApp)
-                        .putExtra("serviceType", preferredServiceType.toLowerCase())
-
-                activityContext.startService(serviceIntent)
-            }
-        } else {
+        if (!arePermissionsGranted(activityContext)) {
             passDataToActivity("permissionsRequired")
+            return
         }
+
+        val preferredServiceType = appListViewModel.getAppServiceTypePreference(selectedApp).toLowerCase()
+        if (preferredServiceType.isEmpty()) {
+            getCredentialsAndStart(selectedApp = selectedApp)
+            return
+        }
+
+        if (activeSessions.isNotEmpty()) {
+            if (activeSessions.any { it.name == selectedApp.name && it.serviceType == preferredServiceType }) {
+                val session = activeSessions.find { it.name == selectedApp.name && it.serviceType == preferredServiceType }
+                val serviceIntent = Intent(activityContext, ServerService::class.java)
+                        .putExtra("type", "restartRunningSession")
+                        .putExtra("session", session)
+                activityContext.startService(serviceIntent)
+            } else {
+                Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG)
+                        .show()
+            }
+            return
+        }
+
+        val startAppIntent = Intent(activityContext, ServerService::class.java)
+                .putExtra("type", "startApp")
+                .putExtra("app", selectedApp)
+                .putExtra("serviceType", preferredServiceType)
+        activityContext.startService(startAppIntent)
     }
 
     private fun setPulldownPromptVisibilityForAppList() {
