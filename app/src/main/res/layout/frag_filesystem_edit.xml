@@ -67,7 +67,7 @@
             android:layout_height="wrap_content"
             android:inputType="textPassword"
             android:text="@string/default_password"
-            android:hint="@string/hint_vncpassword" />
+            android:hint="@string/hint_vnc_password" />
     </android.support.design.widget.TextInputLayout>
 
     <TextView

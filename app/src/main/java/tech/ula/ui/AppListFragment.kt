@@ -208,17 +208,20 @@ class AppListFragment : Fragment() {
             customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { _ ->
                 val username = customDialog.find<EditText>(R.id.text_input_username).text.toString()
                 val password = customDialog.find<EditText>(R.id.text_input_password).text.toString()
+                val vncPassword = customDialog.find<EditText>(R.id.text_input_vnc_password).text.toString()
                 val sshTypePreference = customDialog.find<RadioButton>(R.id.ssh_radio_button)
                 val validator = ValidationUtility()
 
-                if (username.isEmpty() || password.isEmpty()) {
+                if (username.isEmpty() || password.isEmpty() || vncPassword.isEmpty()) {
                     Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
-                } else if (password.length > 8) {
-                    Toast.makeText(activityContext, R.string.error_password_too_long, Toast.LENGTH_LONG).show()
+                } else if (vncPassword.length > 8) {
+                    Toast.makeText(activityContext, R.string.error_vnc_password_too_long, Toast.LENGTH_LONG).show()
                 } else if (!validator.isUsernameValid(username)) {
                     Toast.makeText(activityContext, R.string.error_username_invalid, Toast.LENGTH_LONG).show()
                 } else if (!validator.isPasswordValid(password)) {
                     Toast.makeText(activityContext, R.string.error_password_invalid, Toast.LENGTH_LONG).show()
+                } else if (!validator.isPasswordValid(vncPassword)) {
+                    Toast.makeText(activityContext, R.string.error_vnc_password_invalid, Toast.LENGTH_LONG).show()
                 } else {
                     if (sshTypePreference.isChecked) {
                         appListViewModel.setAppServiceTypePreference(selectedApp, AppsPreferences.SSH)
@@ -232,6 +235,7 @@ class AppListFragment : Fragment() {
                             .putExtra("type", "startApp")
                             .putExtra("username", username)
                             .putExtra("password", password)
+                            .putExtra("vncPassword", vncPassword)
                             .putExtra("app", selectedApp)
                             .putExtra("serviceType", serviceTypePreference.toLowerCase())
 

@@ -52,6 +52,28 @@
         app:layout_constraintStart_toStartOf="@+id/text_title_username"
         app:layout_constraintTop_toBottomOf="@+id/text_title_password" />
 
+    <TextView
+        android:id="@+id/text_title_vnc_password"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/hint_password"
+        app:layout_constraintStart_toStartOf="@+id/text_title_username"
+        app:layout_constraintTop_toBottomOf="@+id/text_input_password" />
+
+    <EditText
+        android:id="@+id/text_input_vnc_password"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"
+        android:ems="10"
+        android:hint="@string/hint_vnc_password"
+        android:inputType="text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/text_title_username"
+        app:layout_constraintTop_toBottomOf="@+id/text_title_vnc_password" />
+
     <RadioGroup
         android:id="@+id/radio_apps_service_type_preference"
         android:layout_width="match_parent"
@@ -63,7 +85,7 @@
         android:textAlignment="center"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_input_password">
+        app:layout_constraintTop_toBottomOf="@+id/text_input_vnc_password">
 
         <RadioButton
             android:id="@+id/ssh_radio_button"

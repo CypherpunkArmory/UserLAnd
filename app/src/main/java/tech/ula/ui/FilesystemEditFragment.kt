@@ -167,7 +167,7 @@ class FilesystemEditFragment : Fragment() {
         } else if (!validator.isPasswordValid(filesystem.defaultPassword)) {
             Toast.makeText(activityContext, R.string.error_password_invalid, Toast.LENGTH_LONG).show()
         } else if (!validator.isPasswordValid(filesystem.defaultVncPassword)) {
-            Toast.makeText(activityContext, R.string.error_vncpassword_invalid, Toast.LENGTH_LONG).show()
+            Toast.makeText(activityContext, R.string.error_vnc_password_invalid, Toast.LENGTH_LONG).show()
         } else {
             isAllInputsValid = true
             return isAllInputsValid
