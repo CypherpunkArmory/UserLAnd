@@ -200,7 +200,7 @@ class AppListFragment : Fragment() {
         val dialog = AlertDialog.Builder(activityContext)
         val dialogView = layoutInflater.inflate(R.layout.frag_app_start_dialog, null)
         dialog.setView(dialogView)
-        dialog.setCancelable(false)
+        dialog.setCancelable(true)
         dialog.setPositiveButton(R.string.button_continue, null)
         val customDialog = dialog.create()
 
