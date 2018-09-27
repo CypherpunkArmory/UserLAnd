@@ -108,8 +108,9 @@ class ServerService : Service() {
                 val serviceType = intent.getStringExtra("serviceType")
                 val username = intent.getStringExtra("username") ?: ""
                 val password = intent.getStringExtra("password") ?: ""
+                val vncPassword = intent.getStringExtra("vncPassword") ?: ""
 
-                startApp(app, serviceType, username, password)
+                startApp(app, serviceType, username, password, vncPassword)
             }
             "stopApp" -> {
                 val app: App = intent.getParcelableExtra("app")
@@ -228,7 +229,7 @@ class ServerService : Service() {
     }
 
     // TODO needs to receive force downloads parameter
-    private fun startApp(app: App, serviceType: String, username: String = "", password: String = "") {
+    private fun startApp(app: App, serviceType: String, username: String = "", password: String = "", vncPassword: String = "") {
         val appsFilesystemDistType = app.filesystemRequired
 
         val assetRepository = AssetRepository(BuildWrapper().getArchType(),
@@ -246,7 +247,9 @@ class ServerService : Service() {
             sessionController.findAppSession(app.name, serviceType, appsFilesystem, sessionDao)
         }
 
-        sessionController.setAppsCredentials(username, password, appSession, appsFilesystem)
+        sessionController.setAppsUsername(username, appSession, appsFilesystem, sessionDao, filesystemDao)
+        sessionController.setAppsPassword(password, appSession, appsFilesystem, sessionDao, filesystemDao)
+        sessionController.setAppsVncPassword(vncPassword, appSession, appsFilesystem, sessionDao, filesystemDao)
 
         // TODO handle file not downloaded/found case
         // TODO determine if moving the script to profile.d before extraction is harmful

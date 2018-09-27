@@ -9,7 +9,6 @@ import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
-import java.io.File
 
 class SessionController(
     private val assetRepository: AssetRepository,
@@ -59,23 +58,52 @@ class SessionController(
         }
     }
 
-    fun setAppsCredentials(
-            username: String,
-            password: String,
-            appsSession: Session,
-            appsFilesystem: Filesystem
+    fun setAppsUsername(
+        username: String,
+        appsSession: Session,
+        appsFilesystem: Filesystem,
+        sessionDao: SessionDao,
+        filesystemDao: FilesystemDao
     ) {
-        if (!username.isEmpty()) {
-            appsFilesystem.defaultUsername = username
-            appsSession.username = username
-        }
+        if (username.isEmpty()) { return }
 
-        if (!password.isEmpty()) {
-            appsFilesystem.defaultPassword = password
-            appsFilesystem.defaultVncPassword = password
-            appsSession.password = password
-            appsSession.vncPassword = password
-        }
+        appsFilesystem.defaultUsername = username
+        appsSession.username = username
+
+        sessionDao.updateSession(session = appsSession)
+        filesystemDao.updateFilesystem(filesystem = appsFilesystem)
+    }
+
+    fun setAppsPassword(
+        password: String,
+        appsSession: Session,
+        appsFilesystem: Filesystem,
+        sessionDao: SessionDao,
+        filesystemDao: FilesystemDao
+    ) {
+        if (password.isEmpty()) { return }
+
+        appsFilesystem.defaultPassword = password
+        appsSession.password = password
+
+        sessionDao.updateSession(session = appsSession)
+        filesystemDao.updateFilesystem(filesystem = appsFilesystem)
+    }
+
+    fun setAppsVncPassword(
+        vncPassword: String,
+        appsSession: Session,
+        appsFilesystem: Filesystem,
+        sessionDao: SessionDao,
+        filesystemDao: FilesystemDao
+    ) {
+        if (vncPassword.isEmpty()) { return }
+
+        appsFilesystem.defaultVncPassword = vncPassword
+        appsSession.vncPassword = vncPassword
+
+        sessionDao.updateSession(session = appsSession)
+        filesystemDao.updateFilesystem(filesystem = appsFilesystem)
     }
 
     fun getAssetLists(): List<List<Asset>> {
