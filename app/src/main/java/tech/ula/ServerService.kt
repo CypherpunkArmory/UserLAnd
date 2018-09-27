@@ -246,17 +246,7 @@ class ServerService : Service() {
             sessionController.findAppSession(app.name, serviceType, appsFilesystem, sessionDao)
         }
 
-        if (!username.isEmpty()) {
-            appsFilesystem.defaultUsername = username
-            appSession.username = username
-        }
-
-        if (!password.isEmpty()) {
-            appsFilesystem.defaultPassword = password
-            appsFilesystem.defaultVncPassword = password
-            appSession.password = password
-            appSession.vncPassword = password
-        }
+        sessionController.setAppsCredentials(username, password, appSession, appsFilesystem)
 
         // TODO handle file not downloaded/found case
         // TODO determine if moving the script to profile.d before extraction is harmful

@@ -9,6 +9,7 @@ import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
+import java.io.File
 
 class SessionController(
     private val assetRepository: AssetRepository,
@@ -55,6 +56,25 @@ class SessionController(
 
         return asyncAwait {
             sessionDao.findAppsSession(appName).first()
+        }
+    }
+
+    fun setAppsCredentials(
+            username: String,
+            password: String,
+            appsSession: Session,
+            appsFilesystem: Filesystem
+    ) {
+        if (!username.isEmpty()) {
+            appsFilesystem.defaultUsername = username
+            appsSession.username = username
+        }
+
+        if (!password.isEmpty()) {
+            appsFilesystem.defaultPassword = password
+            appsFilesystem.defaultVncPassword = password
+            appsSession.password = password
+            appsSession.vncPassword = password
         }
     }
 
