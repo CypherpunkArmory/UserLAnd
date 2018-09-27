@@ -67,12 +67,11 @@ class ServerUtilityTest {
 
     @Test
     fun startVNCServer() {
-        val session = Session(0, filesystemId = 0, serviceType = "vnc", username = "user", password = "userland", vncPassword = "userland")
+        val session = Session(0, filesystemId = 0, serviceType = "vnc", username = "user", vncPassword = "userland")
         val command = "../support/execInProot.sh /bin/bash -c /support/startVNCServer.sh"
-        val env = hashMapOf("INITIAL_USERNAME" to "user",
-                "INITIAL_PASSWORD" to "userland", "INITIAL_VNC_PASSWORD" to "userland")
+        val env = hashMapOf("INITIAL_USERNAME" to "user", "INITIAL_VNC_PASSWORD" to "userland")
 
-        `when`(execUtility.wrapWithBusyboxAndExecute("0", command, doWait = false)).thenReturn(process)
+        `when`(execUtility.wrapWithBusyboxAndExecute("0", command, doWait = false, environmentVars = env)).thenReturn(process)
 
         createVNCPidFile(session)
         assertTrue(vncPidFile.exists())
