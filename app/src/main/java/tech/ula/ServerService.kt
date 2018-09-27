@@ -250,6 +250,7 @@ class ServerService : Service() {
         sessionController.setAppsUsername(username, appSession, appsFilesystem, sessionDao, filesystemDao)
         sessionController.setAppsPassword(password, appSession, appsFilesystem, sessionDao, filesystemDao)
         sessionController.setAppsVncPassword(vncPassword, appSession, appsFilesystem, sessionDao, filesystemDao)
+        sessionController.setAppsServiceType(serviceType, appSession, sessionDao)
 
         // TODO handle file not downloaded/found case
         // TODO determine if moving the script to profile.d before extraction is harmful
@@ -269,9 +270,9 @@ class ServerService : Service() {
     }
 
     private fun startClient(session: Session) {
-        when (session.clientType) {
-            "ConnectBot" -> startSshClient(session, "org.connectbot")
-            "bVNC" -> startVncClient(session, "com.iiordanov.freebVNC")
+        when (session.serviceType) {
+            "ssh" -> startSshClient(session, "org.connectbot")
+            "vnc" -> startVncClient(session, "com.iiordanov.freebVNC")
             else -> sendToastBroadcast(R.string.client_not_found)
         }
     }
