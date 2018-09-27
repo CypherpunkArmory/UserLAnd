@@ -51,7 +51,7 @@ class AppListFragment : Fragment() {
     private lateinit var activeSessions: List<Session>
 
     private val appListPreferences by lazy {
-        AppsPreferences(activityContext.getSharedPreferences("appLists", Context.MODE_PRIVATE))
+        AppsPreferences(activityContext.getSharedPreferences("apps", Context.MODE_PRIVATE))
     }
 
     private val appListViewModel: AppListViewModel by lazy {
