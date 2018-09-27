@@ -2,6 +2,7 @@ package tech.ula.utils
 
 import android.content.res.Resources
 import kotlinx.coroutines.experimental.delay
+import org.jetbrains.anko.doAsync
 import tech.ula.R
 import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
@@ -66,12 +67,12 @@ class SessionController(
         filesystemDao: FilesystemDao
     ) {
         if (username.isEmpty()) { return }
-
         appsFilesystem.defaultUsername = username
         appsSession.username = username
-
-        sessionDao.updateSession(session = appsSession)
-        filesystemDao.updateFilesystem(filesystem = appsFilesystem)
+        doAsync {
+            sessionDao.updateSession(session = appsSession)
+            filesystemDao.updateFilesystem(filesystem = appsFilesystem)
+        }
     }
 
     fun setAppsPassword(
@@ -85,9 +86,10 @@ class SessionController(
 
         appsFilesystem.defaultPassword = password
         appsSession.password = password
-
-        sessionDao.updateSession(session = appsSession)
-        filesystemDao.updateFilesystem(filesystem = appsFilesystem)
+        doAsync {
+            sessionDao.updateSession(session = appsSession)
+            filesystemDao.updateFilesystem(filesystem = appsFilesystem)
+        }
     }
 
     fun setAppsVncPassword(
@@ -101,9 +103,10 @@ class SessionController(
 
         appsFilesystem.defaultVncPassword = vncPassword
         appsSession.vncPassword = vncPassword
-
-        sessionDao.updateSession(session = appsSession)
-        filesystemDao.updateFilesystem(filesystem = appsFilesystem)
+        doAsync {
+            sessionDao.updateSession(session = appsSession)
+            filesystemDao.updateFilesystem(filesystem = appsFilesystem)
+        }
     }
 
     fun getAssetLists(): List<List<Asset>> {
