@@ -29,17 +29,16 @@ class AppsRepository(
         appsPreferences.setAppServiceTypePreference(app.name, preferredServiceType)
     }
 
-    // TODO skip cached?
     suspend fun refreshData() {
         asyncAwait {
             refreshStatus.postValue(RefreshStatus.ACTIVE)
             try {
                 remoteAppsSource.fetchAppsList().forEach {
                     app ->
-                    appsDao.insertApp(app)
                     remoteAppsSource.fetchAppIcon(app)
                     remoteAppsSource.fetchAppDescription(app)
                     remoteAppsSource.fetchAppScript(app)
+                    appsDao.insertApp(app) // Insert the db element last to force observer refresh
                 }
             } catch (err: Exception) {
                 refreshStatus.postValue(RefreshStatus.FAILED)
