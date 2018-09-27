@@ -10,16 +10,11 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v4.widget.SwipeRefreshLayout
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_app_list.*
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.runBlocking
 import org.jetbrains.anko.bundleOf
 import tech.ula.R
 import tech.ula.ServerService
@@ -31,7 +26,6 @@ import tech.ula.model.repositories.RefreshStatus
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.AppsPreferences
 import tech.ula.utils.arePermissionsGranted
-import tech.ula.utils.asyncAwait
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
 
