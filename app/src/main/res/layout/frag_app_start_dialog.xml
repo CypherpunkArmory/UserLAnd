@@ -94,7 +94,7 @@
             android:checked="true"
             android:drawableEnd="@drawable/ic_console_24dp"
             android:drawablePadding="8dp"
-            android:padding="10dp"
+            android:padding="8dp"
             android:text="@string/client_ssh" />
 
         <RadioButton
@@ -103,7 +103,7 @@
             android:layout_height="wrap_content"
             android:drawableEnd="@drawable/ic_desktop_windows_black_24dp"
             android:drawablePadding="8dp"
-            android:padding="10dp"
+            android:padding="8dp"
             android:text="@string/client_vnc" />
 
     </RadioGroup>
