@@ -16,6 +16,10 @@ import android.widget.AdapterView
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_app_list.*
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.runBlocking
 import org.jetbrains.anko.bundleOf
 import tech.ula.R
 import tech.ula.ServerService
@@ -27,6 +31,7 @@ import tech.ula.model.repositories.RefreshStatus
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.AppsPreferences
 import tech.ula.utils.arePermissionsGranted
+import tech.ula.utils.asyncAwait
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
 
@@ -43,6 +48,8 @@ class AppListFragment : Fragment() {
     private lateinit var activeSessions: List<Session>
 
     private lateinit var lastSelectedApp: App
+
+    private var refreshStatus = RefreshStatus.INACTIVE
 
     private val appListPreferences by lazy {
         AppsPreferences(activityContext.getSharedPreferences("appLists", Context.MODE_PRIVATE))
@@ -68,6 +75,34 @@ class AppListFragment : Fragment() {
         }
     }
 
+    private val refreshStatusObserver = Observer<RefreshStatus> {
+        it?.let {
+            refreshStatus = it
+            swipe_refresh.isRefreshing = refreshStatus == RefreshStatus.ACTIVE
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater?.inflate(R.menu.menu_refresh, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        return when {
+            item?.itemId == R.id.menu_item_refresh -> {
+                swipe_refresh.isRefreshing = true
+                doRefresh()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.frag_app_list, container, false)
     }
@@ -76,6 +111,8 @@ class AppListFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         activityContext = activity!!
         appListViewModel.getAppsAndActiveSessions().observe(viewLifecycleOwner, appsAndActiveSessionObserver)
+        appListViewModel.getRefreshStatus().observe(viewLifecycleOwner, refreshStatusObserver)
+
         registerForContextMenu(list_apps)
         list_apps.onItemClickListener = AdapterView.OnItemClickListener {
             parent, _, position, _ ->
@@ -89,16 +126,14 @@ class AppListFragment : Fragment() {
             }
         }
 
-        val swipeLayout = activityContext.findViewById<SwipeRefreshLayout>(R.id.swipe_refresh)
-        swipeLayout.setOnRefreshListener {
-                    appListViewModel.refreshAppsList()
-                    while (appListViewModel.getRefreshStatus() == RefreshStatus.ACTIVE) {
-                        Thread.sleep(500)
-                    }
-
-                    setPulldownPromptVisibilityForAppList()
-                    swipeLayout.isRefreshing = false
+        swipe_refresh.setOnRefreshListener {
+                    doRefresh()
                 }
+    }
+
+    private fun doRefresh() {
+        appListViewModel.refreshAppsList()
+        setPulldownPromptVisibilityForAppList()
     }
 
     private fun doAppItemClicked(selectedApp: App) {
