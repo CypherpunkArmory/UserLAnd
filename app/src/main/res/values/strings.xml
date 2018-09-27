@@ -16,7 +16,7 @@
     <!-- Buttons -->
     <string name="button_continue">Continue</string>
 
-    <!-- Context Menus -->
+    <!-- Menus -->
     <string name="app_info">App Info</string>
     <string name="stop_app">Stop App</string>
     <string name="kill_service">Kill Service</string>
@@ -24,6 +24,7 @@
     <string name="delete">Delete</string>
     <string name="save">Save</string>
     <string name="add">Add</string>
+    <string name="refresh">Refresh</string>
 
     <!-- Hints -->
     <string name="hint_filesystem_name">Filesystem name</string>

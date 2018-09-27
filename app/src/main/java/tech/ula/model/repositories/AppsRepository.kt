@@ -55,5 +55,5 @@ class AppsRepository(
 }
 
 enum class RefreshStatus {
-    ACTIVE, FINISHED, FAILED
+    ACTIVE, FINISHED, FAILED, INACTIVE
 }
