@@ -241,19 +241,8 @@ class AppListFragment : Fragment() {
                 val password = customDialog.find<EditText>(R.id.text_input_password).text.toString()
                 val vncPassword = customDialog.find<EditText>(R.id.text_input_vnc_password).text.toString()
                 val sshTypePreference = customDialog.find<RadioButton>(R.id.ssh_radio_button)
-                val validator = ValidationUtility()
 
-                if (username.isEmpty() || password.isEmpty() || vncPassword.isEmpty()) {
-                    Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
-                } else if (vncPassword.length > 8) {
-                    Toast.makeText(activityContext, R.string.error_vnc_password_too_long, Toast.LENGTH_LONG).show()
-                } else if (!validator.isUsernameValid(username)) {
-                    Toast.makeText(activityContext, R.string.error_username_invalid, Toast.LENGTH_LONG).show()
-                } else if (!validator.isPasswordValid(password)) {
-                    Toast.makeText(activityContext, R.string.error_password_invalid, Toast.LENGTH_LONG).show()
-                } else if (!validator.isPasswordValid(vncPassword)) {
-                    Toast.makeText(activityContext, R.string.error_vnc_password_invalid, Toast.LENGTH_LONG).show()
-                } else {
+                if (validateCredentials(username, password, vncPassword)) {
                     if (sshTypePreference.isChecked) {
                         appListViewModel.setAppServiceTypePreference(selectedApp, AppsPreferences.SSH)
                     } else {
@@ -275,6 +264,34 @@ class AppListFragment : Fragment() {
             }
         }
         customDialog.show()
+    }
+
+    private fun validateCredentials(username: String, password: String, vncPassword: String): Boolean {
+        val validator = ValidationUtility()
+        var allCredentialsAreValid = false
+
+        when {
+            username.isEmpty() || password.isEmpty() || vncPassword.isEmpty() -> {
+                Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
+            }
+            vncPassword.length > 8 -> {
+                Toast.makeText(activityContext, R.string.error_vnc_password_too_long, Toast.LENGTH_LONG).show()
+            }
+            !validator.isUsernameValid(username) -> {
+                Toast.makeText(activityContext, R.string.error_username_invalid, Toast.LENGTH_LONG).show()
+            }
+            !validator.isPasswordValid(password) -> {
+                Toast.makeText(activityContext, R.string.error_password_invalid, Toast.LENGTH_LONG).show()
+            }
+            !validator.isPasswordValid(vncPassword) -> {
+                Toast.makeText(activityContext, R.string.error_vnc_password_invalid, Toast.LENGTH_LONG).show()
+            }
+            else -> {
+                allCredentialsAreValid = true
+                return allCredentialsAreValid
+            }
+        }
+        return allCredentialsAreValid
     }
 
     private fun showPermissionsNecessaryDialog() {
