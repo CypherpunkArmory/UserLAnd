@@ -117,6 +117,8 @@ class SessionController(
         appsSession: Session,
         sessionDao: SessionDao
     ) {
+        val portOrDisplay: Long = if (serviceType == "ssh") 2022 else 51
+        appsSession.port = portOrDisplay
         appsSession.serviceType = serviceType
         doAsync {
             sessionDao.updateSession(session = appsSession)
