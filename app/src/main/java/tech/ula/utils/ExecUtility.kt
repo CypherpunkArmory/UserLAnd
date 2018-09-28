@@ -40,8 +40,6 @@ class ExecUtility(
                 else "-1"
         val prootDebugLogLocation = defaultPreferences.getProotDebugLogLocation()
 
-        // TODO: Add environment variable username and password
-
         val env = if (wrapped) hashMapOf("LD_LIBRARY_PATH" to "$applicationFilesDirPath/support",
                 "ROOT_PATH" to applicationFilesDirPath,
                 "ROOTFS_PATH" to "$applicationFilesDirPath/${executionDirectory.name}",

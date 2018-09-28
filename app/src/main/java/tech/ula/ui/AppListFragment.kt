@@ -10,12 +10,24 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.view.* // ktlint-disable no-wildcard-imports
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import android.view.ContextMenu
+import android.view.View
+import android.view.Menu
+import android.view.MenuItem
+import android.view.MenuInflater
 import android.widget.AdapterView
+import android.widget.EditText
 import android.widget.Toast
+import android.widget.RadioButton
 import androidx.navigation.fragment.NavHostFragment
+import kotlinx.android.synthetic.main.abc_alert_dialog_material.*
+import kotlinx.android.synthetic.main.design_bottom_sheet_dialog.*
 import kotlinx.android.synthetic.main.frag_app_list.*
+import kotlinx.android.synthetic.main.frag_app_start_dialog.*
 import org.jetbrains.anko.bundleOf
+import org.jetbrains.anko.find
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.App
@@ -25,6 +37,7 @@ import tech.ula.model.repositories.AppsRepository
 import tech.ula.model.repositories.RefreshStatus
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.AppsPreferences
+import tech.ula.utils.ValidationUtility
 import tech.ula.utils.arePermissionsGranted
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
@@ -46,7 +59,7 @@ class AppListFragment : Fragment() {
     private var refreshStatus = RefreshStatus.INACTIVE
 
     private val appListPreferences by lazy {
-        AppsPreferences(activityContext.getSharedPreferences("appLists", Context.MODE_PRIVATE))
+        AppsPreferences(activityContext.getSharedPreferences("apps", Context.MODE_PRIVATE))
     }
 
     private val appListViewModel: AppListViewModel by lazy {
@@ -139,10 +152,16 @@ class AppListFragment : Fragment() {
         }
     }
 
-    private fun handleAppSelection(app: App) {
+    private fun handleAppSelection(selectedApp: App) {
+        val preferredServiceType = appListViewModel.getAppServiceTypePreference(selectedApp).toLowerCase()
+        if (preferredServiceType.isEmpty()) {
+            getCredentialsAndStart(selectedApp = selectedApp)
+            return
+        }
+
         if (activeSessions.isNotEmpty()) {
-            if (activeSessions.any { it.name == app.name }) {
-                val session = activeSessions.find { it.name == app.name }
+            if (activeSessions.any { it.name == selectedApp.name && it.serviceType == preferredServiceType }) {
+                val session = activeSessions.find { it.name == selectedApp.name && it.serviceType == preferredServiceType }
                 val serviceIntent = Intent(activityContext, ServerService::class.java)
                         .putExtra("type", "restartRunningSession")
                         .putExtra("session", session)
@@ -151,20 +170,13 @@ class AppListFragment : Fragment() {
                 Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG)
                         .show()
             }
-            return
         }
 
-        val preferredServiceType = appListViewModel.getAppServiceTypePreference(app)
-        if (preferredServiceType.isEmpty()) {
-            selectServiceTypePreference(app)
-        } else {
-            val serviceIntent = Intent(activityContext, ServerService::class.java)
-                    .putExtra("type", "startApp")
-                    .putExtra("app", app)
-                    .putExtra("serviceType", preferredServiceType.toLowerCase())
-
-            activityContext.startService(serviceIntent)
-        }
+        val startAppIntent = Intent(activityContext, ServerService::class.java)
+                .putExtra("type", "startApp")
+                .putExtra("app", selectedApp)
+                .putExtra("serviceType", preferredServiceType)
+        activityContext.startService(startAppIntent)
     }
 
     private fun setPulldownPromptVisibilityForAppList() {
@@ -214,21 +226,72 @@ class AppListFragment : Fragment() {
         return true
     }
 
-    private fun selectServiceTypePreference(selectedApp: App) {
-        val serviceTypes = arrayOf(AppsPreferences.SSH, AppsPreferences.VNC)
-        var preferredServiceType = AppsPreferences.SSH
+    private fun getCredentialsAndStart(selectedApp: App) {
 
-        val builder = AlertDialog.Builder(activityContext)
-                .setTitle("Always open with:")
-                .setSingleChoiceItems(serviceTypes, 0) { _, selected ->
-                    preferredServiceType = serviceTypes[selected]
-                }
-                .setPositiveButton(R.string.button_continue) { _, _ ->
-                    appListViewModel.setAppServiceTypePreference(selectedApp, preferredServiceType)
-                    handleAppSelection(selectedApp)
-                }
+        val dialog = AlertDialog.Builder(activityContext)
+        val dialogView = layoutInflater.inflate(R.layout.frag_app_start_dialog, null)
+        dialog.setView(dialogView)
+        dialog.setCancelable(true)
+        dialog.setPositiveButton(R.string.button_continue, null)
+        val customDialog = dialog.create()
 
-        builder.create().show()
+        customDialog.setOnShowListener { _ ->
+            customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { _ ->
+                val username = customDialog.find<EditText>(R.id.text_input_username).text.toString()
+                val password = customDialog.find<EditText>(R.id.text_input_password).text.toString()
+                val vncPassword = customDialog.find<EditText>(R.id.text_input_vnc_password).text.toString()
+                val sshTypePreference = customDialog.find<RadioButton>(R.id.ssh_radio_button)
+
+                if (validateCredentials(username, password, vncPassword)) {
+                    if (sshTypePreference.isChecked) {
+                        appListViewModel.setAppServiceTypePreference(selectedApp, AppsPreferences.SSH)
+                    } else {
+                        appListViewModel.setAppServiceTypePreference(selectedApp, AppsPreferences.VNC)
+                    }
+                    customDialog.dismiss()
+
+                    val serviceTypePreference = appListViewModel.getAppServiceTypePreference(selectedApp)
+                    val serviceIntent = Intent(activityContext, ServerService::class.java)
+                            .putExtra("type", "startApp")
+                            .putExtra("username", username)
+                            .putExtra("password", password)
+                            .putExtra("vncPassword", vncPassword)
+                            .putExtra("app", selectedApp)
+                            .putExtra("serviceType", serviceTypePreference.toLowerCase())
+
+                    activityContext.startService(serviceIntent)
+                }
+            }
+        }
+        customDialog.show()
+    }
+
+    private fun validateCredentials(username: String, password: String, vncPassword: String): Boolean {
+        val validator = ValidationUtility()
+        var allCredentialsAreValid = false
+
+        when {
+            username.isEmpty() || password.isEmpty() || vncPassword.isEmpty() -> {
+                Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
+            }
+            vncPassword.length > 8 || vncPassword.length < 6 -> {
+                Toast.makeText(activityContext, R.string.error_vnc_password_length_incorrect, Toast.LENGTH_LONG).show()
+            }
+            !validator.isUsernameValid(username) -> {
+                Toast.makeText(activityContext, R.string.error_username_invalid, Toast.LENGTH_LONG).show()
+            }
+            !validator.isPasswordValid(password) -> {
+                Toast.makeText(activityContext, R.string.error_password_invalid, Toast.LENGTH_LONG).show()
+            }
+            !validator.isPasswordValid(vncPassword) -> {
+                Toast.makeText(activityContext, R.string.error_vnc_password_invalid, Toast.LENGTH_LONG).show()
+            }
+            else -> {
+                allCredentialsAreValid = true
+                return allCredentialsAreValid
+            }
+        }
+        return allCredentialsAreValid
     }
 
     private fun showPermissionsNecessaryDialog() {

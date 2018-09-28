@@ -31,7 +31,7 @@
     <string name="hint_session_name">Session Name</string>
     <string name="hint_username">Username</string>
     <string name="hint_password">Password</string>
-    <string name="hint_vncpassword">VNC Password</string>
+    <string name="hint_vnc_password">VNC Password</string>
 
     <!-- Default Values -->
     <string name="default_password">userland</string>
@@ -42,10 +42,10 @@
     <string name="error_username">You must provide a username</string>
     <string name="error_empty_field">Each field must be entered!</string>
     <string name="error_app_description_not_found">Could not find a description for this app. Try refreshing.</string>
-    <string name="error_vnc_password_too_long">VNC Password must be less than 8 characters!</string>
+    <string name="error_vnc_password_length_incorrect">VNC Password must be between 6 to 8 characters!</string>
     <string name="error_username_invalid">Username has invalid characters</string>
     <string name="error_password_invalid">Password has invalid characters</string>
-    <string name="error_vncpassword_invalid">VNC Password has invalid characters</string>
+    <string name="error_vnc_password_invalid">VNC Password has invalid characters</string>
 
     <!-- Prompts -->
     <string name="prompt_filesystem">Filesystem:</string>

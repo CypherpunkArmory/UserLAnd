@@ -106,8 +106,11 @@ class ServerService : Service() {
             "startApp" -> {
                 val app: App = intent.getParcelableExtra("app")
                 val serviceType = intent.getStringExtra("serviceType")
+                val username = intent.getStringExtra("username") ?: ""
+                val password = intent.getStringExtra("password") ?: ""
+                val vncPassword = intent.getStringExtra("vncPassword") ?: ""
 
-                startApp(app, serviceType)
+                startApp(app, serviceType, username, password, vncPassword)
             }
             "stopApp" -> {
                 val app: App = intent.getParcelableExtra("app")
@@ -226,7 +229,7 @@ class ServerService : Service() {
     }
 
     // TODO needs to receive force downloads parameter
-    private fun startApp(app: App, serviceType: String) {
+    private fun startApp(app: App, serviceType: String, username: String = "", password: String = "", vncPassword: String = "") {
         val appsFilesystemDistType = app.filesystemRequired
 
         val assetRepository = AssetRepository(BuildWrapper().getArchType(),
@@ -243,6 +246,11 @@ class ServerService : Service() {
         val appSession = runBlocking(CommonPool) {
             sessionController.findAppSession(app.name, serviceType, appsFilesystem, sessionDao)
         }
+
+        sessionController.setAppsUsername(username, appSession, appsFilesystem, sessionDao, filesystemDao)
+        sessionController.setAppsPassword(password, appSession, appsFilesystem, sessionDao, filesystemDao)
+        sessionController.setAppsVncPassword(vncPassword, appSession, appsFilesystem, sessionDao, filesystemDao)
+        sessionController.setAppsServiceType(serviceType, appSession, sessionDao)
 
         // TODO handle file not downloaded/found case
         // TODO determine if moving the script to profile.d before extraction is harmful
@@ -262,9 +270,9 @@ class ServerService : Service() {
     }
 
     private fun startClient(session: Session) {
-        when (session.clientType) {
-            "ConnectBot" -> startSshClient(session, "org.connectbot")
-            "bVNC" -> startVncClient(session, "com.iiordanov.freebVNC")
+        when (session.serviceType) {
+            "ssh" -> startSshClient(session, "org.connectbot")
+            "vnc" -> startVncClient(session, "com.iiordanov.freebVNC")
             else -> sendToastBroadcast(R.string.client_not_found)
         }
     }

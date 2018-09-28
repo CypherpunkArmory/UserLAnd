@@ -155,24 +155,34 @@ class FilesystemEditFragment : Fragment() {
 
     private fun filesystemParametersAreCorrect(): Boolean {
         if (filesystem.name == "") input_filesystem_name.error = getString(R.string.error_filesystem_name)
+
         val validator = ValidationUtility()
-        var isAllInputsValid = false
+        var allCredentialsAreValid = false
+        val username = filesystem.defaultUsername
+        val password = filesystem.defaultPassword
+        val vncPassword = filesystem.defaultVncPassword
 
-        if (filesystem.name.isEmpty() || filesystem.defaultPassword.isEmpty() || filesystem.defaultVncPassword.isEmpty()) {
-            Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
-        } else if (filesystem.defaultVncPassword.length > 8) {
-            Toast.makeText(activityContext, R.string.error_vnc_password_too_long, Toast.LENGTH_LONG).show()
-        } else if (!validator.isUsernameValid(filesystem.defaultUsername)) {
-            Toast.makeText(activityContext, R.string.error_username_invalid, Toast.LENGTH_LONG).show()
-        } else if (!validator.isPasswordValid(filesystem.defaultPassword)) {
-            Toast.makeText(activityContext, R.string.error_password_invalid, Toast.LENGTH_LONG).show()
-        } else if (!validator.isPasswordValid(filesystem.defaultVncPassword)) {
-            Toast.makeText(activityContext, R.string.error_vncpassword_invalid, Toast.LENGTH_LONG).show()
-        } else {
-            isAllInputsValid = true
-            return isAllInputsValid
+        when {
+            username.isEmpty() || password.isEmpty() || vncPassword.isEmpty() -> {
+                Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
+            }
+            vncPassword.length > 8 || vncPassword.length < 6 -> {
+                Toast.makeText(activityContext, R.string.error_vnc_password_length_incorrect, Toast.LENGTH_LONG).show()
+            }
+            !validator.isUsernameValid(username) -> {
+                Toast.makeText(activityContext, R.string.error_username_invalid, Toast.LENGTH_LONG).show()
+            }
+            !validator.isPasswordValid(password) -> {
+                Toast.makeText(activityContext, R.string.error_password_invalid, Toast.LENGTH_LONG).show()
+            }
+            !validator.isPasswordValid(vncPassword) -> {
+                Toast.makeText(activityContext, R.string.error_vnc_password_invalid, Toast.LENGTH_LONG).show()
+            }
+            else -> {
+                allCredentialsAreValid = true
+                return allCredentialsAreValid
+            }
         }
-
-        return isAllInputsValid
+        return allCredentialsAreValid
     }
 }
