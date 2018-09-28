@@ -274,8 +274,8 @@ class AppListFragment : Fragment() {
             username.isEmpty() || password.isEmpty() || vncPassword.isEmpty() -> {
                 Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
             }
-            vncPassword.length > 8 -> {
-                Toast.makeText(activityContext, R.string.error_vnc_password_too_long, Toast.LENGTH_LONG).show()
+            vncPassword.length > 8 || vncPassword.length < 6 -> {
+                Toast.makeText(activityContext, R.string.error_vnc_password_length_incorrect, Toast.LENGTH_LONG).show()
             }
             !validator.isUsernameValid(username) -> {
                 Toast.makeText(activityContext, R.string.error_username_invalid, Toast.LENGTH_LONG).show()
