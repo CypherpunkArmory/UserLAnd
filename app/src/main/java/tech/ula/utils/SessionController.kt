@@ -1,9 +1,7 @@
 package tech.ula.utils
 
 import android.content.res.Resources
-import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.runBlocking
 import org.jetbrains.anko.doAsync
 import tech.ula.R
 import tech.ula.model.daos.FilesystemDao
