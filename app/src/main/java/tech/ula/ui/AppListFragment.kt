@@ -1,19 +1,22 @@
 package tech.ula.ui
 
+import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v4.widget.SwipeRefreshLayout
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.ContextMenu
 import android.view.View
+import android.view.Menu
 import android.view.MenuItem
+import android.view.MenuInflater
 import android.widget.AdapterView
 import android.widget.EditText
 import android.widget.Toast
@@ -23,7 +26,6 @@ import kotlinx.android.synthetic.main.abc_alert_dialog_material.*
 import kotlinx.android.synthetic.main.design_bottom_sheet_dialog.*
 import kotlinx.android.synthetic.main.frag_app_list.*
 import kotlinx.android.synthetic.main.frag_app_start_dialog.*
-import tech.ula.OnFragmentDataPassed
 import org.jetbrains.anko.bundleOf
 import org.jetbrains.anko.find
 import tech.ula.R
@@ -43,12 +45,18 @@ import tech.ula.viewmodel.AppListViewModelFactory
 class AppListFragment : Fragment() {
 
     private lateinit var activityContext: Activity
-    private lateinit var dataPasser: OnFragmentDataPassed
+    private val permissionRequestCode: Int by lazy {
+        activityContext.resources.getString(R.string.permission_request_code).toInt()
+    }
 
     private lateinit var appList: List<App>
     private lateinit var appAdapter: AppListAdapter
 
     private lateinit var activeSessions: List<Session>
+
+    private lateinit var lastSelectedApp: App
+
+    private var refreshStatus = RefreshStatus.INACTIVE
 
     private val appListPreferences by lazy {
         AppsPreferences(activityContext.getSharedPreferences("apps", Context.MODE_PRIVATE))
@@ -74,9 +82,32 @@ class AppListFragment : Fragment() {
         }
     }
 
-    override fun onAttach(context: Context?) {
-        super.onAttach(context)
-        dataPasser = context as OnFragmentDataPassed
+    private val refreshStatusObserver = Observer<RefreshStatus> {
+        it?.let {
+            refreshStatus = it
+            swipe_refresh.isRefreshing = refreshStatus == RefreshStatus.ACTIVE
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater?.inflate(R.menu.menu_refresh, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        return when {
+            item?.itemId == R.id.menu_item_refresh -> {
+                swipe_refresh.isRefreshing = true
+                doRefresh()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -87,6 +118,8 @@ class AppListFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         activityContext = activity!!
         appListViewModel.getAppsAndActiveSessions().observe(viewLifecycleOwner, appsAndActiveSessionObserver)
+        appListViewModel.getRefreshStatus().observe(viewLifecycleOwner, refreshStatusObserver)
+
         registerForContextMenu(list_apps)
         list_apps.onItemClickListener = AdapterView.OnItemClickListener {
             parent, _, position, _ ->
@@ -100,24 +133,26 @@ class AppListFragment : Fragment() {
             }
         }
 
-        val swipeLayout = activityContext.findViewById<SwipeRefreshLayout>(R.id.swipe_refresh)
-        swipeLayout.setOnRefreshListener {
-                    appListViewModel.refreshAppsList()
-                    while (appListViewModel.getRefreshStatus() == RefreshStatus.ACTIVE) {
-                        Thread.sleep(500)
-                    }
-
-                    setPulldownPromptVisibilityForAppList()
-                    swipeLayout.isRefreshing = false
+        swipe_refresh.setOnRefreshListener {
+                    doRefresh()
                 }
     }
 
-    private fun doAppItemClicked(selectedApp: App) {
-        if (!arePermissionsGranted(activityContext)) {
-            passDataToActivity("permissionsRequired")
-            return
-        }
+    private fun doRefresh() {
+        appListViewModel.refreshAppsList()
+        setPulldownPromptVisibilityForAppList()
+    }
 
+    private fun doAppItemClicked(selectedApp: App) {
+        lastSelectedApp = selectedApp
+        if (arePermissionsGranted(activityContext)) {
+            handleAppSelection(lastSelectedApp)
+        } else {
+            showPermissionsNecessaryDialog()
+        }
+    }
+
+    private fun handleAppSelection(selectedApp: App) {
         val preferredServiceType = appListViewModel.getAppServiceTypePreference(selectedApp).toLowerCase()
         if (preferredServiceType.isEmpty()) {
             getCredentialsAndStart(selectedApp = selectedApp)
@@ -135,7 +170,6 @@ class AppListFragment : Fragment() {
                 Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG)
                         .show()
             }
-            return
         }
 
         val startAppIntent = Intent(activityContext, ServerService::class.java)
@@ -192,10 +226,6 @@ class AppListFragment : Fragment() {
         return true
     }
 
-    private fun passDataToActivity(data: String) {
-        dataPasser.onFragmentDataPassed(data)
-    }
-
     private fun getCredentialsAndStart(selectedApp: App) {
 
         val dialog = AlertDialog.Builder(activityContext)
@@ -244,7 +274,42 @@ class AppListFragment : Fragment() {
                 }
             }
         }
-
         customDialog.show()
+    }
+
+    private fun showPermissionsNecessaryDialog() {
+        val builder = AlertDialog.Builder(activityContext)
+        builder.setMessage(R.string.alert_permissions_necessary_message)
+                .setTitle(R.string.alert_permissions_necessary_title)
+                .setPositiveButton(R.string.alert_permissions_necessary_ok_button) {
+                    dialog, _ ->
+                    requestPermissions(arrayOf(
+                            Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                            permissionRequestCode)
+                    dialog.dismiss()
+                }
+                .setNegativeButton(R.string.alert_permissions_necessary_cancel_button) {
+                    dialog, _ ->
+                    dialog.dismiss()
+                }
+        builder.create().show()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            permissionRequestCode -> {
+
+                val grantedPermissions = (grantResults.isNotEmpty() &&
+                        grantResults[0] == PackageManager.PERMISSION_GRANTED &&
+                        grantResults[1] == PackageManager.PERMISSION_GRANTED)
+
+                if (grantedPermissions) {
+                    handleAppSelection(lastSelectedApp)
+                } else {
+                    showPermissionsNecessaryDialog()
+                }
+            }
+        }
     }
 }

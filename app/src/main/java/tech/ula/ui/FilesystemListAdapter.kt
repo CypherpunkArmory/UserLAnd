@@ -10,6 +10,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
+import tech.ula.utils.LocalFileLocator
 
 class FilesystemListAdapter(private var activity: Activity, private var items: List<Filesystem>) : BaseAdapter() {
     private class ViewHolder(row: View) {
@@ -32,11 +33,8 @@ class FilesystemListAdapter(private var activity: Activity, private var items: L
 
         val filesystem = items[position]
 
-        when (filesystem.distributionType) {
-            "debian" -> viewHolder.imageViewType.setImageResource(R.drawable.ic_debian_logo)
-            "ubuntu" -> viewHolder.imageViewType.setImageResource(R.drawable.ic_ubuntu_logo)
-            else -> viewHolder.imageViewType.setImageResource(R.mipmap.ic_launcher_foreground)
-        }
+        val fileLocator = LocalFileLocator(activity.filesDir.path, activity.resources)
+        viewHolder.imageViewType.setImageURI(fileLocator.findIconUri(filesystem.distributionType))
         viewHolder.textViewName.text = filesystem.name
 
         return view as View
