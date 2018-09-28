@@ -118,7 +118,7 @@ class SessionController(
         sessionDao: SessionDao
     ) {
         appsSession.serviceType = serviceType
-        runBlocking(CommonPool) {
+        doAsync {
             sessionDao.updateSession(session = appsSession)
         }
     }
