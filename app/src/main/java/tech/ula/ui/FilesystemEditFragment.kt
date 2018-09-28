@@ -160,8 +160,8 @@ class FilesystemEditFragment : Fragment() {
 
         if (filesystem.name.isEmpty() || filesystem.defaultPassword.isEmpty() || filesystem.defaultVncPassword.isEmpty()) {
             Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
-        } else if (filesystem.defaultVncPassword.length > 8) {
-            Toast.makeText(activityContext, R.string.error_vnc_password_too_long, Toast.LENGTH_LONG).show()
+        } else if (filesystem.defaultVncPassword.length > 8 || filesystem.defaultVncPassword.length < 6) {
+            Toast.makeText(activityContext, R.string.error_vnc_password_length_incorrect, Toast.LENGTH_LONG).show()
         } else if (!validator.isUsernameValid(filesystem.defaultUsername)) {
             Toast.makeText(activityContext, R.string.error_username_invalid, Toast.LENGTH_LONG).show()
         } else if (!validator.isPasswordValid(filesystem.defaultPassword)) {
