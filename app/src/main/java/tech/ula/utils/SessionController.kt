@@ -48,11 +48,16 @@ class SessionController(
             sessionDao.findAppsSession(appName)
         }
 
+        // TODO revisit this when multiple sessions are supported
+        val portOrDisplay: Long = if (serviceType == "ssh") 2022 else 51
+
         if (potentialAppSession.isEmpty()) {
             val clientType = if (serviceType == "ssh") "ConnectBot" else "bVNC" // TODO update clients dynamically somehow
             val sessionToInsert = Session(id = 0, name = appName, filesystemId = appsFilesystem.id,
                     filesystemName = appsFilesystem.name, serviceType = serviceType,
-                    clientType = clientType, username = "user", isAppsSession = true) // TODO update username and password dynamically
+                    clientType = clientType, username = appsFilesystem.defaultUsername,
+                    password = appsFilesystem.defaultPassword, vncPassword = appsFilesystem.defaultVncPassword,
+                    isAppsSession = true, port = portOrDisplay)
             asyncAwait { sessionDao.insertSession(sessionToInsert) }
         }
 
