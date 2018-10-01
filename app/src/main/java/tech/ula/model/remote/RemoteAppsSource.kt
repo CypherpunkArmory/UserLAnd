@@ -26,7 +26,7 @@ class GithubAppsFetcher(private val applicationFilesDir: String, private val con
     operator fun <T> List<T>.component6() = get(5)
     operator fun <T> List<T>.component7() = get(6)
 
-    private val baseUrl = "://github.com/CypherpunkArmory/UserLAnd-Assets-Support/raw/staging/applications" // TODO change to master
+    private val baseUrl = "://github.com/CypherpunkArmory/UserLAnd-Assets-Support/raw/staging/apps"
     private var protocol = "https"
 
     @Throws
@@ -71,7 +71,7 @@ class GithubAppsFetcher(private val applicationFilesDir: String, private val con
 
     override suspend fun fetchAppDescription(app: App) {
         val directoryAndFilename = "${app.name}/${app.name}.txt"
-        val url = "$protocol$baseUrl/$directoryAndFilename" // TODO figure out what to do here
+        val url = "$protocol$baseUrl/$directoryAndFilename"
         val file = File("$applicationFilesDir/apps/$directoryAndFilename")
         file.parentFile.mkdirs()
         file.createNewFile()

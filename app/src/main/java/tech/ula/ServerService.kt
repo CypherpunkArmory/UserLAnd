@@ -228,7 +228,6 @@ class ServerService : Service() {
         }
     }
 
-    // TODO needs to receive force downloads parameter
     private fun startApp(app: App, serviceType: String, username: String = "", password: String = "", vncPassword: String = "") {
         val appsFilesystemDistType = app.filesystemRequired
 
