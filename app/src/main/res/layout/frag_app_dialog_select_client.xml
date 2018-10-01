@@ -5,6 +5,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <TextView
+        android:id="@+id/text_title_client_description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="32dp"
+        android:text="@string/prompt_app_connection_type_preference"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <RadioGroup
         android:id="@+id/radio_apps_service_type_preference"
         android:layout_width="match_parent"
@@ -16,7 +27,8 @@
         android:textAlignment="center"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/text_title_client_description"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <RadioButton
             android:id="@+id/ssh_radio_button"
