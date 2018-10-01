@@ -20,8 +20,8 @@ import android.view.MenuItem
 import android.view.MenuInflater
 import android.widget.AdapterView
 import android.widget.EditText
-import android.widget.Toast
 import android.widget.RadioButton
+import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_app_list.*
 import org.jetbrains.anko.bundleOf
@@ -176,20 +176,6 @@ class AppListFragment : Fragment() {
 
     private fun handleAppSelection(selectedApp: App) {
         val preferredServiceType = appListViewModel.getAppServiceTypePreference(selectedApp).toLowerCase()
-        var filesystemExtracted = false
-
-        for (filesystem in filesystemList) {
-            if (filesystem.distributionType == selectedApp.filesystemRequired) {
-                if (filesystem.isAppsFilesystem) {
-                    filesystemExtracted = filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")
-                }
-            }
-        }
-
-        if (!filesystemExtracted) {
-            getCredentialsAndStart(selectedApp = selectedApp)
-            return
-        }
 
         if (activeSessions.isNotEmpty()) {
             if (activeSessions.any { it.name == selectedApp.name && it.serviceType == preferredServiceType }) {
@@ -201,7 +187,36 @@ class AppListFragment : Fragment() {
             } else {
                 Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG)
                         .show()
+                return
             }
+        }
+
+
+        var filesystemExtracted = false
+        val possibleAppFilesystem =  arrayListOf<Filesystem>()
+
+        for (filesystem in filesystemList) {
+            if (filesystem.distributionType == selectedApp.filesystemRequired) {
+                if (filesystem.isAppsFilesystem) {
+                    possibleAppFilesystem.add(filesystem)
+                    filesystemExtracted = filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")
+                }
+            }
+        }
+
+        if (!filesystemExtracted) {
+            getCredentials(selectedApp = selectedApp)
+            return
+        }
+
+        if (possibleAppFilesystem.isEmpty()) {
+            // TODO some error notification
+            return
+        }
+        val appFilesystem = possibleAppFilesystem.first()
+        if (appListViewModel.getAppServiceTypePreference(selectedApp).isEmpty()) {
+            getClientPreferenceAndStart(selectedApp, appFilesystem.defaultUsername, appFilesystem.defaultPassword, appFilesystem.defaultVncPassword)
+            return
         }
 
         val startAppIntent = Intent(activityContext, ServerService::class.java)
@@ -258,8 +273,7 @@ class AppListFragment : Fragment() {
         return true
     }
 
-    private fun getCredentialsAndStart(selectedApp: App) {
-
+    private fun getCredentials(selectedApp: App) {
         val dialog = AlertDialog.Builder(activityContext)
         val dialogView = layoutInflater.inflate(R.layout.dia_app_credentials, null)
         dialog.setView(dialogView)
@@ -272,17 +286,16 @@ class AppListFragment : Fragment() {
                 val username = customDialog.find<EditText>(R.id.text_input_username).text.toString()
                 val password = customDialog.find<EditText>(R.id.text_input_password).text.toString()
                 val vncPassword = customDialog.find<EditText>(R.id.text_input_vnc_password).text.toString()
-                val sshTypePreference = customDialog.find<RadioButton>(R.id.ssh_radio_button)
 
                 if (validateCredentials(username, password, vncPassword)) {
-                    if (sshTypePreference.isChecked) {
-                        appListViewModel.setAppServiceTypePreference(selectedApp, AppsPreferences.SSH)
-                    } else {
-                        appListViewModel.setAppServiceTypePreference(selectedApp, AppsPreferences.VNC)
-                    }
                     customDialog.dismiss()
 
                     val serviceTypePreference = appListViewModel.getAppServiceTypePreference(selectedApp)
+                    if (serviceTypePreference.isEmpty()) {
+                        getClientPreferenceAndStart(selectedApp, username, password, vncPassword)
+                        return@setOnClickListener
+                    }
+
                     val serviceIntent = Intent(activityContext, ServerService::class.java)
                             .putExtra("type", "startApp")
                             .putExtra("username", username)
@@ -293,6 +306,39 @@ class AppListFragment : Fragment() {
 
                     activityContext.startService(serviceIntent)
                 }
+            }
+        }
+        customDialog.show()
+    }
+
+    private fun getClientPreferenceAndStart(app: App, username: String, password: String, vncPassword: String) {
+        val dialog = AlertDialog.Builder(activityContext)
+        val dialogView = layoutInflater.inflate(R.layout.frag_app_dialog_select_client, null)
+        dialog.setView(dialogView)
+        dialog.setCancelable(true)
+        dialog.setPositiveButton(R.string.button_continue, null)
+        val customDialog = dialog.create()
+
+        customDialog.setOnShowListener { _ ->
+            customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { _ ->
+                customDialog.dismiss()
+                val sshTypePreference = customDialog.find<RadioButton>(R.id.ssh_radio_button)
+                if (sshTypePreference.isChecked) {
+                    appListViewModel.setAppServiceTypePreference(app, AppsPreferences.SSH)
+                } else {
+                    appListViewModel.setAppServiceTypePreference(app, AppsPreferences.VNC)
+                }
+
+                val serviceTypePreference = appListViewModel.getAppServiceTypePreference(app)
+                val serviceIntent = Intent(activityContext, ServerService::class.java)
+                        .putExtra("type", "startApp")
+                        .putExtra("username", username)
+                        .putExtra("password", password)
+                        .putExtra("vncPassword", vncPassword)
+                        .putExtra("app", app)
+                        .putExtra("serviceType", serviceTypePreference.toLowerCase())
+
+                activityContext.startService(serviceIntent)
             }
         }
         customDialog.show()
