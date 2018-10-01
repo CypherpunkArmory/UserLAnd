@@ -14,7 +14,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
-import tech.ula.model.repositories.AppDatabase
+import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.blockingObserve
@@ -22,10 +22,10 @@ import tech.ula.blockingObserve
 @RunWith(AndroidJUnit4::class)
 class SessionDaoTest {
 
-    private lateinit var db: AppDatabase
+    private lateinit var db: UlaDatabase
 
     @get:Rule
-    var instantExecutorRule = InstantTaskExecutorRule()
+    val instantExecutorRule = InstantTaskExecutorRule()
 
     @Mock
     private lateinit var observer: Observer<List<Session>>
@@ -35,7 +35,7 @@ class SessionDaoTest {
         MockitoAnnotations.initMocks(this)
 
         db = Room.inMemoryDatabaseBuilder(InstrumentationRegistry.getContext(),
-                AppDatabase::class.java)
+                UlaDatabase::class.java)
                 .allowMainThreadQueries()
                 .build()
         db.filesystemDao().insertFilesystem(Filesystem(0, name = DEFAULT_FS_NAME))
@@ -47,14 +47,8 @@ class SessionDaoTest {
     // Session Tests
     @Test(expected = SQLiteConstraintException::class)
     fun dbEnforcesUniqueSessionIdConstraint() {
-        db.sessionDao().insertSession(DEFAULT_SESSION)
-        db.sessionDao().insertSession(DEFAULT_SESSION)
-    }
-
-    @Test(expected = SQLiteConstraintException::class)
-    fun dbEnforcesUniqueSessionNameConstraint() {
-        val session1 = Session(0, name = DEFAULT_NAME, filesystemId = DEFAULT_FS_ID)
-        val session2 = Session(100, name = DEFAULT_NAME, filesystemId = DEFAULT_FS_ID)
+        val session1 = Session(1, name = DEFAULT_NAME, filesystemId = DEFAULT_FS_ID)
+        val session2 = Session(1, name = DEFAULT_NAME, filesystemId = DEFAULT_FS_ID)
         db.sessionDao().insertSession(session1)
         db.sessionDao().insertSession(session2)
     }

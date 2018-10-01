@@ -1,0 +1,10 @@
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item
+        android:id="@+id/menu_item_app_details"
+        android:title="@string/app_info" />
+    <item
+        android:id="@+id/menu_item_stop_app"
+        android:title="@string/stop_app" />
+
+</menu>

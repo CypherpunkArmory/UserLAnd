@@ -29,7 +29,8 @@ class ExecUtility(
         command: ArrayList<String>,
         listener: (String) -> Any = NOOP_CONSUMER,
         doWait: Boolean = true,
-        wrapped: Boolean = false
+        wrapped: Boolean = false,
+        environmentVars: HashMap<String, String> = HashMap()
     ): Process {
 
         // TODO refactor naming convention to command debugging log
@@ -45,6 +46,8 @@ class ExecUtility(
                 "PROOT_DEBUG_LEVEL" to prootDebuggingLevel,
                 "EXTRA_BINDINGS" to "-b $externalStoragePath:/sdcard")
         else hashMapOf()
+
+        env.putAll(environmentVars)
 
         try {
             val pb = ProcessBuilder(command)
@@ -104,11 +107,17 @@ class ExecUtility(
         }
     }
 
-    fun wrapWithBusyboxAndExecute(targetDirectoryName: String, commandToWrap: String, listener: (String) -> Any = NOOP_CONSUMER, doWait: Boolean = true): Process {
+    fun wrapWithBusyboxAndExecute(
+        targetDirectoryName: String,
+        commandToWrap: String,
+        listener: (String) -> Any = NOOP_CONSUMER,
+        doWait: Boolean = true,
+        environmentVars: HashMap<String, String> = HashMap()
+    ): Process {
         val executionDirectory = File("$applicationFilesDirPath/$targetDirectoryName")
         val command = arrayListOf("../support/busybox", "sh", "-c", commandToWrap)
         try {
-            return execLocal(executionDirectory, command, listener, doWait, wrapped = true)
+            return execLocal(executionDirectory, command, listener, doWait, true, environmentVars)
         } catch (err: Exception) {
             listener("Exec: $err")
             val errorMessage = "Error while executing BusyBox: \nCommand = $command\n\tError = $err"

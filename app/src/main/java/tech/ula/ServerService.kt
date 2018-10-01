@@ -12,10 +12,12 @@ import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.runBlocking
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.doAsync
+import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
-import tech.ula.model.repositories.AppDatabase
+import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
@@ -101,6 +103,19 @@ class ServerService : Service() {
                 val filesystem: Filesystem = intent.getParcelableExtra("filesystem")
                 startSession(session, filesystem, forceDownloads = false)
             }
+            "startApp" -> {
+                val app: App = intent.getParcelableExtra("app")
+                val serviceType = intent.getStringExtra("serviceType")
+                val username = intent.getStringExtra("username") ?: ""
+                val password = intent.getStringExtra("password") ?: ""
+                val vncPassword = intent.getStringExtra("vncPassword") ?: ""
+
+                startApp(app, serviceType, username, password, vncPassword)
+            }
+            "stopApp" -> {
+                val app: App = intent.getParcelableExtra("app")
+                stopApp(app)
+            }
             "forceDownloads" -> {
                 startSession(lastActivatedSession, lastActivatedFilesystem, forceDownloads = true)
             }
@@ -139,7 +154,7 @@ class ServerService : Service() {
     }
 
     private fun updateSession(session: Session) {
-        doAsync { AppDatabase.getInstance(this@ServerService).sessionDao().updateSession(session) }
+        doAsync { UlaDatabase.getInstance(this@ServerService).sessionDao().updateSession(session) }
     }
 
     private fun killSession(session: Session) {
@@ -158,7 +173,8 @@ class ServerService : Service() {
                 this.filesDir.path,
                 timestampPreferences,
                 assetListPreferences)
-        val sessionController = SessionController(filesystem, assetRepository, filesystemUtility)
+
+        val sessionController = SessionController(assetRepository, filesystemUtility)
 
         launch(CommonPool) {
 
@@ -174,7 +190,7 @@ class ServerService : Service() {
             }
 
             val downloadRequirementsResult = sessionController
-                    .getDownloadRequirements(assetLists, forceDownloads, networkUtility)
+                    .getDownloadRequirements(filesystem, assetLists, forceDownloads, networkUtility)
 
             val requiredDownloads: List<Asset>
             when (downloadRequirementsResult) {
@@ -192,14 +208,14 @@ class ServerService : Service() {
 
             progressBarUpdater(getString(R.string.progress_setting_up), "")
             val wasExtractionSuccessful = asyncAwait {
-                sessionController.extractFilesystemIfNeeded(filesystemExtractLogger)
+                sessionController.extractFilesystemIfNeeded(filesystem, filesystemExtractLogger)
             }
             if (!wasExtractionSuccessful) {
                 dialogBroadcaster("extractionFailed")
                 return@launch
             }
 
-            sessionController.ensureFilesystemHasRequiredAssets()
+            sessionController.ensureFilesystemHasRequiredAssets(filesystem)
 
             val updatedSession = asyncAwait { sessionController.activateSession(session, serverUtility) }
 
@@ -208,13 +224,54 @@ class ServerService : Service() {
             updateSession(updatedSession)
             killProgressBar()
             startClient(updatedSession)
+            activeSessions[updatedSession.pid] = updatedSession
+        }
+    }
+
+    private fun startApp(app: App, serviceType: String, username: String = "", password: String = "", vncPassword: String = "") {
+        val appsFilesystemDistType = app.filesystemRequired
+
+        val assetRepository = AssetRepository(BuildWrapper().getArchType(),
+                appsFilesystemDistType, this.filesDir.path, timestampPreferences,
+                assetListPreferences)
+        val sessionController = SessionController(assetRepository, filesystemUtility)
+
+        val filesystemDao = UlaDatabase.getInstance(this).filesystemDao()
+        val appsFilesystem = runBlocking(CommonPool) {
+            sessionController.findAppsFilesystems(app.filesystemRequired, filesystemDao)
+        }
+
+        val sessionDao = UlaDatabase.getInstance(this).sessionDao()
+        val appSession = runBlocking(CommonPool) {
+            sessionController.findAppSession(app.name, serviceType, appsFilesystem, sessionDao)
+        }
+
+        sessionController.setAppsUsername(username, appSession, appsFilesystem, sessionDao, filesystemDao)
+        sessionController.setAppsPassword(password, appSession, appsFilesystem, sessionDao, filesystemDao)
+        sessionController.setAppsVncPassword(vncPassword, appSession, appsFilesystem, sessionDao, filesystemDao)
+        sessionController.setAppsServiceType(serviceType, appSession, sessionDao)
+
+        // TODO handle file not downloaded/found case
+        // TODO determine if moving the script to profile.d before extraction is harmful
+        filesystemUtility.moveAppScriptToRequiredLocations(app.name, appsFilesystem)
+
+        startSession(appSession, appsFilesystem, forceDownloads = false)
+    }
+
+    private fun stopApp(app: App) {
+        val appSessions = activeSessions.filter {
+            (_, session) ->
+            session.name == app.name
+        }
+        appSessions.forEach { (_, session) ->
+            killSession(session)
         }
     }
 
     private fun startClient(session: Session) {
-        when (session.clientType) {
-            "ConnectBot" -> startSshClient(session, "org.connectbot")
-            "bVNC" -> startVncClient(session, "com.iiordanov.freebVNC")
+        when (session.serviceType) {
+            "ssh" -> startSshClient(session, "org.connectbot")
+            "vnc" -> startVncClient(session, "com.iiordanov.freebVNC")
             else -> sendToastBroadcast(R.string.client_not_found)
         }
     }
@@ -236,7 +293,7 @@ class ServerService : Service() {
         val bVncIntent = Intent()
         bVncIntent.action = "android.intent.action.VIEW"
         bVncIntent.type = "application/vnd.vnc"
-        bVncIntent.data = Uri.parse("vnc://127.0.0.1:5951/?VncPassword=${session.password}")
+        bVncIntent.data = Uri.parse("vnc://127.0.0.1:5951/?VncUsername=${session.username}&VncPassword=${session.vncPassword}")
         bVncIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
 
         if (clientIsPresent(bVncIntent)) {

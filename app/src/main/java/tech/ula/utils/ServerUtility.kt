@@ -68,7 +68,10 @@ class ServerUtility(
         deletePidFile(session)
         val command = "../support/execInProot.sh /bin/bash -c /support/startVNCServer.sh"
         return try {
-            val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, doWait = false)
+            val env = HashMap<String, String>()
+            env["INITIAL_USERNAME"] = session.username
+            env["INITIAL_VNC_PASSWORD"] = session.vncPassword
+            val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, doWait = false, environmentVars = env)
             process.pid()
         } catch (err: Exception) {
             logger.logRuntimeErrorForCommand(functionName = "startVNCServer", command = command, err = err)

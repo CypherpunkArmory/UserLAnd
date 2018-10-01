@@ -1,14 +1,20 @@
 package tech.ula.utils
 
+import android.Manifest
 import android.app.DownloadManager
 import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
+import android.content.ContentResolver
 import android.content.SharedPreferences
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.support.v4.content.ContextCompat
+import tech.ula.R
 import tech.ula.model.entities.Asset
 import java.io.File
 import java.io.InputStream
@@ -23,6 +29,14 @@ fun makePermissionsUsable(containingDirectoryPath: String, filename: String) {
 
     val process = pb.start()
     process.waitFor()
+}
+
+fun arePermissionsGranted(context: Context): Boolean {
+    return (ContextCompat.checkSelfPermission(context,
+            Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+
+            ContextCompat.checkSelfPermission(context,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
 }
 
 class DefaultPreferences(private val prefs: SharedPreferences) {
@@ -76,6 +90,24 @@ class AssetListPreferences(private val prefs: SharedPreferences) {
             putStringSet("$assetType-$architectureType", entries)
             apply()
         }
+    }
+}
+
+class AppsPreferences(private val prefs: SharedPreferences) {
+    companion object {
+        val SSH = "SSH"
+        val VNC = "VNC"
+    }
+
+    fun setAppServiceTypePreference(appName: String, serviceType: String) {
+        with(prefs.edit()) {
+            putString(appName, serviceType)
+            apply()
+        }
+    }
+
+    fun getAppServiceTypePreference(appName: String): String {
+        return prefs.getString(appName, "") ?: ""
     }
 }
 
@@ -176,5 +208,31 @@ class DownloadBroadcastReceiver : BroadcastReceiver() {
             if (it == -1L) return@let
             doOnReceived(it)
         }
+    }
+}
+
+class LocalFileLocator(private val applicationFilesDir: String, private val resources: Resources) {
+    fun findIconUri(type: String): Uri {
+        val icon =
+                File("$applicationFilesDir/apps/$type/$type.png")
+        if (icon.exists()) return Uri.fromFile(icon)
+        return getDefaultIconUri()
+    }
+
+    private fun getDefaultIconUri(): Uri {
+        val resId = R.mipmap.ic_launcher_foreground
+        return Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE +
+                "://" + resources.getResourcePackageName(resId) + '/' +
+                resources.getResourceTypeName(resId) + '/' +
+                resources.getResourceEntryName(resId))
+    }
+
+    fun findAppDescription(appName: String): String {
+        val appDescriptionFile =
+                File("$applicationFilesDir/apps/$appName/$appName.txt")
+        if (!appDescriptionFile.exists()) {
+            return resources.getString(R.string.error_app_description_not_found)
+        }
+        return appDescriptionFile.readText()
     }
 }

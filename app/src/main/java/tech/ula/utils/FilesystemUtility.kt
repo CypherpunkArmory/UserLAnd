@@ -3,6 +3,7 @@ package tech.ula.utils
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
 import tech.ula.model.entities.Asset
+import tech.ula.model.entities.Filesystem
 import java.io.File
 
 class FilesystemUtility(
@@ -38,10 +39,15 @@ class FilesystemUtility(
         }
     }
 
-    fun extractFilesystem(targetDirectoryName: String, listener: (String) -> Any) {
+    fun extractFilesystem(filesystem: Filesystem, targetDirectoryName: String, listener: (String) -> Any) {
         val command = "../support/execInProot.sh /support/extractFilesystem.sh"
         try {
-            execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, listener)
+            val env = HashMap<String, String>()
+            env["INITIAL_USERNAME"] = filesystem.defaultUsername
+            env["INITIAL_PASSWORD"] = filesystem.defaultPassword
+            env["INITIAL_VNC_PASSWORD"] = filesystem.defaultVncPassword
+
+            execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, listener, environmentVars = env)
         } catch (err: Exception) {
             logger.logRuntimeErrorForCommand(functionName = "extractFilesystem", command = command, err = err)
         }
@@ -86,5 +92,14 @@ class FilesystemUtility(
                 logger.e("Filesystem Delete", errorMessage)
             }
         }
+    }
+
+    fun moveAppScriptToRequiredLocations(appName: String, appFilesystem: Filesystem) {
+        // TODO add error cases
+        val appScriptSource = File("$applicationFilesDirPath/apps/$appName/$appName.sh")
+        val appScriptSupportTarget = File("$applicationFilesDirPath/${appFilesystem.id}/support/$appName.sh")
+        val appScriptProfileDTarget = File("$applicationFilesDirPath/${appFilesystem.id}/etc/profile.d/$appName.sh")
+        appScriptSource.copyTo(appScriptSupportTarget, overwrite = true)
+        appScriptSource.copyTo(appScriptProfileDTarget, overwrite = true)
     }
 }

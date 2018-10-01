@@ -6,14 +6,21 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.* // ktlint-disable no-wildcard-imports
+import android.view.Menu
+import android.view.MenuItem
+import android.view.MenuInflater
+import android.view.View
+import android.view.ViewGroup
+import android.view.LayoutInflater
 import android.widget.AdapterView
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
-import kotlinx.android.synthetic.main.frag_filesystem_edit.* // ktlint-disable no-wildcard-imports
+import kotlinx.android.synthetic.main.frag_filesystem_edit.*
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
-import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import tech.ula.utils.BuildWrapper
+import tech.ula.utils.ValidationUtility
+import tech.ula.utils.launchAsync
 import tech.ula.viewmodel.FilesystemEditViewModel
 
 class FilesystemEditFragment : Fragment() {
@@ -59,16 +66,7 @@ class FilesystemEditFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        input_filesystem_name.setText(filesystem.name)
-        input_filesystem_name.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(p0: Editable?) {
-                filesystem.name = p0.toString()
-            }
-
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
-
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
-        })
+        setupTextInputs()
 
         if (editExisting) {
             spinner_filesystem_type.isEnabled = false
@@ -83,30 +81,108 @@ class FilesystemEditFragment : Fragment() {
         }
     }
 
+    fun setupTextInputs() {
+        input_filesystem_name.setText(filesystem.name)
+        input_filesystem_username.setText("user")
+        input_filesystem_password.setText(filesystem.defaultPassword)
+        input_filesystem_vncpassword.setText(filesystem.defaultVncPassword)
+
+        if (editExisting) {
+            input_filesystem_username.isEnabled = false
+            input_filesystem_password.isEnabled = false
+            input_filesystem_vncpassword.isEnabled = false
+        }
+
+        input_filesystem_name.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(p0: Editable?) {
+                filesystem.name = p0.toString()
+            }
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+        })
+
+        input_filesystem_username.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(p0: Editable?) {
+                filesystem.defaultUsername = p0.toString()
+            }
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+        })
+
+        input_filesystem_password.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(p0: Editable?) {
+                filesystem.defaultPassword = p0.toString()
+            }
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+        })
+
+        input_filesystem_vncpassword.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(p0: Editable?) {
+                filesystem.defaultVncPassword = p0.toString()
+            }
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+        })
+    }
+
     private fun insertFilesystem(): Boolean {
         val navController = NavHostFragment.findNavController(this)
-        if (filesystem.name == "") input_filesystem_name.error = getString(R.string.error_filesystem_name)
-        if (filesystem.name == "") {
-            Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
+        if (!filesystemParametersAreCorrect()) {
+            return false
+        }
+
+        if (editExisting) {
+            filesystemEditViewModel.updateFilesystem(filesystem)
+            navController.popBackStack()
         } else {
-            if (editExisting) {
-                filesystemEditViewModel.updateFilesystem(filesystem)
-                navController.popBackStack()
-            } else {
-                try {
-                    filesystem.archType = BuildWrapper().getArchType()
-                } catch (err: Exception) {
-                    Toast.makeText(activityContext, R.string.no_supported_architecture, Toast.LENGTH_LONG).show()
-                    return true
-                }
-                launchAsync {
-                    when (filesystemEditViewModel.insertFilesystem(filesystem)) {
-                        true -> navController.popBackStack()
-                        false -> Toast.makeText(activityContext, R.string.filesystem_unique_name_required, Toast.LENGTH_LONG).show()
-                    }
+            try {
+                filesystem.archType = BuildWrapper().getArchType()
+            } catch (err: Exception) {
+                Toast.makeText(activityContext, R.string.no_supported_architecture, Toast.LENGTH_LONG).show()
+                return true
+            }
+            launchAsync {
+                when (filesystemEditViewModel.insertFilesystem(filesystem)) {
+                    true -> navController.popBackStack()
+                    false -> Toast.makeText(activityContext, R.string.filesystem_unique_name_required, Toast.LENGTH_LONG).show()
                 }
             }
         }
+
         return true
+    }
+
+    private fun filesystemParametersAreCorrect(): Boolean {
+        if (filesystem.name == "") input_filesystem_name.error = getString(R.string.error_filesystem_name)
+
+        val validator = ValidationUtility()
+        var allCredentialsAreValid = false
+        val username = filesystem.defaultUsername
+        val password = filesystem.defaultPassword
+        val vncPassword = filesystem.defaultVncPassword
+
+        when {
+            username.isEmpty() || password.isEmpty() || vncPassword.isEmpty() -> {
+                Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
+            }
+            vncPassword.length > 8 || vncPassword.length < 6 -> {
+                Toast.makeText(activityContext, R.string.error_vnc_password_length_incorrect, Toast.LENGTH_LONG).show()
+            }
+            !validator.isUsernameValid(username) -> {
+                Toast.makeText(activityContext, R.string.error_username_invalid, Toast.LENGTH_LONG).show()
+            }
+            !validator.isPasswordValid(password) -> {
+                Toast.makeText(activityContext, R.string.error_password_invalid, Toast.LENGTH_LONG).show()
+            }
+            !validator.isPasswordValid(vncPassword) -> {
+                Toast.makeText(activityContext, R.string.error_vnc_password_invalid, Toast.LENGTH_LONG).show()
+            }
+            else -> {
+                allCredentialsAreValid = true
+                return allCredentialsAreValid
+            }
+        }
+        return allCredentialsAreValid
     }
 }

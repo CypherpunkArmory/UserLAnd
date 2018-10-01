@@ -1,8 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    app:startDestination="@id/session_list_fragment">
+    xmlns:tools="http://schemas.android.com/tools" >
+    <fragment
+        android:id="@+id/app_list_fragment"
+        android:name="tech.ula.ui.AppListFragment"
+        android:label="@string/apps"
+        tools:layout="@layout/frag_app_list" >
+    </fragment>
+
+    <fragment
+        android:id="@+id/menu_item_app_details"
+        android:name="tech.ula.ui.AppDetailsFragment"
+        android:label="App Description"
+        tools:layout="@layout/frag_app_details" >
+    </fragment>
+
     <fragment
         android:id="@+id/session_list_fragment"
         android:name="tech.ula.ui.SessionListFragment"

@@ -1,8 +1,10 @@
 <resources>
     <string name="app_name">UserLAnd</string>
     <string name="welcome">Welcome to UserLAnd!</string>
+    <string name="permission_request_code">1000</string>
 
     <!-- Labels -->
+    <string name="apps">Apps</string>
     <string name="sessions">Sessions</string>
     <string name="edit_session">Edit Session</string>
     <string name="filesystems">Filesystems</string>
@@ -11,28 +13,46 @@
     <string name="help">Help</string>
     <string name="toc">Terms &amp; Conditions</string>
 
-    <!-- Context Menus -->
+    <!-- Buttons -->
+    <string name="button_continue">Continue</string>
+
+    <!-- Menus -->
+    <string name="app_info">App Info</string>
+    <string name="stop_app">Stop App</string>
     <string name="kill_service">Kill Service</string>
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
     <string name="save">Save</string>
     <string name="add">Add</string>
+    <string name="refresh">Refresh</string>
 
     <!-- Hints -->
     <string name="hint_filesystem_name">Filesystem name</string>
     <string name="hint_session_name">Session Name</string>
     <string name="hint_username">Username</string>
+    <string name="hint_password">Password</string>
+    <string name="hint_vnc_password">VNC Password</string>
 
+    <!-- Default Values -->
+    <string name="default_password">userland</string>
+    
     <!-- Errors -->
     <string name="error_session_name">You must provide a session name</string>
     <string name="error_filesystem_name">You must provide a filesystem name</string>
     <string name="error_username">You must provide a username</string>
     <string name="error_empty_field">Each field must be entered!</string>
+    <string name="error_app_description_not_found">Could not find a description for this app. Try refreshing.</string>
+    <string name="error_vnc_password_length_incorrect">VNC Password must be between 6 to 8 characters!</string>
+    <string name="error_username_invalid">Username has invalid characters</string>
+    <string name="error_password_invalid">Password has invalid characters</string>
+    <string name="error_vnc_password_invalid">VNC Password has invalid characters</string>
 
     <!-- Prompts -->
     <string name="prompt_filesystem">Filesystem:</string>
     <string name="prompt_service_type">Service Type:</string>
     <string name="prompt_client_type">Client Type:</string>
+    <string name="prompt_app_pulldown">No Apps downloaded yet.\n Swipe down to refresh.</string>
+    <string name="prompt_app_connection_type_preference">Please select a connection type: </string>
 
     <!-- Notification strings -->
     <string name="services_notification_channel_id">UserLAndServices</string>
@@ -56,6 +76,8 @@
     <!-- Preferences -->
     <string name="pref_app_category">App Preferences</string>
     <string name="pref_enable_default_password_message">Default Password Message Enabled</string>
+    <string name="pref_default_landing_page_title">Default Landing Page</string>
+    <string name="pref_default_landing_page_message">Select the page you would like to open the app with.</string>
     <string name="pref_proot_category">PRoot Preferences</string>
     <string name="pref_proot_debugging_enabled_title">PRoot Debugging Logs Enabled</string>
     <string name="pref_proot_debugging_enabled_summary">Only necessary if having problems with the app. Log file stored at\n/mnt/sdcard/PRoot_Debug_Log</string>
@@ -76,6 +98,10 @@
     <!-- Supported Services -->
     <string name="support_dropbear">SSH - Dropbear</string>
     <string name="support_tightvnc">VNC - TightVNC</string>
+
+    <!-- Client Types -->
+    <string name="client_ssh">SSH</string>
+    <string name="client_vnc">VNC</string>
 
     <!-- Support Clients -->
     <string name="support_connectbot">SSH - ConnectBot</string>
@@ -132,6 +158,12 @@
     <string name="desc_active">Image: session active</string>
     <string name="desc_arrow">Image: Arrow denoting connection between session and filesystem.</string>
     <string name="desc_filesystem_type">Image: Distribution logo</string>
+
+    <!-- Misc -->
+    <string name="free_annotation">(Free)</string>
+    <string name="paid_annotation">(Paid)</string>
+    <string name="custom_sessions">Custom Sessions</string>
+    <string name="apps_sessions">Apps Sessions</string>
 
     <string name="toc_text">End User License Agreement for UserLAnd Software\n\n
         Please read this End User License Agreement (“EULA”) before You purchase the Software and/or subsequently download and use the Software.\n\nBy purchasing and/or downloading and using the Software, You agree, without reservation, to be bound by the terms of this EULA. If You do not agree with the terms of this EULA, please do not purchase the full functionality and/or download and use the Software.\n\n
