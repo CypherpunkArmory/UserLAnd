@@ -23,10 +23,7 @@ import android.widget.EditText
 import android.widget.Toast
 import android.widget.RadioButton
 import androidx.navigation.fragment.NavHostFragment
-import kotlinx.android.synthetic.main.abc_alert_dialog_material.*
-import kotlinx.android.synthetic.main.design_bottom_sheet_dialog.*
 import kotlinx.android.synthetic.main.frag_app_list.*
-import kotlinx.android.synthetic.main.frag_app_start_dialog.*
 import org.jetbrains.anko.bundleOf
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.find
@@ -39,10 +36,14 @@ import tech.ula.model.remote.GithubAppsFetcher
 import tech.ula.model.repositories.AppsRepository
 import tech.ula.model.repositories.RefreshStatus
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.utils.*
+import tech.ula.utils.ExecUtility
+import tech.ula.utils.FilesystemUtility
+import tech.ula.utils.AppsPreferences
+import tech.ula.utils.ValidationUtility
+import tech.ula.utils.DefaultPreferences
+import tech.ula.utils.arePermissionsGranted
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
-import java.nio.file.Files
 
 class AppListFragment : Fragment() {
 
@@ -105,7 +106,7 @@ class AppListFragment : Fragment() {
 
     private val filesystemObserver = Observer<List<Filesystem>> {
         it?.let {
-           filesystemList  = it
+            filesystemList = it
         }
     }
 
@@ -260,7 +261,7 @@ class AppListFragment : Fragment() {
     private fun getCredentialsAndStart(selectedApp: App) {
 
         val dialog = AlertDialog.Builder(activityContext)
-        val dialogView = layoutInflater.inflate(R.layout.frag_app_start_dialog, null)
+        val dialogView = layoutInflater.inflate(R.layout.frag_app_dialog_credentials, null)
         dialog.setView(dialogView)
         dialog.setCancelable(true)
         dialog.setPositiveButton(R.string.button_continue, null)
