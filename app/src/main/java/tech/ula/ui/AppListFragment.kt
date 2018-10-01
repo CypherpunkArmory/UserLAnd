@@ -261,7 +261,7 @@ class AppListFragment : Fragment() {
     private fun getCredentialsAndStart(selectedApp: App) {
 
         val dialog = AlertDialog.Builder(activityContext)
-        val dialogView = layoutInflater.inflate(R.layout.frag_app_start_dialog, null)
+        val dialogView = layoutInflater.inflate(R.layout.dia_app_credentials, null)
         dialog.setView(dialogView)
         dialog.setCancelable(true)
         dialog.setPositiveButton(R.string.button_continue, null)
