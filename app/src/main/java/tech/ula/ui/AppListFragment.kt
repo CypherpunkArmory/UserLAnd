@@ -191,9 +191,8 @@ class AppListFragment : Fragment() {
             }
         }
 
-
         var filesystemExtracted = false
-        val possibleAppFilesystem =  arrayListOf<Filesystem>()
+        val possibleAppFilesystem = arrayListOf<Filesystem>()
 
         for (filesystem in filesystemList) {
             if (filesystem.distributionType == selectedApp.filesystemRequired) {
@@ -313,7 +312,7 @@ class AppListFragment : Fragment() {
 
     private fun getClientPreferenceAndStart(app: App, username: String, password: String, vncPassword: String) {
         val dialog = AlertDialog.Builder(activityContext)
-        val dialogView = layoutInflater.inflate(R.layout.frag_app_dialog_select_client, null)
+        val dialogView = layoutInflater.inflate(R.layout.dia_app_select_client, null)
         dialog.setView(dialogView)
         dialog.setCancelable(true)
         dialog.setPositiveButton(R.string.button_continue, null)
