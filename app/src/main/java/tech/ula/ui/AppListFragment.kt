@@ -175,7 +175,17 @@ class AppListFragment : Fragment() {
 
     private fun handleAppSelection(selectedApp: App) {
         val preferredServiceType = appListViewModel.getAppServiceTypePreference(selectedApp).toLowerCase()
-        if (preferredServiceType.isEmpty()) {
+        var filesystemExtracted = false
+
+        for (filesystem in filesystemList) {
+            if (filesystem.distributionType == selectedApp.filesystemRequired) {
+                if (filesystem.isAppsFilesystem) {
+                    filesystemExtracted = filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")
+                }
+            }
+        }
+
+        if (!filesystemExtracted) {
             getCredentialsAndStart(selectedApp = selectedApp)
             return
         }
