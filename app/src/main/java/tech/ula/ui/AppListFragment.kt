@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Environment
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -27,20 +28,21 @@ import kotlinx.android.synthetic.main.design_bottom_sheet_dialog.*
 import kotlinx.android.synthetic.main.frag_app_list.*
 import kotlinx.android.synthetic.main.frag_app_start_dialog.*
 import org.jetbrains.anko.bundleOf
+import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.find
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.App
+import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.remote.GithubAppsFetcher
 import tech.ula.model.repositories.AppsRepository
 import tech.ula.model.repositories.RefreshStatus
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.utils.AppsPreferences
-import tech.ula.utils.ValidationUtility
-import tech.ula.utils.arePermissionsGranted
+import tech.ula.utils.*
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
+import java.nio.file.Files
 
 class AppListFragment : Fragment() {
 
@@ -56,6 +58,17 @@ class AppListFragment : Fragment() {
 
     private lateinit var lastSelectedApp: App
 
+    private lateinit var filesystemList: List<Filesystem>
+
+    private val execUtility by lazy {
+        val externalStoragePath = Environment.getExternalStorageDirectory().absolutePath
+        ExecUtility(activityContext.filesDir.path, externalStoragePath, DefaultPreferences(activityContext.defaultSharedPreferences))
+    }
+
+    private val filesystemUtility by lazy {
+        FilesystemUtility(activityContext.filesDir.path, execUtility)
+    }
+
     private var refreshStatus = RefreshStatus.INACTIVE
 
     private val appListPreferences by lazy {
@@ -66,10 +79,11 @@ class AppListFragment : Fragment() {
         val ulaDatabase = UlaDatabase.getInstance(activityContext)
         val sessionDao = ulaDatabase.sessionDao()
         val appsDao = ulaDatabase.appsDao()
+        val filesystemDao = ulaDatabase.filesystemDao()
         val githubFetcher = GithubAppsFetcher("${activityContext.filesDir}")
 
         val appsRepository = AppsRepository(appsDao, githubFetcher, appListPreferences)
-        ViewModelProviders.of(this, AppListViewModelFactory(appsRepository, sessionDao)).get(AppListViewModel::class.java)
+        ViewModelProviders.of(this, AppListViewModelFactory(appsRepository, sessionDao, filesystemDao)).get(AppListViewModel::class.java)
     }
 
     private val appsAndActiveSessionObserver = Observer<Pair<List<App>, List<Session>>> {
@@ -86,6 +100,12 @@ class AppListFragment : Fragment() {
         it?.let {
             refreshStatus = it
             swipe_refresh.isRefreshing = refreshStatus == RefreshStatus.ACTIVE
+        }
+    }
+
+    private val filesystemObserver = Observer<List<Filesystem>> {
+        it?.let {
+           filesystemList  = it
         }
     }
 
@@ -119,6 +139,7 @@ class AppListFragment : Fragment() {
         activityContext = activity!!
         appListViewModel.getAppsAndActiveSessions().observe(viewLifecycleOwner, appsAndActiveSessionObserver)
         appListViewModel.getRefreshStatus().observe(viewLifecycleOwner, refreshStatusObserver)
+        appListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemObserver)
 
         registerForContextMenu(list_apps)
         list_apps.onItemClickListener = AdapterView.OnItemClickListener {
