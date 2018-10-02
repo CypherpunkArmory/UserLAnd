@@ -103,6 +103,7 @@ class FilesystemEditFragment : Fragment() {
 
         input_filesystem_username.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
+
                 filesystem.defaultUsername = p0.toString()
             }
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
@@ -111,7 +112,7 @@ class FilesystemEditFragment : Fragment() {
 
         input_filesystem_password.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
-                filesystem.defaultPassword = p0.toString()
+                filesystem.defaultPassword = p0.toString().trim()
             }
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
@@ -119,7 +120,7 @@ class FilesystemEditFragment : Fragment() {
 
         input_filesystem_vncpassword.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
-                filesystem.defaultVncPassword = p0.toString()
+                filesystem.defaultVncPassword = p0.toString().trim()
             }
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
