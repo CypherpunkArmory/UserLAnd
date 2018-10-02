@@ -41,14 +41,12 @@ class AppListAdapter(
             categoriesAndApps.getOrPut(app.category) { arrayListOf() }.add(app)
         }
 
-        val categoriesAndAppsWithDistributionsFirst = categoriesAndApps.toSortedMap(Comparator {
-            first, second ->
-            when {
-                first == topListElement -> -1
-                second == topListElement -> 1
-                else -> 0
-            }
-        })
+        val categoriesAndAppsWithDistributionsFirst = LinkedHashMap<String, List<App>>()
+
+        if (categoriesAndApps.containsKey(topListElement)) {
+            categoriesAndAppsWithDistributionsFirst[topListElement] = categoriesAndApps.remove(topListElement)!!
+        }
+        categoriesAndAppsWithDistributionsFirst.putAll(categoriesAndApps)
 
         categoriesAndAppsWithDistributionsFirst.forEach {
             (category, categoryApps) ->
@@ -96,7 +94,7 @@ class AppListAdapter(
 
                 val localFileLocator = LocalFileLocator(activity.filesDir.path, activity.resources)
                 viewHolder.imageView?.setImageURI(localFileLocator.findIconUri(app.name))
-                viewHolder.appName?.text = app.name
+                viewHolder.appName?.text = app.name.capitalize()
             }
         }
 
