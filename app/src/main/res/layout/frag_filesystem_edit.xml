@@ -1,94 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_margin="8dp">
+    android:layout_margin="8dp" >
 
-    <android.support.design.widget.TextInputLayout
-        android:id="@+id/text_input_layout"
+    <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        app:layout_constraintTop_toTopOf="parent" >
+        android:layout_height="wrap_content" >
 
-        <android.support.design.widget.TextInputEditText
-            android:id="@+id/input_filesystem_name"
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/text_input_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
-            android:hint="@string/hint_filesystem_name" />
+            android:padding="8dp"
+            app:layout_constraintTop_toTopOf="parent" >
 
-    </android.support.design.widget.TextInputLayout>
+            <android.support.design.widget.TextInputEditText
+                android:id="@+id/input_filesystem_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:hint="@string/hint_filesystem_name" />
 
-    <android.support.design.widget.TextInputLayout
-        android:id="@+id/text_input_layout_filesystem_username"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        app:layout_constraintTop_toBottomOf="@+id/text_input_layout">
+        </android.support.design.widget.TextInputLayout>
 
-        <android.support.design.widget.TextInputEditText
-            android:id="@+id/input_filesystem_username"
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/text_input_layout_filesystem_username"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
-            android:hint="@string/hint_username" />
+            android:padding="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/text_input_layout">
 
-    </android.support.design.widget.TextInputLayout>
+            <android.support.design.widget.TextInputEditText
+                android:id="@+id/input_filesystem_username"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:hint="@string/hint_username" />
 
-    <android.support.design.widget.TextInputLayout
-        android:id="@+id/text_input_layout_filesystem_password"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        app:layout_constraintTop_toBottomOf="@+id/text_input_layout_filesystem_username">
+        </android.support.design.widget.TextInputLayout>
 
-        <android.support.design.widget.TextInputEditText
-            android:id="@+id/input_filesystem_password"
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/text_input_layout_filesystem_password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textPassword"
-            android:text="@string/default_password"
-            android:hint="@string/hint_password" />
-    </android.support.design.widget.TextInputLayout>
+            android:padding="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/text_input_layout_filesystem_username">
 
-    <android.support.design.widget.TextInputLayout
-        android:id="@+id/text_input_layout_filesystem_vncpasswd"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        app:layout_constraintTop_toBottomOf="@+id/text_input_layout_filesystem_password">
+            <android.support.design.widget.TextInputEditText
+                android:id="@+id/input_filesystem_password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:hint="@string/hint_password" />
+        </android.support.design.widget.TextInputLayout>
 
-        <android.support.design.widget.TextInputEditText
-            android:id="@+id/input_filesystem_vncpassword"
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/text_input_layout_filesystem_vncpasswd"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textPassword"
-            android:text="@string/default_password"
-            android:hint="@string/hint_vnc_password" />
-    </android.support.design.widget.TextInputLayout>
+            android:padding="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/text_input_layout_filesystem_password">
 
-    <TextView
-        android:id="@+id/text_filesystem_type"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/prompt_filesystem"
-        android:padding="8dp"
-        app:layout_constraintBaseline_toBaselineOf="@id/spinner_filesystem_type"
-        app:layout_constraintTop_toBottomOf="@id/text_input_layout_filesystem_vncpasswd"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/spinner_filesystem_type" />
+            <android.support.design.widget.TextInputEditText
+                android:id="@+id/input_filesystem_vncpassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:hint="@string/hint_vnc_password" />
+        </android.support.design.widget.TextInputLayout>
 
-    <Spinner
-        android:id="@+id/spinner_filesystem_type"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:spinnerMode="dropdown"
-        android:entries="@array/supported_distributions"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/text_filesystem_type"
-        app:layout_constraintTop_toBottomOf="@id/text_input_layout_filesystem_vncpasswd" />
+        <TextView
+            android:id="@+id/text_filesystem_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/prompt_filesystem"
+            android:padding="8dp"
+            app:layout_constraintBaseline_toBaselineOf="@id/spinner_filesystem_type"
+            app:layout_constraintTop_toBottomOf="@id/text_input_layout_filesystem_vncpasswd"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/spinner_filesystem_type" />
 
-</android.support.constraint.ConstraintLayout>
+        <Spinner
+            android:id="@+id/spinner_filesystem_type"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:spinnerMode="dropdown"
+            android:entries="@array/supported_distributions"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/text_filesystem_type"
+            app:layout_constraintTop_toBottomOf="@id/text_input_layout_filesystem_vncpasswd" />
+
+    </android.support.constraint.ConstraintLayout>
+</ScrollView>
