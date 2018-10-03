@@ -155,14 +155,17 @@ class FilesystemEditFragment : Fragment() {
     }
 
     private fun filesystemParametersAreCorrect(): Boolean {
-        if (filesystem.name == "") input_filesystem_name.error = getString(R.string.error_filesystem_name)
-
+        val allCredentialsAreValid = true
         val validator = ValidationUtility()
-        var allCredentialsAreValid = false
         val username = filesystem.defaultUsername
         val password = filesystem.defaultPassword
         val vncPassword = filesystem.defaultVncPassword
 
+        if (filesystem.name.isEmpty()) {
+            input_filesystem_name.error = getString(R.string.error_filesystem_name)
+            return !allCredentialsAreValid
+        }
+        
         when {
             username.isEmpty() || password.isEmpty() || vncPassword.isEmpty() -> {
                 Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
@@ -180,10 +183,9 @@ class FilesystemEditFragment : Fragment() {
                 Toast.makeText(activityContext, R.string.error_vnc_password_invalid, Toast.LENGTH_LONG).show()
             }
             else -> {
-                allCredentialsAreValid = true
                 return allCredentialsAreValid
             }
         }
-        return allCredentialsAreValid
+        return !allCredentialsAreValid
     }
 }
