@@ -165,7 +165,7 @@ class FilesystemEditFragment : Fragment() {
             input_filesystem_name.error = getString(R.string.error_filesystem_name)
             return !allCredentialsAreValid
         }
-        
+
         when {
             username.isEmpty() || password.isEmpty() || vncPassword.isEmpty() -> {
                 Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
