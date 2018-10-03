@@ -83,7 +83,7 @@ class FilesystemEditFragment : Fragment() {
 
     fun setupTextInputs() {
         input_filesystem_name.setText(filesystem.name)
-        input_filesystem_username.setText("user")
+        input_filesystem_username.setText(filesystem.defaultUsername)
         input_filesystem_password.setText(filesystem.defaultPassword)
         input_filesystem_vncpassword.setText(filesystem.defaultVncPassword)
 
