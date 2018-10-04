@@ -37,7 +37,7 @@
                 android:id="@+id/input_filesystem_username"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="text"
+                android:inputType="textNoSuggestions|textVisiblePassword"
                 android:hint="@string/hint_username" />
 
         </android.support.design.widget.TextInputLayout>
