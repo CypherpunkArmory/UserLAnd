@@ -78,12 +78,13 @@ class SessionControllerTest {
         val fakeArchitecture = "testArch"
         val requiredFilesystemType = "testDist"
         val appsFilesystem = Filesystem(0, "apps",
-                archType = fakeArchitecture, distributionType = requiredFilesystemType, isAppsFilesystem = true)
+                archType = fakeArchitecture, distributionType = requiredFilesystemType, isAppsFilesystem = true,
+                defaultUsername = "username", defaultPassword = "userland", defaultVncPassword = "userland")
 
         val appName = "testApp"
         val serviceType = "ssh"
         val appSession = Session(0, name = appName, filesystemId = 0, filesystemName = "apps",
-                serviceType = serviceType, username = "user", clientType = "ConnectBot", isAppsSession = true)
+                serviceType = serviceType, username = "username", clientType = "ConnectBot", isAppsSession = true)
 
         whenever(sessionDao.findAppsSession(appName))
                 .thenReturn(listOf())

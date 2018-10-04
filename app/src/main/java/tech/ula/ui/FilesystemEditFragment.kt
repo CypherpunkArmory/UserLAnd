@@ -83,7 +83,7 @@ class FilesystemEditFragment : Fragment() {
 
     fun setupTextInputs() {
         input_filesystem_name.setText(filesystem.name)
-        input_filesystem_username.setText("user")
+        input_filesystem_username.setText(filesystem.defaultUsername)
         input_filesystem_password.setText(filesystem.defaultPassword)
         input_filesystem_vncpassword.setText(filesystem.defaultVncPassword)
 
@@ -103,6 +103,7 @@ class FilesystemEditFragment : Fragment() {
 
         input_filesystem_username.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
+
                 filesystem.defaultUsername = p0.toString()
             }
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
@@ -154,13 +155,15 @@ class FilesystemEditFragment : Fragment() {
     }
 
     private fun filesystemParametersAreCorrect(): Boolean {
-        if (filesystem.name == "") input_filesystem_name.error = getString(R.string.error_filesystem_name)
-
         val validator = ValidationUtility()
-        var allCredentialsAreValid = false
         val username = filesystem.defaultUsername
         val password = filesystem.defaultPassword
         val vncPassword = filesystem.defaultVncPassword
+
+        if (filesystem.name.isEmpty()) {
+            input_filesystem_name.error = getString(R.string.error_filesystem_name)
+            return false
+        }
 
         when {
             username.isEmpty() || password.isEmpty() || vncPassword.isEmpty() -> {
@@ -179,10 +182,9 @@ class FilesystemEditFragment : Fragment() {
                 Toast.makeText(activityContext, R.string.error_vnc_password_invalid, Toast.LENGTH_LONG).show()
             }
             else -> {
-                allCredentialsAreValid = true
-                return allCredentialsAreValid
+                return true
             }
         }
-        return allCredentialsAreValid
+        return false
     }
 }

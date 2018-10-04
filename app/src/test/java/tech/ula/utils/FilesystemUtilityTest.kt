@@ -48,10 +48,11 @@ class FilesystemUtilityTest {
         val requiredFilesystemType = "testDist"
         val fakeArchitecture = "testArch"
         val filesystem = Filesystem(0, "apps",
-                archType = fakeArchitecture, distributionType = requiredFilesystemType, isAppsFilesystem = true)
+                archType = fakeArchitecture, distributionType = requiredFilesystemType, isAppsFilesystem = true,
+                defaultUsername = "username", defaultPassword = "password", defaultVncPassword = "vncpass")
 
-        val defaultEnvironmentalVariables = hashMapOf<String, String>("INITIAL_USERNAME" to "user",
-                "INITIAL_PASSWORD" to "userland", "INITIAL_VNC_PASSWORD" to "userland")
+        val defaultEnvironmentalVariables = hashMapOf<String, String>("INITIAL_USERNAME" to "username",
+                "INITIAL_PASSWORD" to "password", "INITIAL_VNC_PASSWORD" to "vncpass")
 
         filesystemUtility.extractFilesystem(filesystem, targetDirectoryName, statelessListener)
         verify(execUtility).wrapWithBusyboxAndExecute(targetDirectoryName, command, statelessListener,

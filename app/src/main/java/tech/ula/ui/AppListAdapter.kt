@@ -29,7 +29,7 @@ class AppListAdapter(
     private val ITEM_VIEW_TYPE_SEPARATOR = 1
     private val ITEM_VIEW_TYPE_COUNT = 2
 
-    private val topListElement = "distribution"
+    private val firstDisplayCategory = "distribution"
     private val freeAnnotation = activity.resources.getString(R.string.free_annotation)
     private val paidAnnotation = activity.resources.getString(R.string.paid_annotation)
 
@@ -41,19 +41,18 @@ class AppListAdapter(
             categoriesAndApps.getOrPut(app.category) { arrayListOf() }.add(app)
         }
 
-        val categoriesAndAppsWithDistributionsFirst = categoriesAndApps.toSortedMap(Comparator {
-            first, second ->
-            when {
-                first == topListElement -> -1
-                second == topListElement -> 1
-                else -> 0
-            }
-        })
+        val categoriesAndAppsWithDistributionsFirst = LinkedHashMap<String, List<App>>()
+
+        if (categoriesAndApps.containsKey(firstDisplayCategory)) {
+            categoriesAndAppsWithDistributionsFirst[firstDisplayCategory] =
+                    categoriesAndApps.remove(firstDisplayCategory)!!
+        }
+        categoriesAndAppsWithDistributionsFirst.putAll(categoriesAndApps)
 
         categoriesAndAppsWithDistributionsFirst.forEach {
             (category, categoryApps) ->
             val categoryWithPaymentInformation = category + " " +
-                    if (category == topListElement) freeAnnotation else paidAnnotation
+                    if (category == firstDisplayCategory) freeAnnotation else paidAnnotation
             listBuilder.add(AppSeparatorItem(categoryWithPaymentInformation.capitalize()))
             categoryApps.forEach { listBuilder.add(AppItem(it)) }
         }
@@ -96,7 +95,7 @@ class AppListAdapter(
 
                 val localFileLocator = LocalFileLocator(activity.filesDir.path, activity.resources)
                 viewHolder.imageView?.setImageURI(localFileLocator.findIconUri(app.name))
-                viewHolder.appName?.text = app.name
+                viewHolder.appName?.text = app.name.capitalize()
             }
         }
 

@@ -289,25 +289,36 @@ class AppListFragment : Fragment() {
                 if (validateCredentials(username, password, vncPassword)) {
                     customDialog.dismiss()
 
-                    val serviceTypePreference = appListViewModel.getAppServiceTypePreference(selectedApp)
-                    if (serviceTypePreference.isEmpty()) {
-                        getClientPreferenceAndStart(selectedApp, username, password, vncPassword)
+                    if (appSupportsOneServiceTypeAndSetPref(selectedApp)) {
+                        val serviceTypePreference = appListViewModel.getAppServiceTypePreference(selectedApp)
+                        val serviceIntent = Intent(activityContext, ServerService::class.java)
+                                .putExtra("type", "startApp")
+                                .putExtra("username", username)
+                                .putExtra("password", password)
+                                .putExtra("vncPassword", vncPassword)
+                                .putExtra("app", selectedApp)
+                                .putExtra("serviceType", serviceTypePreference.toLowerCase())
+
+                        activityContext.startService(serviceIntent)
                         return@setOnClickListener
                     }
 
-                    val serviceIntent = Intent(activityContext, ServerService::class.java)
-                            .putExtra("type", "startApp")
-                            .putExtra("username", username)
-                            .putExtra("password", password)
-                            .putExtra("vncPassword", vncPassword)
-                            .putExtra("app", selectedApp)
-                            .putExtra("serviceType", serviceTypePreference.toLowerCase())
-
-                    activityContext.startService(serviceIntent)
+                    if (appListViewModel.getAppServiceTypePreference(selectedApp).isEmpty()) {
+                        getClientPreferenceAndStart(selectedApp, username, password, vncPassword)
+                    }
                 }
             }
         }
         customDialog.show()
+    }
+
+    private fun appSupportsOneServiceTypeAndSetPref(app: App): Boolean {
+        when {
+            app.supportsGui && app.supportsCli -> return false
+            app.supportsCli -> appListViewModel.setAppServiceTypePreference(app, AppsPreferences.SSH)
+            app.supportsGui -> appListViewModel.setAppServiceTypePreference(app, AppsPreferences.VNC)
+        }
+        return true
     }
 
     private fun getClientPreferenceAndStart(app: App, username: String, password: String, vncPassword: String) {
