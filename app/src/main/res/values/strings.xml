@@ -32,9 +32,6 @@
     <string name="hint_username">Username</string>
     <string name="hint_password">Password</string>
     <string name="hint_vnc_password">VNC Password</string>
-
-    <!-- Default Values -->
-    <string name="default_password">userland</string>
     
     <!-- Errors -->
     <string name="error_session_name">You must provide a session name</string>
@@ -75,7 +72,6 @@
 
     <!-- Preferences -->
     <string name="pref_app_category">App Preferences</string>
-    <string name="pref_enable_default_password_message">Default Password Message Enabled</string>
     <string name="pref_default_landing_page_title">Default Landing Page</string>
     <string name="pref_default_landing_page_message">Select the page you would like to open the app with.</string>
     <string name="pref_proot_category">PRoot Preferences</string>
@@ -93,7 +89,6 @@
     Bugs will be present, but please report them to us!</string>
     <string name="supported_services">Currently supported services:</string>
     <string name="supported_clients">Currently supported clients:</string>
-    <string name="default_password_message">The default session password is: userland</string>
 
     <!-- Supported Services -->
     <string name="support_dropbear">SSH - Dropbear</string>
