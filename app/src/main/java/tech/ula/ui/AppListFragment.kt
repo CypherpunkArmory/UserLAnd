@@ -283,11 +283,8 @@ class AppListFragment : Fragment() {
         customDialog.setOnShowListener { _ ->
             customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { _ ->
                 val username = customDialog.find<EditText>(R.id.text_input_username).text.toString()
-                var password = customDialog.find<EditText>(R.id.text_input_password).text.toString()
-                var vncPassword = customDialog.find<EditText>(R.id.text_input_vnc_password).text.toString()
-
-                password = password.trim()
-                vncPassword = vncPassword.trim()
+                val password = customDialog.find<EditText>(R.id.text_input_password).text.toString()
+                val vncPassword = customDialog.find<EditText>(R.id.text_input_vnc_password).text.toString()
 
                 if (validateCredentials(username, password, vncPassword)) {
                     customDialog.dismiss()
