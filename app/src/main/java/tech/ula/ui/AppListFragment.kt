@@ -176,6 +176,11 @@ class AppListFragment : Fragment() {
     }
 
     private fun handleAppSelection(selectedApp: App) {
+        if (selectedApp.isPaidApp && !playServiceManager.userHasYearlyAppsSubscription()) {
+            playServiceManager.startBillingFlow(activityContext)
+            return
+        }
+
         val preferredServiceType = appListViewModel.getAppServiceTypePreference(selectedApp).toLowerCase()
 
         if (activeSessions.isNotEmpty()) {
@@ -421,8 +426,8 @@ class AppListFragment : Fragment() {
 
     override fun onSubscriptionsAreNotSupported() {
         AlertDialog.Builder(activityContext)
-                .setMessage(R.string.general_error_title)
-                .setTitle(R.string.alert_subscriptions_unsupported_message)
+                .setMessage(R.string.alert_subscriptions_unsupported_message)
+                .setTitle(R.string.general_error_title)
                 .setPositiveButton(R.string.button_ok) {
                     dialog, _ ->
                     dialog.dismiss()
@@ -437,8 +442,8 @@ class AppListFragment : Fragment() {
 
     override fun onPlayServiceError() {
         AlertDialog.Builder(activityContext)
-                .setMessage(R.string.general_error_title)
-                .setTitle(R.string.alert_play_service_error_message)
+                .setMessage(R.string.alert_play_service_error_message)
+                .setTitle(R.string.general_error_title)
                 .setPositiveButton(R.string.button_ok) {
                     dialog, _ ->
                     dialog.dismiss()

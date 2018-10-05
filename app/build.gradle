@@ -12,11 +12,12 @@ android {
         applicationId "tech.ula"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 18
+        versionCode 23
         versionName "0.4.0"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+        buildConfigField 'boolean', 'ENABLE_PLAY_SERVICES', 'true'
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -25,7 +26,13 @@ android {
         }
     }
     buildTypes {
+        debug {
+            debuggable true
+            minifyEnabled false
+            buildConfigField 'boolean', 'ENABLE_PLAY_SERVICES', 'false'
+        }
         release {
+            debuggable true
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
