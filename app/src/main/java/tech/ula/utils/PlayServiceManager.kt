@@ -23,7 +23,7 @@ class PlayServiceManager(private val playServicesUpdateListener: PlayServicesUpd
         fun onPlayServiceError()
     }
 
-    override fun onPurchasesUpdated(@BillingResponse responseCode: Int, purchases: MutableList<Purchase>?) {
+    override fun onPurchasesUpdated(responseCode: Int, purchases: MutableList<Purchase>?) {
         if (responseCode == BillingResponse.OK) {
             purchases?.forEach {
                 if (purchaseIsForYearlyAppsSub(it)) {
