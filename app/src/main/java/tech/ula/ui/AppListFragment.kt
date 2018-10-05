@@ -57,7 +57,8 @@ class AppListFragment : Fragment() {
 
     private lateinit var activeSessions: List<Session>
 
-    private lateinit var lastSelectedApp: App
+    private val unselectedApp = App(name = "unselected")
+    private var lastSelectedApp = unselectedApp
 
     private lateinit var filesystemList: List<Filesystem>
 
@@ -416,5 +417,36 @@ class AppListFragment : Fragment() {
                 }
             }
         }
+    }
+
+    override fun onSubscriptionsAreNotSupported() {
+        AlertDialog.Builder(activityContext)
+                .setMessage(R.string.general_error_title)
+                .setTitle(R.string.alert_subscriptions_unsupported_message)
+                .setPositiveButton(R.string.button_ok) {
+                    dialog, _ ->
+                    dialog.dismiss()
+                }
+                .create().show()
+    }
+
+    override fun onBillingClientConnectionChange(isConnected: Boolean) {
+        billingClientIsConnected = isConnected
+        if (!isConnected) playServiceManager.startBillingClient(activityContext)
+    }
+
+    override fun onPlayServiceError() {
+        AlertDialog.Builder(activityContext)
+                .setMessage(R.string.general_error_title)
+                .setTitle(R.string.alert_play_service_error_message)
+                .setPositiveButton(R.string.button_ok) {
+                    dialog, _ ->
+                    dialog.dismiss()
+                }
+                .create().show()
+    }
+
+    override fun onSubscriptionPurchased() {
+        if (lastSelectedApp != unselectedApp) handleAppSelection(lastSelectedApp)
     }
 }

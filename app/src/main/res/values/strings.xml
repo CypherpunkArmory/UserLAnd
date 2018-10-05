@@ -102,6 +102,14 @@
     <string name="support_connectbot">SSH - ConnectBot</string>
     <string name="support_bvnc">VNC - bVNC</string>
 
+    <!-- Alerts -->
+    <string name="button_ok">OK!</string>
+    <string name="general_error_title">Something went wrong!</string>
+
+    <!-- Play service error alerts -->
+    <string name="alert_play_service_error_message">We&apos;re having trouble accessing the Google Play store to complete this action. Please try again later, and if the problem continues report it to a developer.</string>
+    <string name="alert_subscriptions_unsupported_message">It looks like your version of the Play Store is too old to support subscriptions. Please update it to continue.</string>
+
     <!-- Permissions necessary alert -->
     <string name="alert_permissions_necessary_title">UserLAnd requires permissions!</string>
     <string name="alert_permissions_necessary_message">To continue, enable storage permissions to allow UserLAnd to download files and move them from external storage to app local storage.</string>
