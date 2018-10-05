@@ -46,7 +46,7 @@ import tech.ula.utils.arePermissionsGranted
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
 
-class AppListFragment : Fragment() {
+class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListener {
 
     private lateinit var activityContext: Activity
     private val permissionRequestCode: Int by lazy {
@@ -60,6 +60,11 @@ class AppListFragment : Fragment() {
 
     private val unselectedApp = App(name = "unselected")
     private var lastSelectedApp = unselectedApp
+
+    private var billingClientIsConnected = false
+    private val playServiceManager by lazy {
+        PlayServiceManager(this)
+    }
 
     private lateinit var filesystemList: List<Filesystem>
 
