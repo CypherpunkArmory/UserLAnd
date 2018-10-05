@@ -94,6 +94,9 @@ class AppListFragment : Fragment() {
             appAdapter = AppListAdapter(activityContext, appList, activeSessions)
             list_apps.adapter = appAdapter
             setPulldownPromptVisibilityForAppList()
+            if (appList.isEmpty()) {
+                doRefresh()
+            }
         }
     }
 
