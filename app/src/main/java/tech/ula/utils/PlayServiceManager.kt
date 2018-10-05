@@ -1,7 +1,6 @@
 package tech.ula.utils
 
 import android.app.Activity
-import android.util.Log
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.BillingClient.BillingResponse
@@ -24,14 +23,14 @@ class PlayServiceManager(private val playServicesUpdateListener: PlayServicesUpd
         fun onPlayServiceError()
     }
 
-    override fun onPurchasesUpdated(responseCode: Int, purchases: MutableList<Purchase>?) {
+    override fun onPurchasesUpdated(@BillingResponse responseCode: Int, purchases: MutableList<Purchase>?) {
         if (responseCode == BillingResponse.OK) {
             purchases?.forEach {
                 if (purchaseIsForYearlyAppsSub(it)) {
                     playServicesUpdateListener.onSubscriptionPurchased()
                 }
             }
-        }
+        } else if (responseCode == BillingResponse.USER_CANCELED) return
         else playServicesUpdateListener.onPlayServiceError()
     }
 
@@ -52,7 +51,10 @@ class PlayServiceManager(private val playServicesUpdateListener: PlayServicesUpd
     }
 
     fun startBillingFlow(activity: Activity) {
-        if (!BuildConfig.ENABLE_PLAY_SERVICES) return
+        if (!BuildConfig.ENABLE_PLAY_SERVICES) {
+            playServicesUpdateListener.onSubscriptionPurchased()
+            return
+        }
         if (!subscriptionsAreSupported()) {
             playServicesUpdateListener.onSubscriptionsAreNotSupported()
         }

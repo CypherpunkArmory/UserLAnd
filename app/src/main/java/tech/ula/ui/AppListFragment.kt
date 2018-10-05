@@ -23,7 +23,7 @@ import android.widget.EditText
 import android.widget.RadioButton
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
-import kotlinx.android.synthetic.main.frag_app_list.*
+import kotlinx.android.synthetic.main.frag_app_list.* // ktlint-disable no-wildcard-imports
 import org.jetbrains.anko.bundleOf
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.find
@@ -36,11 +36,12 @@ import tech.ula.model.remote.GithubAppsFetcher
 import tech.ula.model.repositories.AppsRepository
 import tech.ula.model.repositories.RefreshStatus
 import tech.ula.model.repositories.UlaDatabase
+import tech.ula.utils.AppsPreferences
+import tech.ula.utils.DefaultPreferences
 import tech.ula.utils.ExecUtility
 import tech.ula.utils.FilesystemUtility
-import tech.ula.utils.AppsPreferences
+import tech.ula.utils.PlayServiceManager
 import tech.ula.utils.ValidationUtility
-import tech.ula.utils.DefaultPreferences
 import tech.ula.utils.arePermissionsGranted
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
