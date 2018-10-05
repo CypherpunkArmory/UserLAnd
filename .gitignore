@@ -13,6 +13,10 @@ bin/
 gen/
 out/
 
+app/release/
+app/debug/
+app/.DS_Store
+
 # Gradle files
 .gradle/
 build/
