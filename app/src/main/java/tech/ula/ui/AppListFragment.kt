@@ -23,8 +23,6 @@ import android.widget.EditText
 import android.widget.RadioButton
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
-import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.common.GoogleApiAvailability
 import kotlinx.android.synthetic.main.frag_app_list.* // ktlint-disable no-wildcard-imports
 import org.jetbrains.anko.bundleOf
 import org.jetbrains.anko.defaultSharedPreferences
