@@ -48,7 +48,6 @@
     <string name="prompt_filesystem">Filesystem:</string>
     <string name="prompt_service_type">Service Type:</string>
     <string name="prompt_client_type">Client Type:</string>
-    <string name="prompt_app_pulldown">No Apps downloaded yet.\n Swipe down to refresh.</string>
     <string name="prompt_app_connection_type_preference">Please select a connection type: </string>
 
     <!-- Notification strings -->
