@@ -53,7 +53,6 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
     private val permissionRequestCode: Int by lazy {
         activityContext.resources.getString(R.string.permission_request_code).toInt()
     }
-    private val PLAY_SERVICES_RESOLUTION_REQUEST = 9000
 
     private lateinit var appList: List<App>
     private lateinit var appAdapter: AppListAdapter
