@@ -39,6 +39,7 @@ class PlayServiceManager(private val playServicesUpdateListener: PlayServicesUpd
     }
 
     fun playStoreIsAvailable(packageManager: PackageManager): Boolean {
+        if (!BuildConfig.ENABLE_PLAY_SERVICES) return true
         val playStorePackageName = "com.android.vending"
         return try {
             packageManager.getPackageInfo(playStorePackageName, 0)
@@ -49,6 +50,7 @@ class PlayServiceManager(private val playServicesUpdateListener: PlayServicesUpd
     }
 
     fun playServicesAreAvailable(activity: Activity): Boolean {
+        if (!BuildConfig.ENABLE_PLAY_SERVICES) return true
         val googleApi = GoogleApiAvailability.getInstance()
         val result = googleApi.isGooglePlayServicesAvailable(activity)
         if (result != ConnectionResult.SUCCESS) {
