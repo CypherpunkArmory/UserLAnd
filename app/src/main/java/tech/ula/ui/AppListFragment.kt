@@ -23,7 +23,7 @@ import android.widget.EditText
 import android.widget.RadioButton
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
-import kotlinx.android.synthetic.main.frag_app_list.*
+import kotlinx.android.synthetic.main.frag_app_list.* // ktlint-disable no-wildcard-imports
 import org.jetbrains.anko.bundleOf
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.find
@@ -36,16 +36,17 @@ import tech.ula.model.remote.GithubAppsFetcher
 import tech.ula.model.repositories.AppsRepository
 import tech.ula.model.repositories.RefreshStatus
 import tech.ula.model.repositories.UlaDatabase
+import tech.ula.utils.AppsPreferences
+import tech.ula.utils.DefaultPreferences
 import tech.ula.utils.ExecUtility
 import tech.ula.utils.FilesystemUtility
-import tech.ula.utils.AppsPreferences
+import tech.ula.utils.PlayServiceManager
 import tech.ula.utils.ValidationUtility
-import tech.ula.utils.DefaultPreferences
 import tech.ula.utils.arePermissionsGranted
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
 
-class AppListFragment : Fragment() {
+class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListener {
 
     private lateinit var activityContext: Activity
     private val permissionRequestCode: Int by lazy {
@@ -57,7 +58,13 @@ class AppListFragment : Fragment() {
 
     private lateinit var activeSessions: List<Session>
 
-    private lateinit var lastSelectedApp: App
+    private val unselectedApp = App(name = "unselected")
+    private var lastSelectedApp = unselectedApp
+
+    private var billingClientIsConnected = false
+    private val playServiceManager by lazy {
+        PlayServiceManager(this)
+    }
 
     private lateinit var filesystemList: List<Filesystem>
 
@@ -175,6 +182,11 @@ class AppListFragment : Fragment() {
     }
 
     private fun handleAppSelection(selectedApp: App) {
+        if (selectedApp.isPaidApp && !playServiceManager.userHasYearlyAppsSubscription()) {
+            playServiceManager.startBillingFlow(activityContext)
+            return
+        }
+
         val preferredServiceType = appListViewModel.getAppServiceTypePreference(selectedApp).toLowerCase()
 
         if (activeSessions.isNotEmpty()) {
@@ -416,5 +428,36 @@ class AppListFragment : Fragment() {
                 }
             }
         }
+    }
+
+    override fun onSubscriptionsAreNotSupported() {
+        AlertDialog.Builder(activityContext)
+                .setMessage(R.string.alert_subscriptions_unsupported_message)
+                .setTitle(R.string.general_error_title)
+                .setPositiveButton(R.string.button_ok) {
+                    dialog, _ ->
+                    dialog.dismiss()
+                }
+                .create().show()
+    }
+
+    override fun onBillingClientConnectionChange(isConnected: Boolean) {
+        billingClientIsConnected = isConnected
+        if (!isConnected) playServiceManager.startBillingClient(activityContext)
+    }
+
+    override fun onPlayServiceError() {
+        AlertDialog.Builder(activityContext)
+                .setMessage(R.string.alert_play_service_error_message)
+                .setTitle(R.string.general_error_title)
+                .setPositiveButton(R.string.button_ok) {
+                    dialog, _ ->
+                    dialog.dismiss()
+                }
+                .create().show()
+    }
+
+    override fun onSubscriptionPurchased() {
+        if (lastSelectedApp != unselectedApp) handleAppSelection(lastSelectedApp)
     }
 }

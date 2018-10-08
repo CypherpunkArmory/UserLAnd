@@ -12,11 +12,12 @@ android {
         applicationId "tech.ula"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 18
-        versionName "0.4.0"
+        versionCode 23
+        versionName "0.5.0"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+        buildConfigField 'boolean', 'ENABLE_PLAY_SERVICES', 'true'
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -25,7 +26,13 @@ android {
         }
     }
     buildTypes {
+        debug {
+            debuggable true
+            minifyEnabled false
+            buildConfigField 'boolean', 'ENABLE_PLAY_SERVICES', 'false'
+        }
         release {
+            debuggable false
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -87,6 +94,7 @@ dependencies {
     implementation 'com.android.support.constraint:constraint-layout:1.1.2'
     implementation "com.android.support:design:$support_library_version"
     implementation "com.android.support:preference-v7:$support_library_version"
+    implementation "com.android.billingclient:billing:1.1"
 
     testImplementation 'junit:junit:4.12'
     testImplementation "org.mockito:mockito-core:$mockito_version"
