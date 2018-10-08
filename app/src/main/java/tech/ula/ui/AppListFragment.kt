@@ -100,7 +100,9 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
             activeSessions = it.second
             appAdapter = AppListAdapter(activityContext, appList, activeSessions)
             list_apps.adapter = appAdapter
-            setPulldownPromptVisibilityForAppList()
+            if (appList.isEmpty()) {
+                doRefresh()
+            }
         }
     }
 
@@ -169,7 +171,6 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
 
     private fun doRefresh() {
         appListViewModel.refreshAppsList()
-        setPulldownPromptVisibilityForAppList()
     }
 
     private fun doAppItemClicked(selectedApp: App) {
@@ -235,13 +236,6 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
                 .putExtra("app", selectedApp)
                 .putExtra("serviceType", preferredServiceType)
         activityContext.startService(startAppIntent)
-    }
-
-    private fun setPulldownPromptVisibilityForAppList() {
-        empty_apps_list.visibility = when (appList.isEmpty()) {
-            true -> View.VISIBLE
-            false -> View.INVISIBLE
-        }
     }
 
     override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo) {
