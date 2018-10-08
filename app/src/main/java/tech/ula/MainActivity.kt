@@ -24,6 +24,7 @@ import kotlinx.android.synthetic.main.abc_tooltip.*
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.utils.NotificationUtility
+import tech.ula.utils.displayGenericErrorDialog
 
 class MainActivity : AppCompatActivity() {
 
@@ -129,29 +130,18 @@ class MainActivity : AppCompatActivity() {
             "wifiRequired" -> displayNetworkChoicesDialog()
 
             "errorFetchingAssetLists" ->
-                displayGenericErrorDialog(R.string.alert_network_unavailable_title,
+                displayGenericErrorDialog(this, R.string.alert_network_unavailable_title,
                         R.string.alert_network_unavailable_message)
             "extractionFailed" ->
-                displayGenericErrorDialog(R.string.alert_extraction_failure_title,
+                displayGenericErrorDialog(this, R.string.alert_extraction_failure_title,
                         R.string.alert_extraction_failure_message)
             "filesystemIsMissingRequiredAssets" ->
-                displayGenericErrorDialog(R.string.alert_filesystem_missing_requirements_title,
+                displayGenericErrorDialog(this, R.string.alert_filesystem_missing_requirements_title,
                     R.string.alert_filesystem_missing_requirements_message)
             "playStoreMissingForClient" ->
-                displayGenericErrorDialog(R.string.alert_need_client_app_title,
+                displayGenericErrorDialog(this, R.string.alert_need_client_app_title,
                     R.string.alert_need_client_app_message)
         }
-    }
-
-    private fun displayGenericErrorDialog(titleId: Int, messageId: Int) {
-        AlertDialog.Builder(this)
-                .setTitle(titleId)
-                .setMessage(messageId)
-                .setPositiveButton(R.string.button_ok) {
-                    dialog, _ ->
-                    dialog.dismiss()
-                }
-                .create().show()
     }
 
     private fun startProgressBar() {

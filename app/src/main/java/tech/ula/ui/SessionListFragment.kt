@@ -199,7 +199,7 @@ class SessionListFragment : Fragment() {
         val builder = AlertDialog.Builder(activityContext)
         builder.setMessage(R.string.alert_permissions_necessary_message)
                 .setTitle(R.string.alert_permissions_necessary_title)
-                .setPositiveButton(R.string.alert_permissions_necessary_ok_button) {
+                .setPositiveButton(R.string.button_ok) {
                     dialog, _ ->
                     requestPermissions(arrayOf(
                             Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),

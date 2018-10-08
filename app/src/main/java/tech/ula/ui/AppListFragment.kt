@@ -23,6 +23,8 @@ import android.widget.EditText
 import android.widget.RadioButton
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
 import kotlinx.android.synthetic.main.frag_app_list.* // ktlint-disable no-wildcard-imports
 import org.jetbrains.anko.bundleOf
 import org.jetbrains.anko.defaultSharedPreferences
@@ -43,6 +45,7 @@ import tech.ula.utils.FilesystemUtility
 import tech.ula.utils.PlayServiceManager
 import tech.ula.utils.ValidationUtility
 import tech.ula.utils.arePermissionsGranted
+import tech.ula.utils.displayGenericErrorDialog
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
 
@@ -52,6 +55,7 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
     private val permissionRequestCode: Int by lazy {
         activityContext.resources.getString(R.string.permission_request_code).toInt()
     }
+    private val PLAY_SERVICES_RESOLUTION_REQUEST = 9000
 
     private lateinit var appList: List<App>
     private lateinit var appAdapter: AppListAdapter
@@ -149,6 +153,10 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
         appListViewModel.getRefreshStatus().observe(viewLifecycleOwner, refreshStatusObserver)
         appListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemObserver)
 
+        if (playServiceManager.playServicesAreAvailable(activityContext)) {
+            playServiceManager.startBillingClient(activityContext)
+        }
+
         registerForContextMenu(list_apps)
         list_apps.onItemClickListener = AdapterView.OnItemClickListener {
             parent, _, position, _ ->
@@ -182,9 +190,23 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
     }
 
     private fun handleAppSelection(selectedApp: App) {
-        if (selectedApp.isPaidApp && !playServiceManager.userHasYearlyAppsSubscription()) {
-            playServiceManager.startBillingFlow(activityContext)
-            return
+        if (selectedApp.isPaidApp) {
+            when {
+                !playServiceManager.playStoreIsAvailable(activityContext.packageManager) -> {
+                    displayGenericErrorDialog(activityContext, R.string.general_error_title,
+                            R.string.alert_play_store_required)
+                    return
+                }
+                !playServiceManager.playServicesAreAvailable(activityContext) -> {
+                    displayGenericErrorDialog(activityContext, R.string.general_error_title,
+                            R.string.alert_play_service_error_message)
+                    return
+                }
+                !playServiceManager.userHasYearlyAppsSubscription() -> {
+                    playServiceManager.startBillingFlow(activityContext)
+                    return
+                }
+            }
         }
 
         val preferredServiceType = appListViewModel.getAppServiceTypePreference(selectedApp).toLowerCase()
@@ -398,7 +420,7 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
         val builder = AlertDialog.Builder(activityContext)
         builder.setMessage(R.string.alert_permissions_necessary_message)
                 .setTitle(R.string.alert_permissions_necessary_title)
-                .setPositiveButton(R.string.alert_permissions_necessary_ok_button) {
+                .setPositiveButton(R.string.button_ok) {
                     dialog, _ ->
                     requestPermissions(arrayOf(
                             Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),

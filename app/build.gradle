@@ -32,7 +32,7 @@ android {
             buildConfigField 'boolean', 'ENABLE_PLAY_SERVICES', 'false'
         }
         release {
-            debuggable false
+            debuggable true
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -95,6 +95,7 @@ dependencies {
     implementation "com.android.support:design:$support_library_version"
     implementation "com.android.support:preference-v7:$support_library_version"
     implementation "com.android.billingclient:billing:1.1"
+    implementation "com.google.android.gms:play-services-base:16.0.1"
 
     testImplementation 'junit:junit:4.12'
     testImplementation "org.mockito:mockito-core:$mockito_version"

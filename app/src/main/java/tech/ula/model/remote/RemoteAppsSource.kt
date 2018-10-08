@@ -26,7 +26,7 @@ class GithubAppsFetcher(private val applicationFilesDir: String, private val con
     operator fun <T> List<T>.component6() = get(5)
     operator fun <T> List<T>.component7() = get(6)
 
-    private val baseUrl = "://github.com/CypherpunkArmory/UserLAnd-Assets-Support/raw/master/apps"
+    private val baseUrl = "://github.com/CypherpunkArmory/UserLAnd-Assets-Support/raw/apps-paid/apps"
     private var protocol = "https"
 
     @Throws
