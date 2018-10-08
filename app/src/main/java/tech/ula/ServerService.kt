@@ -2,6 +2,7 @@ package tech.ula
 
 import android.app.DownloadManager
 import android.app.Service
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -312,7 +313,11 @@ class ServerService : Service() {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
         sendToastBroadcast(R.string.download_client_app)
-        this.startActivity(intent)
+        try {
+            this.startActivity(intent)
+        } catch (err: ActivityNotFoundException) {
+            dialogBroadcaster("playStoreMissingForClient")
+        }
     }
 
     private fun cleanUpFilesystem(filesystemId: Long) {
