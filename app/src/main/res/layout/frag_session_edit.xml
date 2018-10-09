@@ -17,6 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:hint="@string/hint_session_name"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -26,8 +27,7 @@
                 android:id="@+id/text_input_session_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="text"
-                android:hint="@string/hint_session_name" />
+                android:inputType="text" />
 
         </android.support.design.widget.TextInputLayout>
 
@@ -110,6 +110,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:hint="@string/hint_username"
             app:layout_constraintTop_toBottomOf="@id/spinner_session_client_type"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" >
@@ -118,8 +119,7 @@
                 android:id="@+id/text_input_username"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="text"
-                android:hint="@string/hint_username" />
+                android:inputType="text" />
 
         </android.support.design.widget.TextInputLayout>
 
