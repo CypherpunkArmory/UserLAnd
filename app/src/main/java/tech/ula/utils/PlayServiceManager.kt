@@ -1,12 +1,15 @@
 package tech.ula.utils
 
 import android.app.Activity
+import android.content.pm.PackageManager
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.BillingClient.BillingResponse
 import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.Purchase
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
 import tech.ula.BuildConfig
 
 class PlayServiceManager(private val playServicesUpdateListener: PlayServicesUpdateListener) : PurchasesUpdatedListener {
@@ -15,6 +18,7 @@ class PlayServiceManager(private val playServicesUpdateListener: PlayServicesUpd
 
     private val appsYearlySubId = "apps_yearly_subscription"
     private val packageName = "tech.ula"
+    private val playServicesResolutionRequest = 9000 // Arbitrary
 
     interface PlayServicesUpdateListener {
         fun onSubscriptionsAreNotSupported()
@@ -32,6 +36,30 @@ class PlayServiceManager(private val playServicesUpdateListener: PlayServicesUpd
             }
         } else if (responseCode == BillingResponse.USER_CANCELED) return
         else playServicesUpdateListener.onPlayServiceError()
+    }
+
+    fun playStoreIsAvailable(packageManager: PackageManager): Boolean {
+        if (!BuildConfig.ENABLE_PLAY_SERVICES) return true
+        val playStorePackageName = "com.android.vending"
+        return try {
+            packageManager.getPackageInfo(playStorePackageName, 0)
+            true
+        } catch (err: PackageManager.NameNotFoundException) {
+            false
+        }
+    }
+
+    fun playServicesAreAvailable(activity: Activity): Boolean {
+        if (!BuildConfig.ENABLE_PLAY_SERVICES) return true
+        val googleApi = GoogleApiAvailability.getInstance()
+        val result = googleApi.isGooglePlayServicesAvailable(activity)
+        if (result != ConnectionResult.SUCCESS) {
+            if (googleApi.isUserResolvableError(result)) {
+                googleApi.getErrorDialog(activity, result, playServicesResolutionRequest).show()
+            }
+            return false
+        }
+        return true
     }
 
     fun startBillingClient(activity: Activity) {
@@ -71,9 +99,12 @@ class PlayServiceManager(private val playServicesUpdateListener: PlayServicesUpd
     }
 
     private fun cacheIndicatesUserHasPurchasedSubscription(): Boolean {
-        return billingClient.queryPurchases(BillingClient.SkuType.SUBS).purchasesList.any {
+        // Purchases list is nullable even though not documented as such. Null *at least* when play
+        // store is unavailable
+        val purchasesList = billingClient.queryPurchases(BillingClient.SkuType.SUBS).purchasesList
+        return purchasesList?.any {
             purchaseIsForYearlyAppsSub(it)
-        }
+        } ?: false
     }
 
     private fun purchaseIsForYearlyAppsSub(purchase: Purchase): Boolean {

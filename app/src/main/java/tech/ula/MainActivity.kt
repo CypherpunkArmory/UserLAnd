@@ -23,6 +23,7 @@ import androidx.navigation.ui.NavigationUI.setupWithNavController
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.utils.NotificationUtility
+import tech.ula.utils.displayGenericErrorDialog
 
 class MainActivity : AppCompatActivity() {
 
@@ -45,8 +46,6 @@ class MainActivity : AppCompatActivity() {
                     "updateProgressBar" -> updateProgressBar(it)
                     "killProgressBar" -> killProgressBar()
                     "isProgressBarActive" -> syncProgressBarDisplayedWithService(it)
-                    "networkUnavailable" -> displayNetworkUnavailableDialog()
-                    "assetListFailure" -> displayAssetListFailureDialog()
                     "displayNetworkChoices" -> displayNetworkChoicesDialog()
                     "toast" -> showToast(it)
                     "dialog" -> showDialog(it)
@@ -127,59 +126,21 @@ class MainActivity : AppCompatActivity() {
 
     private fun showDialog(intent: Intent) {
         when (intent.getStringExtra("dialogType")) {
-            "errorFetchingAssetLists" -> displayAssetListFailureDialog()
             "wifiRequired" -> displayNetworkChoicesDialog()
-            "extractionFailed" -> displayExtractionFailedDialog()
-            "filesystemIsMissingRequiredAssets" -> displayFilesystemMissingRequiredAssets()
+
+            "errorFetchingAssetLists" ->
+                displayGenericErrorDialog(this, R.string.alert_network_unavailable_title,
+                        R.string.alert_network_unavailable_message)
+            "extractionFailed" ->
+                displayGenericErrorDialog(this, R.string.alert_extraction_failure_title,
+                        R.string.alert_extraction_failure_message)
+            "filesystemIsMissingRequiredAssets" ->
+                displayGenericErrorDialog(this, R.string.alert_filesystem_missing_requirements_title,
+                    R.string.alert_filesystem_missing_requirements_message)
+            "playStoreMissingForClient" ->
+                displayGenericErrorDialog(this, R.string.alert_need_client_app_title,
+                    R.string.alert_need_client_app_message)
         }
-    }
-
-    private fun displayNetworkUnavailableDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setMessage(R.string.alert_network_unavailable_message)
-                .setTitle(R.string.alert_network_unavailable_title)
-                .setPositiveButton(R.string.alert_network_unavailable_cancel_button) {
-                    dialog, _ ->
-                    dialog.dismiss()
-                }
-                .create()
-                .show()
-    }
-
-    private fun displayAssetListFailureDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setMessage(R.string.alert_asset_list_failure_message)
-                .setTitle(R.string.alert_asset_list_failure_title)
-                .setPositiveButton(R.string.alert_asset_list_failure_positive_button) {
-                    dialog, _ ->
-                    dialog.dismiss()
-                }
-                .create()
-                .show()
-    }
-
-    private fun displayExtractionFailedDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setMessage(R.string.alert_extraction_failure_message)
-                .setTitle(R.string.alert_extraction_failure_title)
-                .setPositiveButton(R.string.alert_extraction_failure_positive_button) {
-                    dialog, _ ->
-                    dialog.dismiss()
-                }
-                .create()
-                .show()
-    }
-
-    private fun displayFilesystemMissingRequiredAssets() {
-        val builder = AlertDialog.Builder(this)
-        builder.setMessage(R.string.alert_filesystem_missing_requirements_message)
-                .setTitle(R.string.alert_filesystem_missing_requirements_title)
-                .setPositiveButton(R.string.alert_filesystem_missing_requirements_positive_button) {
-                    dialog, _ ->
-                    dialog.dismiss()
-                }
-                .create()
-                .show()
     }
 
     private fun startProgressBar() {

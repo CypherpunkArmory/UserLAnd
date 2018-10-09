@@ -1,6 +1,8 @@
 package tech.ula.utils
 
 import android.Manifest
+import android.app.Activity
+import android.app.AlertDialog
 import android.app.DownloadManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -37,6 +39,17 @@ fun arePermissionsGranted(context: Context): Boolean {
 
             ContextCompat.checkSelfPermission(context,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
+}
+
+fun displayGenericErrorDialog(activity: Activity, titleId: Int, messageId: Int) {
+    AlertDialog.Builder(activity)
+            .setTitle(titleId)
+            .setMessage(messageId)
+            .setPositiveButton(R.string.button_ok) {
+                dialog, _ ->
+                dialog.dismiss()
+            }
+            .create().show()
 }
 
 class DefaultPreferences(private val prefs: SharedPreferences) {

@@ -106,34 +106,32 @@
     <string name="general_error_title">Something unexpected happened!</string>
 
     <!-- Play service error alerts -->
-    <string name="alert_play_service_error_message">We\'re having trouble accessing the Google Play store to complete this action. Please try again later, and if the problem continues report it to a developer.</string>
+    <string name="alert_play_service_error_message">We\'re having trouble accessing the Google Play services to complete this action. Please try again later, and if the problem continues report it to a developer.</string>
+    <string name="alert_play_store_required">Paid apps require access to the Google Play Store for verification of payment. Please install it to continue.</string>
     <string name="alert_subscriptions_unsupported_message">It looks like your version of the Play Store is too old to support subscriptions. Please update it to continue.</string>
+    <string name="alert_need_client_app_title">Can\'t find a client app!</string>
+    <string name="alert_need_client_app_message">You\'ll need an SSH or VNC client to complete this action, but it looks like you don\'t have the play store installed. Please install an SSH or VNC client application to continue.</string>
 
     <!-- Permissions necessary alert -->
     <string name="alert_permissions_necessary_title">UserLAnd requires permissions!</string>
     <string name="alert_permissions_necessary_message">To continue, enable storage permissions to allow UserLAnd to download files and move them from external storage to app local storage.</string>
-    <string name="alert_permissions_necessary_ok_button">Ok</string>
     <string name="alert_permissions_necessary_cancel_button">Cancel</string>
 
     <!-- Network unavailable alert -->
     <string name="alert_network_unavailable_title">No network available</string>
     <string name="alert_network_unavailable_message">UserLAnd requires network availability to download required assets.</string>
-    <string name="alert_network_unavailable_cancel_button">Cancel</string>
 
     <!-- Asset list failure alert -->
     <string name="alert_asset_list_failure_title">Could not retrieve asset lists.</string>
     <string name="alert_asset_list_failure_message">Either the asset lists cannot be fetched or they are not cached locally. Please try again shortly.</string>
-    <string name="alert_asset_list_failure_positive_button">OK!</string>
 
     <!-- Extraction failure alert -->
     <string name="alert_extraction_failure_title">Could not extract filesystem.</string>
     <string name="alert_extraction_failure_message">Something went wrong. Try deleting the filesystem and trying again.</string>
-    <string name="alert_extraction_failure_positive_button">OK!</string>
 
     <!-- Filesystem missing assets alert -->
     <string name="alert_filesystem_missing_requirements_title">This filesystem is missing required assets!</string>
     <string name="alert_filesystem_missing_requirements_message">Please try starting the session again, and report this to a developer!</string>
-    <string name="alert_filesystem_missing_requirements_positive_button">OK!</string>
 
     <!-- Wifi alert -->
     <string name="alert_wifi_disabled_title">No wifi!</string>
