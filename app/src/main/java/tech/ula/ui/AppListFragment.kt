@@ -216,6 +216,7 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
                         .putExtra("type", "restartRunningSession")
                         .putExtra("session", session)
                 activityContext.startService(serviceIntent)
+                return
             } else {
                 Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG)
                         .show()
