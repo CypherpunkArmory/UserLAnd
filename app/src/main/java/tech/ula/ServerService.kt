@@ -221,7 +221,7 @@ class ServerService : Service() {
             if (session.isAppsSession) {
                 // TODO handle file not downloaded/found case
                 // TODO determine if moving the script to profile.d before extraction is harmful
-                filesystemUtility.moveAppScriptToRequiredLocations(app.name, appsFilesystem)
+                filesystemUtility.moveAppScriptToRequiredLocations(session.name, filesystem)
             }
 
             val updatedSession = asyncAwait { sessionController.activateSession(session, serverUtility) }
