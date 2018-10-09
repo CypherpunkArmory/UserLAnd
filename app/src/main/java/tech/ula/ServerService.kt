@@ -218,6 +218,12 @@ class ServerService : Service() {
 
             sessionController.ensureFilesystemHasRequiredAssets(filesystem)
 
+            if (session.isAppsSession) {
+                // TODO handle file not downloaded/found case
+                // TODO determine if moving the script to profile.d before extraction is harmful
+                filesystemUtility.moveAppScriptToRequiredLocations(app.name, appsFilesystem)
+            }
+
             val updatedSession = asyncAwait { sessionController.activateSession(session, serverUtility) }
 
             startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
@@ -251,10 +257,6 @@ class ServerService : Service() {
         sessionController.setAppsPassword(password, appSession, appsFilesystem, sessionDao, filesystemDao)
         sessionController.setAppsVncPassword(vncPassword, appSession, appsFilesystem, sessionDao, filesystemDao)
         sessionController.setAppsServiceType(serviceType, appSession, sessionDao)
-
-        // TODO handle file not downloaded/found case
-        // TODO determine if moving the script to profile.d before extraction is harmful
-        filesystemUtility.moveAppScriptToRequiredLocations(app.name, appsFilesystem)
 
         startSession(appSession, appsFilesystem, forceDownloads = false)
     }
