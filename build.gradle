@@ -7,15 +7,15 @@ buildscript {
     }
 
     ext {
-        kotlin_version = '1.2.51'
+        kotlin_version = '1.2.71'
         android_plugin = '3.1.2'
         ktlint_version = '0.24.0'
 
-        support_library_version = '28.0.0-alpha3'
+        support_library_version = '28.0.0'
         arch_version = '1.1.1'
         anko_version = '0.10.5'
         kotlinx_coroutines_version = '0.22.5'
-        navigation_version = '1.0.0-alpha03'
+        navigation_version = '1.0.0-alpha06'
         room_version = '1.1.1'
 
         mockito_version = '2.18.3'
