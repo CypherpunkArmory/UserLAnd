@@ -21,14 +21,15 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.MenuInflater
 import android.view.animation.AnimationUtils
-import android.widget.*
+import android.widget.Toast
+import android.widget.EditText
+import android.widget.RadioButton
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_app_list.* // ktlint-disable no-wildcard-imports
 import org.jetbrains.anko.bundleOf
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.find
 import tech.ula.R
-import tech.ula.R.layout.frag_app_list
 import tech.ula.ServerService
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Filesystem
@@ -48,7 +49,7 @@ import tech.ula.utils.displayGenericErrorDialog
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
 
-class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListener {
+class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListener, AppListAdapter.OnAppsItemClicked {
 
     private lateinit var activityContext: Activity
     private val permissionRequestCode: Int by lazy {
@@ -100,7 +101,7 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
         it?.let {
             appList = it.first
             activeSessions = it.second
-            appAdapter = AppListAdapter(activityContext, appList, activeSessions)
+            appAdapter = AppListAdapter(activityContext, this, appList, activeSessions)
             list_apps.adapter = appAdapter
             if (appList.isEmpty()) {
                 doRefresh()
@@ -153,6 +154,13 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
         }
     }
 
+    override fun onAppsItemClicked(appsItemClicked: AppsListItem) {
+        when (appsItemClicked) {
+            is AppSeparatorItem -> {}
+            is AppItem -> { doAppItemClicked(appsItemClicked.app) }
+        }
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.frag_app_list, container, false)
     }
@@ -168,26 +176,12 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
             playServiceManager.startBillingClient(activityContext)
         }
         list_apps.layoutManager = LinearLayoutManager(list_apps.context)
-        list_apps.adapter = AppListAdapter(activityContext)
-
-        runLayoutAnimation(list_apps,  R.anim.layout_animation_from_right)
+        list_apps.adapter = AppListAdapter(activityContext, this)
 
         registerForContextMenu(list_apps)
-//        list_apps.onItemClickListener = AdapterView.OnItemClickListener {
-//            parent, _, position, _ ->
-//            val selectedItem = parent.getItemAtPosition(position) as AppsListItem
-//            when (selectedItem) {
-//                is AppSeparatorItem -> return@OnItemClickListener
-//                is AppItem -> {
-//                    val selectedApp = selectedItem.app
-//                    doAppItemClicked(selectedApp)
-//                }
-//            }
-//        }
 
-        swipe_refresh.setOnRefreshListener {
-                    doRefresh()
-                }
+        swipe_refresh.setOnRefreshListener { doRefresh() }
+        runLayoutAnimation(list_apps, R.anim.layout_animation_from_right)
     }
 
     private fun doRefresh() {
@@ -294,13 +288,13 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
 //        }
 //    }
 
-    private fun doContextItemSelected(app: App, item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.menu_item_app_details -> showAppDetails(app)
-            R.id.menu_item_stop_app -> stopApp(app)
-            else -> super.onContextItemSelected(item)
-        }
-    }
+//    private fun doContextItemSelected(app: App, item: MenuItem): Boolean {
+//        return when (item.itemId) {
+//            R.id.menu_item_app_details -> showAppDetails(app)
+//            R.id.menu_item_stop_app -> stopApp(app)
+//            else -> super.onContextItemSelected(item)
+//        }
+//    }
 
     private fun showAppDetails(app: App): Boolean {
         val bundle = bundleOf("app" to app)

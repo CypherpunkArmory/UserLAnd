@@ -12,16 +12,17 @@ import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Session
 import tech.ula.utils.LocalFileLocator
-import tech.ula.utils.arePermissionsGranted
 
 class AppListAdapter(
     private val activity: Activity,
+    private val onAppsItemClicked: OnAppsItemClicked,
     private val apps: List<App> = listOf(),
     private val activeSessions: List<Session> = listOf()
 ) : RecyclerView.Adapter<AppListAdapter.ViewHolder>() {
 
-    private val unselectedApp = App(name = "unselected")
-    private var lastSelectedApp = unselectedApp
+    interface OnAppsItemClicked {
+        fun onAppsItemClicked(appsItemClicked: AppsListItem)
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -35,6 +36,8 @@ class AppListAdapter(
 
     override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
         val item = appsAndSeparators[position]
+
+        bind(viewHolder, item, onAppsItemClicked)
 
         when (item) {
             is AppSeparatorItem -> {
@@ -53,19 +56,14 @@ class AppListAdapter(
                 val localFileLocator = LocalFileLocator(activity.filesDir.path, activity.resources)
                 viewHolder.imageView?.setImageURI(localFileLocator.findIconUri(app.name))
                 viewHolder.appName?.text = app.name.capitalize()
-
-                viewHolder.itemView.setOnClickListener { onAppSelect(app) }
             }
         }
     }
 
-    fun onAppSelect(selectedApp: App) {
-        lastSelectedApp = selectedApp
-//        if (arePermissionsGranted(activityContext)) {
-//            handleAppSelection(lastSelectedApp)
-//        } else {
-//            showPermissionsNecessaryDialog()
-//        }
+    private fun bind(viewHolder: ViewHolder, appsListItem: AppsListItem, onAppsItemClicked: OnAppsItemClicked) {
+        viewHolder.itemView.setOnClickListener {
+                onAppsItemClicked.onAppsItemClicked(appsListItem)
+        }
     }
 
     class ViewHolder(row: View) : RecyclerView.ViewHolder(row) {
