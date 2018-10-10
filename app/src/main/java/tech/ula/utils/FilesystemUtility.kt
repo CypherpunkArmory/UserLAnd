@@ -96,9 +96,11 @@ class FilesystemUtility(
 
     fun moveAppScriptToRequiredLocations(appName: String, appFilesystem: Filesystem) {
         // TODO add error cases
+        val fileNameToForceAppScriptToExecuteLast = "zzzzzzzzzzzzzzzz.sh"
         val appScriptSource = File("$applicationFilesDirPath/apps/$appName/$appName.sh")
         val appScriptSupportTarget = File("$applicationFilesDirPath/${appFilesystem.id}/support/$appName.sh")
-        val appScriptProfileDTarget = File("$applicationFilesDirPath/${appFilesystem.id}/etc/profile.d/$appName.sh")
+        val appScriptProfileDTarget = File("$applicationFilesDirPath/${appFilesystem.id}" +
+                "/etc/profile.d/$fileNameToForceAppScriptToExecuteLast")
         appScriptSource.copyTo(appScriptSupportTarget, overwrite = true)
         appScriptSource.copyTo(appScriptProfileDTarget, overwrite = true)
     }
