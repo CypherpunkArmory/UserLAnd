@@ -45,7 +45,8 @@ class SessionEditFragment : Fragment() {
 
     private val filesystemChangeObserver = Observer<List<Filesystem>> {
         it?.let {
-            val filesystemNames = ArrayList(it.map { filesystem -> filesystem.name })
+            val filesystemNames = ArrayList(it.map { filesystem ->
+                "${filesystem.name}: ${filesystem.distributionType.capitalize()}" })
             filesystemNames.add("Create new")
 
             if (it.isEmpty()) {
@@ -107,7 +108,8 @@ class SessionEditFragment : Fragment() {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val filesystemName = parent?.getItemAtPosition(position).toString()
+                val filesystemName = parent?.getItemAtPosition(position)
+                        .toString().substringBefore(":")
                 when (filesystemName) {
                     "Create new" -> {
                         val bundle = bundleOf("filesystem" to Filesystem(0), "editExisting" to false)

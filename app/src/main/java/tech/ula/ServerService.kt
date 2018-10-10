@@ -6,6 +6,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Environment
@@ -49,6 +50,11 @@ class ServerService : Service() {
 
     private val assetListPreferences by lazy {
         AssetListPreferences(this.getSharedPreferences("assetLists", Context.MODE_PRIVATE))
+    }
+
+    private val appsList by lazy {
+        AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
+                .getAppsList()
     }
 
     private val networkUtility by lazy {
@@ -221,6 +227,13 @@ class ServerService : Service() {
             if (session.isAppsSession) {
                 // TODO handle file not downloaded/found case
                 // TODO determine if moving the script to profile.d before extraction is harmful
+                // TODO better error handling for renamed apps sessions and filesystems
+                if (!appsList.contains(session.name) || session.filesystemName != "apps") {
+                    killProgressBar()
+                    sendToastBroadcast(R.string.error_apps_renamed)
+                    return@launch
+                }
+
                 filesystemUtility.moveAppScriptToRequiredLocations(session.name, filesystem)
             }
 

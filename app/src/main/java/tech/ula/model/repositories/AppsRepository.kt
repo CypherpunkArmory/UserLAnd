@@ -30,11 +30,15 @@ class AppsRepository(
     }
 
     suspend fun refreshData() {
+        val appsList = mutableSetOf<String>()
+        val distributionsList = mutableSetOf<String>()
         asyncAwait {
             refreshStatus.postValue(RefreshStatus.ACTIVE)
             try {
                 remoteAppsSource.fetchAppsList().forEach {
                     app ->
+                    appsList.add(app.name)
+                    if (app.category.toLowerCase() == "distribution") distributionsList.add(app.name)
                     remoteAppsSource.fetchAppIcon(app)
                     remoteAppsSource.fetchAppDescription(app)
                     remoteAppsSource.fetchAppScript(app)
@@ -47,6 +51,8 @@ class AppsRepository(
             }
             refreshStatus.postValue(RefreshStatus.FINISHED)
         }
+        appsPreferences.setAppsList(appsList)
+        appsPreferences.setDistributionsList(distributionsList)
     }
 
     fun getRefreshStatus(): LiveData<RefreshStatus> {
