@@ -300,7 +300,7 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
 
     private fun getCredentials(selectedApp: App) {
         val dialog = AlertDialog.Builder(activityContext)
-        val dialogView = layoutInflater.inflate(R.layout.dia_app_credentials, null)
+        val dialogView = activityContext.layoutInflater.inflate(R.layout.dia_app_credentials, null)
         dialog.setView(dialogView)
         dialog.setCancelable(true)
         dialog.setPositiveButton(R.string.button_continue, null)
