@@ -2,24 +2,73 @@ package tech.ula.ui
 
 import android.app.Activity
 import android.content.Context
+import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.TextView
 import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Session
 import tech.ula.utils.LocalFileLocator
+import tech.ula.utils.arePermissionsGranted
 
 class AppListAdapter(
     private val activity: Activity,
-    private val apps: List<App>,
-    private val activeSessions: List<Session>
-) : BaseAdapter() {
+    private val apps: List<App> = listOf(),
+    private val activeSessions: List<Session> = listOf()
+) : RecyclerView.Adapter<AppListAdapter.ViewHolder>() {
 
-    private class ViewHolder(row: View) {
+    private val unselectedApp = App(name = "unselected")
+    private var lastSelectedApp = unselectedApp
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val inflater = LayoutInflater.from(parent.context)
+        val layout = when (viewType) {
+            ITEM_VIEW_TYPE_APP -> R.layout.list_item_app
+            else -> R.layout.list_item_separator
+        }
+        val view = inflater.inflate(layout, parent, false)
+        return ViewHolder(view)
+    }
+
+    override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
+        val item = appsAndSeparators[position]
+
+        when (item) {
+            is AppSeparatorItem -> {
+                viewHolder.separatorText?.text = item.category
+            }
+            is AppItem -> {
+                val app = item.app
+                val activeAppSessions = activeSessions.filter { it.name == app.name }
+                val appIsActive = activeAppSessions.isNotEmpty()
+                if (appIsActive) {
+                    viewHolder.itemView.setBackgroundResource(R.color.colorAccent)
+                } else {
+                    viewHolder.itemView.setBackgroundResource(R.color.colorPrimaryDark)
+                }
+
+                val localFileLocator = LocalFileLocator(activity.filesDir.path, activity.resources)
+                viewHolder.imageView?.setImageURI(localFileLocator.findIconUri(app.name))
+                viewHolder.appName?.text = app.name.capitalize()
+
+                viewHolder.itemView.setOnClickListener { onAppSelect(app) }
+            }
+        }
+    }
+
+    fun onAppSelect(selectedApp: App) {
+        lastSelectedApp = selectedApp
+//        if (arePermissionsGranted(activityContext)) {
+//            handleAppSelection(lastSelectedApp)
+//        } else {
+//            showPermissionsNecessaryDialog()
+//        }
+    }
+
+    class ViewHolder(row: View) : RecyclerView.ViewHolder(row) {
         var imageView: ImageView? = row.findViewById(R.id.apps_icon)
         var appName: TextView? = row.findViewById(R.id.apps_name)
         var separatorText: TextView? = row.findViewById(R.id.list_item_separator_text)
@@ -59,7 +108,7 @@ class AppListAdapter(
         listBuilder.toList()
     }
 
-    override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+    fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val view: View?
         val viewHolder: ViewHolder
 
@@ -102,20 +151,12 @@ class AppListAdapter(
         return view as View
     }
 
-    override fun getItem(position: Int): AppsListItem {
-        return appsAndSeparators[position]
-    }
-
     override fun getItemId(position: Int): Long {
         return position.toLong()
     }
 
-    override fun getCount(): Int {
+    override fun getItemCount(): Int {
         return appsAndSeparators.size
-    }
-
-    override fun getViewTypeCount(): Int {
-        return ITEM_VIEW_TYPE_COUNT
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -125,7 +166,7 @@ class AppListAdapter(
         }
     }
 
-    override fun isEnabled(position: Int): Boolean {
+    fun isEnabled(position: Int): Boolean {
         return when (appsAndSeparators[position]) {
             is AppItem -> true
             is AppSeparatorItem -> false

@@ -11,6 +11,8 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Environment
 import android.support.v4.app.Fragment
+import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.ContextMenu
@@ -18,16 +20,15 @@ import android.view.View
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MenuInflater
-import android.widget.AdapterView
-import android.widget.EditText
-import android.widget.RadioButton
-import android.widget.Toast
+import android.view.animation.AnimationUtils
+import android.widget.*
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_app_list.* // ktlint-disable no-wildcard-imports
 import org.jetbrains.anko.bundleOf
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.find
 import tech.ula.R
+import tech.ula.R.layout.frag_app_list
 import tech.ula.ServerService
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Filesystem
@@ -127,6 +128,15 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
         setHasOptionsMenu(true)
     }
 
+    private fun runLayoutAnimation(recyclerView: RecyclerView, resourceId: Int) {
+        val context = recyclerView.context
+        val controller = AnimationUtils.loadLayoutAnimation(context, resourceId)
+
+        list_apps.layoutAnimation = controller
+        list_apps.adapter?.notifyDataSetChanged()
+        list_apps.scheduleLayoutAnimation()
+    }
+
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
         super.onCreateOptionsMenu(menu, inflater)
         inflater?.inflate(R.menu.menu_refresh, menu)
@@ -157,19 +167,23 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
         if (playServiceManager.playServicesAreAvailable(activityContext)) {
             playServiceManager.startBillingClient(activityContext)
         }
+        list_apps.layoutManager = LinearLayoutManager(list_apps.context)
+        list_apps.adapter = AppListAdapter(activityContext)
+
+        runLayoutAnimation(list_apps,  R.anim.layout_animation_from_right)
 
         registerForContextMenu(list_apps)
-        list_apps.onItemClickListener = AdapterView.OnItemClickListener {
-            parent, _, position, _ ->
-            val selectedItem = parent.getItemAtPosition(position) as AppsListItem
-            when (selectedItem) {
-                is AppSeparatorItem -> return@OnItemClickListener
-                is AppItem -> {
-                    val selectedApp = selectedItem.app
-                    doAppItemClicked(selectedApp)
-                }
-            }
-        }
+//        list_apps.onItemClickListener = AdapterView.OnItemClickListener {
+//            parent, _, position, _ ->
+//            val selectedItem = parent.getItemAtPosition(position) as AppsListItem
+//            when (selectedItem) {
+//                is AppSeparatorItem -> return@OnItemClickListener
+//                is AppItem -> {
+//                    val selectedApp = selectedItem.app
+//                    doAppItemClicked(selectedApp)
+//                }
+//            }
+//        }
 
         swipe_refresh.setOnRefreshListener {
                     doRefresh()
@@ -178,6 +192,7 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
 
     private fun doRefresh() {
         appListViewModel.refreshAppsList()
+        runLayoutAnimation(list_apps, R.anim.layout_animation_from_right)
     }
 
     private fun doAppItemClicked(selectedApp: App) {
@@ -266,18 +281,18 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
         activityContext.menuInflater.inflate(R.menu.context_menu_apps, menu)
     }
 
-    override fun onContextItemSelected(item: MenuItem): Boolean {
-        val menuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
-        val position = menuInfo.position
-        val selectedItem = list_apps.adapter.getItem(position) as AppsListItem
-        return when (selectedItem) {
-            is AppSeparatorItem -> true
-            is AppItem -> {
-                val app = selectedItem.app
-                doContextItemSelected(app, item)
-            }
-        }
-    }
+//    override fun onContextItemSelected(item: MenuItem): Boolean {
+//        val menuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
+//        val position = menuInfo.position
+//        val selectedItem = list_apps.adapter.getItem(position) as AppsListItem
+//        return when (selectedItem) {
+//            is AppSeparatorItem -> true
+//            is AppItem -> {
+//                val app = selectedItem.app
+//                doContextItemSelected(app, item)
+//            }
+//        }
+//    }
 
     private fun doContextItemSelected(app: App, item: MenuItem): Boolean {
         return when (item.itemId) {
