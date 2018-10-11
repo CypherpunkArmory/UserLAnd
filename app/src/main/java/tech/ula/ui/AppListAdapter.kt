@@ -1,11 +1,13 @@
 package tech.ula.ui
 
 import android.app.Activity
+import android.support.constraint.ConstraintLayout
 import android.support.v7.widget.RecyclerView
 import android.view.ContextMenu
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.TextView
 import tech.ula.R
@@ -16,12 +18,12 @@ import tech.ula.utils.LocalFileLocator
 class AppListAdapter(
     private val activity: Activity,
     private val onAppsItemClicked: OnAppsItemClicked,
-    private val onAppsCreateContextMenu: OnAppsCreateContextMenu,
-    private val apps: List<App> = listOf(),
-    private val activeSessions: List<Session> = listOf()
+    private val onAppsCreateContextMenu: OnAppsCreateContextMenu
 ) : RecyclerView.Adapter<AppListAdapter.ViewHolder>() {
 
     private lateinit var lastSelectedAppListItem: AppsListItem
+    private val apps: ArrayList<App> = arrayListOf()
+    private val activeSessions: ArrayList<Session> = arrayListOf()
 
     interface OnAppsItemClicked {
         fun onAppsItemClicked(appsItemClicked: AppsListItem)
@@ -40,11 +42,19 @@ class AppListAdapter(
     private val ITEM_VIEW_TYPE_APP = 0
     private val ITEM_VIEW_TYPE_SEPARATOR = 1
 
+    private var lastPosition = -1
+
     private val firstDisplayCategory = "distribution"
     private val freeAnnotation = activity.resources.getString(R.string.free_annotation)
     private val paidAnnotation = activity.resources.getString(R.string.paid_annotation)
 
-    private val appsAndSeparators: List<AppsListItem> by lazy {
+    private val appsAndSeparators: ArrayList<AppsListItem> = arrayListOf()
+
+    fun setAppsAndSessions(newApps: List<App>, newActiveSessions: List<Session>) {
+        apps.clear()
+        apps.addAll(newApps)
+        activeSessions.clear()
+        activeSessions.addAll(newActiveSessions)
         val listBuilder = arrayListOf<AppsListItem>()
         val categoriesAndApps = HashMap<String, ArrayList<App>>()
 
@@ -67,7 +77,9 @@ class AppListAdapter(
             listBuilder.add(AppSeparatorItem(categoryWithPaymentInformation.capitalize()))
             categoryApps.forEach { listBuilder.add(AppItem(it)) }
         }
-        listBuilder.toList()
+        appsAndSeparators.clear()
+        appsAndSeparators.addAll(listBuilder)
+        notifyDataSetChanged()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -104,7 +116,16 @@ class AppListAdapter(
                 val localFileLocator = LocalFileLocator(activity.filesDir.path, activity.resources)
                 viewHolder.imageView?.setImageURI(localFileLocator.findIconUri(app.name))
                 viewHolder.appName?.text = app.name.capitalize()
+                setAnimation(viewHolder.itemView, position)
             }
+        }
+    }
+
+    private fun setAnimation(viewToAnimate: View, position: Int) {
+        if (position > lastPosition) {
+            val animation = AnimationUtils.loadAnimation(activity, R.anim.item_animation_from_right)
+            viewToAnimate.startAnimation(animation)
+            lastPosition = position
         }
     }
 
@@ -133,6 +154,10 @@ class AppListAdapter(
             is AppItem -> ITEM_VIEW_TYPE_APP
             is AppSeparatorItem -> ITEM_VIEW_TYPE_SEPARATOR
         }
+    }
+
+    override fun onViewDetachedFromWindow(holder: ViewHolder) {
+        holder.itemView.clearAnimation()
     }
 
     fun getLastSelectedAppsListItem(): AppsListItem {
