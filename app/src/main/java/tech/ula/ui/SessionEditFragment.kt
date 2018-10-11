@@ -56,7 +56,10 @@ class SessionEditFragment : Fragment() {
             getListDifferenceAndSetNewFilesystem(filesystemList, it)
 
             val filesystemAdapter = ArrayAdapter(activityContext, android.R.layout.simple_spinner_dropdown_item, filesystemNames)
-            val filesystemNamePosition = filesystemAdapter.getPosition(session.filesystemName)
+            val filesystemNamePosition = it.indexOfFirst {
+                filesystem -> filesystem.id == session.filesystemId
+            }
+
             val usedPosition = if (filesystemNamePosition < 0) 0 else filesystemNamePosition
 
             spinner_filesystem_list.adapter = filesystemAdapter
@@ -167,8 +170,6 @@ class SessionEditFragment : Fragment() {
         val navController = NavHostFragment.findNavController(this)
 
         if (session.name == "") text_input_session_name.error = getString(R.string.error_session_name)
-        // TODO: Uncomment when we support unique usernames
-        // /if (session.username == "") text_input_username.error = getString(R.string.error_username)
         if (session.filesystemName == "") {
             val errorText = spinner_filesystem_list.selectedView as TextView
             errorText.error = ""
@@ -211,7 +212,7 @@ class SessionEditFragment : Fragment() {
 
     private fun getListDifferenceAndSetNewFilesystem(prevFilesystems: List<Filesystem>, currentFilesystems: List<Filesystem>) {
         val uniqueFilesystems = currentFilesystems.subtract(prevFilesystems)
-        if (uniqueFilesystems.isNotEmpty()) {
+        if (prevFilesystems.isNotEmpty() && uniqueFilesystems.isNotEmpty()) {
             updateFilesystemDetailsForSession(uniqueFilesystems.first())
         }
     }
