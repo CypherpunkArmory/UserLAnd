@@ -11,6 +11,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Environment
 import android.support.v4.app.Fragment
+import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -105,6 +106,7 @@ class AppListFragment : Fragment(),
             activeSessions = it.second
             appAdapter = AppListAdapter(activityContext, this, this, appList, activeSessions)
             registerForContextMenu(list_apps)
+            list_apps.layoutManager = LinearLayoutManager(list_apps.context)
             list_apps.adapter = appAdapter
             if (appList.isEmpty()) {
                 doRefresh()
