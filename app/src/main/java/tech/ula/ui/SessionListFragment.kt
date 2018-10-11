@@ -33,7 +33,8 @@ class SessionListFragment : Fragment() {
     private lateinit var sessionAdapter: SessionListAdapter
     private lateinit var filesystemList: List<Filesystem>
 
-    private lateinit var lastSelectedSession: Session
+    private val unselectedSession = Session(id = 0, name = "UNSELECTED", filesystemId = 0)
+    private var lastSelectedSession = unselectedSession
 
     private val sessionListViewModel: SessionListViewModel by lazy {
         ViewModelProviders.of(this).get(SessionListViewModel::class.java)
@@ -100,6 +101,7 @@ class SessionListFragment : Fragment() {
     }
 
     private fun handleSessionSelection(session: Session) {
+        if (session == unselectedSession) return
         if (session.active) {
             restartRunningSession(session)
         } else {
