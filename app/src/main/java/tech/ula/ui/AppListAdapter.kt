@@ -1,8 +1,8 @@
 package tech.ula.ui
 
 import android.app.Activity
-import android.content.Context
 import android.support.v7.widget.RecyclerView
+import android.view.ContextMenu
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,12 +16,19 @@ import tech.ula.utils.LocalFileLocator
 class AppListAdapter(
     private val activity: Activity,
     private val onAppsItemClicked: OnAppsItemClicked,
+    private val onAppsCreateContextMenu: OnAppsCreateContextMenu,
     private val apps: List<App> = listOf(),
     private val activeSessions: List<Session> = listOf()
 ) : RecyclerView.Adapter<AppListAdapter.ViewHolder>() {
 
+    private lateinit var lastSelectedAppListItem: AppsListItem
+
     interface OnAppsItemClicked {
         fun onAppsItemClicked(appsItemClicked: AppsListItem)
+    }
+
+    interface OnAppsCreateContextMenu {
+        fun onAppsCreateContextMenu(menu: ContextMenu, v: View, selectedListItem: AppsListItem)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -37,13 +44,15 @@ class AppListAdapter(
     override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
         val item = appsAndSeparators[position]
 
-        bind(viewHolder, item, onAppsItemClicked)
+        bindOnClick(viewHolder, item, onAppsItemClicked, position)
+        bindOnCreateContextMenu(viewHolder, onAppsCreateContextMenu, item)
 
         when (item) {
             is AppSeparatorItem -> {
                 viewHolder.separatorText?.text = item.category
             }
             is AppItem -> {
+                viewHolder.itemView.isLongClickable = true
                 val app = item.app
                 val activeAppSessions = activeSessions.filter { it.name == app.name }
                 val appIsActive = activeAppSessions.isNotEmpty()
@@ -60,9 +69,15 @@ class AppListAdapter(
         }
     }
 
-    private fun bind(viewHolder: ViewHolder, appsListItem: AppsListItem, onAppsItemClicked: OnAppsItemClicked) {
+    private fun bindOnClick(viewHolder: ViewHolder, selectedListItem: AppsListItem, onAppsItemClicked: OnAppsItemClicked, position: Int) {
         viewHolder.itemView.setOnClickListener {
-                onAppsItemClicked.onAppsItemClicked(appsListItem)
+            onAppsItemClicked.onAppsItemClicked(selectedListItem)
+        }
+    }
+
+    private fun bindOnCreateContextMenu(viewHolder: ViewHolder, onAppsCreateContextMenu: OnAppsCreateContextMenu, selectedListItem: AppsListItem) {
+        viewHolder.itemView.setOnCreateContextMenuListener { menu, v, _ ->
+            onAppsCreateContextMenu.onAppsCreateContextMenu(menu, v, selectedListItem)
         }
     }
 
@@ -74,7 +89,6 @@ class AppListAdapter(
 
     private val ITEM_VIEW_TYPE_APP = 0
     private val ITEM_VIEW_TYPE_SEPARATOR = 1
-    private val ITEM_VIEW_TYPE_COUNT = 2
 
     private val firstDisplayCategory = "distribution"
     private val freeAnnotation = activity.resources.getString(R.string.free_annotation)
@@ -106,49 +120,6 @@ class AppListAdapter(
         listBuilder.toList()
     }
 
-    fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-        val view: View?
-        val viewHolder: ViewHolder
-
-        val item = appsAndSeparators[position]
-
-        if (convertView == null) {
-            val inflater = activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-            view = when (item) {
-                is AppSeparatorItem -> inflater.inflate(R.layout.list_item_separator, parent, false)
-                is AppItem -> inflater.inflate(R.layout.list_item_app, parent, false)
-            }
-
-            viewHolder = ViewHolder(view)
-            view?.tag = viewHolder
-        } else {
-            view = convertView
-            viewHolder = view.tag as ViewHolder
-        }
-
-        when (item) {
-            is AppSeparatorItem -> {
-                viewHolder.separatorText?.text = item.category
-            }
-            is AppItem -> {
-                val app = item.app
-                val activeAppSessions = activeSessions.filter { it.name == app.name }
-                val appIsActive = activeAppSessions.isNotEmpty()
-                if (appIsActive) {
-                    view?.setBackgroundResource(R.color.colorAccent)
-                } else {
-                    view?.setBackgroundResource(R.color.colorPrimaryDark)
-                }
-
-                val localFileLocator = LocalFileLocator(activity.filesDir.path, activity.resources)
-                viewHolder.imageView?.setImageURI(localFileLocator.findIconUri(app.name))
-                viewHolder.appName?.text = app.name.capitalize()
-            }
-        }
-
-        return view as View
-    }
-
     override fun getItemId(position: Int): Long {
         return position.toLong()
     }
@@ -164,11 +135,12 @@ class AppListAdapter(
         }
     }
 
-    fun isEnabled(position: Int): Boolean {
-        return when (appsAndSeparators[position]) {
-            is AppItem -> true
-            is AppSeparatorItem -> false
-        }
+    fun getLastSelectedAppsListItem(): AppsListItem {
+        return lastSelectedAppListItem
+    }
+
+    fun setLastSelectedAppsListItem(appsListItem: AppsListItem) {
+        lastSelectedAppListItem = appsListItem
     }
 }
 
