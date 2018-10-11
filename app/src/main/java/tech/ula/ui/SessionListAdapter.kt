@@ -88,7 +88,7 @@ class SessionListAdapter(
             }
             is SessionItem -> {
                 val session = item.session
-                val filesystem = filesystems.find { it.id == session.filesystemId }!!
+                val filesystem = filesystems.find { it.id == session.filesystemId } ?: Filesystem(0, name = "ERROR")
 
                 if (session.active) {
                     view?.setBackgroundResource(R.color.colorAccent)
