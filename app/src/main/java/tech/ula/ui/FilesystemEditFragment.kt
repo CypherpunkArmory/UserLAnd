@@ -13,10 +13,8 @@ import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.LayoutInflater
-import android.widget.Adapter
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.SpinnerAdapter
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_edit.*
