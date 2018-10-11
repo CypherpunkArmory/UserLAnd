@@ -135,9 +135,9 @@ class AppListFragment : Fragment(),
         val context = recyclerView.context
         val controller = AnimationUtils.loadLayoutAnimation(context, resourceId)
 
-        list_apps.layoutAnimation = controller
-        list_apps.adapter?.notifyDataSetChanged()
-        list_apps.scheduleLayoutAnimation()
+        recyclerView.clearAnimation()
+        recyclerView.layoutAnimation = controller
+        recyclerView.animate()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
