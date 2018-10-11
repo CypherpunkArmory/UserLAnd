@@ -102,6 +102,7 @@ class ServerService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
+        startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
         val intentType = intent?.getStringExtra("type")
         when (intentType) {
             "start" -> {
@@ -238,7 +239,6 @@ class ServerService : Service() {
 
             val updatedSession = asyncAwait { sessionController.activateSession(session, serverUtility) }
 
-            startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
             updatedSession.active = true
             updateSession(updatedSession)
             killProgressBar()
