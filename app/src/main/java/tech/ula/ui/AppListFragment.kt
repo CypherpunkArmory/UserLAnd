@@ -106,7 +106,6 @@ class AppListFragment : Fragment(),
             activeSessions = it.second
             appAdapter = AppListAdapter(activityContext, this, this, appList, activeSessions)
             registerForContextMenu(list_apps)
-            list_apps.layoutManager = LinearLayoutManager(list_apps.context)
             list_apps.adapter = appAdapter
             if (appList.isEmpty()) {
                 doRefresh()
@@ -184,6 +183,9 @@ class AppListFragment : Fragment(),
         }
 
         registerForContextMenu(list_apps)
+        list_apps.layoutManager = LinearLayoutManager(list_apps.context)
+        list_apps.adapter = AppListAdapter(activityContext, this, this)
+
         swipe_refresh.setOnRefreshListener { doRefresh() }
     }
 
