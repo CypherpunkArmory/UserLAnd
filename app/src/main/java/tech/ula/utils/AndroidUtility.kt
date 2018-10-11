@@ -122,6 +122,28 @@ class AppsPreferences(private val prefs: SharedPreferences) {
     fun getAppServiceTypePreference(appName: String): String {
         return prefs.getString(appName, "") ?: ""
     }
+
+    fun setAppsList(appsList: Set<String>) {
+        with(prefs.edit()) {
+            putStringSet("appsList", appsList)
+            apply()
+        }
+    }
+
+    fun getAppsList(): Set<String> {
+        return prefs.getStringSet("appsList", setOf()) ?: setOf()
+    }
+
+    fun setDistributionsList(distributionList: Set<String>) {
+        with(prefs.edit()) {
+            putStringSet("distributionsList", distributionList)
+            apply()
+        }
+    }
+
+    fun getDistributionsList(): Set<String> {
+        return prefs.getStringSet("distributionsList", setOf()) ?: setOf()
+    }
 }
 
 class BuildWrapper {

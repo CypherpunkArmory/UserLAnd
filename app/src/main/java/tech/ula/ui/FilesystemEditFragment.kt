@@ -2,6 +2,7 @@ package tech.ula.ui
 
 import android.app.Activity
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.text.Editable
@@ -13,11 +14,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.LayoutInflater
 import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_edit.*
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
+import tech.ula.utils.AppsPreferences
 import tech.ula.utils.BuildWrapper
 import tech.ula.utils.ValidationUtility
 import tech.ula.utils.launchAsync
@@ -37,6 +40,11 @@ class FilesystemEditFragment : Fragment() {
 
     private val filesystemEditViewModel: FilesystemEditViewModel by lazy {
         ViewModelProviders.of(this).get(FilesystemEditViewModel::class.java)
+    }
+
+    private val distributionList by lazy {
+        AppsPreferences(activityContext.getSharedPreferences("apps", Context.MODE_PRIVATE))
+                .getDistributionsList()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,6 +69,18 @@ class FilesystemEditFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         activityContext = activity!!
+
+        if (distributionList.isNotEmpty()) {
+            spinner_filesystem_type.adapter = ArrayAdapter(activityContext,
+                    android.R.layout.simple_spinner_dropdown_item,
+                    distributionList.map { it.capitalize() })
+        }
+        if (editExisting) {
+            for (i in 0 until spinner_filesystem_type.adapter.count) {
+                val item = spinner_filesystem_type.adapter.getItem(i).toString().toLowerCase()
+                if (item == filesystem.distributionType) spinner_filesystem_type.setSelection(i)
+            }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -76,7 +96,7 @@ class FilesystemEditFragment : Fragment() {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                filesystem.distributionType = parent?.getItemAtPosition(position).toString()
+                filesystem.distributionType = parent?.getItemAtPosition(position).toString().toLowerCase()
             }
         }
     }

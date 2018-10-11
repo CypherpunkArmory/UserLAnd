@@ -152,6 +152,7 @@
     <string name="filesystem_extraction_failed">Could not extract filesystem!</string>
     <string name="no_assets_need_updating">No assets need updating!</string>
     <string name="client_not_found">Could not find a way to handle the type of client this session is attempting to start!</string>
+    <string name="error_apps_renamed">Apps cannot be run if their session or filesystem have been renamed.</string>
 
     <!-- Content descriptions -->
     <string name="desc_inactive">Image: session inactive</string>

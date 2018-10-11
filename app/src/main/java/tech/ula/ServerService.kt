@@ -51,6 +51,11 @@ class ServerService : Service() {
         AssetListPreferences(this.getSharedPreferences("assetLists", Context.MODE_PRIVATE))
     }
 
+    private val appsList by lazy {
+        AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
+                .getAppsList()
+    }
+
     private val networkUtility by lazy {
         val connectivityManager = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         NetworkUtility(connectivityManager, ConnectionUtility())
@@ -221,6 +226,13 @@ class ServerService : Service() {
             if (session.isAppsSession) {
                 // TODO handle file not downloaded/found case
                 // TODO determine if moving the script to profile.d before extraction is harmful
+                // TODO better error handling for renamed apps sessions and filesystems
+                if (!appsList.contains(session.name) || session.filesystemName != "apps") {
+                    killProgressBar()
+                    sendToastBroadcast(R.string.error_apps_renamed)
+                    return@launch
+                }
+
                 filesystemUtility.moveAppScriptToRequiredLocations(session.name, filesystem)
             }
 
