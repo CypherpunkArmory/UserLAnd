@@ -31,6 +31,45 @@ class AppListAdapter(
         fun onAppsCreateContextMenu(menu: ContextMenu, v: View, selectedListItem: AppsListItem)
     }
 
+    class ViewHolder(row: View) : RecyclerView.ViewHolder(row) {
+        var imageView: ImageView? = row.findViewById(R.id.apps_icon)
+        var appName: TextView? = row.findViewById(R.id.apps_name)
+        var separatorText: TextView? = row.findViewById(R.id.list_item_separator_text)
+    }
+
+    private val ITEM_VIEW_TYPE_APP = 0
+    private val ITEM_VIEW_TYPE_SEPARATOR = 1
+
+    private val firstDisplayCategory = "distribution"
+    private val freeAnnotation = activity.resources.getString(R.string.free_annotation)
+    private val paidAnnotation = activity.resources.getString(R.string.paid_annotation)
+
+    private val appsAndSeparators: List<AppsListItem> by lazy {
+        val listBuilder = arrayListOf<AppsListItem>()
+        val categoriesAndApps = HashMap<String, ArrayList<App>>()
+
+        for (app in apps) {
+            categoriesAndApps.getOrPut(app.category) { arrayListOf() }.add(app)
+        }
+
+        val categoriesAndAppsWithDistributionsFirst = LinkedHashMap<String, List<App>>()
+
+        if (categoriesAndApps.containsKey(firstDisplayCategory)) {
+            categoriesAndAppsWithDistributionsFirst[firstDisplayCategory] =
+                    categoriesAndApps.remove(firstDisplayCategory)!!
+        }
+        categoriesAndAppsWithDistributionsFirst.putAll(categoriesAndApps)
+
+        categoriesAndAppsWithDistributionsFirst.forEach {
+            (category, categoryApps) ->
+            val categoryWithPaymentInformation = category + " " +
+                    if (category == firstDisplayCategory) freeAnnotation else paidAnnotation
+            listBuilder.add(AppSeparatorItem(categoryWithPaymentInformation.capitalize()))
+            categoryApps.forEach { listBuilder.add(AppItem(it)) }
+        }
+        listBuilder.toList()
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val layout = when (viewType) {
@@ -79,45 +118,6 @@ class AppListAdapter(
         viewHolder.itemView.setOnCreateContextMenuListener { menu, v, _ ->
             onAppsCreateContextMenu.onAppsCreateContextMenu(menu, v, selectedListItem)
         }
-    }
-
-    class ViewHolder(row: View) : RecyclerView.ViewHolder(row) {
-        var imageView: ImageView? = row.findViewById(R.id.apps_icon)
-        var appName: TextView? = row.findViewById(R.id.apps_name)
-        var separatorText: TextView? = row.findViewById(R.id.list_item_separator_text)
-    }
-
-    private val ITEM_VIEW_TYPE_APP = 0
-    private val ITEM_VIEW_TYPE_SEPARATOR = 1
-
-    private val firstDisplayCategory = "distribution"
-    private val freeAnnotation = activity.resources.getString(R.string.free_annotation)
-    private val paidAnnotation = activity.resources.getString(R.string.paid_annotation)
-
-    private val appsAndSeparators: List<AppsListItem> by lazy {
-        val listBuilder = arrayListOf<AppsListItem>()
-        val categoriesAndApps = HashMap<String, ArrayList<App>>()
-
-        for (app in apps) {
-            categoriesAndApps.getOrPut(app.category) { arrayListOf() }.add(app)
-        }
-
-        val categoriesAndAppsWithDistributionsFirst = LinkedHashMap<String, List<App>>()
-
-        if (categoriesAndApps.containsKey(firstDisplayCategory)) {
-            categoriesAndAppsWithDistributionsFirst[firstDisplayCategory] =
-                    categoriesAndApps.remove(firstDisplayCategory)!!
-        }
-        categoriesAndAppsWithDistributionsFirst.putAll(categoriesAndApps)
-
-        categoriesAndAppsWithDistributionsFirst.forEach {
-            (category, categoryApps) ->
-            val categoryWithPaymentInformation = category + " " +
-                    if (category == firstDisplayCategory) freeAnnotation else paidAnnotation
-            listBuilder.add(AppSeparatorItem(categoryWithPaymentInformation.capitalize()))
-            categoryApps.forEach { listBuilder.add(AppItem(it)) }
-        }
-        listBuilder.toList()
     }
 
     override fun getItemId(position: Int): Long {
