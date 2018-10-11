@@ -332,6 +332,17 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
                     if (appListViewModel.getAppServiceTypePreference(selectedApp).isEmpty()) {
                         getClientPreferenceAndStart(selectedApp, username, password, vncPassword)
                     }
+
+                    val serviceTypePreference = appListViewModel.getAppServiceTypePreference(selectedApp)
+                    val serviceIntent = Intent(activityContext, ServerService::class.java)
+                            .putExtra("type", "startApp")
+                            .putExtra("username", username)
+                            .putExtra("password", password)
+                            .putExtra("vncPassword", vncPassword)
+                            .putExtra("app", selectedApp)
+                            .putExtra("serviceType", serviceTypePreference.toLowerCase())
+
+                    activityContext.startService(serviceIntent)
                 }
             }
         }
