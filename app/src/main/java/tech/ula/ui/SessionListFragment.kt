@@ -163,7 +163,7 @@ class SessionListFragment : Fragment() {
             val serviceIntent = Intent(activityContext, ServerService::class.java)
             serviceIntent.putExtra("type", "kill")
             serviceIntent.putExtra("session", session)
-            activityContext.startForegroundService(serviceIntent)
+            activityContext.startService(serviceIntent)
         }
         return true
     }

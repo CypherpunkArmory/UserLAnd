@@ -188,6 +188,7 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
     }
 
     private fun handleAppSelection(selectedApp: App) {
+        if (selectedApp == unselectedApp) return
         if (selectedApp.isPaidApp) {
             when {
                 !playServiceManager.playStoreIsAvailable(activityContext.packageManager) -> {
