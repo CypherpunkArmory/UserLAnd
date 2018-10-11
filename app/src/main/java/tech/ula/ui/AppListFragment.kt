@@ -49,7 +49,10 @@ import tech.ula.utils.displayGenericErrorDialog
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
 
-class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListener, AppListAdapter.OnAppsItemClicked {
+class AppListFragment : Fragment(),
+        PlayServiceManager.PlayServicesUpdateListener,
+        AppListAdapter.OnAppsItemClicked,
+        AppListAdapter.OnAppsCreateContextMenu {
 
     private lateinit var activityContext: Activity
     private val permissionRequestCode: Int by lazy {
@@ -101,7 +104,8 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
         it?.let {
             appList = it.first
             activeSessions = it.second
-            appAdapter = AppListAdapter(activityContext, this, appList, activeSessions)
+            appAdapter = AppListAdapter(activityContext, this, this, appList, activeSessions)
+            registerForContextMenu(list_apps)
             list_apps.adapter = appAdapter
             if (appList.isEmpty()) {
                 doRefresh()
@@ -155,9 +159,13 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
     }
 
     override fun onAppsItemClicked(appsItemClicked: AppsListItem) {
+        appAdapter.setLastSelectedAppsListItem(appsItemClicked)
         when (appsItemClicked) {
-            is AppSeparatorItem -> {}
-            is AppItem -> { doAppItemClicked(appsItemClicked.app) }
+            is AppSeparatorItem -> {
+            }
+            is AppItem -> {
+                doAppItemClicked(appsItemClicked.app)
+            }
         }
     }
 
@@ -175,13 +183,12 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
         if (playServiceManager.playServicesAreAvailable(activityContext)) {
             playServiceManager.startBillingClient(activityContext)
         }
-        list_apps.layoutManager = LinearLayoutManager(list_apps.context)
-        list_apps.adapter = AppListAdapter(activityContext, this)
 
         registerForContextMenu(list_apps)
+        list_apps.layoutManager = LinearLayoutManager(list_apps.context)
+        list_apps.adapter = AppListAdapter(activityContext, this, this)
 
         swipe_refresh.setOnRefreshListener { doRefresh() }
-        runLayoutAnimation(list_apps, R.anim.layout_animation_from_right)
     }
 
     private fun doRefresh() {
@@ -270,31 +277,29 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
         activityContext.startService(startAppIntent)
     }
 
-    override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo) {
-        super.onCreateContextMenu(menu, v, menuInfo)
+    private fun doContextItemSelected(app: App, item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.menu_item_app_details -> showAppDetails(app)
+            R.id.menu_item_stop_app -> stopApp(app)
+            else -> super.onContextItemSelected(item)
+        }
+    }
+
+    override fun onAppsCreateContextMenu(menu: ContextMenu, v: View, selectedListItem: AppsListItem) {
+        appAdapter.setLastSelectedAppsListItem(selectedListItem)
         activityContext.menuInflater.inflate(R.menu.context_menu_apps, menu)
     }
 
-//    override fun onContextItemSelected(item: MenuItem): Boolean {
-//        val menuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
-//        val position = menuInfo.position
-//        val selectedItem = list_apps.adapter.getItem(position) as AppsListItem
-//        return when (selectedItem) {
-//            is AppSeparatorItem -> true
-//            is AppItem -> {
-//                val app = selectedItem.app
-//                doContextItemSelected(app, item)
-//            }
-//        }
-//    }
-
-//    private fun doContextItemSelected(app: App, item: MenuItem): Boolean {
-//        return when (item.itemId) {
-//            R.id.menu_item_app_details -> showAppDetails(app)
-//            R.id.menu_item_stop_app -> stopApp(app)
-//            else -> super.onContextItemSelected(item)
-//        }
-//    }
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        val selectedItem = appAdapter.getLastSelectedAppsListItem()
+        return when (selectedItem) {
+            is AppSeparatorItem -> true
+            is AppItem -> {
+                val app = selectedItem.app
+                doContextItemSelected(app, item)
+            }
+        }
+    }
 
     private fun showAppDetails(app: App): Boolean {
         val bundle = bundleOf("app" to app)
