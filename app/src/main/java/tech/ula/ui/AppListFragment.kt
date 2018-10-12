@@ -180,6 +180,11 @@ class AppListFragment : Fragment(),
         list_apps.adapter = appAdapter
 
         swipe_refresh.setOnRefreshListener { doRefresh() }
+        swipe_refresh.setColorSchemeResources(
+                R.color.holo_blue_light,
+                R.color.holo_green_light,
+                R.color.holo_orange_light,
+                R.color.holo_red_light)
     }
 
     private fun doRefresh() {
