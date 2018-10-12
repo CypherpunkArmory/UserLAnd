@@ -136,7 +136,7 @@ class AppListAdapter(
 
     private fun setAnimation(viewToAnimate: View, position: Int) {
         if (position > lastPosition) {
-            val animationDelay = 200L
+            val animationDelay = 150L
             val animation = AnimationUtils.loadAnimation(activity, R.anim.item_animation_from_right)
             viewToAnimate.startAnimation(animation)
             animation.startOffset = position * animationDelay
