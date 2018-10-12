@@ -11,6 +11,8 @@ import java.net.URL
 import javax.net.ssl.SSLHandshakeException
 
 interface RemoteAppsSource {
+    fun getHostname(): String
+
     suspend fun fetchAppsList(): List<App>
 
     suspend fun fetchAppIcon(app: App)
@@ -29,6 +31,9 @@ class GithubAppsFetcher(private val applicationFilesDir: String, private val con
     private val branch = "master" // Base off different support branches for testing.
     private val baseUrl = "://github.com/CypherpunkArmory/UserLAnd-Assets-Support/raw/$branch/apps"
     private var protocol = "https"
+    private val hostname = "$protocol$baseUrl"
+
+    override fun getHostname(): String { return hostname }
 
     @Throws
     override suspend fun fetchAppsList(): List<App> {

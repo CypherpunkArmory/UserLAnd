@@ -58,6 +58,7 @@
     <string name="service_notification_description">UserLAnd is running a background service.</string>
 
     <!-- Progress bar messages -->
+    <string name="progress_basic_app_setup">Setting up app database information&#8230;</string>
     <string name="progress_fetching_asset_lists">Fetching asset lists&#8230;</string>
     <string name="progress_checking_for_required_updates">Checking whether updates are required&#8230;</string>
     <string name="progress_downloading">Downloading required assets&#8230;</string>
@@ -120,6 +121,8 @@
     <!-- Network unavailable alert -->
     <string name="alert_network_unavailable_title">No network available</string>
     <string name="alert_network_unavailable_message">UserLAnd requires network availability to download required assets.</string>
+    <string name="alert_network_required_for_refresh">Refreshing apps requires an available or stronger network connection.</string>
+    <string name="alert_network_strength_too_low_for_downloads">Your network strength is too low to download required assets. Please try again with a strong connection.</string>
 
     <!-- Asset list failure alert -->
     <string name="alert_asset_list_failure_title">Could not retrieve asset lists.</string>

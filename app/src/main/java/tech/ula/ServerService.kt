@@ -174,6 +174,8 @@ class ServerService : Service() {
         lastActivatedSession = session
         lastActivatedFilesystem = filesystem
 
+        startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
+
         val assetRepository = AssetRepository(BuildWrapper().getArchType(),
                 filesystem.distributionType,
                 this.filesDir.path,
@@ -183,8 +185,6 @@ class ServerService : Service() {
         val sessionController = SessionController(assetRepository, filesystemUtility)
 
         launch(CommonPool) {
-
-            startProgressBar()
 
             progressBarUpdater(resources.getString(R.string.progress_fetching_asset_lists), "")
             val assetLists = asyncAwait {
@@ -207,6 +207,10 @@ class ServerService : Service() {
                 is RequiredAssetsResult -> requiredDownloads = downloadRequirementsResult.assetList
             }
 
+            if (requiredDownloads.isNotEmpty() && !ConnectionUtility().httpsHostIsReachable("github.com")) {
+                dialogBroadcaster("networkTooWeakForDownloads")
+                return@launch
+            }
             asyncAwait {
                 sessionController.downloadRequirements(requiredDownloads, downloadBroadcastReceiver,
                         initDownloadUtility(), progressBarUpdater, resources)
@@ -238,7 +242,6 @@ class ServerService : Service() {
 
             val updatedSession = asyncAwait { sessionController.activateSession(session, serverUtility) }
 
-            startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
             updatedSession.active = true
             updateSession(updatedSession)
             killProgressBar()
@@ -248,11 +251,14 @@ class ServerService : Service() {
     }
 
     private fun startApp(app: App, serviceType: String, username: String = "", password: String = "", vncPassword: String = "") {
+        progressBarUpdater(getString(R.string.progress_basic_app_setup), "")
+
         val appsFilesystemDistType = app.filesystemRequired
 
         val assetRepository = AssetRepository(BuildWrapper().getArchType(),
                 appsFilesystemDistType, this.filesDir.path, timestampPreferences,
                 assetListPreferences)
+        // TODO refactor this to not instantiate twice
         val sessionController = SessionController(assetRepository, filesystemUtility)
 
         val filesystemDao = UlaDatabase.getInstance(this).filesystemDao()
@@ -343,14 +349,6 @@ class ServerService : Service() {
                 .forEach { killSession(it) }
 
         filesystemUtility.deleteFilesystem(filesystemId)
-    }
-
-    private fun startProgressBar() {
-        val intent = Intent(SERVER_SERVICE_RESULT)
-                .putExtra("type", "startProgressBar")
-        broadcaster.sendBroadcast(intent)
-
-        progressBarActive = true
     }
 
     private fun killProgressBar() {

@@ -111,6 +111,8 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
         it?.let {
             refreshStatus = it
             swipe_refresh.isRefreshing = refreshStatus == RefreshStatus.ACTIVE
+
+            if (refreshStatus == RefreshStatus.FAILED) showRefreshUnavailableDialog()
         }
     }
 
@@ -188,6 +190,7 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
     }
 
     private fun handleAppSelection(selectedApp: App) {
+        if (selectedApp == unselectedApp) return
         if (selectedApp.isPaidApp) {
             when {
                 !playServiceManager.playStoreIsAvailable(activityContext.packageManager) -> {
@@ -331,6 +334,7 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
 
                     if (appListViewModel.getAppServiceTypePreference(selectedApp).isEmpty()) {
                         getClientPreferenceAndStart(selectedApp, username, password, vncPassword)
+                        return@setOnClickListener
                     }
 
                     val serviceTypePreference = appListViewModel.getAppServiceTypePreference(selectedApp)
@@ -455,6 +459,17 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
         }
     }
 
+    private fun showRefreshUnavailableDialog() {
+        AlertDialog.Builder(activityContext)
+                .setMessage(R.string.alert_network_required_for_refresh)
+                .setTitle(R.string.general_error_title)
+                .setPositiveButton(R.string.button_ok) {
+                    dialog, _ ->
+                    dialog.dismiss()
+                }
+                .create().show()
+    }
+
     override fun onSubscriptionsAreNotSupported() {
         AlertDialog.Builder(activityContext)
                 .setMessage(R.string.alert_subscriptions_unsupported_message)
@@ -483,6 +498,6 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
     }
 
     override fun onSubscriptionPurchased() {
-        if (lastSelectedApp != unselectedApp) handleAppSelection(lastSelectedApp)
+        handleAppSelection(lastSelectedApp)
     }
 }

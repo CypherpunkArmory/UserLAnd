@@ -19,8 +19,11 @@ import android.support.v4.content.ContextCompat
 import tech.ula.R
 import tech.ula.model.entities.Asset
 import java.io.File
+import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
+import java.net.InetSocketAddress
+import java.net.Socket
 import java.net.URL
 
 fun makePermissionsUsable(containingDirectoryPath: String, filename: String) {
@@ -183,6 +186,19 @@ class BuildWrapper {
 }
 
 class ConnectionUtility {
+    fun httpsHostIsReachable(hostname: String): Boolean {
+        return try {
+            val sockaddr = InetSocketAddress(hostname, 443)
+            val sock = Socket()
+            val timeout = 2000
+
+            sock.connect(sockaddr, timeout)
+            true
+        } catch (err: IOException) {
+            false
+        }
+    }
+
     @Throws(Exception::class)
     fun getUrlConnection(url: String): HttpURLConnection {
         return URL(url).openConnection() as HttpURLConnection
