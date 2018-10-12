@@ -148,7 +148,7 @@ class AppListFragment : Fragment(),
     }
 
     override fun onAppsItemClicked(appsItemClicked: AppsListItem) {
-        appAdapter.setLastSelectedAppsListItem(appsItemClicked)
+        appAdapter.setLastSelectedContextItem(appsItemClicked)
         when (appsItemClicked) {
             is AppSeparatorItem -> {
             }
@@ -279,12 +279,12 @@ class AppListFragment : Fragment(),
     }
 
     override fun onAppsCreateContextMenu(menu: ContextMenu, v: View, selectedListItem: AppsListItem) {
-        appAdapter.setLastSelectedAppsListItem(selectedListItem)
+        appAdapter.setLastSelectedContextItem(selectedListItem)
         activityContext.menuInflater.inflate(R.menu.context_menu_apps, menu)
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
-        val selectedItem = appAdapter.getLastSelectedAppsListItem()
+        val selectedItem = appAdapter.getLastSelectedContextItem()
         return when (selectedItem) {
             is AppSeparatorItem -> true
             is AppItem -> {

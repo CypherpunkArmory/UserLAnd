@@ -22,8 +22,7 @@ class AppListAdapter(
     private val onAppsCreateContextMenu: OnAppsCreateContextMenu
 ) : RecyclerView.Adapter<AppListAdapter.ViewHolder>() {
 
-    private lateinit var lastSelectedAppListItem: AppsListItem
-    private val apps: ArrayList<App> = arrayListOf()
+    private lateinit var lastSelectedAppContextItem: AppsListItem
     private val activeSessions: ArrayList<Session> = arrayListOf()
 
     interface OnAppsItemClicked {
@@ -178,12 +177,12 @@ class AppListAdapter(
         holder.itemView.clearAnimation()
     }
 
-    fun getLastSelectedAppsListItem(): AppsListItem {
-        return lastSelectedAppListItem
+    fun getLastSelectedContextItem(): AppsListItem {
+        return lastSelectedAppContextItem
     }
 
-    fun setLastSelectedAppsListItem(appsListItem: AppsListItem) {
-        lastSelectedAppListItem = appsListItem
+    fun setLastSelectedContextItem(appsListItem: AppsListItem) {
+        lastSelectedAppContextItem = appsListItem
     }
 }
 
