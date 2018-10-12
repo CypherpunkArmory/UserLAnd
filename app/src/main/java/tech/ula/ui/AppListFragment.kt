@@ -332,6 +332,7 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
 
                     if (appListViewModel.getAppServiceTypePreference(selectedApp).isEmpty()) {
                         getClientPreferenceAndStart(selectedApp, username, password, vncPassword)
+                        return@setOnClickListener
                     }
 
                     val serviceTypePreference = appListViewModel.getAppServiceTypePreference(selectedApp)

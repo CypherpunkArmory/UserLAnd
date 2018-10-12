@@ -102,7 +102,6 @@ class ServerService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
-        startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
         val intentType = intent?.getStringExtra("type")
         when (intentType) {
             "start" -> {
@@ -175,6 +174,8 @@ class ServerService : Service() {
         lastActivatedSession = session
         lastActivatedFilesystem = filesystem
 
+        startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
+
         val assetRepository = AssetRepository(BuildWrapper().getArchType(),
                 filesystem.distributionType,
                 this.filesDir.path,
@@ -184,8 +185,6 @@ class ServerService : Service() {
         val sessionController = SessionController(assetRepository, filesystemUtility)
 
         launch(CommonPool) {
-
-            startProgressBar()
 
             progressBarUpdater(resources.getString(R.string.progress_fetching_asset_lists), "")
             val assetLists = asyncAwait {
@@ -248,6 +247,8 @@ class ServerService : Service() {
     }
 
     private fun startApp(app: App, serviceType: String, username: String = "", password: String = "", vncPassword: String = "") {
+        progressBarUpdater(getString(R.string.progress_basic_app_setup), "")
+
         val appsFilesystemDistType = app.filesystemRequired
 
         val assetRepository = AssetRepository(BuildWrapper().getArchType(),
@@ -343,14 +344,6 @@ class ServerService : Service() {
                 .forEach { killSession(it) }
 
         filesystemUtility.deleteFilesystem(filesystemId)
-    }
-
-    private fun startProgressBar() {
-        val intent = Intent(SERVER_SERVICE_RESULT)
-                .putExtra("type", "startProgressBar")
-        broadcaster.sendBroadcast(intent)
-
-        progressBarActive = true
     }
 
     private fun killProgressBar() {

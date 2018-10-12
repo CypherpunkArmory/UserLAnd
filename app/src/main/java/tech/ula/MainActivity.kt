@@ -42,8 +42,11 @@ class MainActivity : AppCompatActivity() {
             intent?.let {
                 val type = it.getStringExtra("type")
                 when (type) {
-                    "startProgressBar" -> startProgressBar()
-                    "updateProgressBar" -> updateProgressBar(it)
+                    "updateProgressBar" -> {
+                        val step = intent.getStringExtra("step")
+                        val details = intent.getStringExtra("details")
+                        updateProgressBar(step, details)
+                    }
                     "killProgressBar" -> killProgressBar()
                     "isProgressBarActive" -> syncProgressBarDisplayedWithService(it)
                     "displayNetworkChoices" -> displayNetworkChoicesDialog()
@@ -143,17 +146,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun startProgressBar() {
-        if (!currentFragmentDisplaysProgressDialog) return
-
-        val inAnimation = AlphaAnimation(0f, 1f)
-        inAnimation.duration = 200
-        layout_progress.animation = inAnimation
-        layout_progress.visibility = View.VISIBLE
-        layout_progress.isFocusable = true
-        layout_progress.isClickable = true
-    }
-
     private fun killProgressBar() {
         val outAnimation = AlphaAnimation(1f, 0f)
         outAnimation.duration = 200
@@ -163,22 +155,26 @@ class MainActivity : AppCompatActivity() {
         layout_progress.isClickable = false
     }
 
-    private fun updateProgressBar(intent: Intent) {
+    private fun updateProgressBar(step: String, details: String) {
         if (!currentFragmentDisplaysProgressDialog) return
 
-        layout_progress.visibility = View.VISIBLE
-        layout_progress.isFocusable = true
-        layout_progress.isClickable = true
+        if (layout_progress.visibility != View.VISIBLE) {
+            val inAnimation = AlphaAnimation(0f, 1f)
+            inAnimation.duration = 200
+            layout_progress.animation = inAnimation
 
-        val step = intent.getStringExtra("step")
-        val details = intent.getStringExtra("details")
+            layout_progress.visibility = View.VISIBLE
+            layout_progress.isFocusable = true
+            layout_progress.isClickable = true
+        }
+
         text_session_list_progress_step.text = step
         text_session_list_progress_details.text = details
     }
 
     private fun syncProgressBarDisplayedWithService(intent: Intent) {
         val isActive = intent.getBooleanExtra("isProgressBarActive", false)
-        if (isActive) startProgressBar()
+        if (isActive) updateProgressBar("", "")
         else killProgressBar()
     }
 
