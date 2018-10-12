@@ -47,11 +47,12 @@ class SessionEditFragment : Fragment() {
         it?.let {
             val filesystemNames = ArrayList(it.map { filesystem ->
                 "${filesystem.name}: ${filesystem.distributionType.capitalize()}" })
-            filesystemNames.add("Create new")
 
             if (it.isEmpty()) {
                 filesystemNames.add("")
             }
+            
+            filesystemNames.add("Create new")
 
             getListDifferenceAndSetNewFilesystem(filesystemList, it)
 
