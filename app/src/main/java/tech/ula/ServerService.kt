@@ -207,7 +207,7 @@ class ServerService : Service() {
                 is RequiredAssetsResult -> requiredDownloads = downloadRequirementsResult.assetList
             }
 
-            if (requiredDownloads.isNotEmpty() && ConnectionUtility().hostIsReachable("https://github.com/CypherpunkArmory/UserLAnd-Assets-Support/raw/master/apps)")) {
+            if (requiredDownloads.isNotEmpty() && !ConnectionUtility().httpsHostIsReachable("github.com")) {
                 dialogBroadcaster("networkTooWeakForDownloads")
                 return@launch
             }

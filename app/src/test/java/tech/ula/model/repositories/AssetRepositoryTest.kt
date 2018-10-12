@@ -90,9 +90,8 @@ class AssetRepositoryTest {
 
         allUrlsWithoutProtocols.forEach {
             `when`(connectionUtility.getUrlInputStream("https$it")).thenThrow(SSLHandshakeException::class.java)
-            `when`(connectionUtility.hostIsReachable("https$it")).thenReturn(true)
+            `when`(connectionUtility.httpsHostIsReachable("github.com")).thenReturn(true)
             `when`(connectionUtility.getUrlInputStream("http$it")).thenReturn(inputStream)
-            `when`(connectionUtility.hostIsReachable("http$it")).thenReturn(true)
         }
 
         assetRepository.retrieveAllRemoteAssetLists()

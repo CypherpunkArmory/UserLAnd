@@ -22,6 +22,7 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
+import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.URL
@@ -186,10 +187,9 @@ class BuildWrapper {
 }
 
 class ConnectionUtility {
-    fun hostIsReachable(hostname: String): Boolean {
-        val port = if (hostname.contains("https")) 443 else 80
+    fun httpsHostIsReachable(hostname: String): Boolean {
         return try {
-            val sockaddr = InetSocketAddress(hostname, port)
+            val sockaddr = InetSocketAddress(hostname, 443)
             val sock = Socket()
             val timeout = 2000
 

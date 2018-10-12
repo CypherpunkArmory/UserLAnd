@@ -33,7 +33,7 @@ class AppsRepository(
     suspend fun refreshData() {
         val appsList = mutableSetOf<String>()
         val distributionsList = mutableSetOf<String>()
-        if (!ConnectionUtility().hostIsReachable(remoteAppsSource.getHostname())) {
+        if (!ConnectionUtility().httpsHostIsReachable("github.com")) {
             refreshStatus.postValue(RefreshStatus.FAILED)
             return
         }
