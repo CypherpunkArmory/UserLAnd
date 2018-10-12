@@ -59,6 +59,8 @@ class AssetRepository(
 
         val url = "$protocol://github.com/CypherpunkArmory/UserLAnd-Assets-" +
                 "$assetType/raw/master/assets/$architectureType/assets.txt"
+
+        if (!connectionUtility.hostIsReachable(url)) throw object : Exception("Host is unreachable.") {}
         try {
             val reader = BufferedReader(InputStreamReader(connectionUtility.getUrlInputStream(url)))
 

@@ -207,6 +207,10 @@ class ServerService : Service() {
                 is RequiredAssetsResult -> requiredDownloads = downloadRequirementsResult.assetList
             }
 
+            if (requiredDownloads.isNotEmpty() && ConnectionUtility().hostIsReachable("https://github.com/CypherpunkArmory/UserLAnd-Assets-Support/raw/master/apps)")) {
+                dialogBroadcaster("networkTooWeakForDownloads")
+                return@launch
+            }
             asyncAwait {
                 sessionController.downloadRequirements(requiredDownloads, downloadBroadcastReceiver,
                         initDownloadUtility(), progressBarUpdater, resources)
@@ -254,6 +258,7 @@ class ServerService : Service() {
         val assetRepository = AssetRepository(BuildWrapper().getArchType(),
                 appsFilesystemDistType, this.filesDir.path, timestampPreferences,
                 assetListPreferences)
+        // TODO refactor this to not instantiate twice
         val sessionController = SessionController(assetRepository, filesystemUtility)
 
         val filesystemDao = UlaDatabase.getInstance(this).filesystemDao()

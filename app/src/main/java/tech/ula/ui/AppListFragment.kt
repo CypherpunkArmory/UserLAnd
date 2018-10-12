@@ -111,6 +111,8 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
         it?.let {
             refreshStatus = it
             swipe_refresh.isRefreshing = refreshStatus == RefreshStatus.ACTIVE
+
+            if (refreshStatus == RefreshStatus.FAILED) showRefreshUnavailableDialog()
         }
     }
 
@@ -455,6 +457,17 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
                 }
             }
         }
+    }
+
+    private fun showRefreshUnavailableDialog() {
+        AlertDialog.Builder(activityContext)
+                .setMessage(R.string.alert_network_required_for_refresh)
+                .setTitle(R.string.general_error_title)
+                .setPositiveButton(R.string.button_ok) {
+                    dialog, _ ->
+                    dialog.dismiss()
+                }
+                .create().show()
     }
 
     override fun onSubscriptionsAreNotSupported() {

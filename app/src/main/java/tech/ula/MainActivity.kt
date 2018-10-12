@@ -143,6 +143,9 @@ class MainActivity : AppCompatActivity() {
             "playStoreMissingForClient" ->
                 displayGenericErrorDialog(this, R.string.alert_need_client_app_title,
                     R.string.alert_need_client_app_message)
+            "networkTooWeakForDownloads" ->
+                displayGenericErrorDialog(this, R.string.general_error_title,
+                        R.string.alert_network_strength_too_low_for_downloads)
         }
     }
 

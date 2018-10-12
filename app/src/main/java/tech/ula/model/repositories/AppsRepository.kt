@@ -7,6 +7,7 @@ import tech.ula.model.daos.AppsDao
 import tech.ula.model.entities.App
 import tech.ula.model.remote.RemoteAppsSource
 import tech.ula.utils.AppsPreferences
+import tech.ula.utils.ConnectionUtility
 
 import tech.ula.utils.asyncAwait
 
@@ -32,6 +33,10 @@ class AppsRepository(
     suspend fun refreshData() {
         val appsList = mutableSetOf<String>()
         val distributionsList = mutableSetOf<String>()
+        if (!ConnectionUtility().hostIsReachable(remoteAppsSource.getHostname())) {
+            refreshStatus.postValue(RefreshStatus.FAILED)
+            return
+        }
         asyncAwait {
             refreshStatus.postValue(RefreshStatus.ACTIVE)
             try {
