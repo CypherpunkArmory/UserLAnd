@@ -12,7 +12,6 @@ import android.os.Bundle
 import android.os.Environment
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.ContextMenu
@@ -20,7 +19,6 @@ import android.view.View
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MenuInflater
-import android.view.animation.AnimationUtils
 import android.widget.Toast
 import android.widget.EditText
 import android.widget.RadioButton

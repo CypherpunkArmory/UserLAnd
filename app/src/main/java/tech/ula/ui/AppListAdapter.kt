@@ -1,7 +1,6 @@
 package tech.ula.ui
 
 import android.app.Activity
-import android.support.constraint.ConstraintLayout
 import android.support.v7.util.DiffUtil
 import android.support.v7.widget.RecyclerView
 import android.view.ContextMenu
