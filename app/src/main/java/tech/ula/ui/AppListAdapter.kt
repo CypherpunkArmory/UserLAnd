@@ -15,6 +15,7 @@ import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Session
 import tech.ula.utils.LocalFileLocator
+import kotlin.collections.ArrayList
 
 class AppListAdapter(
     private val activity: Activity,
@@ -51,15 +52,11 @@ class AppListAdapter(
 
     private val appsAndSeparators: ArrayList<AppsListItem> = arrayListOf()
 
-    fun setAppsAndSessions(newApps: List<App>, newActiveSessions: List<Session>) {
-        apps.clear()
-        apps.addAll(newApps)
-        activeSessions.clear()
-        activeSessions.addAll(newActiveSessions)
+    fun createAppsItemListWithSeparators(newApps: List<App>): List<AppsListItem> {
         val listBuilder = arrayListOf<AppsListItem>()
         val categoriesAndApps = HashMap<String, ArrayList<App>>()
 
-        for (app in apps) {
+        for (app in newApps) {
             categoriesAndApps.getOrPut(app.category) { arrayListOf() }.add(app)
         }
 
@@ -69,18 +66,37 @@ class AppListAdapter(
             categoriesAndAppsWithDistributionsFirst[firstDisplayCategory] =
                     categoriesAndApps.remove(firstDisplayCategory)!!
         }
-        categoriesAndAppsWithDistributionsFirst.putAll(categoriesAndApps)
+
+        val sortedCategoriesAndApps = categoriesAndApps.toSortedMap()
+        categoriesAndAppsWithDistributionsFirst.putAll(sortedCategoriesAndApps)
 
         categoriesAndAppsWithDistributionsFirst.forEach {
             (category, categoryApps) ->
             val categoryWithPaymentInformation = category + " " +
                     if (category == firstDisplayCategory) freeAnnotation else paidAnnotation
             listBuilder.add(AppSeparatorItem(categoryWithPaymentInformation.capitalize()))
-            categoryApps.forEach { listBuilder.add(AppItem(it)) }
+
+            val sortedCategoryApps = categoryApps.sortedWith(compareBy { it.name })
+            sortedCategoryApps.forEach { listBuilder.add(AppItem(it)) }
         }
+
+        return listBuilder
+    }
+
+    fun updateAppsAndSessions(newApps: List<App>, newActiveSessions: List<Session>) {
+
+        val newAppsListItems = createAppsItemListWithSeparators(newApps)
+
+        val diffCallback = AppsItemDiffCallBack(appsAndSeparators, newAppsListItems)
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
+        apps.clear()
+        apps.addAll(newApps)
+        activeSessions.clear()
+        activeSessions.addAll(newActiveSessions)
         appsAndSeparators.clear()
-        appsAndSeparators.addAll(listBuilder)
-        notifyDataSetChanged()
+        appsAndSeparators.addAll(newAppsListItems)
+
+        diffResult.dispatchUpdatesTo(this)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -124,8 +140,10 @@ class AppListAdapter(
 
     private fun setAnimation(viewToAnimate: View, position: Int) {
         if (position > lastPosition) {
+            val animationDelay = 200L
             val animation = AnimationUtils.loadAnimation(activity, R.anim.item_animation_from_right)
             viewToAnimate.startAnimation(animation)
+            animation.startOffset = position * animationDelay
             lastPosition = position
         }
     }

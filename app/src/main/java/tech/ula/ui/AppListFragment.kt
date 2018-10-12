@@ -106,7 +106,7 @@ class AppListFragment : Fragment(),
         it?.let {
             appsList = it.first
             activeSessions = it.second
-            appAdapter.setAppsAndSessions(appsList, activeSessions)
+            appAdapter.updateAppsAndSessions(appsList, activeSessions)
             if (appsList.isEmpty()) {
                 doRefresh()
             }
