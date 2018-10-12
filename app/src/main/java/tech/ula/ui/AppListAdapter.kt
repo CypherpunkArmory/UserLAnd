@@ -2,6 +2,7 @@ package tech.ula.ui
 
 import android.app.Activity
 import android.support.constraint.ConstraintLayout
+import android.support.v7.util.DiffUtil
 import android.support.v7.widget.RecyclerView
 import android.view.ContextMenu
 import android.view.LayoutInflater
@@ -172,3 +173,52 @@ class AppListAdapter(
 sealed class AppsListItem
 data class AppItem(val app: App) : AppsListItem()
 data class AppSeparatorItem(val category: String) : AppsListItem()
+
+class AppsItemDiffCallBack(private var oldAppsItemList: List<AppsListItem>, private var newAppsItemList: List<AppsListItem>) : DiffUtil.Callback() {
+    override fun getOldListSize(): Int {
+        return oldAppsItemList.size
+    }
+
+    override fun getNewListSize(): Int {
+        return newAppsItemList.size
+    }
+
+    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+        val oldApp = oldAppsItemList[oldItemPosition]
+        val newApp = newAppsItemList[newItemPosition]
+
+        if (oldApp is AppSeparatorItem && newApp is AppSeparatorItem) {
+            if (oldApp.category == newApp.category) {
+                return true
+            }
+        } else if (oldApp is AppItem && newApp is AppItem) {
+            if (oldApp.app.name == newApp.app.name) {
+                return true
+            }
+        }
+
+        return false
+    }
+
+    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+        val oldApp = oldAppsItemList[oldItemPosition]
+        val newApp = newAppsItemList[newItemPosition]
+
+        if (oldApp is AppSeparatorItem && newApp is AppSeparatorItem) {
+            if (oldApp.category == newApp.category) {
+                return true
+            }
+        } else if (oldApp is AppItem && newApp is AppItem) {
+            if (oldApp.app.category == newApp.app.category &&
+                    oldApp.app.name == newApp.app.name &&
+                    oldApp.app.version == newApp.app.version &&
+                    oldApp.app.filesystemRequired == newApp.app.filesystemRequired &&
+                    oldApp.app.isPaidApp == newApp.app.isPaidApp &&
+                    oldApp.app.supportsCli == newApp.app.supportsCli &&
+                    oldApp.app.supportsGui == newApp.app.supportsGui) {
+                return true
+            }
+        }
+        return false
+    }
+}
