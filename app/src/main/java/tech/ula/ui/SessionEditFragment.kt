@@ -51,7 +51,7 @@ class SessionEditFragment : Fragment() {
             if (it.isEmpty()) {
                 filesystemNames.add("")
             }
-            
+
             filesystemNames.add("Create new")
 
             getListDifferenceAndSetNewFilesystem(filesystemList, it)
