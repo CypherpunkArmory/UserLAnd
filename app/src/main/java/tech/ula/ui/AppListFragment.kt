@@ -484,6 +484,6 @@ class AppListFragment : Fragment(), PlayServiceManager.PlayServicesUpdateListene
     }
 
     override fun onSubscriptionPurchased() {
-        if (lastSelectedApp != unselectedApp) handleAppSelection(lastSelectedApp)
+        handleAppSelection(lastSelectedApp)
     }
 }
