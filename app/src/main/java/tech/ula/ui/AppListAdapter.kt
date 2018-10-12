@@ -87,8 +87,6 @@ class AppListAdapter(
 
         val diffCallback = AppsItemDiffCallBack(appsAndSeparators, newAppsListItems)
         val diffResult = DiffUtil.calculateDiff(diffCallback)
-        apps.clear()
-        apps.addAll(newApps)
         activeSessions.clear()
         activeSessions.addAll(newActiveSessions)
         appsAndSeparators.clear()
