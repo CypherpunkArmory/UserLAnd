@@ -6,10 +6,10 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:windowBackground">@color/colorPrimaryDark</item>
-        <item name="preferenceTheme">@style/PreferenceTheme</item>
+        <item name="preferenceTheme">@style/preferenceTheme</item>
     </style>
 
-    <style name="PreferenceTheme" parent="PreferenceThemeOverlay">
+    <style name="preferenceTheme" parent="PreferenceThemeOverlay">
         <item name="android:textSize">14sp</item>
     </style>
 

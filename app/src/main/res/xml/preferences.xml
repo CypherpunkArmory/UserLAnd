@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <!-- TODO set preference categories to not reserve icon space after androidx > 1.0.0 is released -->
     <PreferenceCategory
         android:title="@string/pref_app_category"
         android:key="pref_app_category" >
@@ -9,16 +11,19 @@
             android:summary="@string/pref_default_landing_page_message"
             android:entries="@array/default_landing_pages"
             android:entryValues="@array/default_landing_pages"
-            android:defaultValue="@string/apps" />
+            android:defaultValue="@string/apps"
+            app:iconSpaceReserved="false"/>
     </PreferenceCategory>
     <PreferenceCategory
         android:title="@string/pref_proot_category"
-        android:key="pref_proot_category" >
+        android:key="pref_proot_category"
+        app:iconSpaceReserved="false">
         <CheckBoxPreference
             android:key="pref_proot_debug_enabled"
             android:title="@string/pref_proot_debugging_enabled_title"
             android:summary="@string/pref_proot_debugging_enabled_summary"
-            android:defaultValue="false" />
+            android:defaultValue="false"
+            app:iconSpaceReserved="false"/>
         <ListPreference
             android:dependency="pref_proot_debug_enabled"
             android:key="pref_proot_debug_level"
@@ -26,18 +31,12 @@
             android:summary="@string/pref_proot_debugging_level_summary"
             android:entries="@array/proot_debug_levels"
             android:entryValues="@array/proot_debug_levels"
-            android:defaultValue="@string/pref_proot_debugging_level_default" />
-        <!-- TODO Re-enable this preference once bug is fixed.
-        <CheckBoxPreference
-            android:dependency="pref_proot_debug_enabled"
-            android:key="pref_proot_local_file_enabled"
-            android:title="@string/pref_proot_local_file_enabled_title"
-            android:summary="@string/pref_proot_local_file_enabled_summary"
-            android:defaultValue="true" />
-        -->
+            android:defaultValue="@string/pref_proot_debugging_level_default"
+            app:iconSpaceReserved="false"/>
         <Preference
             android:dependency="pref_proot_debug_enabled"
             android:key="pref_proot_delete_debug_file"
-            android:title="@string/pref_proot_delete_debug_file_title" />
+            android:title="@string/pref_proot_delete_debug_file_title"
+            app:iconSpaceReserved="false"/>
     </PreferenceCategory>
 </PreferenceScreen>
