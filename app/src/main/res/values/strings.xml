@@ -85,10 +85,15 @@
     <string name="pref_proot_delete_debug_file_title">Delete Debug File</string>
 
     <!-- Help Activity -->
-    <string name="beta_message">UserLAnd is currently in beta! Not all features will be available yet.
-    Bugs will be present, but please report them to us!</string>
+    <string name="beta_message">Experiencing bugs or want to request a feature? Our Github page is the best place to go to get a fast response.</string>
     <string name="supported_services">Currently supported services:</string>
-    <string name="supported_clients">Currently supported clients:</string>
+    <string name="terminology">Terminology:</string>
+    <string name="desc_apps_title">Apps:</string>
+    <string name="desc_apps_message">Apps are the easiest way to launch common Linux applications.</string>
+    <string name="desc_sessions_title">Sessions:</string>
+    <string name="desc_sessions_message">Sessions start a server on a filesystem, which then allows you to connect to it using a third-party client application.</string>
+    <string name="desc_filesystems_title">Filesystems:</string>
+    <string name="desc_filesystems_message">Filesystems are just what they sound like: A collection of users and a file structure that allows Linux-like behavior.</string>
 
     <!-- Supported Services -->
     <string name="support_dropbear">SSH - Dropbear</string>
@@ -97,10 +102,6 @@
     <!-- Client Types -->
     <string name="client_ssh">SSH</string>
     <string name="client_vnc">VNC</string>
-
-    <!-- Support Clients -->
-    <string name="support_connectbot">SSH - ConnectBot</string>
-    <string name="support_bvnc">VNC - bVNC</string>
 
     <!-- Alerts -->
     <string name="button_ok">OK!</string>

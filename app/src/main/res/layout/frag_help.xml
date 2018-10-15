@@ -76,7 +76,8 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/text_supported_services" >
+        app:layout_constraintTop_toBottomOf="@id/text_supported_services"
+        app:layout_constraintBottom_toTopOf="@id/layout_terminology">
 
         <TextView
             android:layout_width="match_parent"
@@ -90,32 +91,49 @@
 
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/text_supported_clients"
+    <LinearLayout
+        android:id="@+id/layout_terminology"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/supported_clients"
-        app:layout_constraintTop_toBottomOf="@id/list_supported_services"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <LinearLayout
-        android:id="@+id/list_supported_clients"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintTop_toBottomOf="@id/text_supported_clients"
-        app:layout_constraintStart_toStartOf="parent" >
+        android:layout_marginTop="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/list_supported_services">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/support_connectbot" />
+            android:text="@string/desc_apps_title"/>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/support_bvnc"/>
+            android:layout_marginStart="8dp"
+            android:text="@string/desc_apps_message"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/desc_sessions_title"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/desc_sessions_message"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/desc_filesystems_title"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/desc_filesystems_message"/>
 
     </LinearLayout>
 
