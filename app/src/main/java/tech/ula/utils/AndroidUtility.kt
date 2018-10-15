@@ -29,8 +29,11 @@ import java.net.URL
 fun makePermissionsUsable(containingDirectoryPath: String, filename: String) {
     val commandToRun = arrayListOf("chmod", "0777", filename)
 
+    val containingDirectory = File(containingDirectoryPath)
+    containingDirectory.mkdirs()
+
     val pb = ProcessBuilder(commandToRun)
-    pb.directory(File(containingDirectoryPath))
+    pb.directory(containingDirectory)
 
     val process = pb.start()
     process.waitFor()
