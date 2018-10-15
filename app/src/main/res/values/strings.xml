@@ -105,6 +105,7 @@
     <!-- Alerts -->
     <string name="button_ok">OK!</string>
     <string name="general_error_title">Something unexpected happened!</string>
+    <string name="filesystem_credentials_reasoning">We\'re creating a filesystem for your apps. Please enter the relevant required information for us to use as defaults for this filesystem.</string>
 
     <!-- Play service error alerts -->
     <string name="alert_play_service_error_message">We\'re having trouble accessing the Google Play services to complete this action. Please try again later, and if the problem continues report it to a developer.</string>
@@ -158,8 +159,6 @@
     <string name="error_apps_renamed">Apps cannot be run if their session or filesystem have been renamed.</string>
 
     <!-- Content descriptions -->
-    <string name="desc_inactive">Image: session inactive</string>
-    <string name="desc_active">Image: session active</string>
     <string name="desc_arrow">Image: Arrow denoting connection between session and filesystem.</string>
     <string name="desc_filesystem_type">Image: Distribution logo</string>
 
