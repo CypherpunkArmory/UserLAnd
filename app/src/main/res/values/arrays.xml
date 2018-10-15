@@ -32,17 +32,5 @@
         <item>SSH - Dropbear</item>
         <item>VNC - TightVNC</item>
     </string-array>
-
-    <string-array name="supported_ssh_clients">
-        <item>ConnectBot</item>
-    </string-array>
-
-    <string-array name="supported_vnc_clients">
-        <item>bVNC</item>
-    </string-array>
-
-    <string-array name="supported_clients_and_types">
-        <item>SSH - ConnectBot</item>
-        <item>VNC - bVNC</item>
-    </string-array>
+    
 </resources>

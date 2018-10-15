@@ -80,30 +80,6 @@
             app:layout_constraintStart_toEndOf="@id/text_session_service_type"
             app:layout_constraintTop_toBottomOf="@id/spinner_filesystem_list" />
 
-        <!-- Client Type -->
-        <TextView
-            android:id="@+id/text_session_client_type"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/prompt_client_type"
-            app:layout_constraintHorizontal_bias="0"
-            app:layout_constraintBaseline_toBaselineOf="@id/spinner_session_client_type"
-            app:layout_constraintTop_toBottomOf="@id/text_session_service_type"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/spinner_session_client_type"/>
-
-        <Spinner
-            android:id="@+id/spinner_session_client_type"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:spinnerMode="dropdown"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@id/spinner_session_service_type"
-            app:layout_constraintStart_toEndOf="@id/text_session_client_type"
-            app:layout_constraintTop_toBottomOf="@id/spinner_session_service_type" />
-
         <!-- Username -->
         <android.support.design.widget.TextInputLayout
             android:id="@+id/text_input_layout_username"
@@ -111,7 +87,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:hint="@string/hint_username"
-            app:layout_constraintTop_toBottomOf="@id/spinner_session_client_type"
+            app:layout_constraintTop_toBottomOf="@id/text_session_service_type"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" >
 

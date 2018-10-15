@@ -35,8 +35,6 @@ class SessionEditFragment : Fragment() {
         arguments?.getBoolean("editExisting") ?: false
     }
 
-    private var sessionClientTypeList = ArrayList<String>()
-
     private var filesystemList: List<Filesystem> = emptyList()
 
     private val sessionEditViewModel: SessionEditViewModel by lazy {
@@ -143,19 +141,6 @@ class SessionEditFragment : Fragment() {
                 val selectedServiceType = parent?.getItemAtPosition(position).toString()
                 session.serviceType = selectedServiceType
                 session.port = getDefaultServicePort(selectedServiceType)
-
-                sessionClientTypeList = getSupportedClientTypes(selectedServiceType)
-                spinner_session_client_type.adapter = ArrayAdapter(activityContext, android.R.layout.simple_spinner_dropdown_item, sessionClientTypeList)
-            }
-        }
-
-        spinner_session_client_type.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val selectedClientType = parent?.getItemAtPosition(position).toString()
-                session.clientType = selectedClientType
             }
         }
 
@@ -197,14 +182,6 @@ class SessionEditFragment : Fragment() {
             }
         }
         return true
-    }
-
-    private fun getSupportedClientTypes(selectedServiceType: String): ArrayList<String> {
-        return when (selectedServiceType) {
-            "ssh" -> arrayListOf(*activityContext.resources.getStringArray(R.array.supported_ssh_clients))
-            "vnc" -> arrayListOf(*activityContext.resources.getStringArray(R.array.supported_vnc_clients))
-            else -> arrayListOf()
-        }
     }
 
     private fun getDefaultServicePort(selectedServiceType: String): Long {
