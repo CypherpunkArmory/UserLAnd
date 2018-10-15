@@ -113,6 +113,10 @@ class FilesystemEditFragment : Fragment() {
             input_filesystem_vncpassword.isEnabled = false
         }
 
+        if (filesystem.isAppsFilesystem) {
+            input_filesystem_name.isEnabled = false
+        }
+
         input_filesystem_name.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
                 filesystem.name = p0.toString()

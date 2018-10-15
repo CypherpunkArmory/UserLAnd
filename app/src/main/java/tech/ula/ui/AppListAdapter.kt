@@ -85,7 +85,7 @@ class AppListAdapter(
 
         val newAppsListItems = createAppsItemListWithSeparators(newApps)
 
-        val diffCallback = AppsItemDiffCallBack(appsAndSeparators, newAppsListItems)
+        val diffCallback = AppsItemDiffCallBack(appsAndSeparators, newAppsListItems, activeSessions, newActiveSessions)
         val diffResult = DiffUtil.calculateDiff(diffCallback)
         activeSessions.clear()
         activeSessions.addAll(newActiveSessions)
@@ -188,7 +188,10 @@ sealed class AppsListItem
 data class AppItem(val app: App) : AppsListItem()
 data class AppSeparatorItem(val category: String) : AppsListItem()
 
-class AppsItemDiffCallBack(private var oldAppsItemList: List<AppsListItem>, private var newAppsItemList: List<AppsListItem>) : DiffUtil.Callback() {
+class AppsItemDiffCallBack(private val oldAppsItemList: List<AppsListItem>,
+                           private val newAppsItemList: List<AppsListItem>,
+                           private val oldActiveSessions: List<Session>,
+                           private val newActiveSessions: List<Session>) : DiffUtil.Callback() {
     override fun getOldListSize(): Int {
         return oldAppsItemList.size
     }
@@ -202,11 +205,9 @@ class AppsItemDiffCallBack(private var oldAppsItemList: List<AppsListItem>, priv
         val newApp = newAppsItemList[newItemPosition]
 
         if (oldApp is AppSeparatorItem && newApp is AppSeparatorItem) {
-            if (oldApp.category == newApp.category) {
-                return true
-            }
+            if (oldApp.category == newApp.category) return true
         } else if (oldApp is AppItem && newApp is AppItem) {
-            if (oldApp.app.name == newApp.app.name) {
+            if (oldApp.app.name == newApp.app.name && oldActiveSessions == newActiveSessions) {
                 return true
             }
         }
