@@ -42,8 +42,6 @@ class AppListAdapter(
     private val ITEM_VIEW_TYPE_APP = 0
     private val ITEM_VIEW_TYPE_SEPARATOR = 1
 
-    private var lastPosition = -1
-
     private val firstDisplayCategory = "distribution"
     private val freeAnnotation = activity.resources.getString(R.string.free_annotation)
     private val paidAnnotation = activity.resources.getString(R.string.paid_annotation)
@@ -135,13 +133,10 @@ class AppListAdapter(
     }
 
     private fun setAnimation(viewToAnimate: View, position: Int) {
-        if (position > lastPosition) {
-            val animationDelay = 150L
-            val animation = AnimationUtils.loadAnimation(activity, R.anim.item_animation_from_right)
-            viewToAnimate.startAnimation(animation)
-            animation.startOffset = position * animationDelay
-            lastPosition = position
-        }
+        val animationDelay = 150L
+        val animation = AnimationUtils.loadAnimation(activity, R.anim.item_animation_from_right)
+        viewToAnimate.startAnimation(animation)
+        animation.startOffset = position * animationDelay
     }
 
     private fun bindOnClick(viewHolder: ViewHolder, selectedListItem: AppsListItem, onAppsItemClicked: OnAppsItemClicked, position: Int) {
