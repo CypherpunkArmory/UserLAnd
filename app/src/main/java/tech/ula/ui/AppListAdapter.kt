@@ -188,10 +188,12 @@ sealed class AppsListItem
 data class AppItem(val app: App) : AppsListItem()
 data class AppSeparatorItem(val category: String) : AppsListItem()
 
-class AppsItemDiffCallBack(private val oldAppsItemList: List<AppsListItem>,
-                           private val newAppsItemList: List<AppsListItem>,
-                           private val oldActiveSessions: List<Session>,
-                           private val newActiveSessions: List<Session>) : DiffUtil.Callback() {
+class AppsItemDiffCallBack(
+    private val oldAppsItemList: List<AppsListItem>,
+    private val newAppsItemList: List<AppsListItem>,
+    private val oldActiveSessions: List<Session>,
+    private val newActiveSessions: List<Session>
+) : DiffUtil.Callback() {
     override fun getOldListSize(): Int {
         return oldAppsItemList.size
     }
