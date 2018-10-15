@@ -25,6 +25,7 @@
     <string name="save">Save</string>
     <string name="add">Add</string>
     <string name="refresh">Refresh</string>
+    <string name="cloud">Cloud</string>
 
     <!-- Hints -->
     <string name="hint_filesystem_name">Filesystem name</string>

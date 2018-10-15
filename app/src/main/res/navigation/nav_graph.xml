@@ -48,6 +48,12 @@
         android:label="@string/settings" />
 
     <fragment
+        android:id="@+id/cloud_fragment"
+        android:name="tech.ula.ui.CloudFragment"
+        android:label="@string/cloud"
+        tools:layout="@layout/frag_cloud" />
+
+    <fragment
         android:id="@+id/help_fragment"
         android:name="tech.ula.ui.HelpFragment"
         android:label="@string/help"

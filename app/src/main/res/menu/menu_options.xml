@@ -5,6 +5,12 @@
         android:id="@id/settings_fragment"
         android:icon="@android:drawable/ic_menu_preferences"
         android:title="@string/settings" />
+
+    <item
+        android:id="@+id/cloud_fragment"
+        android:icon="@drawable/ic_add_white_24dp"
+        android:title="@string/cloud" />
+
     <item
         android:id="@id/help_fragment"
         android:icon="@android:drawable/ic_menu_help"
