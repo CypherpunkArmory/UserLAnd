@@ -43,12 +43,10 @@ class AppListAdapter(
     private val ITEM_VIEW_TYPE_SEPARATOR = 1
 
     private val firstDisplayCategory = "distribution"
-    private val freeAnnotation = activity.resources.getString(R.string.free_annotation)
-    private val paidAnnotation = activity.resources.getString(R.string.paid_annotation)
 
     private val appsAndSeparators: ArrayList<AppsListItem> = arrayListOf()
 
-    fun createAppsItemListWithSeparators(newApps: List<App>): List<AppsListItem> {
+    private fun createAppsItemListWithSeparators(newApps: List<App>): List<AppsListItem> {
         val listBuilder = arrayListOf<AppsListItem>()
         val categoriesAndApps = HashMap<String, ArrayList<App>>()
 
@@ -68,9 +66,7 @@ class AppListAdapter(
 
         categoriesAndAppsWithDistributionsFirst.forEach {
             (category, categoryApps) ->
-            val categoryWithPaymentInformation = category + " " +
-                    if (category == firstDisplayCategory) freeAnnotation else paidAnnotation
-            listBuilder.add(AppSeparatorItem(categoryWithPaymentInformation.capitalize()))
+            listBuilder.add(AppSeparatorItem(category.capitalize()))
 
             val sortedCategoryApps = categoryApps.sortedWith(compareBy { it.name })
             sortedCategoryApps.forEach { listBuilder.add(AppItem(it)) }

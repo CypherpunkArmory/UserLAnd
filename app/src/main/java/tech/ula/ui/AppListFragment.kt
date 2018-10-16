@@ -40,15 +40,12 @@ import tech.ula.utils.AppsPreferences
 import tech.ula.utils.DefaultPreferences
 import tech.ula.utils.ExecUtility
 import tech.ula.utils.FilesystemUtility
-import tech.ula.utils.PlayServiceManager
 import tech.ula.utils.ValidationUtility
 import tech.ula.utils.arePermissionsGranted
-import tech.ula.utils.displayGenericErrorDialog
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
 
 class AppListFragment : Fragment(),
-        PlayServiceManager.PlayServicesUpdateListener,
         AppListAdapter.OnAppsItemClicked,
         AppListAdapter.OnAppsCreateContextMenu {
 
@@ -66,11 +63,6 @@ class AppListFragment : Fragment(),
 
     private val unselectedApp = App(name = "unselected")
     private var lastSelectedApp = unselectedApp
-
-    private var billingClientIsConnected = false
-    private val playServiceManager by lazy {
-        PlayServiceManager(this)
-    }
 
     private lateinit var filesystemList: List<Filesystem>
 
@@ -105,7 +97,7 @@ class AppListFragment : Fragment(),
             appsList = it.first
             activeSessions = it.second
             appAdapter.updateAppsAndSessions(appsList, activeSessions)
-            if (appsList.isEmpty()) {
+            if (appsList.isEmpty() || userlandIsNewVersion()) {
                 doRefresh()
             }
         }
@@ -169,10 +161,6 @@ class AppListFragment : Fragment(),
         appsListViewModel.getRefreshStatus().observe(viewLifecycleOwner, refreshStatusObserver)
         appsListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemObserver)
 
-        if (playServiceManager.playServicesAreAvailable(activityContext)) {
-            playServiceManager.startBillingClient(activityContext)
-        }
-
         registerForContextMenu(list_apps)
         list_apps.layoutManager = LinearLayoutManager(list_apps.context)
         list_apps.adapter = appAdapter
@@ -187,6 +175,7 @@ class AppListFragment : Fragment(),
 
     private fun doRefresh() {
         appsListViewModel.refreshAppsList()
+        setLatestUpdateUserlandVersion()
     }
 
     private fun doAppItemClicked(selectedApp: App) {
@@ -200,24 +189,6 @@ class AppListFragment : Fragment(),
 
     private fun handleAppSelection(selectedApp: App) {
         if (selectedApp == unselectedApp) return
-        if (selectedApp.isPaidApp) {
-            when {
-                !playServiceManager.playStoreIsAvailable(activityContext.packageManager) -> {
-                    displayGenericErrorDialog(activityContext, R.string.general_error_title,
-                            R.string.alert_play_store_required)
-                    return
-                }
-                !playServiceManager.playServicesAreAvailable(activityContext) -> {
-                    displayGenericErrorDialog(activityContext, R.string.general_error_title,
-                            R.string.alert_play_service_error_message)
-                    return
-                }
-                !playServiceManager.userHasYearlyAppsSubscription() -> {
-                    playServiceManager.startBillingFlow(activityContext)
-                    return
-                }
-            }
-        }
 
         val preferredServiceType = appsListViewModel.getAppServiceTypePreference(selectedApp).toLowerCase()
 
@@ -477,34 +448,22 @@ class AppListFragment : Fragment(),
                 .create().show()
     }
 
-    override fun onSubscriptionsAreNotSupported() {
-        AlertDialog.Builder(activityContext)
-                .setMessage(R.string.alert_subscriptions_unsupported_message)
-                .setTitle(R.string.general_error_title)
-                .setPositiveButton(R.string.button_ok) {
-                    dialog, _ ->
-                    dialog.dismiss()
-                }
-                .create().show()
+    private fun userlandIsNewVersion(): Boolean {
+        val version = getUserlandVersion()
+        val lastUpdatedVersion = activityContext.defaultSharedPreferences.getString("lastAppsUpdate", "")
+        return version != lastUpdatedVersion
     }
 
-    override fun onBillingClientConnectionChange(isConnected: Boolean) {
-        billingClientIsConnected = isConnected
-        if (!isConnected) playServiceManager.startBillingClient(activityContext)
+    private fun setLatestUpdateUserlandVersion() {
+        val version = getUserlandVersion()
+        with(activityContext.defaultSharedPreferences.edit()) {
+            putString("lastAppsUpdate", version)
+            apply()
+        }
     }
 
-    override fun onPlayServiceError() {
-        AlertDialog.Builder(activityContext)
-                .setMessage(R.string.alert_play_service_error_message)
-                .setTitle(R.string.general_error_title)
-                .setPositiveButton(R.string.button_ok) {
-                    dialog, _ ->
-                    dialog.dismiss()
-                }
-                .create().show()
-    }
-
-    override fun onSubscriptionPurchased() {
-        handleAppSelection(lastSelectedApp)
+    private fun getUserlandVersion(): String {
+        val info = activityContext.packageManager.getPackageInfo(activityContext.packageName, 0)
+        return info.versionName
     }
 }
