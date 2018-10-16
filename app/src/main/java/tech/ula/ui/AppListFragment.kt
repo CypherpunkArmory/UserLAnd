@@ -175,6 +175,7 @@ class AppListFragment : Fragment(),
 
     private fun doRefresh() {
         appsListViewModel.refreshAppsList()
+        setLatestUpdateUserlandVersion()
     }
 
     private fun doAppItemClicked(selectedApp: App) {
@@ -448,10 +449,21 @@ class AppListFragment : Fragment(),
     }
 
     private fun userlandIsNewVersion(): Boolean {
-        val info = activityContext.packageManager.getPackageInfo(activityContext.packageName, 0)
-        val version = info.versionName
-
+        val version = getUserlandVersion()
         val lastUpdatedVersion = activityContext.defaultSharedPreferences.getString("lastAppsUpdate", "")
         return version != lastUpdatedVersion
+    }
+
+    private fun setLatestUpdateUserlandVersion() {
+        val version = getUserlandVersion()
+        with(activityContext.defaultSharedPreferences.edit()) {
+            putString("lastAppsUpdate", version)
+            apply()
+        }
+    }
+
+    private fun getUserlandVersion(): String {
+        val info = activityContext.packageManager.getPackageInfo(activityContext.packageName, 0)
+        return info.versionName
     }
 }
