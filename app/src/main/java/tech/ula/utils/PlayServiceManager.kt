@@ -98,7 +98,6 @@ class PlayServiceManager(private val playServicesUpdateListener: PlayServicesUpd
         return cacheIndicatesUserHasPurchasedSubscription()
     }
 
-    // TODO check this before requesting user donations
     private fun cacheIndicatesUserHasPurchasedSubscription(): Boolean {
         // Purchases list is nullable even though not documented as such. Null *at least* when play
         // store is unavailable
