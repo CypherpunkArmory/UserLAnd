@@ -8,8 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import com.squareup.moshi.Moshi
-import kotlinx.android.synthetic.main.frag_cloud.*
-import kotlinx.coroutines.experimental.launch
+import kotlinx.android.synthetic.main.frag_account.*
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -17,9 +16,8 @@ import okhttp3.RequestBody
 import org.json.JSONObject
 import tech.ula.R
 import java.io.IOException
-import java.net.URL
 
-class CloudFragment : Fragment() {
+class AccountFragment : Fragment() {
 
     private var client = OkHttpClient()
 
@@ -29,7 +27,7 @@ class CloudFragment : Fragment() {
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
 
-        return inflater.inflate(R.layout.frag_cloud, container, false)
+        return inflater.inflate(R.layout.frag_account, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -53,14 +51,10 @@ class CloudFragment : Fragment() {
             if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
             text_bearer_token.text = response.body()?.string()
-        } finally {
-
-        }
-
+        } finally {}
     }
 
     val JSON = MediaType.parse("application/json; charset=utf-8")
-
 
     private fun getAccessTokenByLogin(): String {
         val loginUrl = "$baseUrl/login"
