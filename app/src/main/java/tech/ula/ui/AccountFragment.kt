@@ -9,6 +9,8 @@ import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.Toast
 import kotlinx.android.synthetic.main.frag_account.*
 import kotlinx.android.synthetic.main.frag_account_info.*
 import kotlinx.android.synthetic.main.frag_account_login.*
@@ -51,27 +53,33 @@ class AccountFragment : Fragment() {
         frag_account_layout.addView(newView)
 
         when (newFragmentId) {
-            R.layout.frag_account_login -> {
-                activityContext.register_prompt.setOnClickListener {
-                    inflateViewStubWithNewFragment(R.layout.frag_account_register)
-                }
+            R.layout.frag_account_login -> setupLoginPage()
+            R.layout.frag_account_register -> setupRegisterPage()
+            R.layout.frag_account_info -> setupAccountInfoPage()
+        }
+    }
 
-                activityContext.btn_login.setOnClickListener {
-                    inflateViewStubWithNewFragment(R.layout.frag_account_info)
-                }
-            }
-            R.layout.frag_account_register -> {
-                activityContext.login_prompt.setOnClickListener {
-                    inflateViewStubWithNewFragment(R.layout.frag_account_login)
-                    setLoggedInUser("Thomas")
-                }
-            }
-            R.layout.frag_account_info -> {
-                activityContext.btn_logout.setOnClickListener {
-                    inflateViewStubWithNewFragment(R.layout.frag_account_login)
-                    logoutCurrentUser()
-                }
-            }
+    private fun setupRegisterPage() {
+        activityContext.login_prompt.setOnClickListener {
+            inflateViewStubWithNewFragment(R.layout.frag_account_login)
+            setLoggedInUser("Thomas")
+        }
+    }
+
+    private fun setupLoginPage() {
+        activityContext.register_prompt.setOnClickListener {
+            inflateViewStubWithNewFragment(R.layout.frag_account_register)
+        }
+
+        activityContext.btn_login.setOnClickListener {
+            if (login()) inflateViewStubWithNewFragment(R.layout.frag_account_info)
+        }
+    }
+
+    private fun setupAccountInfoPage() {
+        activityContext.btn_logout.setOnClickListener {
+            inflateViewStubWithNewFragment(R.layout.frag_account_login)
+            logoutCurrentUser()
         }
     }
 
@@ -89,5 +97,17 @@ class AccountFragment : Fragment() {
         }
 
         return true
+    }
+
+    private fun login(): Boolean {
+        val email = activityContext.findViewById<EditText>(R.id.input_account_email).text
+        val password = activityContext.findViewById<EditText>(R.id.input_account_password).text
+
+        if (email.isNotEmpty() && password.isNotEmpty()) {
+            Toast.makeText(activityContext, "$email $password", Toast.LENGTH_SHORT).show()
+            return true
+        }
+
+        return false
     }
 }
