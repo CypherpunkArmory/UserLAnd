@@ -8,23 +8,21 @@ import okhttp3.RequestBody
 import org.json.JSONObject
 
 class DumontUtility {
+    private val baseUrl = "http://33ecc4bc.ngrok.io"
+    private var client = OkHttpClient()
+    private val jsonType = MediaType.parse("application/json; charset=utf-8")
 
-    private val baseUrl = "http://ef09ce2d.ngrok.io"
-    var client = OkHttpClient()
-
-    val JSON = MediaType.parse("application/json; charset=utf-8")
-
-    private fun loginAndGetBearerToken(email: String, password: String): String {
+    fun loginAndGetBearerToken(email: String, password: String): String {
         val loginUrl = "$baseUrl/login"
-        val json = JSONObject()
-        json.put("email", "email")
-        json.put("password", password)
-        val jsonString = json.toString()
+        val jsonString = JSONObject()
+                .put("email", email)
+                .put("password", password)
+                .toString()
         return postJSON(loginUrl, jsonString)
     }
 
     private fun postJSON(url: String, json: String): String {
-        val body = RequestBody.create(JSON, json)
+        val body = RequestBody.create(jsonType, json)
         val request = Request.Builder()
                 .url(url)
                 .post(body)
@@ -35,7 +33,7 @@ class DumontUtility {
 
         if (jsonString.isNotEmpty()) {
             val moshi = Moshi.Builder().build()
-            val jsonAdapter = moshi.adapter<LoginToken>(LoginToken::class.java)
+            val jsonAdapter = moshi.adapter<Credentials>(Credentials::class.java)
             val credentials = jsonAdapter.fromJson(jsonString)
             return credentials?.access_token.toString()
         }
@@ -44,6 +42,6 @@ class DumontUtility {
     }
 }
 
-class LoginToken {
+class Credentials {
     var access_token: String = ""
 }

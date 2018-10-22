@@ -16,12 +16,15 @@ import kotlinx.android.synthetic.main.frag_account_info.*
 import kotlinx.android.synthetic.main.frag_account_login.*
 import kotlinx.android.synthetic.main.frag_account_register.*
 import tech.ula.R
+import tech.ula.utils.DumontUtility
 
 class AccountFragment : Fragment() {
 
-    private val currentUser = "currentUser"
+    private val currentUserPref = "currentUser"
+    private val bearerTokenPref = "bearerToken"
     private lateinit var activityContext: Activity
     private lateinit var prefs: SharedPreferences
+    private val dumontUtil = DumontUtility()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
@@ -38,7 +41,7 @@ class AccountFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         prefs = activityContext.getSharedPreferences("account", Context.MODE_PRIVATE)
-        val currentUser = prefs.getString(currentUser, "") ?: ""
+        val currentUser = prefs.getString(currentUserPref, "") ?: ""
         if (currentUser.isEmpty()) {
             inflateViewStubWithNewFragment(R.layout.frag_account_register)
         } else {
@@ -62,7 +65,6 @@ class AccountFragment : Fragment() {
     private fun setupRegisterPage() {
         activityContext.login_prompt.setOnClickListener {
             inflateViewStubWithNewFragment(R.layout.frag_account_login)
-            setLoggedInUser("Thomas")
         }
     }
 
@@ -85,29 +87,37 @@ class AccountFragment : Fragment() {
 
     private fun logoutCurrentUser() {
         with(prefs.edit()) {
-            putString(currentUser, "")
+            putString(currentUserPref, "")
+            putString(bearerTokenPref, "")
             apply()
         }
-    }
-
-    private fun setLoggedInUser(username: String): Boolean {
-        with(prefs.edit()) {
-            putString(currentUser, username)
-            apply()
-        }
-
-        return true
     }
 
     private fun login(): Boolean {
-        val email = activityContext.findViewById<EditText>(R.id.input_account_email).text
-        val password = activityContext.findViewById<EditText>(R.id.input_account_password).text
+        val email = activityContext.findViewById<EditText>(R.id.input_account_email).text.toString()
+        val password = activityContext.findViewById<EditText>(R.id.input_account_password).text.toString()
 
         if (email.isNotEmpty() && password.isNotEmpty()) {
-            Toast.makeText(activityContext, "$email $password", Toast.LENGTH_SHORT).show()
+            val bearerToken = dumontUtil.loginAndGetBearerToken(email, password)
+            return validateAndSaveUserCredentials(email, bearerToken)
+        }
+
+        return false
+    }
+
+    private fun validateAndSaveUserCredentials(email: String, bearerToken: String): Boolean {
+        val bearerTokenCharactersCount = 277
+        if (bearerToken.isNotEmpty() && bearerToken.count() == bearerTokenCharactersCount) {
+            with(prefs.edit()) {
+                putString(currentUserPref, email)
+                putString(bearerTokenPref, bearerToken)
+                apply()
+            }
+            Toast.makeText(activityContext, bearerToken, Toast.LENGTH_LONG).show()
             return true
         }
 
+        Toast.makeText(activityContext, "Login credentials incorrect.", Toast.LENGTH_SHORT).show()
         return false
     }
 }
