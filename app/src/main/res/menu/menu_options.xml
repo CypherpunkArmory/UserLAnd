@@ -7,7 +7,7 @@
         android:title="@string/settings" />
 
     <item
-        android:id="@+id/cloud_fragment"
+        android:id="@+id/account_fragment"
         android:title="@string/account" />
 
     <item
