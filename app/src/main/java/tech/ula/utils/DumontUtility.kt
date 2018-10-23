@@ -13,18 +13,22 @@ class DumontUtility {
     private val jsonType = MediaType.parse("application/json; charset=utf-8")
 
     fun loginAndGetBearerToken(email: String, password: String): String {
-        val loginUrl = "$baseUrl/login"
+        val requestType = Login(url = "$baseUrl/login")
         val jsonString = JSONObject()
                 .put("email", email)
                 .put("password", password)
                 .toString()
-        return postJSON(loginUrl, jsonString)
+        return postJSON(requestType, jsonString)
     }
 
-    private fun postJSON(url: String, json: String): String {
+    private fun getBoxes(): String {
+        return ""
+    }
+
+    private fun postJSON(requestType: RequestType, json: String): String {
         val body = RequestBody.create(jsonType, json)
         val request = Request.Builder()
-                .url(url)
+                .url(requestType.urlPath)
                 .post(body)
                 .build()
 
@@ -32,10 +36,13 @@ class DumontUtility {
         val jsonString = response.body()?.string() ?: ""
 
         if (jsonString.isNotEmpty()) {
-            val moshi = Moshi.Builder().build()
-            val jsonAdapter = moshi.adapter<Credentials>(Credentials::class.java)
-            val credentials = jsonAdapter.fromJson(jsonString)
-            return credentials?.access_token.toString()
+            return when (requestType) {
+                is Login -> {
+                    val credentials = requestType.jsonAdapter.fromJson(jsonString) as Credentials
+                    credentials.access_token
+                }
+                is GetBoxes -> { "" }
+            }
         }
 
         return jsonString
@@ -45,3 +52,10 @@ class DumontUtility {
 class Credentials {
     var access_token: String = ""
 }
+
+sealed class RequestType(val urlPath: String) { val moshi = Moshi.Builder().build() }
+data class Login(val url: String) : RequestType(urlPath = url) {
+    val jsonAdapter = moshi.adapter<Credentials>(Credentials::class.java)
+}
+
+data class GetBoxes(val url: String) : RequestType(urlPath = url)
