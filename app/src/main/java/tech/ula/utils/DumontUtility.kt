@@ -8,30 +8,51 @@ import okhttp3.RequestBody
 import org.json.JSONObject
 
 class DumontUtility {
-    private val baseUrl = "http://33ecc4bc.ngrok.io"
+    private val baseUrl = "http://9679867b.ngrok.io"
     private var client = OkHttpClient()
     private val jsonType = MediaType.parse("application/json; charset=utf-8")
 
     fun loginAndGetBearerToken(email: String, password: String): String {
-        val requestType = Login(url = "$baseUrl/login")
         val jsonString = JSONObject()
                 .put("email", email)
                 .put("password", password)
                 .toString()
-        return postJSON(requestType, jsonString)
-    }
 
-    private fun getBoxes(): String {
-        return ""
-    }
-
-    private fun postJSON(requestType: RequestType, json: String): String {
-        val body = RequestBody.create(jsonType, json)
+        val body = RequestBody.create(jsonType, jsonString)
         val request = Request.Builder()
-                .url(requestType.urlPath)
+                .url("$baseUrl/login")
                 .post(body)
                 .build()
 
+        val requestType = Login(request)
+        return sendRequest(requestType)
+    }
+
+    fun getBoxes(bearerToken: String): String {
+        val request = Request.Builder()
+                .url("$baseUrl/boxes")
+                .get()
+                .addHeader("Authorization: Bearer ", bearerToken)
+                .build()
+
+        val requestType = GetBoxes(request)
+        return sendRequest(requestType)
+    }
+
+    private fun makeBox(bearerToken: String): String {
+        val body = RequestBody.create(jsonType, "")
+        val request = Request.Builder()
+                .url("$baseUrl/boxes")
+                .addHeader("Authorization: Bearer ", bearerToken)
+                .post(body)
+                .build()
+
+        val requestType = GetBoxes(request)
+        return sendRequest(requestType)
+    }
+
+    private fun sendRequest(requestType: RequestType): String {
+        val request = requestType.httpRequest
         val response = client.newCall(request).execute()
         val jsonString = response.body()?.string() ?: ""
 
@@ -41,7 +62,14 @@ class DumontUtility {
                     val credentials = requestType.jsonAdapter.fromJson(jsonString) as Credentials
                     credentials.access_token
                 }
-                is GetBoxes -> { "" }
+                is GetBoxes -> {
+                    val boxes = requestType.jsonAdapter.fromJson(jsonString) as Boxes
+                    boxes.data.first().attributes.name
+                }
+                is MakeBox -> {
+                    val newBox = requestType.jsonAdapter.fromJson(jsonString) as Boxes
+                    newBox.data.first().attributes.ip
+                }
             }
         }
 
@@ -50,12 +78,37 @@ class DumontUtility {
 }
 
 class Credentials {
-    var access_token: String = ""
+    val access_token: String = ""
 }
 
-sealed class RequestType(val urlPath: String) { val moshi = Moshi.Builder().build() }
-data class Login(val url: String) : RequestType(urlPath = url) {
+class Box {
+    val type: String = ""
+    val attributes: BoxAttributes = BoxAttributes()
+    val id: String = ""
+}
+
+class BoxAttributes {
+    val name: String = ""
+    val ip: String = ""
+
+}
+
+class Boxes {
+    val data: List<Box> = listOf()
+}
+
+sealed class RequestType(val httpRequest: Request) {
+    val moshi = Moshi.Builder().build()
+}
+
+data class Login(val request: Request) : RequestType(httpRequest = request) {
     val jsonAdapter = moshi.adapter<Credentials>(Credentials::class.java)
 }
 
-data class GetBoxes(val url: String) : RequestType(urlPath = url)
+data class GetBoxes(val request: Request) : RequestType(httpRequest = request) {
+    val jsonAdapter = moshi.adapter<Credentials>(Boxes::class.java)
+}
+
+data class MakeBox(val request: Request) : RequestType(httpRequest = request) {
+    val jsonAdapter = moshi.adapter<Credentials>(Boxes::class.java)
+}
