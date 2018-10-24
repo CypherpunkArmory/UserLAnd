@@ -14,6 +14,8 @@
     <string name="toc">Terms &amp; Conditions</string>
     <string name="login">Login</string>
     <string name="register">Register</string>
+    <string name="local">Local</string>
+    <string name="remote">Remote</string>
 
 
     <!-- Buttons -->
@@ -58,6 +60,7 @@
     <string name="prompt_app_connection_type_preference">Please select a connection type: </string>
     <string name="prompt_create_account">Don\'t have an account? Register here</string>
     <string name="prompt_login">Already have an account? Login here</string>
+    <string name="prompt_remote_or_local">Would you like to run this session locally on your device or remotely on the cloud?</string>
 
     <!-- Notification strings -->
     <string name="services_notification_channel_id">UserLAndServices</string>

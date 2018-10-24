@@ -19,6 +19,7 @@ import android.view.View
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MenuInflater
+import android.widget.Button
 import android.widget.Toast
 import android.widget.EditText
 import android.widget.RadioButton
@@ -220,7 +221,7 @@ class AppListFragment : Fragment(),
         }
 
         if (!filesystemExtracted) {
-            getCredentials(selectedApp = selectedApp)
+            chooseLocalOrRemote(selectedApp = selectedApp)
             return
         }
 
@@ -277,6 +278,37 @@ class AppListFragment : Fragment(),
                 .putExtra("app", app)
         activityContext.startService(serviceIntent)
         return true
+    }
+
+    private fun chooseLocalOrRemote(selectedApp: App) {
+        val dialog = AlertDialog.Builder(activityContext)
+        val dialogView = activityContext.layoutInflater.inflate(R.layout.dia_app_local_or_remote, null)
+        dialog.setView(dialogView)
+        dialog.setCancelable(true)
+        val customDialog = dialog.create()
+
+        customDialog.setOnShowListener { _ ->
+            val localSession = customDialog.find<Button>(R.id.btn_local)
+            val remoteSession = customDialog.find<Button>(R.id.btn_remote)
+
+            localSession.setOnClickListener {
+                customDialog.dismiss()
+                getCredentials(selectedApp)
+            }
+
+            remoteSession.setOnClickListener {
+                val accountPrefs = activityContext.getSharedPreferences("account", Context.MODE_PRIVATE)
+                val currentUser = accountPrefs.getString("currentUser", "") ?: ""
+                if (currentUser.isNotEmpty()) {
+                    // TODO: create remote session
+                    Toast.makeText(activityContext, "REMOTE", Toast.LENGTH_SHORT).show()
+                } else {
+                    customDialog.dismiss()
+                    NavHostFragment.findNavController(this).navigate(R.id.account_fragment)
+                }
+            }
+        }
+        customDialog.show()
     }
 
     private fun getCredentials(selectedApp: App) {
