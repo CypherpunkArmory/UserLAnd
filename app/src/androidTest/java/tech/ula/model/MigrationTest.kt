@@ -43,13 +43,6 @@ class MigrationTest {
         db.close()
 
         helper.runMigrationsAndValidate(TEST_DB, 2, true, Migration1To2(), Migration2To3(), Migration3To4())
-
-        val migratedDb = getMigratedDatabase()
-        val session = migratedDb.sessionDao().getSessionByName("firstSession")
-
-        assertFalse(session.isExtracted)
-        assert(session.lastUpdated == 0L)
-        assert(session.bindings == "")
     }
 
     @Test

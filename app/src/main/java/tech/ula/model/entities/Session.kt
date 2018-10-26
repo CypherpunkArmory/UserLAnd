@@ -27,16 +27,8 @@ data class Session(
     var username: String = "",
     var password: String = "userland",
     var vncPassword: String = "userland",
-    var geometry: String = "1024x768",
     var serviceType: String = "",
-    var clientType: String = "",
     var port: Long = 2022,
     var pid: Long = 0,
-    val startupScript: String = "",
-    val runAtDeviceStartup: Boolean = false,
-    val initialCommand: String = "",
-    var isExtracted: Boolean = false,
-    var lastUpdated: Long = 0,
-    var bindings: String = "",
     val isAppsSession: Boolean = false
 ) : Parcelable
