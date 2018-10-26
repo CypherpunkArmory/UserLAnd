@@ -15,7 +15,7 @@ import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
 
-@Database(entities = [Session::class, Filesystem::class, App::class], version = 3, exportSchema = true)
+@Database(entities = [Session::class, Filesystem::class, App::class], version = 4, exportSchema = true)
 abstract class UlaDatabase : RoomDatabase() {
 
     abstract fun sessionDao(): SessionDao
@@ -36,7 +36,7 @@ abstract class UlaDatabase : RoomDatabase() {
         private fun buildDatabase(context: Context): UlaDatabase =
                 Room.databaseBuilder(context.applicationContext,
                         UlaDatabase::class.java, "Data.db")
-                        .addMigrations(Migration1To2(), Migration2To3())
+                        .addMigrations(Migration1To2(), Migration2To3(), Migration3To4())
                         .addCallback(object : RoomDatabase.Callback() {
                             override fun onOpen(db: SupportSQLiteDatabase) {
                                 super.onOpen(db)
@@ -82,5 +82,18 @@ class Migration2To3 : Migration(2, 3) {
 
         database.execSQL("ALTER TABLE filesystem ADD COLUMN defaultVncPassword TEXT NOT NULL DEFAULT 'userland'")
         database.execSQL("ALTER TABLE session ADD COLUMN vncPassword TEXT NOT NULL DEFAULT 'userland'")
+    }
+}
+
+class Migration3To4 : Migration(3, 4) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("BEGIN TRANSACTION;")
+        database.execSQL("CREATE TEMPORARY TABLE filesystem_backup(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, name TEXT NOT NULL, distributionType TEXT NOT NULL, archType TEXT NOT NULL, defaultUsername TEXT NOT NULL, defaultPassword TEXT NOT NULL, defaultVncPassword TEXT NOT NULL, isAppsFilesystem INTEGER NOT NULL);")
+        database.execSQL("INSERT INTO filesystem_backup SELECT id, name, distributionType, archType, defaultUsername, defaultPassword, defaultVncPassword, isAppsFilesystem FROM filesystem;")
+        database.execSQL("DROP TABLE filesystem;")
+        database.execSQL("CREATE TABLE filesystem(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, name TEXT NOT NULL, distributionType TEXT NOT NULL, archType TEXT NOT NULL, defaultUsername TEXT NOT NULL, defaultPassword TEXT NOT NULL, defaultVncPassword TEXT NOT NULL, isAppsFilesystem INTEGER NOT NULL);")
+        database.execSQL("INSERT INTO filesystem SELECT id, name, distributionType, archType, defaultUsername, defaultPassword, defaultVncPassword, isAppsFilesystem FROM filesystem_backup;")
+        database.execSQL("DROP TABLE filesystem_backup;")
+        database.execSQL("COMMIT;")
     }
 }
