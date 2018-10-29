@@ -262,22 +262,22 @@ class ServerService : Service() {
         // TODO refactor this to not instantiate twice
         val sessionController = SessionController(assetRepository, filesystemUtility, assetPreferences)
 
-        val filesystemDao = UlaDatabase.getInstance(this).filesystemDao()
-        val appsFilesystem = runBlocking(CommonPool) {
-            sessionController.findAppsFilesystems(app.filesystemRequired, filesystemDao)
-        }
+//        val filesystemDao = UlaDatabase.getInstance(this).filesystemDao()
+//        val appsFilesystem = runBlocking(CommonPool) {
+//            sessionController.findAppsFilesystems(app.filesystemRequired, filesystemDao)
+//        }
+//
+//        val sessionDao = UlaDatabase.getInstance(this).sessionDao()
+//        val appSession = runBlocking(CommonPool) {
+//            sessionController.findAppSession(app.name, serviceType, appsFilesystem, sessionDao)
+//        }
 
-        val sessionDao = UlaDatabase.getInstance(this).sessionDao()
-        val appSession = runBlocking(CommonPool) {
-            sessionController.findAppSession(app.name, serviceType, appsFilesystem, sessionDao)
-        }
-
-        sessionController.setAppsUsername(username, appSession, appsFilesystem, sessionDao, filesystemDao)
-        sessionController.setAppsPassword(password, appSession, appsFilesystem, sessionDao, filesystemDao)
-        sessionController.setAppsVncPassword(vncPassword, appSession, appsFilesystem, sessionDao, filesystemDao)
-        sessionController.setAppsServiceType(serviceType, appSession, sessionDao)
-
-        startSession(appSession, appsFilesystem, forceDownloads = false)
+//        sessionController.setAppsUsername(username, appSession, appsFilesystem, sessionDao, filesystemDao)
+//        sessionController.setAppsPassword(password, appSession, appsFilesystem, sessionDao, filesystemDao)
+//        sessionController.setAppsVncPassword(vncPassword, appSession, appsFilesystem, sessionDao, filesystemDao)
+//        sessionController.setAppsServiceType(serviceType, appSession, sessionDao)
+//
+//        startSession(appSession, appsFilesystem, forceDownloads = false)
     }
 
     private fun stopApp(app: App) {

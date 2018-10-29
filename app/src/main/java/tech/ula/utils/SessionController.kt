@@ -18,53 +18,6 @@ class SessionController(
     private val timeUtility: TimeUtility = TimeUtility()
 ) {
 
-    @Throws // If device architecture is unsupported
-    suspend fun findAppsFilesystems(
-        requiredFilesystemType: String,
-        filesystemDao: FilesystemDao,
-        buildWrapper: BuildWrapper = BuildWrapper()
-    ): Filesystem {
-        val potentialAppFilesystem = asyncAwait {
-            filesystemDao.findAppsFilesystemByType(requiredFilesystemType)
-        }
-
-        if (potentialAppFilesystem.isEmpty()) {
-            val deviceArchitecture = buildWrapper.getArchType()
-            val fsToInsert = Filesystem(0, name = "apps", archType = deviceArchitecture,
-                    distributionType = requiredFilesystemType, isAppsFilesystem = true)
-            asyncAwait { filesystemDao.insertFilesystem(fsToInsert) }
-        }
-
-        return asyncAwait { filesystemDao.findAppsFilesystemByType(requiredFilesystemType).first() }
-    }
-
-    suspend fun findAppSession(
-        appName: String,
-        serviceType: String,
-        appsFilesystem: Filesystem,
-        sessionDao: SessionDao
-    ): Session {
-        val potentialAppSession = asyncAwait {
-            sessionDao.findAppsSession(appName)
-        }
-
-        // TODO revisit this when multiple sessions are supported
-        val portOrDisplay: Long = if (serviceType == "ssh") 2022 else 51
-
-        if (potentialAppSession.isEmpty()) {
-            val sessionToInsert = Session(id = 0, name = appName, filesystemId = appsFilesystem.id,
-                    filesystemName = appsFilesystem.name, serviceType = serviceType,
-                    username = appsFilesystem.defaultUsername,
-                    password = appsFilesystem.defaultPassword, vncPassword = appsFilesystem.defaultVncPassword,
-                    isAppsSession = true, port = portOrDisplay)
-            asyncAwait { sessionDao.insertSession(sessionToInsert) }
-        }
-
-        return asyncAwait {
-            sessionDao.findAppsSession(appName).first()
-        }
-    }
-
     fun setAppsUsername(
         username: String,
         appsSession: Session,
