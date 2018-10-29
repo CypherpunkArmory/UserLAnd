@@ -13,7 +13,7 @@ import tech.ula.model.repositories.AppsRepository
 import tech.ula.model.repositories.RefreshStatus
 import tech.ula.utils.zipLiveData
 
-class AppListViewModel(private val appsRepository: AppsRepository, private val sessionDao: SessionDao, private val filesystemDao: FilesystemDao) : ViewModel() {
+class AppListViewModel(private val appsRepository: AppsRepository, private val sessionDao: SessionDao) : ViewModel() {
 
     private val activeSessions: LiveData<List<Session>> by lazy {
         sessionDao.findActiveSessions()
@@ -27,14 +27,6 @@ class AppListViewModel(private val appsRepository: AppsRepository, private val s
         return zipLiveData(apps, activeSessions)
     }
 
-//    fun getAppServiceTypePreference(app: App): String { TODO
-//        return appsRepository.getAppServiceTypePreference(app)
-//    }
-//
-//    fun setAppServiceTypePreference(app: App, preferredClient: String) {
-//        appsRepository.setAppServiceTypePreference(app, preferredClient)
-//    }
-
     fun refreshAppsList() {
         launch { appsRepository.refreshData() }
     }
@@ -42,14 +34,10 @@ class AppListViewModel(private val appsRepository: AppsRepository, private val s
     fun getRefreshStatus(): LiveData<RefreshStatus> {
         return appsRepository.getRefreshStatus()
     }
-
-    fun getAllFilesystems(): LiveData<List<Filesystem>> {
-        return filesystemDao.getAllFilesystems()
-    }
 }
 
-class AppListViewModelFactory(private val appsRepository: AppsRepository, private val sessionDao: SessionDao, private val filesystemDao: FilesystemDao) : ViewModelProvider.NewInstanceFactory() {
+class AppListViewModelFactory(private val appsRepository: AppsRepository, private val sessionDao: SessionDao) : ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return AppListViewModel(appsRepository, sessionDao, filesystemDao) as T
+        return AppListViewModel(appsRepository, sessionDao) as T
     }
 }

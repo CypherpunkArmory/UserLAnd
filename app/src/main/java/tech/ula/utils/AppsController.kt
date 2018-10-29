@@ -11,23 +11,15 @@ import tech.ula.model.entities.Session
 class AppsController(
         private val filesystemDao: FilesystemDao,
         private val sessionDao: SessionDao,
-        private val filesystemUtility: FilesystemUtility,
         private val appsPreferences: AppsPreferences,
         private val buildWrapper: BuildWrapper = BuildWrapper()
 ) {
 
     private var activeSessions = listOf<Session>()
-    private var appsList = listOf<App>()
-    private var filesystems = listOf<Filesystem>()
     private val unselectedSession = Session(id = -1, name = "unselected", filesystemId = -1, filesystemName = "unselected")
-    private val unselectedFilesystem = Filesystem(id = -1, name = "unselected")
 
     fun updateActiveSessions(newActiveSessions: List<Session>) { activeSessions = newActiveSessions }
-    fun updateAppsList(newAppsList: List<App>) { appsList = newAppsList }
-    fun updateFilesystems(newFilesystems: List<Filesystem>) { filesystems = newFilesystems }
 
-
-    // TODO single service type supported
     fun prepareAppForActivation(app: App): AppPrepState = runBlocking {
         val preferredServiceType = getAppServicePreference(app)
         val appsFilesystem = async { findAppsFilesystem(app.filesystemRequired) }.await()

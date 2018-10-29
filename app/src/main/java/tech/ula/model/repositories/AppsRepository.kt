@@ -22,14 +22,6 @@ class AppsRepository(
         return appsDao.getAllApps()
     }
 
-//    fun getAppServiceTypePreference(app: App): String { TODO
-//        return appsPreferences.getAppServiceTypePreference(app.name)
-//    }
-
-//    fun setAppServiceTypePreference(app: App, preferredServiceType: String) {
-//        appsPreferences.setAppServiceTypePreference(app.name, preferredServiceType)
-//    }
-
     suspend fun refreshData() {
         val appsList = mutableSetOf<String>()
         val distributionsList = mutableSetOf<String>()

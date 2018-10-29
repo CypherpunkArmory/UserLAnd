@@ -21,8 +21,6 @@ class AppsControllerTest {
 
     @Mock lateinit var sessionDao: SessionDao
 
-    @Mock lateinit var filesystemUtility: FilesystemUtility
-
     @Mock lateinit var appsPreferences: AppsPreferences
 
     @Mock lateinit var buildWrapper: BuildWrapper
@@ -36,7 +34,7 @@ class AppsControllerTest {
     val appsFilesystemType = "appsFilesystem"
     val archType = "arch"
 
-    val selectedApp = App(name = selectedAppName, filesystemRequired = appsFilesystemType)
+    val selectedApp = App(name = selectedAppName, filesystemRequired = appsFilesystemType, supportsCli = true, supportsGui = true)
     val appsFilesystem = Filesystem(id = id, name = appsFilesystemName, archType = archType, distributionType = appsFilesystemType, isAppsFilesystem = true)
     val nonAppSession = Session(id = id, name = unusedName, filesystemId = id, filesystemName = unusedName)
     val appSession = Session(id = 0, name = selectedAppName, filesystemId = id,
@@ -45,7 +43,7 @@ class AppsControllerTest {
 
     @Before
     fun setup() {
-        appsController = AppsController(filesystemDao, sessionDao, filesystemUtility, appsPreferences, buildWrapper)
+        appsController = AppsController(filesystemDao, sessionDao, appsPreferences, buildWrapper)
     }
 
     fun setupEarlyExitState() {
@@ -120,19 +118,7 @@ class AppsControllerTest {
         assertEquals(AppCanBeRestarted(appSession), state)
     }
 
-    @Test
-    fun stateIsFilesystemNeedsCredentialsWhenFilesystemIsNotExtracted() {
-        val filesystem = Filesystem(id = id, defaultUsername = unusedName, defaultPassword = unusedName, defaultVncPassword = unusedName)
-        appsController.updateActiveSessions(listOf())
-        stubPreferenceCall()
-        whenever(filesystemDao.findAppsFilesystemByType(selectedApp.filesystemRequired)).thenReturn(listOf(filesystem))
-        whenever(filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")).thenReturn(false)
-
-        val state = appsController.prepareAppForActivation(selectedApp)
-
-        verify(filesystemUtility).hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")
-        assertEquals(FilesystemNeedsCredentials(filesystem), state)
-    }
+    // TODO do we need to check FS extraction status
 
     @Test
     fun stateIsFilesystemNeedsCredentialsWhenUsernameIsNotSet() {
@@ -140,11 +126,9 @@ class AppsControllerTest {
         appsController.updateActiveSessions(listOf())
         stubPreferenceCall()
         whenever(filesystemDao.findAppsFilesystemByType(selectedApp.filesystemRequired)).thenReturn(listOf(filesystem))
-        whenever(filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")).thenReturn(true)
 
         val state = appsController.prepareAppForActivation(selectedApp)
 
-        verify(filesystemUtility).hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")
         assertEquals(FilesystemNeedsCredentials(filesystem), state)
     }
 
@@ -154,11 +138,9 @@ class AppsControllerTest {
         appsController.updateActiveSessions(listOf())
         stubPreferenceCall()
         whenever(filesystemDao.findAppsFilesystemByType(selectedApp.filesystemRequired)).thenReturn(listOf(filesystem))
-        whenever(filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")).thenReturn(true)
 
         val state = appsController.prepareAppForActivation(selectedApp)
 
-        verify(filesystemUtility).hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")
         assertEquals(FilesystemNeedsCredentials(filesystem), state)
     }
 
@@ -168,11 +150,9 @@ class AppsControllerTest {
         appsController.updateActiveSessions(listOf())
         stubPreferenceCall()
         whenever(filesystemDao.findAppsFilesystemByType(selectedApp.filesystemRequired)).thenReturn(listOf(filesystem))
-        whenever(filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")).thenReturn(true)
 
         val state = appsController.prepareAppForActivation(selectedApp)
 
-        verify(filesystemUtility).hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")
         assertEquals(FilesystemNeedsCredentials(filesystem), state)
     }
 
@@ -184,12 +164,11 @@ class AppsControllerTest {
     @Test
     fun stateIsServiceTypePreferenceMustBeSet() {
         stubDbCalls()
-        whenever(filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${appsFilesystem.id}")).thenReturn(true)
         whenever(appsPreferences.getAppServiceTypePreference(selectedAppName)).thenReturn(PreferenceHasNotBeenSelected)
 
         val state = appsController.prepareAppForActivation(selectedApp)
 
-        assertEquals(ServiceTypePreferenceMustBeSet, state)
+        assertEquals(ServiceTypePreferenceMustBeSet(appSession), state)
     }
 
     @Test

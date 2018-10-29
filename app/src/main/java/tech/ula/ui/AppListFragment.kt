@@ -59,18 +59,6 @@ class AppListFragment : Fragment(),
     private val unselectedApp = App(name = "unselected")
     private var lastSelectedApp = unselectedApp
 
-    private lateinit var filesystemList: List<Filesystem>
-
-    private val execUtility by lazy {
-        val externalStoragePath = Environment.getExternalStorageDirectory().absolutePath
-        ExecUtility(activityContext.filesDir.path, externalStoragePath, DefaultPreferences(activityContext.defaultSharedPreferences))
-    }
-
-    // TODO remove lazy instantiation or lazily instantiate appsController
-    private val filesystemUtility by lazy {
-        FilesystemUtility(activityContext.filesDir.path, execUtility)
-    }
-
     private var refreshStatus = RefreshStatus.INACTIVE
 
     private val appsPreferences by lazy {
@@ -80,26 +68,24 @@ class AppListFragment : Fragment(),
     private val appsController by lazy {
         val filesystemDao = UlaDatabase.getInstance(activityContext).filesystemDao()
         val sessionDao = UlaDatabase.getInstance(activityContext).sessionDao()
-        AppsController(filesystemDao, sessionDao, filesystemUtility, appsPreferences)
+        AppsController(filesystemDao, sessionDao, appsPreferences)
     }
 
     private val appsListViewModel: AppListViewModel by lazy {
         val ulaDatabase = UlaDatabase.getInstance(activityContext)
         val sessionDao = ulaDatabase.sessionDao()
         val appsDao = ulaDatabase.appsDao()
-        val filesystemDao = ulaDatabase.filesystemDao()
         val githubFetcher = GithubAppsFetcher("${activityContext.filesDir}")
 
         val appsRepository = AppsRepository(appsDao, githubFetcher, appsPreferences)
-        ViewModelProviders.of(this, AppListViewModelFactory(appsRepository, sessionDao, filesystemDao)).get(AppListViewModel::class.java)
+        ViewModelProviders.of(this, AppListViewModelFactory(appsRepository, sessionDao)).get(AppListViewModel::class.java)
     }
 
     private val appsAndActiveSessionObserver = Observer<Pair<List<App>, List<Session>>> {
         it?.let {
             appsList = it.first
             activeSessions = it.second
-//            appsController.updateAppsList(appsList)
-//            appsController.updateActiveSessions(activeSessions)
+            appsController.updateActiveSessions(activeSessions)
             appAdapter.updateAppsAndSessions(appsList, activeSessions)
             if (appsList.isEmpty() || userlandIsNewVersion()) {
                 doRefresh()
@@ -113,13 +99,6 @@ class AppListFragment : Fragment(),
             swipe_refresh.isRefreshing = refreshStatus == RefreshStatus.ACTIVE
 
             if (refreshStatus == RefreshStatus.FAILED) showRefreshUnavailableDialog()
-        }
-    }
-
-    private val filesystemObserver = Observer<List<Filesystem>> {
-        it?.let {
-//            appsController.updateFilesystems(it)
-            filesystemList = it
         }
     }
 
@@ -164,7 +143,6 @@ class AppListFragment : Fragment(),
         activityContext = activity!!
         appsListViewModel.getAppsAndActiveSessions().observe(viewLifecycleOwner, appsAndActiveSessionObserver)
         appsListViewModel.getRefreshStatus().observe(viewLifecycleOwner, refreshStatusObserver)
-        appsListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemObserver)
 
         registerForContextMenu(list_apps)
         list_apps.layoutManager = LinearLayoutManager(list_apps.context)
