@@ -87,26 +87,27 @@ class Migration2To3 : Migration(2, 3) {
 
 class Migration3To4 : Migration(3, 4) {
     override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("PRAGMA foreign_keys=off;")
+        database.execSQL("BEGIN TRANSACTION;")
 
         // Remove filesystem fields realRoot, dateCreated, location, isDownloaded.
-        database.execSQL("BEGIN TRANSACTION;")
         database.execSQL("CREATE TEMPORARY TABLE filesystem_backup(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, name TEXT NOT NULL, distributionType TEXT NOT NULL, archType TEXT NOT NULL, defaultUsername TEXT NOT NULL, defaultPassword TEXT NOT NULL, defaultVncPassword TEXT NOT NULL, isAppsFilesystem INTEGER NOT NULL);")
         database.execSQL("INSERT INTO filesystem_backup SELECT id, name, distributionType, archType, defaultUsername, defaultPassword, defaultVncPassword, isAppsFilesystem FROM filesystem;")
         database.execSQL("DROP TABLE filesystem;")
         database.execSQL("CREATE TABLE filesystem(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, name TEXT NOT NULL, distributionType TEXT NOT NULL, archType TEXT NOT NULL, defaultUsername TEXT NOT NULL, defaultPassword TEXT NOT NULL, defaultVncPassword TEXT NOT NULL, isAppsFilesystem INTEGER NOT NULL);")
         database.execSQL("INSERT INTO filesystem SELECT id, name, distributionType, archType, defaultUsername, defaultPassword, defaultVncPassword, isAppsFilesystem FROM filesystem_backup;")
         database.execSQL("DROP TABLE filesystem_backup;")
-        database.execSQL("COMMIT;")
-        
+
         // Remove session fields geometry, clientType, startupScript, runAtDeviceStartup, initialCommand, isExtracted, lastUpdated, bindings
-        database.execSQL("BEGIN TRANSACTION;")
         database.execSQL("CREATE TEMPORARY TABLE session_backup(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, name TEXT NOT NULL, filesystemId INTEGER NOT NULL, filesystemName TEXT NOT NULL, active INTEGER NOT NULL, username TEXT NOT NULL, password TEXT NOT NULL, vncPassword TEXT NOT NULL, serviceType TEXT NOT NULL, port INTEGER NOT NULL, pid INTEGER NOT NULL, isAppsSession INTEGER NOT NULL, FOREIGN KEY(filesystemId) REFERENCES filesystem(id))")
         database.execSQL("INSERT INTO session_backup SELECT id, name, filesystemId, filesystemName, active, username, password, vncPassword, serviceType, port, pid, isAppsSession FROM session;")
         database.execSQL("DROP TABLE session;")
         database.execSQL("CREATE TABLE session(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, name TEXT NOT NULL, filesystemId INTEGER NOT NULL, filesystemName TEXT NOT NULL, active INTEGER NOT NULL, username TEXT NOT NULL, password TEXT NOT NULL, vncPassword TEXT NOT NULL, serviceType TEXT NOT NULL, port INTEGER NOT NULL, pid INTEGER NOT NULL, isAppsSession INTEGER NOT NULL, FOREIGN KEY(filesystemId) REFERENCES filesystem(id) ON UPDATE NO ACTION ON DELETE CASCADE)")
-        database.execSQL("INSERT INTO session SELECT id, name, filesystemId, filesystemName, active, username, password, vncPassword, serviceType, port, pid, isAppsSession FROM session;")
+        database.execSQL("INSERT INTO session SELECT id, name, filesystemId, filesystemName, active, username, password, vncPassword, serviceType, port, pid, isAppsSession FROM session_backup;")
         database.execSQL("DROP TABLE session_backup;")
         database.execSQL("CREATE INDEX index_session_filesystemId ON session (filesystemId)")
+
         database.execSQL("COMMIT;")
+        database.execSQL("PRAGMA foreign_keys_on")
     }
 }

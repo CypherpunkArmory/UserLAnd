@@ -95,7 +95,7 @@ class SessionDaoTest {
         val sessions = db.sessionDao().getAllSessions().blockingObserve()!!
         for (session in sessions) assertNotEquals(session.filesystemName, fs.name)
 
-        db.sessionDao().updateFilesystemNamesForAllSessions()
+        db.sessionDao().updateFilesystemNamesForAllSessions() TODO
         val updatedSessions = db.sessionDao().getAllSessions().blockingObserve()!!
         for (session in updatedSessions) assertEquals(session.filesystemName, fs.name)
     }
