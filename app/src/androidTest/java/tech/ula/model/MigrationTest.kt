@@ -90,6 +90,14 @@ class MigrationTest {
         assertEquals(session1.vncPassword, "userland")
     }
 
+    @Test
+    @Throws(IOException::class)
+    fun migrate3To4() {
+        helper.createDatabase(TEST_DB, 3)
+
+        helper.runMigrationsAndValidate(TEST_DB, 4, true, Migration3To4())
+    }
+
     private fun getMigratedDatabase(): UlaDatabase {
         val db = Room.databaseBuilder(InstrumentationRegistry.getTargetContext(),
                 UlaDatabase::class.java, TEST_DB)
