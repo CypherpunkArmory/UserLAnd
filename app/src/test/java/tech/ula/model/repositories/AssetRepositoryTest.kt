@@ -14,7 +14,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.times
 import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.entities.Asset
-import tech.ula.utils.AssetListPreferences
+import tech.ula.utils.AssetPreferences
 import tech.ula.utils.ConnectionUtility
 import tech.ula.utils.TimestampPreferences
 import java.io.ByteArrayInputStream
@@ -32,7 +32,7 @@ class AssetRepositoryTest {
     lateinit var timestampPreferences: TimestampPreferences
 
     @Mock
-    lateinit var assetListPreferences: AssetListPreferences
+    lateinit var assetPreferences: AssetPreferences
 
     @Mock
     lateinit var connectionUtility: ConnectionUtility
@@ -54,13 +54,13 @@ class AssetRepositoryTest {
     fun setup() {
         applicationFilesDirPath = tempFolder.root.path
         assetRepository = AssetRepository(archType, distType, applicationFilesDirPath,
-                timestampPreferences, assetListPreferences, connectionUtility)
+                timestampPreferences, assetPreferences, connectionUtility)
     }
 
     @Test
     fun allTypesOfCachedAssetListsAreRetrieved() {
         assetRepository.getCachedAssetLists()
-        verify(assetListPreferences).getAssetLists(allAssetListTypes)
+        verify(assetPreferences).getAssetLists(allAssetListTypes)
     }
 
     @Test
@@ -72,7 +72,7 @@ class AssetRepositoryTest {
         val asset1 = Asset("name", distType, archType, 0)
         val asset2 = Asset("rootfs.tar.gz", distType, archType, 0)
         val assetListWithRootfsFile = listOf(listOf(asset1, asset2))
-        `when`(assetListPreferences.getAssetLists(distTypeAssetLists)).thenReturn(assetListWithRootfsFile)
+        `when`(assetPreferences.getAssetLists(distTypeAssetLists)).thenReturn(assetListWithRootfsFile)
 
         val returnedAssetList = assetRepository.getDistributionAssetsList(distType)
 
