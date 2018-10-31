@@ -122,7 +122,6 @@ class SessionEditFragment : Fragment() {
                     }
                     "" -> return
                     else -> {
-                        // TODO adapter to associate filesystem structure with list items?
                         val filesystem = filesystemList.find { it.name == filesystemName }
                         filesystem?.let {
                             updateFilesystemDetailsForSession(it)

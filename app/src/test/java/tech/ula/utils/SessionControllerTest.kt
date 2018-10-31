@@ -84,7 +84,7 @@ class SessionControllerTest {
         val appName = "testApp"
         val serviceType = "ssh"
         val appSession = Session(0, name = appName, filesystemId = 0, filesystemName = "apps",
-                serviceType = serviceType, username = "username", clientType = "ConnectBot", isAppsSession = true)
+                serviceType = serviceType, username = "username", isAppsSession = true)
 
         whenever(sessionDao.findAppsSession(appName))
                 .thenReturn(listOf())

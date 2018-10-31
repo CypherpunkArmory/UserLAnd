@@ -4,7 +4,6 @@ import android.arch.persistence.room.Entity
 import android.arch.persistence.room.PrimaryKey
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
-import java.util.Date
 
 @Parcelize
 @Entity(tableName = "filesystem")
@@ -17,9 +16,5 @@ data class Filesystem(
     var defaultUsername: String = "",
     var defaultPassword: String = "",
     var defaultVncPassword: String = "",
-    val isAppsFilesystem: Boolean = false,
-    val location: String = "",
-    val dateCreated: String = Date().toString(),
-    val realRoot: Boolean = false,
-    var isDownloaded: Boolean = false
+    val isAppsFilesystem: Boolean = false
 ) : Parcelable
