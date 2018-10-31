@@ -174,6 +174,7 @@ class ServerService : Service() {
         lastActivatedSession = session
         lastActivatedFilesystem = filesystem
 
+        progressBarUpdater(getString(R.string.progress_bar_start_step), "")
         startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
 
         val assetRepository = AssetRepository(BuildWrapper().getArchType(),
@@ -186,7 +187,7 @@ class ServerService : Service() {
 
         launch(CommonPool) {
 
-            progressBarUpdater(resources.getString(R.string.progress_fetching_asset_lists), "")
+            progressBarUpdater(getString(R.string.progress_fetching_asset_lists), "")
             val assetLists = asyncAwait {
                 sessionController.getAssetLists()
             }
@@ -361,6 +362,7 @@ class ServerService : Service() {
 
     private val progressBarUpdater: (String, String) -> Unit = {
         step: String, details: String ->
+        progressBarActive = true
         val intent = Intent(SERVER_SERVICE_RESULT)
                 .putExtra("type", "updateProgressBar")
                 .putExtra("step", step)
