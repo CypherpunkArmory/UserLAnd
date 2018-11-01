@@ -18,8 +18,9 @@ class DownloadUtility(
     }
 
     private fun download(asset: Asset): Long {
+        val branch = "master"
         val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-" +
-                "${asset.distributionType}/raw/master/assets/" +
+                "${asset.distributionType}/raw/$branch/assets/" +
                 "${asset.architectureType}/${asset.name}"
         val destination = asset.concatenatedName
         val request = downloadManagerWrapper.generateDownloadRequest(url, destination)

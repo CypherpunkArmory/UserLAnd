@@ -16,5 +16,6 @@ data class Filesystem(
     var defaultUsername: String = "",
     var defaultPassword: String = "",
     var defaultVncPassword: String = "",
-    val isAppsFilesystem: Boolean = false
+    val isAppsFilesystem: Boolean = false,
+    var lastUpdated: Long = -1L
 ) : Parcelable
