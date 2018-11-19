@@ -3,7 +3,8 @@ package tech.ula.utils
 import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -38,8 +39,7 @@ class AppsControllerTest {
     val appsFilesystem = Filesystem(id = id, name = appsFilesystemName, archType = archType, distributionType = appsFilesystemType, isAppsFilesystem = true)
     val nonAppSession = Session(id = id, name = unusedName, filesystemId = id, filesystemName = unusedName)
     val appSession = Session(id = 0, name = selectedAppName, filesystemId = id,
-            filesystemName = appsFilesystem.name, serviceType = "ssh", clientType = "ConnectBot",
-            isAppsSession = true, port = 2022)
+            filesystemName = appsFilesystem.name, serviceType = "ssh", isAppsSession = true, port = 2022)
 
     @Before
     fun setup() {

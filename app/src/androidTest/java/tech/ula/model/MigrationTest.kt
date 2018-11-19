@@ -87,7 +87,7 @@ class MigrationTest {
         assertFalse(returnedSession1.isAppsSession)
         assertTrue(returnedSession2.isAppsSession)
         assertEquals(fs.defaultVncPassword, "userland")
-        assertEquals(session1.vncPassword, "userland")
+        assertEquals(session1.vncPassword, "")
     }
 
     @Test

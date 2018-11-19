@@ -1,6 +1,5 @@
 package tech.ula.utils
 
-import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.runBlocking
 import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
@@ -9,10 +8,10 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 
 class AppsController(
-        private val filesystemDao: FilesystemDao,
-        private val sessionDao: SessionDao,
-        private val appsPreferences: AppsPreferences,
-        private val buildWrapper: BuildWrapper = BuildWrapper()
+    private val filesystemDao: FilesystemDao,
+    private val sessionDao: SessionDao,
+    private val appsPreferences: AppsPreferences,
+    private val buildWrapper: BuildWrapper = BuildWrapper()
 ) {
 
     private var activeSessions = listOf<Session>()
@@ -81,7 +80,7 @@ class AppsController(
 
     @Throws // If device architecture is unsupported
     suspend fun findAppsFilesystem(
-            requiredFilesystemType: String
+        requiredFilesystemType: String
     ): Filesystem {
         val potentialAppFilesystem = asyncAwait {
             filesystemDao.findAppsFilesystemByType(requiredFilesystemType)
@@ -98,9 +97,9 @@ class AppsController(
     }
 
     suspend fun findAppSession(
-            appName: String,
-            serviceType: String,
-            appsFilesystem: Filesystem
+        appName: String,
+        serviceType: String,
+        appsFilesystem: Filesystem
     ): Session {
         val potentialAppSession = asyncAwait {
             sessionDao.findAppsSession(appName)
@@ -110,12 +109,12 @@ class AppsController(
         val portOrDisplay: Long = if (serviceType.toLowerCase() == "ssh") 2022 else 51
 
         if (potentialAppSession.isEmpty()) {
-            val clientType = if (serviceType.toLowerCase() == "ssh") "ConnectBot" else "bVNC" // TODO update clients dynamically somehow
             val sessionToInsert = Session(id = 0, name = appName, filesystemId = appsFilesystem.id,
                     filesystemName = appsFilesystem.name, serviceType = serviceType.toLowerCase(),
-                    clientType = clientType, username = appsFilesystem.defaultUsername,
-                    password = appsFilesystem.defaultPassword, vncPassword = appsFilesystem.defaultVncPassword,
-                    isAppsSession = true, port = portOrDisplay)
+                    username = appsFilesystem.defaultUsername,
+                    password = appsFilesystem.defaultPassword,
+                    vncPassword = appsFilesystem.defaultVncPassword, isAppsSession = true,
+                    port = portOrDisplay)
             asyncAwait { sessionDao.insertSession(sessionToInsert) }
         }
 

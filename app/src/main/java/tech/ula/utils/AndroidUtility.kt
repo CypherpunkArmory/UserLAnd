@@ -123,7 +123,6 @@ class AssetPreferences(private val prefs: SharedPreferences) {
     }
 }
 
-
 sealed class AppServiceTypePreference
 object PreferenceHasNotBeenSelected : AppServiceTypePreference() {
     override fun toString(): String {
