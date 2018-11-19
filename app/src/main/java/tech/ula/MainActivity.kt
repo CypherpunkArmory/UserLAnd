@@ -69,7 +69,8 @@ class MainActivity : AppCompatActivity() {
         navController.addOnNavigatedListener { _, destination ->
             currentFragmentDisplaysProgressDialog =
                     destination.label == getString(R.string.sessions) ||
-                    destination.label == getString(R.string.apps)
+                    destination.label == getString(R.string.apps) ||
+                    destination.label == getString(R.string.filesystems)
             if (!currentFragmentDisplaysProgressDialog) killProgressBar()
         }
 
