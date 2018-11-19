@@ -17,6 +17,7 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.Migration1To2
 import tech.ula.model.repositories.Migration2To3
+import tech.ula.model.repositories.Migration3To4
 import tech.ula.model.repositories.UlaDatabase
 import java.io.IOException
 
@@ -41,16 +42,7 @@ class MigrationTest {
 
         db.close()
 
-        helper.runMigrationsAndValidate(TEST_DB, 2, true, Migration1To2())
-
-        val migratedDb = getMigratedDatabase()
-        val fs = migratedDb.filesystemDao().getFilesystemByName("firstFs")
-        val session = migratedDb.sessionDao().getSessionByName("firstSession")
-
-        assertFalse(fs.isDownloaded)
-        assertFalse(session.isExtracted)
-        assert(session.lastUpdated == 0L)
-        assert(session.bindings == "")
+        helper.runMigrationsAndValidate(TEST_DB, 2, true, Migration1To2(), Migration2To3(), Migration3To4())
     }
 
     @Test
@@ -98,10 +90,18 @@ class MigrationTest {
         assertEquals(session1.vncPassword, "userland")
     }
 
+    @Test
+    @Throws(IOException::class)
+    fun migrate3To4() {
+        helper.createDatabase(TEST_DB, 3)
+
+        helper.runMigrationsAndValidate(TEST_DB, 4, true, Migration3To4())
+    }
+
     private fun getMigratedDatabase(): UlaDatabase {
         val db = Room.databaseBuilder(InstrumentationRegistry.getTargetContext(),
                 UlaDatabase::class.java, TEST_DB)
-                .addMigrations(Migration1To2(), Migration2To3())
+                .addMigrations(Migration1To2(), Migration2To3(), Migration3To4())
                 .build()
 
         helper.closeWhenFinished(db)

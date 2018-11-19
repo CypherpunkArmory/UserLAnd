@@ -24,7 +24,7 @@ class SessionControllerTest {
 
     // Class dependencies
 
-    val testFilesystem = Filesystem(name = "testFS", id = 1)
+    val testFilesystem = Filesystem(name = "testFS", id = 1, lastUpdated = 0)
 
     @Mock
     lateinit var buildWrapper: BuildWrapper
@@ -34,6 +34,12 @@ class SessionControllerTest {
 
     @Mock
     lateinit var filesystemUtility: FilesystemUtility
+
+    @Mock
+    lateinit var assetPreferences: AssetPreferences
+
+    @Mock
+    lateinit var timeUtility: TimeUtility
 
     @Mock
     lateinit var networkUtility: NetworkUtility
@@ -48,7 +54,7 @@ class SessionControllerTest {
 
     @Before
     fun setup() {
-        sessionController = SessionController(assetRepository, filesystemUtility)
+        sessionController = SessionController(assetRepository, filesystemUtility, assetPreferences, timeUtility)
     }
 
     @Test
@@ -84,7 +90,7 @@ class SessionControllerTest {
         val appName = "testApp"
         val serviceType = "ssh"
         val appSession = Session(0, name = appName, filesystemId = 0, filesystemName = "apps",
-                serviceType = serviceType, username = "username", clientType = "ConnectBot", isAppsSession = true)
+                serviceType = serviceType, username = "username", isAppsSession = true)
 
         whenever(sessionDao.findAppsSession(appName))
                 .thenReturn(listOf())
@@ -191,8 +197,23 @@ class SessionControllerTest {
         val filesystemDirectoryName = "${testFilesystem.id}"
         `when`(assetRepository.getDistributionAssetsList(testFilesystem.distributionType))
                 .thenReturn(distAssetList)
+        whenever(assetPreferences.getLastDistributionUpdate(testFilesystem.distributionType)).thenReturn(-1)
         `when`(filesystemUtility.areAllRequiredAssetsPresent(filesystemDirectoryName, distAssetList))
                 .thenReturn(false)
+
+        sessionController.ensureFilesystemHasRequiredAssets(testFilesystem)
+
+        verify(filesystemUtility).copyDistributionAssetsToFilesystem(filesystemDirectoryName, testFilesystem.distributionType)
+        verify(filesystemUtility).removeRootfsFilesFromFilesystem(filesystemDirectoryName)
+    }
+
+    @Test
+    fun copiesDistributionAssetsToFilesystemIfTheyAreOutdated() {
+        val distAssetList = listOf(Asset("name", "dist", "arch", 0))
+        val filesystemDirectoryName = "${testFilesystem.id}"
+        `when`(assetRepository.getDistributionAssetsList(testFilesystem.distributionType))
+                .thenReturn(distAssetList)
+        whenever(assetPreferences.getLastDistributionUpdate(testFilesystem.distributionType)).thenReturn(1)
 
         sessionController.ensureFilesystemHasRequiredAssets(testFilesystem)
 

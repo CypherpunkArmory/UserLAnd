@@ -13,7 +13,9 @@ import tech.ula.model.repositories.AssetRepository
 
 class SessionController(
     private val assetRepository: AssetRepository,
-    private val filesystemUtility: FilesystemUtility
+    private val filesystemUtility: FilesystemUtility,
+    private val assetPreferences: AssetPreferences,
+    private val timeUtility: TimeUtility = TimeUtility()
 ) {
 
     @Throws // If device architecture is unsupported
@@ -50,10 +52,9 @@ class SessionController(
         val portOrDisplay: Long = if (serviceType == "ssh") 2022 else 51
 
         if (potentialAppSession.isEmpty()) {
-            val clientType = if (serviceType == "ssh") "ConnectBot" else "bVNC" // TODO update clients dynamically somehow
             val sessionToInsert = Session(id = 0, name = appName, filesystemId = appsFilesystem.id,
                     filesystemName = appsFilesystem.name, serviceType = serviceType,
-                    clientType = clientType, username = appsFilesystem.defaultUsername,
+                    username = appsFilesystem.defaultUsername,
                     password = appsFilesystem.defaultPassword, vncPassword = appsFilesystem.defaultVncPassword,
                     isAppsSession = true, port = portOrDisplay)
             asyncAwait { sessionDao.insertSession(sessionToInsert) }
@@ -167,6 +168,7 @@ class SessionController(
     }
 
     suspend fun downloadRequirements(
+        distributionType: String,
         requiredDownloads: List<Asset>,
         downloadBroadcastReceiver: DownloadBroadcastReceiver,
         downloadUtility: DownloadUtility,
@@ -188,6 +190,7 @@ class SessionController(
 
         progressBarUpdater(resources.getString(R.string.progress_copying_downloads), "")
         downloadUtility.moveAssetsToCorrectLocalDirectory()
+        assetPreferences.setLastDistributionUpdate(distributionType, timeUtility.getCurrentTimeMillis())
     }
 
     // Return value represents successful extraction. Also true if extraction is unnecessary.
@@ -210,7 +213,10 @@ class SessionController(
     fun ensureFilesystemHasRequiredAssets(filesystem: Filesystem) {
         val filesystemDirectoryName = "${filesystem.id}"
         val requiredDistributionAssets = assetRepository.getDistributionAssetsList(filesystem.distributionType)
-        if (!filesystemUtility.areAllRequiredAssetsPresent(filesystemDirectoryName, requiredDistributionAssets)) {
+        val filesystemNeedsUpdating = filesystem.lastUpdated <
+                assetPreferences.getLastDistributionUpdate(filesystem.distributionType)
+        if (filesystemNeedsUpdating || !filesystemUtility.areAllRequiredAssetsPresent(
+                        filesystemDirectoryName, requiredDistributionAssets)) {
             filesystemUtility.copyDistributionAssetsToFilesystem(filesystemDirectoryName, filesystem.distributionType)
             filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
         }

@@ -47,8 +47,8 @@ class ServerService : Service() {
         TimestampPreferences(this.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE))
     }
 
-    private val assetListPreferences by lazy {
-        AssetListPreferences(this.getSharedPreferences("assetLists", Context.MODE_PRIVATE))
+    private val assetPreferences by lazy {
+        AssetPreferences(this.getSharedPreferences("assetLists", Context.MODE_PRIVATE))
     }
 
     private val appsList by lazy {
@@ -174,19 +174,20 @@ class ServerService : Service() {
         lastActivatedSession = session
         lastActivatedFilesystem = filesystem
 
+        progressBarUpdater(getString(R.string.progress_bar_start_step), "")
         startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
 
         val assetRepository = AssetRepository(BuildWrapper().getArchType(),
                 filesystem.distributionType,
                 this.filesDir.path,
                 timestampPreferences,
-                assetListPreferences)
+                assetPreferences)
 
-        val sessionController = SessionController(assetRepository, filesystemUtility)
+        val sessionController = SessionController(assetRepository, filesystemUtility, assetPreferences)
 
         launch(CommonPool) {
 
-            progressBarUpdater(resources.getString(R.string.progress_fetching_asset_lists), "")
+            progressBarUpdater(getString(R.string.progress_fetching_asset_lists), "")
             val assetLists = asyncAwait {
                 sessionController.getAssetLists()
             }
@@ -212,7 +213,7 @@ class ServerService : Service() {
                 return@launch
             }
             asyncAwait {
-                sessionController.downloadRequirements(requiredDownloads, downloadBroadcastReceiver,
+                sessionController.downloadRequirements(filesystem.distributionType, requiredDownloads, downloadBroadcastReceiver,
                         initDownloadUtility(), progressBarUpdater, resources)
             }
 
@@ -257,9 +258,9 @@ class ServerService : Service() {
 
         val assetRepository = AssetRepository(BuildWrapper().getArchType(),
                 appsFilesystemDistType, this.filesDir.path, timestampPreferences,
-                assetListPreferences)
+                assetPreferences)
         // TODO refactor this to not instantiate twice
-        val sessionController = SessionController(assetRepository, filesystemUtility)
+        val sessionController = SessionController(assetRepository, filesystemUtility, assetPreferences)
 
         val filesystemDao = UlaDatabase.getInstance(this).filesystemDao()
         val appsFilesystem = runBlocking(CommonPool) {
@@ -361,6 +362,7 @@ class ServerService : Service() {
 
     private val progressBarUpdater: (String, String) -> Unit = {
         step: String, details: String ->
+        progressBarActive = true
         val intent = Intent(SERVER_SERVICE_RESULT)
                 .putExtra("type", "updateProgressBar")
                 .putExtra("step", step)

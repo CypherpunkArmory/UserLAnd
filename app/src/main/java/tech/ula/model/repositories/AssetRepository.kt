@@ -1,7 +1,7 @@
 package tech.ula.model.repositories
 
 import tech.ula.model.entities.Asset
-import tech.ula.utils.AssetListPreferences
+import tech.ula.utils.AssetPreferences
 import tech.ula.utils.ConnectionUtility
 import tech.ula.utils.TimestampPreferences
 import java.io.BufferedReader
@@ -14,7 +14,7 @@ class AssetRepository(
     distributionType: String,
     private val applicationFilesDirPath: String,
     private val timestampPreferences: TimestampPreferences,
-    private val assetListPreferences: AssetListPreferences,
+    private val assetPreferences: AssetPreferences,
     private val connectionUtility: ConnectionUtility = ConnectionUtility()
 ) {
 
@@ -26,7 +26,7 @@ class AssetRepository(
     )
 
     fun getCachedAssetLists(): List<List<Asset>> {
-        return assetListPreferences.getAssetLists(allAssetListTypes)
+        return assetPreferences.getAssetLists(allAssetListTypes)
     }
 
     fun getDistributionAssetsList(distributionType: String): List<Asset> {
@@ -34,7 +34,7 @@ class AssetRepository(
             (assetType, _) ->
             assetType == distributionType
         }
-        val allAssets = assetListPreferences.getAssetLists(distributionAssetLists).flatten()
+        val allAssets = assetPreferences.getAssetLists(distributionAssetLists).flatten()
         return allAssets.filter { !(it.name.contains("rootfs.tar.gz")) }
     }
 
@@ -45,7 +45,7 @@ class AssetRepository(
             (assetType, architectureType) ->
             val assetList = retrieveAndParseAssetList(assetType, architectureType)
             allAssetLists.add(assetList)
-            assetListPreferences.setAssetList(assetType, architectureType, assetList)
+            assetPreferences.setAssetList(assetType, architectureType, assetList)
         }
         return allAssetLists.toList()
     }
@@ -57,8 +57,9 @@ class AssetRepository(
     ): List<Asset> {
         val assetList = ArrayList<Asset>()
 
+        val branch = "master"
         val url = "$protocol://github.com/CypherpunkArmory/UserLAnd-Assets-" +
-                "$assetType/raw/master/assets/$architectureType/assets.txt"
+                "$assetType/raw/$branch/assets/$architectureType/assets.txt"
 
         if (!connectionUtility.httpsHostIsReachable("github.com")) throw object : Exception("Host is unreachable.") {}
         try {

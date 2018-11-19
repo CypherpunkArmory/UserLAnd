@@ -27,6 +27,7 @@ import tech.ula.utils.displayGenericErrorDialog
 
 class MainActivity : AppCompatActivity() {
 
+    private var progressBarIsVisible = false
     private var currentFragmentDisplaysProgressDialog = false
 
     private val navController: NavController by lazy {
@@ -68,7 +69,8 @@ class MainActivity : AppCompatActivity() {
         navController.addOnNavigatedListener { _, destination ->
             currentFragmentDisplaysProgressDialog =
                     destination.label == getString(R.string.sessions) ||
-                    destination.label == getString(R.string.apps)
+                    destination.label == getString(R.string.apps) ||
+                    destination.label == getString(R.string.filesystems)
             if (!currentFragmentDisplaysProgressDialog) killProgressBar()
         }
 
@@ -156,12 +158,13 @@ class MainActivity : AppCompatActivity() {
         layout_progress.visibility = View.GONE
         layout_progress.isFocusable = false
         layout_progress.isClickable = false
+        progressBarIsVisible = false
     }
 
     private fun updateProgressBar(step: String, details: String) {
         if (!currentFragmentDisplaysProgressDialog) return
 
-        if (layout_progress.visibility != View.VISIBLE) {
+        if (!progressBarIsVisible) {
             val inAnimation = AlphaAnimation(0f, 1f)
             inAnimation.duration = 200
             layout_progress.animation = inAnimation
@@ -169,6 +172,7 @@ class MainActivity : AppCompatActivity() {
             layout_progress.visibility = View.VISIBLE
             layout_progress.isFocusable = true
             layout_progress.isClickable = true
+            progressBarIsVisible = true
         }
 
         text_session_list_progress_step.text = step

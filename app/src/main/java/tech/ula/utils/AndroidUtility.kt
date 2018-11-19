@@ -86,7 +86,7 @@ class TimestampPreferences(private val prefs: SharedPreferences) {
     }
 }
 
-class AssetListPreferences(private val prefs: SharedPreferences) {
+class AssetPreferences(private val prefs: SharedPreferences) {
     fun getAssetLists(allAssetListTypes: List<Pair<String, String>>): List<List<Asset>> {
         val assetLists = ArrayList<List<Asset>>()
         allAssetListTypes.forEach {
@@ -107,6 +107,17 @@ class AssetListPreferences(private val prefs: SharedPreferences) {
         }.toSet()
         with(prefs.edit()) {
             putStringSet("$assetType-$architectureType", entries)
+            apply()
+        }
+    }
+
+    fun getLastDistributionUpdate(distributionType: String): Long {
+        return prefs.getLong("$distributionType-lastUpdate", -1)
+    }
+
+    fun setLastDistributionUpdate(distributionType: String, currentTimeMillis: Long) {
+        with(prefs.edit()) {
+            putLong("$distributionType-lastUpdate", currentTimeMillis)
             apply()
         }
     }
@@ -288,5 +299,11 @@ class LocalFileLocator(private val applicationFilesDir: String, private val reso
             return resources.getString(R.string.error_app_description_not_found)
         }
         return appDescriptionFile.readText()
+    }
+}
+
+class TimeUtility {
+    fun getCurrentTimeMillis(): Long {
+        return System.currentTimeMillis()
     }
 }
