@@ -42,7 +42,16 @@ class AppDetailsFragment : Fragment() {
         setupPreferredServiceTypeRadioGroup()
     }
 
-    fun setupPreferredServiceTypeRadioGroup() {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        if (!(app.supportsGui && app.supportsCli)) {
+            apps_vnc_preference.isEnabled = false
+            apps_ssh_preference.isEnabled = false
+            return
+        }
+    }
+
+    private fun setupPreferredServiceTypeRadioGroup() {
         val appServiceTypePreference = appsPreferences.getAppServiceTypePreference(app.name)
         if (appServiceTypePreference == AppsPreferences.SSH) {
             apps_service_type_preferences.check(R.id.apps_ssh_preference)
