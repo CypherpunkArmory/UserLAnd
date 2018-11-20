@@ -228,10 +228,14 @@ class AppListFragment : Fragment(),
             // TODO some error notification
             return
         }
+
         val appFilesystem = possibleAppFilesystem.first()
-        if (appsListViewModel.getAppServiceTypePreference(selectedApp).isEmpty()) {
-            getClientPreferenceAndStart(selectedApp, appFilesystem.defaultUsername, appFilesystem.defaultPassword, appFilesystem.defaultVncPassword)
-            return
+
+        if (!appSupportsOneServiceTypeAndSetPref(selectedApp)) {
+            if (appsListViewModel.getAppServiceTypePreference(selectedApp).isEmpty()) {
+                getClientPreferenceAndStart(selectedApp, appFilesystem.defaultUsername, appFilesystem.defaultPassword, appFilesystem.defaultVncPassword)
+                return
+            }
         }
 
         val startAppIntent = Intent(activityContext, ServerService::class.java)
