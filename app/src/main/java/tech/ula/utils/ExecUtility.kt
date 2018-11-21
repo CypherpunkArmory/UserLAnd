@@ -44,7 +44,8 @@ class ExecUtility(
                 "ROOT_PATH" to applicationFilesDirPath,
                 "ROOTFS_PATH" to "$applicationFilesDirPath/${executionDirectory.name}",
                 "PROOT_DEBUG_LEVEL" to prootDebuggingLevel,
-                "EXTRA_BINDINGS" to "-b $externalStoragePath:/sdcard")
+                "EXTRA_BINDINGS" to "-b $externalStoragePath:/sdcard",
+                "OS_VERSION" to System.getProperty("os.version"))
         else hashMapOf()
 
         env.putAll(environmentVars)
