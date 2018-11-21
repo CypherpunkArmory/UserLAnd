@@ -1,5 +1,5 @@
-<menu
-    xmlns:android="http://schemas.android.com/apk/res/android" >
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
         android:id="@id/settings_fragment"
@@ -9,5 +9,10 @@
         android:id="@id/help_fragment"
         android:icon="@android:drawable/ic_menu_help"
         android:title="@string/help" />
+
+    <item
+        android:id="@+id/terms_and_conditions"
+        android:title="@string/toc"
+        app:showAsAction="never" />
 
 </menu>
