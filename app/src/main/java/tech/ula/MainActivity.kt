@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.support.v4.content.LocalBroadcastManager
@@ -112,6 +113,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.terms_and_conditions) {
+            val intent = Intent("android.intent.action.VIEW", Uri.parse("https://userland.tech/eula"))
+            startActivity(intent)
+        }
         return NavigationUI.onNavDestinationSelected(item,
                 Navigation.findNavController(this, R.id.nav_host_fragment)) ||
                 super.onOptionsItemSelected(item)

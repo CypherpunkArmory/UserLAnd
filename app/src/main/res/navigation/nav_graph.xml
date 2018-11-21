@@ -53,9 +53,4 @@
         android:label="@string/help"
         tools:layout="@layout/frag_help" />
 
-    <fragment
-        android:id="@+id/toc_fragment"
-        android:name="tech.ula.ui.TocFragment"
-        android:label="@string/toc"
-        tools:layout="@layout/frag_toc" />
 </navigation>
