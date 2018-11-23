@@ -29,7 +29,7 @@ There are two ways to use UserLAnd: single-click apps and user-defined custom se
 2. Define a filesystem - This describes what distribution of Linux you want to install.
 3. Once defined, just tap on the session to start up. This will download necessary assets, setup the filesystem, start the server, and connect to it.  This will take several minutes for the first start up, but will be quicker afterwards.
 
-### Using UserLAnd
+### Managing Packages
 
 -> Update: sudo apt-get update && sudo apt-get dist-upgrade
 
