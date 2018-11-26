@@ -19,7 +19,7 @@
     <!-- Menus -->
     <string name="app_info">اطلاعات کاره</string>
     <string name="stop_app">توقف کاره</string>
-    <string name="kill_service">Kill Service</string>
+    <string name="kill_service">توقف خدمت</string>
     <string name="edit">ویرایش</string>
     <string name="delete">پاک‌کردن</string>
     <string name="save">ذخیره‌کردن</string>
@@ -118,7 +118,7 @@
 
     <!-- Permissions necessary alert -->
     <string name="alert_permissions_necessary_title">یوزرلند نیاز به دسترسی دارد!</string>
-    <string name="alert_permissions_necessary_message">To continue, enable storage permissions to allow UserLAnd to download files and move them from external storage to app local storage.</string>
+    <string name="alert_permissions_necessary_message">برای ادامه و برای اینکه یوزرلند بتواند پرونده‌ها را بارگیری و سپس آن‌ها را از حافظه خارجی به حافظه محلی کاره جابجا کند، بایستی اجازه دسترسی به حافظه را فعال کنید.</string>
     <string name="alert_permissions_necessary_cancel_button">لغو</string>
 
     <!-- Network unavailable alert -->
