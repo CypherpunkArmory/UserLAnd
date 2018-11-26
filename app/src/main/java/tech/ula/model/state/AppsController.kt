@@ -1,4 +1,4 @@
-package tech.ula.utils
+package tech.ula.model.state
 
 import kotlinx.coroutines.experimental.runBlocking
 import tech.ula.model.daos.FilesystemDao
@@ -6,12 +6,13 @@ import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
+import tech.ula.utils.*
 
 class AppsController(
-    private val filesystemDao: FilesystemDao,
-    private val sessionDao: SessionDao,
-    private val appsPreferences: AppsPreferences,
-    private val buildWrapper: BuildWrapper = BuildWrapper()
+        private val filesystemDao: FilesystemDao,
+        private val sessionDao: SessionDao,
+        private val appsPreferences: AppsPreferences,
+        private val buildWrapper: BuildWrapper = BuildWrapper()
 ) {
 
     private var activeSessions = listOf<Session>()
@@ -31,15 +32,15 @@ class AppsController(
                     } ?: unselectedSession
 
             if (activeSession == unselectedSession) return@runBlocking ActiveAppIsNotSelectedApp
-            return@runBlocking AppCanBeRestarted(activeSession)
+//            return@runBlocking AppCanBeRestarted(activeSession)
         }
 
         if (!appsFilesystemHasCredentialsSet(appsFilesystem)) {
-            return@runBlocking FilesystemNeedsCredentials(appsFilesystem)
+            return@runBlocking FilesystemNeedsCredentials(appsFilesystem, app)
         }
 
         if (preferredServiceType is PreferenceHasNotBeenSelected) {
-            return@runBlocking ServiceTypePreferenceMustBeSet(deferredAppSession.await())
+            return@runBlocking ServiceTypePreferenceMustBeSet(app)
         }
 
         updateAppSession(deferredAppSession.await(), preferredServiceType, appsFilesystem)
@@ -52,11 +53,13 @@ class AppsController(
                 filesystem.defaultVncPassword.isNotEmpty()
     }
 
-    fun setAppsFilesystemCredentials(filesystem: Filesystem, username: String, password: String, vncPassword: String) = runBlocking {
+    fun setAppsFilesystemCredentials(filesystem: Filesystem, username: String, password: String,
+                                     vncPassword: String, app: App) = runBlocking {
         filesystem.defaultUsername = username
         filesystem.defaultPassword = password
         filesystem.defaultVncPassword = vncPassword
         async { filesystemDao.updateFilesystem(filesystem) }
+        prepareAppForActivation(app)
     }
 
     fun getAppServicePreference(app: App): AppServiceTypePreference {
@@ -66,6 +69,11 @@ class AppsController(
             !app.supportsCli && app.supportsGui -> VncTypePreference
             else -> PreferenceHasNotBeenSelected
         }
+    }
+
+    fun setAppServicePreference(app: App, serviceTypePreference: AppServiceTypePreference) {
+        appsPreferences.setAppServiceTypePreference(app.name, serviceTypePreference)
+        prepareAppForActivation(app)
     }
 
     suspend fun updateAppSession(appSession: Session, serviceTypePreference: AppServiceTypePreference, appsFilesystem: Filesystem) {
@@ -126,8 +134,8 @@ class AppsController(
 
 sealed class AppPrepState
 object ActiveAppIsNotSelectedApp : AppPrepState()
-data class AppCanBeRestarted(val appSession: Session) : AppPrepState()
-data class FilesystemNeedsCredentials(val filesystem: Filesystem) : AppPrepState()
-data class ServiceTypePreferenceMustBeSet(val appSession: Session) : AppPrepState()
+//data class AppCanBeRestarted(val appSession: Session) : AppPrepState()
+data class FilesystemNeedsCredentials(val filesystem: Filesystem, val app: App) : AppPrepState()
+data class ServiceTypePreferenceMustBeSet(val app: App) : AppPrepState()
 data class AppIsPrepped(val appSession: Session, val appsFilesystem: Filesystem) : AppPrepState()
 data class PrepFailed(val error: String) : AppPrepState()

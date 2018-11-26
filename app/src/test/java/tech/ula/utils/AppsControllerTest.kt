@@ -15,6 +15,7 @@ import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
+import tech.ula.model.state.*
 
 @RunWith(MockitoJUnitRunner::class)
 class AppsControllerTest {
