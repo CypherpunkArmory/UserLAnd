@@ -29,12 +29,29 @@ There are two ways to use UserLAnd: single-click apps and user-defined custom se
 2. Define a filesystem - This describes what distribution of Linux you want to install.
 3. Once defined, just tap on the session to start up. This will download necessary assets, setup the filesystem, start the server, and connect to it.  This will take several minutes for the first start up, but will be quicker afterwards.
 
-### Using your Linux distribution
+### Managing Packages
 
-A normal first session might look like this:
-* sudo apt update <- update package information
-* sudo apt install wget <- install whatever you want to use
-* wget http://google.com <- use it  
+-> Update: sudo apt-get update && sudo apt-get dist-upgrade
+
+-> Install Packages: sudo apt-get install (package name)
+
+-> Remove Packages: sudo apt-get remove (package name)
+
+### Installing A Desktop
+
+-> Install Lxde: sudo apt-get install lxde (default desktop)
+
+-> Install X Server Client: https://play.google.com/store/apps/details?id=x.org.server&hl=en
+
+-> Launch XSDL
+
+-> In UserLAnd Type: export DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:(PORT NUMBER)
+
+-> Then Type: start lxde
+
+-> Then Go Back To XSDL And The Desktop Will Show Up
+
+
 
 But you can do so much more than that. Your phone isn't just a play thing any more!
 
