@@ -15,7 +15,7 @@ class AppsStartupFsm (
         private val appsPreferences: AppsPreferences,
         private val buildWrapper: BuildWrapper = BuildWrapper()) {
 
-    private val activeSessions = listOf<Session>() // TODO
+    private var activeSessions = listOf<Session>()
     private val unselectedSession = Session(-1, name = "unselected", filesystemId = -1)
 
     private val unselectedFilesystem = Filesystem(id = -1, name = "unselected")
@@ -41,6 +41,9 @@ class AppsStartupFsm (
                 setAppServicePreference(lastSelectedApp.name, event.serviceTypePreference)
                 appWasSelected(lastSelectedApp)
             }
+            is ActiveSessionsHaveUpdated -> {
+                activeSessions = event.activeSessions
+            }
         }
     }
 
@@ -51,7 +54,7 @@ class AppsStartupFsm (
         val deferredAppsSession = async { findAppSession(app, preferredServiceType, lastSelectedAppsFilesystem) }
 
         if (appIsRestartable(app, preferredServiceType)) {
-            state.postValue(AppCanBeStarted(deferredAppsSession.await(), lastSelectedAppsFilesystem))
+            state.postValue(AppCanBeRestarted(deferredAppsSession.await()))
             return
         }
 
@@ -166,8 +169,10 @@ data class AppCannotBeActivated(val reason: String) : AppsStartupState()
 object AppsFilesystemRequiresCredentials : AppsStartupState()
 object AppRequiresServiceTypePreference : AppsStartupState()
 data class AppCanBeStarted(val appSession: Session, val appsFilesystem: Filesystem) : AppsStartupState()
+data class AppCanBeRestarted(val appSession: Session) : AppsStartupState()
 
 sealed class AppsStartupEvent
 data class AppSelected(val app: App) : AppsStartupEvent()
 data class SubmitAppsFilesystemCredentials(val username: String, val password: String, val vncPassword: String) : AppsStartupEvent()
 data class SubmitAppServicePreference(val serviceTypePreference: AppServiceTypePreference) : AppsStartupEvent()
+data class ActiveSessionsHaveUpdated(val activeSessions: List<Session>) : AppsStartupEvent()

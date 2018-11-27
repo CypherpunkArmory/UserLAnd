@@ -82,7 +82,9 @@ class AppListFragment : Fragment(),
     private val appsAndActiveSessionObserver = Observer<Pair<List<App>, List<Session>>> {
         it?.let {
             appsList = it.first
-            appAdapter.updateAppsAndSessions(appsList, listOf()) // TODO remove session dependency
+            val activeSessions = it.second
+            appsListViewModel.submitAppsStartupEvent(ActiveSessionsHaveUpdated(activeSessions)) // TODO I hate this
+            appAdapter.updateAppsAndSessions(appsList, activeSessions)
             if (appsList.isEmpty() || userlandIsNewVersion()) {
                 doRefresh()
             }
@@ -105,6 +107,7 @@ class AppListFragment : Fragment(),
                 is AppsFilesystemRequiresCredentials -> getCredentials()
                 is AppRequiresServiceTypePreference -> getServiceTypePreference()
                 is AppCanBeStarted -> startAppSession(startupState.appSession, startupState.appsFilesystem)
+                is AppCanBeRestarted -> restartAppSession(startupState.appSession)
             }
         }
     }
