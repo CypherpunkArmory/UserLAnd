@@ -58,7 +58,7 @@
     <string name="service_notification_description">یوزرلند در حال اجرای خدمتی در پس‌زمینه است.</string>
 
     <!-- Progress bar messages -->
-    <string name="progress_bar_start_step">در حال آماده‌سازی برای شما…</string>
+    <string name="progress_bar_start_step">در حال آماده‌سازی برای شما&#8230;</string>
     <string name="progress_basic_app_setup">در حال تنظیم اطلاعات پایگاه داده کاره&#8230;</string>
     <string name="progress_fetching_asset_lists">درحال دریافت فهرست اجزا&#8230;</string>
     <string name="progress_checking_for_required_updates">در حال بررسی وجود به‌روزرسانی&#8230;</string>
