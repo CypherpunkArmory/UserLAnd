@@ -48,7 +48,6 @@ class AppsStartupFsm (
     init {
         // The appsList must be observed to propagate data. Otherwise the value will always be null.
         appsList.observeForever {
-            // TODO
             it?.let { list ->
                 if (list.isEmpty()) state.postValue(AppsListIsEmpty)
             }
@@ -93,6 +92,10 @@ class AppsStartupFsm (
     }
 
     private suspend fun appWasSelected(app: App) {
+        if (activeApps.isNotEmpty()) {
+            state.postValue(SingleSessionPermitted)
+            return
+        }
         lastSelectedApp = app
         val preferredServiceType = getAppServiceTypePreference(app)
         lastSelectedAppsFilesystem = async { findAppsFilesystem(app) }.await()
@@ -185,7 +188,6 @@ class AppsStartupFsm (
 
     private suspend fun setAppsFilesystemCredentials(username: String, password: String, vncPassword: String) {
         // TODO verify last selected is not unselected and error if not
-        // TODO thought i saw a bug where vncpass was set to ssh pass
         lastSelectedAppsFilesystem.defaultUsername = username
         lastSelectedAppsFilesystem.defaultPassword = password
         lastSelectedAppsFilesystem.defaultVncPassword = vncPassword
@@ -206,6 +208,7 @@ class AppsStartupFsm (
 sealed class AppsStartupState
 object WaitingForAppSelection : AppsStartupState()
 object AppsListIsEmpty : AppsStartupState()
+object SingleSessionPermitted : AppsStartupState()
 object AppsFilesystemRequiresCredentials : AppsStartupState()
 object AppRequiresServiceTypePreference : AppsStartupState()
 data class AppCanBeStarted(val appSession: Session, val appsFilesystem: Filesystem) : AppsStartupState()

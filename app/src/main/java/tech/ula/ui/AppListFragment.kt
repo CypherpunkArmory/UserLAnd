@@ -64,13 +64,13 @@ class AppListFragment : Fragment(),
 
     private val appsListViewModel: AppListViewModel by lazy {
         val ulaDatabase = UlaDatabase.getInstance(activityContext)
-        val sessionDao = ulaDatabase.sessionDao()
         val appsDao = ulaDatabase.appsDao()
         val githubFetcher = GithubAppsFetcher("${activityContext.filesDir}")
         val appsStartupMachine = AppsStartupFsm(ulaDatabase, appsPreferences)
 
         val appsRepository = AppsRepository(appsDao, githubFetcher, appsPreferences)
-        ViewModelProviders.of(this, AppListViewModelFactory(appsStartupMachine, appsRepository, sessionDao)).get(AppListViewModel::class.java)
+        ViewModelProviders.of(this, AppListViewModelFactory(appsStartupMachine, appsRepository))
+                .get(AppListViewModel::class.java)
     }
 
     // TODO move refreshing into state machine
@@ -92,18 +92,18 @@ class AppListFragment : Fragment(),
         }
     }
 
-    // TODO only allow single app start for now
     private val startupStateObserver = Observer<AppsStartupState> {
         it?.let { startupState ->
             when (startupState) {
-                is WaitingForAppSelection -> {} // TODO
+                is WaitingForAppSelection -> {} // TODO appsAreClickable
                 is AppsListIsEmpty -> { doRefresh() }
+                is SingleSessionPermitted -> { showSingleSessionAlert() }
                 is AppsFilesystemRequiresCredentials -> getCredentials()
                 is AppRequiresServiceTypePreference -> getServiceTypePreference()
                 is AppCanBeStarted -> startAppSession(startupState.appSession, startupState.appsFilesystem)
                 is AppCanBeRestarted -> restartAppSession(startupState.appSession)
                 is AppsHaveActivated -> { appAdapter.updateActiveApps(startupState.activeApps) }
-                is AppsHaveDeactivated -> { appAdapter.updateActiveApps(listOf()) } // TODO deactivate apps appropriately
+                is AppsHaveDeactivated -> { appAdapter.updateActiveApps(listOf()) } // TODO deactivate apps appropriately. Once adapter can accept single apps for activation/deactivation
             }
         }
     }
@@ -180,21 +180,6 @@ class AppListFragment : Fragment(),
     private fun handleAppSelection(selectedApp: App) {
         if (selectedApp == unselectedApp) return
 
-        // TODO skip client preference selection when only one supported
-//        val appFilesystem = possibleAppFilesystem.first()
-//
-//        if (!appSupportsOneServiceTypeAndSetPref(selectedApp)) {
-//            if (appsListViewModel.getAppServiceTypePreference(selectedApp).isEmpty()) {
-//                getClientPreferenceAndStart(selectedApp, appFilesystem.defaultUsername, appFilesystem.defaultPassword, appFilesystem.defaultVncPassword)
-//                return
-//            }
-//        }
-//
-//        val startAppIntent = Intent(activityContext, ServerService::class.java)
-//                .putExtra("type", "startApp")
-//                .putExtra("app", selectedApp)
-//                .putExtra("serviceType", preferredServiceType)
-//        activityContext.startService(startAppIntent)
         appsListViewModel.submitAppsStartupEvent(AppSelected(selectedApp))
     }
 
@@ -296,7 +281,6 @@ class AppListFragment : Fragment(),
         }
         customDialog.setOnCancelListener {
             /* TODO submit event */
-            Toast.makeText(activityContext, "canceled", Toast.LENGTH_LONG).show()
         }
         customDialog.show()
     }
@@ -364,6 +348,10 @@ class AppListFragment : Fragment(),
                 }
             }
         }
+    }
+
+    private fun showSingleSessionAlert() {
+        Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG).show()
     }
 
     private fun showRefreshUnavailableDialog() {

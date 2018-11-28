@@ -108,15 +108,6 @@ class ServerService : Service() {
                 val filesystem: Filesystem = intent.getParcelableExtra("filesystem")
                 startSession(session, filesystem, forceDownloads = false)
             }
-            "startApp" -> {
-                val app: App = intent.getParcelableExtra("app")
-                val serviceType = intent.getStringExtra("serviceType")
-                val username = intent.getStringExtra("username") ?: ""
-                val password = intent.getStringExtra("password") ?: ""
-                val vncPassword = intent.getStringExtra("vncPassword") ?: ""
-
-                startApp(app, serviceType, username, password, vncPassword)
-            }
             "stopApp" -> {
                 val app: App = intent.getParcelableExtra("app")
                 stopApp(app)
@@ -248,35 +239,6 @@ class ServerService : Service() {
             startClient(updatedSession)
             activeSessions[updatedSession.pid] = updatedSession
         }
-    }
-
-    private fun startApp(app: App, serviceType: String, username: String = "", password: String = "", vncPassword: String = "") {
-        progressBarUpdater(getString(R.string.progress_basic_app_setup), "")
-
-        val appsFilesystemDistType = app.filesystemRequired
-
-        val assetRepository = AssetRepository(BuildWrapper().getArchType(),
-                appsFilesystemDistType, this.filesDir.path, timestampPreferences,
-                assetPreferences)
-        // TODO refactor this to not instantiate twice
-        val sessionController = SessionController(assetRepository, filesystemUtility, assetPreferences)
-
-//        val filesystemDao = UlaDatabase.getInstance(this).filesystemDao()
-//        val appsFilesystem = runBlocking(CommonPool) {
-//            sessionController.findAppsFilesystems(app.filesystemRequired, filesystemDao)
-//        }
-//
-//        val sessionDao = UlaDatabase.getInstance(this).sessionDao()
-//        val appSession = runBlocking(CommonPool) {
-//            sessionController.findAppSession(app.name, serviceType, appsFilesystem, sessionDao)
-//        }
-
-//        sessionController.setAppsUsername(username, appSession, appsFilesystem, sessionDao, filesystemDao)
-//        sessionController.setAppsPassword(password, appSession, appsFilesystem, sessionDao, filesystemDao)
-//        sessionController.setAppsVncPassword(vncPassword, appSession, appsFilesystem, sessionDao, filesystemDao)
-//        sessionController.setAppsServiceType(serviceType, appSession, sessionDao)
-//
-//        startSession(appSession, appsFilesystem, forceDownloads = false)
     }
 
     private fun stopApp(app: App) {

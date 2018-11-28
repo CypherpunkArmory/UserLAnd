@@ -16,13 +16,7 @@ import tech.ula.utils.zipLiveData
 
 class AppListViewModel(
         private val appsStartupFsm: AppsStartupFsm,
-        private val appsRepository: AppsRepository,
-        private val sessionDao: SessionDao) : ViewModel() {
-
-    // TODO move session tracking into the state machine so state accurately reflects when an app can be started
-    private val activeSessions: LiveData<List<Session>> by lazy {
-        sessionDao.findActiveSessions()
-    }
+        private val appsRepository: AppsRepository) : ViewModel() {
 
     private val apps: LiveData<List<App>> by lazy {
         appsRepository.getAllApps()
@@ -53,8 +47,8 @@ class AppListViewModel(
     }
 }
 
-class AppListViewModelFactory(private val appsStartupFsm: AppsStartupFsm, private val appsRepository: AppsRepository, private val sessionDao: SessionDao) : ViewModelProvider.NewInstanceFactory() {
+class AppListViewModelFactory(private val appsStartupFsm: AppsStartupFsm, private val appsRepository: AppsRepository) : ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return AppListViewModel(appsStartupFsm, appsRepository, sessionDao) as T
+        return AppListViewModel(appsStartupFsm, appsRepository) as T
     }
 }
