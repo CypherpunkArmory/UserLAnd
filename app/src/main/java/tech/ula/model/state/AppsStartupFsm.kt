@@ -82,7 +82,7 @@ class AppsStartupFsm (
         return@runBlocking when (event) {
             is AppSelected -> appWasSelected(event.app)
             is SubmitAppsFilesystemCredentials -> {
-                setAppsFilesystemCredentials(event.username, event.password, event.password)
+                setAppsFilesystemCredentials(event.username, event.password, event.vncPassword)
                 appWasSelected(lastSelectedApp)
             }
             is SubmitAppServicePreference -> {
