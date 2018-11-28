@@ -32,9 +32,8 @@ class AppListViewModel(
         appsStartupFsm.getState()
     }
 
-    // TODO decouple these and track activity as state appropriately
-    fun getAppsAndActiveSessions(): LiveData<Pair<List<App>, List<Session>>> {
-        return zipLiveData(apps, activeSessions)
+    fun getAppsList(): LiveData<List<App>> {
+        return apps
     }
 
     fun refreshAppsList() {

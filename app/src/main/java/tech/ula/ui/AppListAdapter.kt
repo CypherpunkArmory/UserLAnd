@@ -23,7 +23,7 @@ class AppListAdapter(
 ) : RecyclerView.Adapter<AppListAdapter.ViewHolder>() {
 
     private lateinit var lastSelectedAppContextItem: AppsListItem
-    private val activeSessions: ArrayList<Session> = arrayListOf()
+    private val activeApps = arrayListOf<App>()
 
     interface OnAppsItemClicked {
         fun onAppsItemClicked(appsItemClicked: AppsListItem)
@@ -75,16 +75,23 @@ class AppListAdapter(
         return listBuilder
     }
 
-    fun updateAppsAndSessions(newApps: List<App>, newActiveSessions: List<Session>) {
+    fun updateApps(newApps: List<App>) {
 
         val newAppsListItems = createAppsItemListWithSeparators(newApps)
 
-        val diffCallback = AppsItemDiffCallBack(appsAndSeparators, newAppsListItems, activeSessions, newActiveSessions)
+        val diffCallback = AppsListDiffCallBack(appsAndSeparators, newAppsListItems)
         val diffResult = DiffUtil.calculateDiff(diffCallback)
-        activeSessions.clear()
-        activeSessions.addAll(newActiveSessions)
         appsAndSeparators.clear()
         appsAndSeparators.addAll(newAppsListItems)
+
+        diffResult.dispatchUpdatesTo(this)
+    }
+
+    fun updateActiveApps(newActiveApps: List<App>) {
+        val diffCallBack = AppsListDiffCallBack(appsAndSeparators, oldActiveApps = activeApps, newActiveApps = newActiveApps)
+        val diffResult = DiffUtil.calculateDiff(diffCallBack)
+        activeApps.clear()
+        activeApps.addAll(newActiveApps)
 
         diffResult.dispatchUpdatesTo(this)
     }
@@ -112,8 +119,7 @@ class AppListAdapter(
             is AppItem -> {
                 viewHolder.itemView.isLongClickable = true
                 val app = item.app
-                val activeAppSessions = activeSessions.filter { it.name == app.name }
-                val appIsActive = activeAppSessions.isNotEmpty()
+                val appIsActive = activeApps.contains(app)
                 if (appIsActive) {
                     viewHolder.itemView.setBackgroundResource(R.color.colorAccent)
                 } else {
@@ -179,11 +185,17 @@ sealed class AppsListItem
 data class AppItem(val app: App) : AppsListItem()
 data class AppSeparatorItem(val category: String) : AppsListItem()
 
-class AppsItemDiffCallBack(
-    private val oldAppsItemList: List<AppsListItem>,
-    private val newAppsItemList: List<AppsListItem>,
-    private val oldActiveSessions: List<Session>,
-    private val newActiveSessions: List<Session>
+
+// TODO we should really find a way to just redraw a single app item when its activity changes
+/**
+ * Default parameters allow updates in terms of changes to both the list and app activity.
+ * When changing one, the other will simply default to using the same thing for comparison.
+ */
+class AppsListDiffCallBack(
+    private val oldAppsItemList: List<AppsListItem> = listOf(),
+    private val newAppsItemList: List<AppsListItem> = oldAppsItemList,
+    private val oldActiveApps: List<App> = listOf(),
+    private val newActiveApps: List<App> = oldActiveApps
 ) : DiffUtil.Callback() {
     override fun getOldListSize(): Int {
         return oldAppsItemList.size
@@ -200,7 +212,7 @@ class AppsItemDiffCallBack(
         if (oldApp is AppSeparatorItem && newApp is AppSeparatorItem) {
             if (oldApp.category == newApp.category) return true
         } else if (oldApp is AppItem && newApp is AppItem) {
-            if (oldApp.app.name == newApp.app.name && oldActiveSessions == newActiveSessions) {
+            if (oldApp.app.name == newApp.app.name && oldActiveApps == newActiveApps) {
                 return true
             }
         }

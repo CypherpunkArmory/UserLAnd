@@ -1,22 +1,40 @@
 package tech.ula.model.state
 
+import android.arch.lifecycle.LiveData
+import android.arch.lifecycle.MediatorLiveData
 import android.arch.lifecycle.MutableLiveData
+import android.arch.lifecycle.Transformations
+import android.util.Log
 import kotlinx.coroutines.experimental.runBlocking
 import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
+import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.*
 
 class AppsStartupFsm (
-        private val filesystemDao: FilesystemDao,
-        private val sessionDao: SessionDao,
+        ulaDatabase: UlaDatabase,
         private val appsPreferences: AppsPreferences,
         private val buildWrapper: BuildWrapper = BuildWrapper()) {
 
-    private var activeSessions = listOf<Session>()
-    private val unselectedSession = Session(-1, name = "unselected", filesystemId = -1)
+    private val sessionDao = ulaDatabase.sessionDao()
+    private val filesystemDao = ulaDatabase.filesystemDao()
+    private val appsDao = ulaDatabase.appsDao()
+
+    private val appsList = appsDao.getAllApps()
+    private val activeSessions = sessionDao.findActiveSessions()
+
+    private val activeApps = Transformations.map(activeSessions) { sessions ->
+        appsList.value?.let { list ->
+            list.filter { app ->
+                sessions.any { session ->
+                    session.active && app.name == session.name
+                }
+            }
+        }
+    }
 
     private val unselectedFilesystem = Filesystem(id = -1, name = "unselected")
     private var lastSelectedAppsFilesystem = unselectedFilesystem
@@ -26,12 +44,29 @@ class AppsStartupFsm (
 
     private val state = MutableLiveData<AppsStartupState>().apply { postValue(WaitingForAppSelection) }
 
+    init {
+        // The appsList must be observed to propagate data. Otherwise the value will always be null.
+        appsList.observeForever {
+            // TODO
+//            it?.let { list ->
+//                if (list.isEmpty()) state.postValue(AppsListIsEmpty)
+//            }
+        }
+        // TODO need to diff old and new lists to check for changes in activity
+        activeApps.observeForever {
+            it?.let { list ->
+                if (list.isNotEmpty()) state.postValue(AppsAreActive(list))
+                else state.postValue(AppsAreInactive)
+            }
+        }
+    }
+
     fun getState() : MutableLiveData<AppsStartupState> {
         return state
     }
 
     fun submitEvent(event: AppsStartupEvent) = runBlocking {
-        when (event) {
+        return@runBlocking when (event) {
             is AppSelected -> appWasSelected(event.app)
             is SubmitAppsFilesystemCredentials -> {
                 setAppsFilesystemCredentials(event.username, event.password, event.password)
@@ -40,9 +75,6 @@ class AppsStartupFsm (
             is SubmitAppServicePreference -> {
                 setAppServicePreference(lastSelectedApp.name, event.serviceTypePreference)
                 appWasSelected(lastSelectedApp)
-            }
-            is ActiveSessionsHaveUpdated -> {
-                activeSessions = event.activeSessions
             }
         }
     }
@@ -53,7 +85,7 @@ class AppsStartupFsm (
         lastSelectedAppsFilesystem = async { findAppsFilesystem(app) }.await()
         val deferredAppsSession = async { findAppSession(app, preferredServiceType, lastSelectedAppsFilesystem) }
 
-        if (appIsRestartable(app, preferredServiceType)) {
+        if (appIsRestartable(app)) {
             state.postValue(AppCanBeRestarted(deferredAppsSession.await()))
             return
         }
@@ -128,14 +160,8 @@ class AppsStartupFsm (
         }
     }
 
-    private fun appIsRestartable(app: App, preferredServiceType: AppServiceTypePreference): Boolean {
-        if (activeSessions.isNotEmpty()) {
-            val activeAppSession = activeSessions.find {
-                it.name == app.name && it.serviceType == preferredServiceType.toString()
-            } ?: unselectedSession
-            return activeAppSession != unselectedSession
-        }
-        return false
+    private fun appIsRestartable(app: App): Boolean {
+        return activeApps.value?.contains(app) ?: false
     }
 
     private fun appsFilesystemRequiresCredentials(appsFilesystem: Filesystem): Boolean {
@@ -146,6 +172,7 @@ class AppsStartupFsm (
 
     private suspend fun setAppsFilesystemCredentials(username: String, password: String, vncPassword: String) {
         // TODO verify last selected is not unselected and error if not
+        // TODO thought i saw a bug where vncpass was set to ssh pass
         lastSelectedAppsFilesystem.defaultUsername = username
         lastSelectedAppsFilesystem.defaultPassword = password
         lastSelectedAppsFilesystem.defaultVncPassword = vncPassword
@@ -153,7 +180,7 @@ class AppsStartupFsm (
     }
 
     private suspend fun updateAppSession(appSession: Session, serviceTypePreference: AppServiceTypePreference, appsFilesystem: Filesystem) {
-        // TODO this will force the session the have values defined on the filesystem. is that harmful?
+        // TODO this will force the session to have values defined on the filesystem. is that harmful?
         appSession.serviceType = serviceTypePreference.toString()
         appSession.port = if (serviceTypePreference is SshTypePreference) 2022 else 51
         appSession.username = appsFilesystem.defaultUsername
@@ -165,14 +192,15 @@ class AppsStartupFsm (
 
 sealed class AppsStartupState
 object WaitingForAppSelection : AppsStartupState()
-data class AppCannotBeActivated(val reason: String) : AppsStartupState()
+object AppsListIsEmpty : AppsStartupState()
 object AppsFilesystemRequiresCredentials : AppsStartupState()
 object AppRequiresServiceTypePreference : AppsStartupState()
 data class AppCanBeStarted(val appSession: Session, val appsFilesystem: Filesystem) : AppsStartupState()
 data class AppCanBeRestarted(val appSession: Session) : AppsStartupState()
+data class AppsAreActive(val activeApps: List<App>) : AppsStartupState()
+object AppsAreInactive : AppsStartupState()
 
 sealed class AppsStartupEvent
 data class AppSelected(val app: App) : AppsStartupEvent()
 data class SubmitAppsFilesystemCredentials(val username: String, val password: String, val vncPassword: String) : AppsStartupEvent()
 data class SubmitAppServicePreference(val serviceTypePreference: AppServiceTypePreference) : AppsStartupEvent()
-data class ActiveSessionsHaveUpdated(val activeSessions: List<Session>) : AppsStartupEvent()

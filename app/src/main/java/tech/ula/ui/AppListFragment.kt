@@ -49,7 +49,6 @@ class AppListFragment : Fragment(),
         activityContext.resources.getString(R.string.permission_request_code).toInt()
     }
 
-    private lateinit var appsList: List<App>
     private val appAdapter by lazy {
         AppListAdapter(activityContext, this, this)
     }
@@ -63,29 +62,22 @@ class AppListFragment : Fragment(),
         AppsPreferences(activityContext.getSharedPreferences("apps", Context.MODE_PRIVATE))
     }
 
-    private val appsStartupMachine: AppsStartupFsm by lazy {
-        val filesystemDao = UlaDatabase.getInstance(activityContext).filesystemDao()
-        val sessionDao = UlaDatabase.getInstance(activityContext).sessionDao()
-        AppsStartupFsm(filesystemDao, sessionDao, appsPreferences)
-    }
-
     private val appsListViewModel: AppListViewModel by lazy {
         val ulaDatabase = UlaDatabase.getInstance(activityContext)
         val sessionDao = ulaDatabase.sessionDao()
         val appsDao = ulaDatabase.appsDao()
         val githubFetcher = GithubAppsFetcher("${activityContext.filesDir}")
+        val appsStartupMachine = AppsStartupFsm(ulaDatabase, appsPreferences)
 
         val appsRepository = AppsRepository(appsDao, githubFetcher, appsPreferences)
         ViewModelProviders.of(this, AppListViewModelFactory(appsStartupMachine, appsRepository, sessionDao)).get(AppListViewModel::class.java)
     }
 
-    private val appsAndActiveSessionObserver = Observer<Pair<List<App>, List<Session>>> {
-        it?.let {
-            appsList = it.first
-            val activeSessions = it.second
-            appsListViewModel.submitAppsStartupEvent(ActiveSessionsHaveUpdated(activeSessions)) // TODO I hate this
-            appAdapter.updateAppsAndSessions(appsList, activeSessions)
-            if (appsList.isEmpty() || userlandIsNewVersion()) {
+    // TODO move refreshing into state machine
+    private val appsObserver = Observer<List<App>> {
+        it?.let { list ->
+            appAdapter.updateApps(list)
+            if (list.isEmpty() || userlandIsNewVersion()) {
                 doRefresh()
             }
         }
@@ -104,10 +96,13 @@ class AppListFragment : Fragment(),
         it?.let { startupState ->
             when (startupState) {
                 is WaitingForAppSelection -> {} // TODO
+                is AppsListIsEmpty -> { doRefresh() }
                 is AppsFilesystemRequiresCredentials -> getCredentials()
                 is AppRequiresServiceTypePreference -> getServiceTypePreference()
                 is AppCanBeStarted -> startAppSession(startupState.appSession, startupState.appsFilesystem)
                 is AppCanBeRestarted -> restartAppSession(startupState.appSession)
+                is AppsAreActive -> { appAdapter.updateActiveApps(startupState.activeApps) } // TODO update adapter
+                is AppsAreInactive -> {}
             }
         }
     }
@@ -151,7 +146,7 @@ class AppListFragment : Fragment(),
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         activityContext = activity!!
-        appsListViewModel.getAppsAndActiveSessions().observe(viewLifecycleOwner, appsAndActiveSessionObserver)
+        appsListViewModel.getAppsList().observe(viewLifecycleOwner, appsObserver)
         appsListViewModel.getRefreshStatus().observe(viewLifecycleOwner, refreshStatusObserver)
         appsListViewModel.getAppsStartupState().observe(viewLifecycleOwner, startupStateObserver)
 
