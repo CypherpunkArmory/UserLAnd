@@ -26,15 +26,16 @@ class AppsStartupFsm (
     private val appsList = appsDao.getAllApps()
     private val activeSessions = sessionDao.findActiveSessions()
 
-    private val activeApps = Transformations.map(activeSessions) { sessions ->
+    private val activeAppsObserver = Transformations.map(activeSessions) { sessions ->
         appsList.value?.let { list ->
             list.filter { app ->
                 sessions.any { session ->
-                    session.active && app.name == session.name
+                    app.name == session.name
                 }
             }
         }
     }
+    private val activeApps = mutableListOf<App>()
 
     private val unselectedFilesystem = Filesystem(id = -1, name = "unselected")
     private var lastSelectedAppsFilesystem = unselectedFilesystem
@@ -48,17 +49,29 @@ class AppsStartupFsm (
         // The appsList must be observed to propagate data. Otherwise the value will always be null.
         appsList.observeForever {
             // TODO
-//            it?.let { list ->
-//                if (list.isEmpty()) state.postValue(AppsListIsEmpty)
-//            }
-        }
-        // TODO need to diff old and new lists to check for changes in activity
-        activeApps.observeForever {
             it?.let { list ->
-                if (list.isNotEmpty()) state.postValue(AppsAreActive(list))
-                else state.postValue(AppsAreInactive)
+                if (list.isEmpty()) state.postValue(AppsListIsEmpty)
             }
         }
+        activeAppsObserver.observeForever {
+            it?.let { list ->
+                if (list != activeApps)
+                updateActiveApps(list)
+            }
+        }
+    }
+
+    private fun updateActiveApps(newActiveApps: List<App>) {
+        if (newActiveApps.size > activeApps.size) {
+            val newlyActiveApps = newActiveApps.subtract(activeApps)
+            state.postValue(AppsHaveActivated(newlyActiveApps.toList()))
+        }
+        else {
+            val newlyInactiveApps = activeApps.subtract(newActiveApps)
+            state.postValue(AppsHaveDeactivated(newlyInactiveApps.toList()))
+        }
+        activeApps.clear()
+        activeApps.addAll(newActiveApps)
     }
 
     fun getState() : MutableLiveData<AppsStartupState> {
@@ -161,7 +174,7 @@ class AppsStartupFsm (
     }
 
     private fun appIsRestartable(app: App): Boolean {
-        return activeApps.value?.contains(app) ?: false
+        return activeApps.contains(app)
     }
 
     private fun appsFilesystemRequiresCredentials(appsFilesystem: Filesystem): Boolean {
@@ -197,8 +210,8 @@ object AppsFilesystemRequiresCredentials : AppsStartupState()
 object AppRequiresServiceTypePreference : AppsStartupState()
 data class AppCanBeStarted(val appSession: Session, val appsFilesystem: Filesystem) : AppsStartupState()
 data class AppCanBeRestarted(val appSession: Session) : AppsStartupState()
-data class AppsAreActive(val activeApps: List<App>) : AppsStartupState()
-object AppsAreInactive : AppsStartupState()
+data class AppsHaveActivated(val activeApps: List<App>) : AppsStartupState()
+data class AppsHaveDeactivated(val inactiveApps: List<App>) : AppsStartupState()
 
 sealed class AppsStartupEvent
 data class AppSelected(val app: App) : AppsStartupEvent()

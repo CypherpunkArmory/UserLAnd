@@ -78,7 +78,7 @@ class AppListFragment : Fragment(),
         it?.let { list ->
             appAdapter.updateApps(list)
             if (list.isEmpty() || userlandIsNewVersion()) {
-                doRefresh()
+//                doRefresh()
             }
         }
     }
@@ -92,6 +92,7 @@ class AppListFragment : Fragment(),
         }
     }
 
+    // TODO only allow single app start for now
     private val startupStateObserver = Observer<AppsStartupState> {
         it?.let { startupState ->
             when (startupState) {
@@ -101,8 +102,8 @@ class AppListFragment : Fragment(),
                 is AppRequiresServiceTypePreference -> getServiceTypePreference()
                 is AppCanBeStarted -> startAppSession(startupState.appSession, startupState.appsFilesystem)
                 is AppCanBeRestarted -> restartAppSession(startupState.appSession)
-                is AppsAreActive -> { appAdapter.updateActiveApps(startupState.activeApps) } // TODO update adapter
-                is AppsAreInactive -> {}
+                is AppsHaveActivated -> { appAdapter.updateActiveApps(startupState.activeApps) }
+                is AppsHaveDeactivated -> { appAdapter.updateActiveApps(listOf()) } // TODO deactivate apps appropriately
             }
         }
     }
@@ -170,7 +171,7 @@ class AppListFragment : Fragment(),
     private fun doAppItemClicked(selectedApp: App) {
         lastSelectedApp = selectedApp
         if (arePermissionsGranted(activityContext)) {
-            handleAppSelection(lastSelectedApp) // TODO submit selection event instead
+            handleAppSelection(lastSelectedApp)
         } else {
             showPermissionsNecessaryDialog()
         }
@@ -179,17 +180,7 @@ class AppListFragment : Fragment(),
     private fun handleAppSelection(selectedApp: App) {
         if (selectedApp == unselectedApp) return
 
-//        val appPrepState = appsController.prepareAppForActivation(selectedApp)
-//        when (appPrepState) {
-//            is ActiveAppIsNotSelectedApp -> Toast.makeText(activityContext, "TODO", Toast.LENGTH_LONG).show() // TODO
-//            is AppCanBeRestarted -> restartAppSession(appPrepState.appSession)
-//            is FilesystemNeedsCredentials -> getCredentials(appPrepState.filesystem)
-//            is ServiceTypePreferenceMustBeSet -> getServiceTypePreference(selectedApp, appPrepState.appSession)
-//            is AppIsPrepped -> startAppSession(appPrepState.appSession, appPrepState.appsFilesystem)
-//            is PrepFailed -> displayGenericErrorDialog(activityContext,
-//                    R.string.general_state_error_message, R.string.general_error_title)
-//        }
-
+        // TODO skip client preference selection when only one supported
 //        val appFilesystem = possibleAppFilesystem.first()
 //
 //        if (!appSupportsOneServiceTypeAndSetPref(selectedApp)) {
@@ -205,7 +196,6 @@ class AppListFragment : Fragment(),
 //                .putExtra("serviceType", preferredServiceType)
 //        activityContext.startService(startAppIntent)
         appsListViewModel.submitAppsStartupEvent(AppSelected(selectedApp))
-        // TODO remove
     }
 
     private fun doContextItemSelected(app: App, item: MenuItem): Boolean {
