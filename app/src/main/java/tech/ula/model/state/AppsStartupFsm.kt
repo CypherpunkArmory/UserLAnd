@@ -23,10 +23,14 @@ class AppsStartupFsm (
     private val filesystemDao = ulaDatabase.filesystemDao()
     private val appsDao = ulaDatabase.appsDao()
 
-    private val appsList = appsDao.getAllApps()
-    private val activeSessions = sessionDao.findActiveSessions()
+    private val sessionList = sessionDao.findActiveSessions()
+    private val activeSessionsObserver = Transformations.map(sessionList) { sessions ->
+        sessions.filter { it.active }
+    }
+    private val activeSessions = mutableListOf<Session>()
 
-    private val activeAppsObserver = Transformations.map(activeSessions) { sessions ->
+    private val appsList = appsDao.getAllApps()
+    private val appsSessionsObserver = Transformations.map(sessionList) { sessions ->
         appsList.value?.let { list ->
             list.filter { app ->
                 sessions.any { session ->
@@ -45,14 +49,21 @@ class AppsStartupFsm (
 
     private val state = MutableLiveData<AppsStartupState>().apply { postValue(WaitingForAppSelection) }
 
+    // TODO Is there a way to combine these observers?
     init {
+        activeSessionsObserver.observeForever {
+            it?.let { list ->
+                activeSessions.clear()
+                activeSessions.addAll(list)
+            }
+        }
         // The appsList must be observed to propagate data. Otherwise the value will always be null.
         appsList.observeForever {
             it?.let { list ->
                 if (list.isEmpty()) state.postValue(AppsListIsEmpty)
             }
         }
-        activeAppsObserver.observeForever {
+        appsSessionsObserver.observeForever {
             it?.let { list ->
                 if (list != activeApps)
                 updateActiveApps(list)
@@ -92,7 +103,7 @@ class AppsStartupFsm (
     }
 
     private suspend fun appWasSelected(app: App) {
-        if (activeApps.isNotEmpty()) {
+        if (activeSessions.isNotEmpty()) {
             state.postValue(SingleSessionPermitted)
             return
         }
