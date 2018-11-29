@@ -50,6 +50,7 @@ class AppsStartupFsm (
     private val state = MutableLiveData<AppsStartupState>().apply { postValue(WaitingForAppSelection) }
 
     // TODO Is there a way to combine these observers?
+    // TODO If an apps session is activated, it doesn't show the app as active
     init {
         activeSessionsObserver.observeForever {
             it?.let { list ->
