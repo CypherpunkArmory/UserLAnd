@@ -23,7 +23,7 @@ class NetworkUtility(private val connectivityManager: ConnectivityManager, priva
     }
 
     fun httpsIsAccessible(): Boolean {
-        val url = "https://www.google.com"
+        val url = "https://www.github.com"
         return try {
             connectionUtility.getUrlConnection(url)
             true
