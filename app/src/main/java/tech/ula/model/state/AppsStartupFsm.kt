@@ -104,7 +104,8 @@ class AppsStartupFsm (
     }
 
     private suspend fun appWasSelected(app: App) {
-        if (activeSessions.isNotEmpty()) {
+        // TODO more robust check
+        if (activeSessions.isNotEmpty() && !activeSessions.any { it.name == app.name }) {
             state.postValue(SingleSessionPermitted)
             return
         }

@@ -27,9 +27,6 @@ class SessionDaoTest {
     @get:Rule
     val instantExecutorRule = InstantTaskExecutorRule()
 
-    @Mock
-    private lateinit var observer: Observer<List<Session>>
-
     @Before
     fun setup() {
         MockitoAnnotations.initMocks(this)

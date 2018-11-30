@@ -1,185 +1,137 @@
 package tech.ula.model.state
 
-import com.nhaarman.mockitokotlin2.times
+import android.arch.core.executor.testing.InstantTaskExecutorRule
+import android.arch.lifecycle.MutableLiveData
+import android.arch.lifecycle.Observer
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
-import org.junit.Assert.*
+import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
+import tech.ula.model.daos.AppsDao
 import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
+import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.AppsPreferences
 import tech.ula.utils.BuildWrapper
-import tech.ula.utils.PreferenceHasNotBeenSelected
-import tech.ula.utils.SshTypePreference
 
 @RunWith(MockitoJUnitRunner::class)
 class AppsStartupFsmTest {
-//    @Mock
-//    lateinit var filesystemDao: FilesystemDao
-//
-//    @Mock
-//    lateinit var sessionDao: SessionDao
-//
-//    @Mock
-//    lateinit var appsPreferences: AppsPreferences
-//
-//    @Mock
-//    lateinit var buildWrapper: BuildWrapper
-//
-//    lateinit var appsController: AppsController
-//
-//    val id = 0L
-//    val unusedName = "unused"
-//    val selectedAppName = "selected"
-//    val appsFilesystemName = "apps"
-//    val appsFilesystemType = "appsFilesystem"
-//    val archType = "arch"
-//
-//    val selectedApp = App(name = selectedAppName, filesystemRequired = appsFilesystemType, supportsCli = true, supportsGui = true)
-//    val appsFilesystem = Filesystem(id = id, name = appsFilesystemName, archType = archType, distributionType = appsFilesystemType, isAppsFilesystem = true)
-//    val nonAppSession = Session(id = id, name = unusedName, filesystemId = id, filesystemName = unusedName)
-//    val appSession = Session(id = 0, name = selectedAppName, filesystemId = id,
-//            filesystemName = appsFilesystem.name, serviceType = "ssh", isAppsSession = true, port = 2022)
-//
-//    @Before
-//    fun setup() {
-//        appsController = AppsController(filesystemDao, sessionDao, appsPreferences, buildWrapper)
-//    }
-//
-//    fun setupEarlyExitState() {
-//        val activeSessions = listOf(nonAppSession)
-//        appsController.updateActiveSessions(activeSessions)
-//    }
-//
-//    fun stubDbCalls() {
-//        val filesystemWithCredentials = Filesystem(id = id, name = appsFilesystemName, archType = archType, distributionType = appsFilesystemType, isAppsFilesystem = true, defaultUsername = unusedName, defaultPassword = unusedName, defaultVncPassword = unusedName)
-//        whenever(filesystemDao.findAppsFilesystemByType(appsFilesystemType)).thenReturn(listOf(filesystemWithCredentials))
-//        whenever(sessionDao.findAppsSession(selectedAppName)).thenReturn(listOf(appSession))
-//    }
-//
-//    fun stubPreferenceCall() {
-//        whenever(appsPreferences.getAppServiceTypePreference(selectedAppName)).thenReturn(SshTypePreference)
-//    }
-//
-//    @Test
-//    fun insertsAppsFilesystemIntoDbIfNotExists() {
-//        // Stub empty list for first call, and list with inserted filesystem for second
-//        whenever(filesystemDao.findAppsFilesystemByType(appsFilesystemType))
-//                .thenReturn(listOf())
-//                .thenReturn(listOf(appsFilesystem))
-//
-//        whenever(buildWrapper.getArchType()).thenReturn(archType)
-//        setupEarlyExitState()
-//
-//        appsController.prepareAppForActivation(selectedApp)
-//
-//        verify(filesystemDao).insertFilesystem(appsFilesystem)
-//        verify(filesystemDao, times(2)).findAppsFilesystemByType(appsFilesystemType)
-//    }
-//
-//    @Test
-//    fun insertsAppSessionIntoDbIfNotExists() {
-//        whenever(filesystemDao.findAppsFilesystemByType(appsFilesystemType)).thenReturn(listOf(appsFilesystem))
-//        whenever(sessionDao.findAppsSession(selectedAppName))
-//                .thenReturn(listOf())
-//                .thenReturn(listOf(appSession))
-//        stubPreferenceCall()
-//
-//        setupEarlyExitState()
-//
-//        appsController.prepareAppForActivation(selectedApp)
-//        Thread.sleep(10) // Allow async operation to complete
-//
-//        verify(sessionDao).insertSession(appSession)
-//        verify(sessionDao, times(2)).findAppsSession(selectedAppName)
-//    }
-//
-//    @Test
-//    fun stateIsActiveAppIsNotSelected() {
-//        val activeSessions = listOf(nonAppSession)
-//        appsController.updateActiveSessions(activeSessions)
-//        stubPreferenceCall()
-//        stubDbCalls()
-//
-//        val state = appsController.prepareAppForActivation(selectedApp)
-//
-//        assertEquals(ActiveAppIsNotSelectedApp, state)
-//    }
-//
-//    @Test
-//    fun stateIsAppCanBeRestarted() {
-//        val activeSessions = listOf(nonAppSession, appSession)
-//        appsController.updateActiveSessions(activeSessions)
-//        stubPreferenceCall()
-//        stubDbCalls()
-//
-//        val state = appsController.prepareAppForActivation(selectedApp)
-//
-//        assertEquals(AppCanBeRestarted(appSession), state)
-//    }
-//
-//    // TODO do we need to check FS extraction status
-//
-//    @Test
-//    fun stateIsFilesystemNeedsCredentialsWhenUsernameIsNotSet() {
-//        val filesystem = Filesystem(id = id, defaultPassword = unusedName, defaultVncPassword = unusedName)
-//        appsController.updateActiveSessions(listOf())
-//        stubPreferenceCall()
-//        whenever(filesystemDao.findAppsFilesystemByType(selectedApp.filesystemRequired)).thenReturn(listOf(filesystem))
-//
-//        val state = appsController.prepareAppForActivation(selectedApp)
-//
-//        assertEquals(FilesystemNeedsCredentials(filesystem), state)
-//    }
-//
-//    @Test
-//    fun stateIsFilesystemNeedsCredentialsWhenPasswordIsNotSet() {
-//        val filesystem = Filesystem(id = id, defaultUsername = unusedName, defaultVncPassword = unusedName)
-//        appsController.updateActiveSessions(listOf())
-//        stubPreferenceCall()
-//        whenever(filesystemDao.findAppsFilesystemByType(selectedApp.filesystemRequired)).thenReturn(listOf(filesystem))
-//
-//        val state = appsController.prepareAppForActivation(selectedApp)
-//
-//        assertEquals(FilesystemNeedsCredentials(filesystem), state)
-//    }
-//
-//    @Test
-//    fun stateIsFilesystemNeedsCredentialsWhenVncPasswordIsNotSet() {
-//        val filesystem = Filesystem(id = id, defaultUsername = unusedName, defaultPassword = unusedName)
-//        appsController.updateActiveSessions(listOf())
-//        stubPreferenceCall()
-//        whenever(filesystemDao.findAppsFilesystemByType(selectedApp.filesystemRequired)).thenReturn(listOf(filesystem))
-//
-//        val state = appsController.prepareAppForActivation(selectedApp)
-//
-//        assertEquals(FilesystemNeedsCredentials(filesystem), state)
-//    }
-//
-//    @Test
-//    fun updatesDbWithCredentialsWhenSet() {
-//        assertTrue(true)
-//    }
-//
-//    @Test
-//    fun stateIsServiceTypePreferenceMustBeSet() {
-//        stubDbCalls()
-//        whenever(appsPreferences.getAppServiceTypePreference(selectedAppName)).thenReturn(PreferenceHasNotBeenSelected)
-//
-//        val state = appsController.prepareAppForActivation(selectedApp)
-//
-//        assertEquals(ServiceTypePreferenceMustBeSet(appSession), state)
-//    }
-//
-//    @Test
-//    fun updatesPreferenceWhenSet() {
-//        assertTrue(true)
-//    }
+
+    @get:Rule val instantExecutorRule = InstantTaskExecutorRule()
+
+    // Mocks
+
+    @Mock lateinit var mockFilesystemDao: FilesystemDao
+    lateinit var filesystemListLiveData: MutableLiveData<List<Filesystem>>
+
+    @Mock lateinit var mockSessionDao: SessionDao
+    lateinit var activeSessionLiveData: MutableLiveData<List<Session>>
+
+    @Mock lateinit var mockAppsDao: AppsDao
+    lateinit var appsListLiveData: MutableLiveData<List<App>>
+
+    @Mock lateinit var mockUlaDatabase: UlaDatabase
+
+    @Mock lateinit var mockAppsPreferences: AppsPreferences
+
+    @Mock lateinit var mockBuildWrapper: BuildWrapper
+
+    @Mock lateinit var mockStateObserver: Observer<AppsStartupState>
+
+    lateinit var appsFSM: AppsStartupFsm
+
+    // Test setup variables
+    val app1Name = "testApp1"
+    val app2Name = "testApp2"
+
+    val app1 = App(name = app1Name)
+    val app2 = App(name = app2Name)
+
+    val nonAppActiveSession = Session(id = -1, name = "notAnApp", filesystemId = -1, active = true)
+    val app1ActiveSession = Session(id = -1, name = app1Name, filesystemId =  -1, active = true)
+    val app2ActiveSession = Session(id = -1, name = app2Name, filesystemId = -1, active = true)
+
+    @Before
+    fun setup() {
+        activeSessionLiveData = MutableLiveData()
+        appsListLiveData = MutableLiveData()
+
+        whenever(mockUlaDatabase.sessionDao()).thenReturn(mockSessionDao)
+        whenever(mockSessionDao.findActiveSessions()).thenReturn(activeSessionLiveData)
+
+        whenever(mockUlaDatabase.appsDao()).thenReturn(mockAppsDao)
+        whenever(mockAppsDao.getAllApps()).thenReturn(appsListLiveData)
+
+        appsFSM = AppsStartupFsm(mockUlaDatabase, mockAppsPreferences, mockBuildWrapper)  // TODO Showerthought: default initialization of arch in db entry and then erroring to BuildWrapper?
+    }
+
+    @After
+    fun teardown() {
+        activeSessionLiveData = MutableLiveData()
+        appsListLiveData = MutableLiveData()
+    }
+
+    fun stubEmptyActiveSessions() {
+        activeSessionLiveData.postValue(listOf())
+    }
+
+    fun stubEmptyAppsList() {
+        appsListLiveData.postValue(listOf())
+    }
+
+    fun stubFullAppsList() {
+        appsListLiveData.postValue(listOf(app1, app2))
+    }
+
+    @Test
+    fun initialStateIsWaitingForApps() {
+        appsFSM.getState().observeForever(mockStateObserver)
+        stubEmptyActiveSessions()
+        stubFullAppsList()
+
+
+        val expectedState = WaitingForAppSelection
+        verify(mockStateObserver).onChanged(expectedState)
+    }
+
+    @Test
+    fun initialStateIsAppsListIsEmptyWhenDatabaseIsNotPopulated() {
+        appsFSM.getState().observeForever(mockStateObserver)
+        stubEmptyActiveSessions()
+        stubEmptyAppsList()
+
+
+        val expectedState = AppsListIsEmpty
+        verify(mockStateObserver).onChanged(expectedState)
+    }
+
+    @Test
+    fun stateIsSingleSessionPermittedWhenNonAppSessionIsRunning() {
+        appsFSM.getState().observeForever(mockStateObserver)
+        activeSessionLiveData.postValue(listOf(nonAppActiveSession))
+        stubFullAppsList()
+
+        appsFSM.submitEvent(AppSelected(app1))
+
+        verify(mockStateObserver).onChanged(SingleSessionPermitted)
+    }
+
+    @Test
+    fun stateIsSingleSessionPermittedWhenSelectedAppIsNotActiveOne() {
+        appsFSM.getState().observeForever(mockStateObserver)
+        activeSessionLiveData.postValue(listOf(app2ActiveSession))
+        stubFullAppsList()
+
+        appsFSM.submitEvent(AppSelected(app1))
+
+        verify(mockStateObserver).onChanged(SingleSessionPermitted)
+    }
 }
