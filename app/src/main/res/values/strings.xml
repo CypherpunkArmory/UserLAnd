@@ -1,100 +1,100 @@
 <resources>
     <string name="app_name">UserLAnd</string>
-    <string name="welcome">Welcome to UserLAnd!</string>
+    <string name="welcome">Bienvenue à UserLAnd !</string>
     <string name="permission_request_code">1000</string>
 
     <!-- Labels -->
-    <string name="apps">Apps</string>
+    <string name="apps">Applis</string>
     <string name="sessions">Sessions</string>
-    <string name="edit_session">Edit Session</string>
-    <string name="filesystems">Filesystems</string>
-    <string name="edit_filesystem">Edit Filesystem</string>
-    <string name="settings">Settings</string>
-    <string name="help">Help</string>
-    <string name="toc">Terms &amp; Conditions</string>
+    <string name="edit_session">Modifier la session</string>
+    <string name="filesystems">Systèmes de fichiers</string>
+    <string name="edit_filesystem">Modifier un système de fichiers</string>
+    <string name="settings">Paramètres</string>
+    <string name="help">Aide</string>
+    <string name="toc">Modalités &amp; Conditions</string>
 
     <!-- Buttons -->
-    <string name="button_continue">Continue</string>
+    <string name="button_continue">Continuer</string>
 
     <!-- Menus -->
-    <string name="app_info">App Info</string>
-    <string name="stop_app">Stop App</string>
-    <string name="kill_service">Kill Service</string>
-    <string name="edit">Edit</string>
-    <string name="delete">Delete</string>
-    <string name="save">Save</string>
-    <string name="add">Add</string>
-    <string name="refresh">Refresh</string>
+    <string name="app_info">Info appli</string>
+    <string name="stop_app">Arrêter l'appli</string>
+    <string name="kill_service">Tuer le service</string>
+    <string name="edit">Modifier</string>
+    <string name="delete">Supprimer</string>
+    <string name="save">Enregistrer</string>
+    <string name="add">Ajouter</string>
+    <string name="refresh">Actualiser</string>
 
     <!-- Hints -->
-    <string name="hint_filesystem_name">Filesystem name</string>
-    <string name="hint_session_name">Session Name</string>
-    <string name="hint_username">Username</string>
-    <string name="hint_password">Password</string>
-    <string name="hint_vnc_password">VNC Password</string>
+    <string name="hint_filesystem_name">Nom du système de fichiers</string>
+    <string name="hint_session_name">Nom de la session</string>
+    <string name="hint_username">Nom d'utilisateur</string>
+    <string name="hint_password">Mot de passe</string>
+    <string name="hint_vnc_password">Mot de passe pour VNC</string>
     
     <!-- Errors -->
-    <string name="error_session_name">You must provide a session name</string>
-    <string name="error_filesystem_name">You must provide a filesystem name</string>
-    <string name="error_username">You must provide a username</string>
-    <string name="error_empty_field">Each field must be entered!</string>
-    <string name="error_app_description_not_found">Could not find a description for this app. Try refreshing.</string>
-    <string name="error_vnc_password_length_incorrect">VNC Password must be between 6 to 8 characters!</string>
-    <string name="error_username_invalid">Username has invalid characters</string>
-    <string name="error_password_invalid">Password has invalid characters</string>
-    <string name="error_vnc_password_invalid">VNC Password has invalid characters</string>
+    <string name="error_session_name">Vous devez fournir un nom de session</string>
+    <string name="error_filesystem_name">Vous devez fournir un nom de système de fichiers</string>
+    <string name="error_username">Vous devez fournir un nom d'utilisateur</string>
+    <string name="error_empty_field">Chaque champ doit être rempli !</string>
+    <string name="error_app_description_not_found">Descriptif de l’appli introuvable. Essayez d’actualiser.</string>
+    <string name="error_vnc_password_length_incorrect">Le mot de passe pour VNC doit contenir entre 6 et 8 caractères !</string>
+    <string name="error_username_invalid">Le nom d’utilisateur contient des caractères non valides</string>
+    <string name="error_password_invalid">Le mot de passe contient des caractères non valides</string>
+    <string name="error_vnc_password_invalid">Le mot de passe pour VNC contient des caractères non valides</string>
 
     <!-- Prompts -->
-    <string name="prompt_filesystem">Filesystem:</string>
-    <string name="prompt_service_type">Service Type:</string>
-    <string name="prompt_client_type">Client Type:</string>
-    <string name="prompt_app_connection_type_preference">Please select a connection type: </string>
+    <string name="prompt_filesystem">Système de fichiers :</string>
+    <string name="prompt_service_type">Type de service :</string>
+    <string name="prompt_client_type">Type de client :</string>
+    <string name="prompt_app_connection_type_preference">Veuillez choisir un type de connexion :</string>
 
     <!-- Notification strings -->
     <string name="services_notification_channel_id">UserLAndServices</string>
     <string name="services_notification_channel_name">Services</string>
-    <string name="services_notification_channel_description">Persistent services</string>
+    <string name="services_notification_channel_description">Services persistants</string>
     <string name="service_notification_title">UserLAnd</string>
-    <string name="service_notification_description">UserLAnd is running a background service.</string>
+    <string name="service_notification_description">UserLAnd exécute un service en arrière-plan.</string>
 
     <!-- Progress bar messages -->
-    <string name="progress_bar_start_step">Getting things ready for you&#8230;</string>
-    <string name="progress_basic_app_setup">Setting up app database information&#8230;</string>
-    <string name="progress_fetching_asset_lists">Fetching asset lists&#8230;</string>
-    <string name="progress_checking_for_required_updates">Checking whether updates are required&#8230;</string>
-    <string name="progress_downloading">Downloading required assets&#8230;</string>
-    <string name="progress_downloading_check_updates">Looking for updates.</string>
-    <string name="progress_downloading_out_of">%1$d out of %2$d complete</string>
-    <string name="progress_copying_downloads">Copying downloaded files to local storage&#8230;</string>
-    <string name="progress_setting_up">Setting up filesystem&#8230;</string>
-    <string name="progress_setting_up_extract_text">Extracting: %1$s</string>
-    <string name="progress_starting">Starting service&#8230;</string>
-    <string name="progress_connecting">Connecting to service&#8230;</string>
+    <string name="progress_bar_start_step">Préparatifs&#8230;</string>
+    <string name="progress_basic_app_setup">Configuration des infos de la base de données de l’appli&#8230;</string>
+    <string name="progress_fetching_asset_lists">Récupération des listes de contenus&#8230;</string>
+    <string name="progress_checking_for_required_updates">Vérification des mises à jour obligatoires&#8230;</string>
+    <string name="progress_downloading">Téléchargement des contenus nécessaires&#8230;</string>
+    <string name="progress_downloading_check_updates">Recherche de mises à jour.</string>
+    <string name="progress_downloading_out_of">%1$d sur %2$d terminé</string>
+    <string name="progress_copying_downloads">Copie des fichiers téléchargés vers le stockage local&#8230;</string>
+    <string name="progress_setting_up">Configuration du système de fichiers&#8230;</string>
+    <string name="progress_setting_up_extract_text">Extraction : %1$s</string>
+    <string name="progress_starting">Démarrage du service&#8230;</string>
+    <string name="progress_connecting">Connexion au service&#8230;</string>
 
     <!-- Preferences -->
-    <string name="pref_app_category">App Preferences</string>
-    <string name="pref_default_landing_page_title">Default Landing Page</string>
-    <string name="pref_default_landing_page_message">Select the page you would like to open the app with.</string>
-    <string name="pref_proot_category">PRoot Preferences</string>
-    <string name="pref_proot_debugging_enabled_title">PRoot Debugging Logs Enabled</string>
-    <string name="pref_proot_debugging_enabled_summary">Only necessary if having problems with the app. Log file stored at\n/mnt/sdcard/PRoot_Debug_Log</string>
-    <string name="pref_proot_debugging_level_title">Debug Verbosity Level</string>
-    <string name="pref_proot_debugging_level_summary">The higher the number, the greater the verbosity.</string>
+    <string name="pref_app_category">Préférences appli</string>
+    <string name="pref_default_landing_page_title">Page d'accueil par défaut</string>
+    <string name="pref_default_landing_page_message">Sélectionnez la page avec laquelle vous voudrez ouvrir l’appli.</string>
+    <string name="pref_proot_category">Préférences PRoot</string>
+    <string name="pref_proot_debugging_enabled_title">Activation des journaux de débogage de Proot</string>
+    <string name="pref_proot_debugging_enabled_summary">Nécessaire uniquement si vous rencontrez des problèmes avec le fichier journal de l’appli stocké à \n/mnt/sdcard/PRoot_Debug_Log</string>
+    <string name="pref_proot_debugging_level_title">Débogage du niveau de verbosité</string>
+    <string name="pref_proot_debugging_level_summary">Plus le chiffre est élevé, plus la verbosité est grande.</string>
     <string name="pref_proot_debugging_level_default">-1</string>
-    <string name="pref_proot_local_file_enabled_title">Log To Local File</string>
-    <string name="pref_proot_local_file_enabled_summary">Store (potentially large) file at /mnt/sdcard/PRoot_Debug_Log</string>
-    <string name="pref_proot_delete_debug_file_title">Delete Debug File</string>
+    <string name="pref_proot_local_file_enabled_title">Journal vers fichier local</string>
+    <string name="pref_proot_local_file_enabled_summary">Stocker le fichier (qui peut être grand ) dans /mnt/sdcard/Proot_Debug_Log</string>
+    <string name="pref_proot_delete_debug_file_title">Supprimer le fichier de débogage</string>
 
     <!-- Help Activity -->
-    <string name="beta_message">Experiencing bugs or want to request a feature? Our Github page is the best place to go to get a fast response.</string>
-    <string name="supported_services">Currently supported services:</string>
-    <string name="terminology">Terminology:</string>
-    <string name="desc_apps_title">Apps:</string>
-    <string name="desc_apps_message">Apps are the easiest way to launch common Linux applications.</string>
-    <string name="desc_sessions_title">Sessions:</string>
-    <string name="desc_sessions_message">Sessions start a server on a filesystem, which then allows you to connect to it using a third-party client application.</string>
-    <string name="desc_filesystems_title">Filesystems:</string>
-    <string name="desc_filesystems_message">Filesystems are just what they sound like: A collection of users and a file structure that allows Linux-like behavior.</string>
+    <string name="beta_message">Vous rencontrez des problèmes ou voulez demander une fonctionnalité ? Le meilleur endroit où recevoir une réponse rapidement est notre page GitHub.</string>
+    <string name="supported_services">Services actuellement pris en charge :</string>
+    <string name="terminology">Terminologie:</string>
+    <string name="desc_apps_title">Applis:</string>
+    <string name="desc_apps_message">Applis vous permet de lancer des applications Linux courantes le plus facilement possible.</string>
+    <string name="desc_sessions_title">Sessions :</string>
+    <string name="desc_sessions_message">Sessions démarre un serveur sur un système de fichiers pour vous permettre de vous y connecter avec l’application client d’une tierce partie.</string>
+    <string name="desc_filesystems_title">Systèmes de fichiers :</string>
+    <string name="desc_filesystems_message">Les systèmes de fichiers sont explicites : un ensemble d’utilisateurs et une structure de fichiers qui permettent un comportement du type Linux.</string>
 
     <!-- Supported Services -->
     <string name="support_dropbear">SSH - Dropbear</string>
@@ -105,69 +105,69 @@
     <string name="client_vnc">VNC</string>
 
     <!-- Alerts -->
-    <string name="button_ok">OK!</string>
-    <string name="general_error_title">Something unexpected happened!</string>
-    <string name="filesystem_credentials_reasoning">We\'re creating a filesystem for your apps. Please enter the relevant required information for us to use as defaults for this filesystem.</string>
+    <string name="button_ok">OK !</string>
+    <string name="general_error_title">Quelque chose d’inattendu s’est produit !</string>
+    <string name="filesystem_credentials_reasoning">Nous créons un système de fichiers pour vos applis. Veuillez fournir les informations pertinentes demandées ; nous les utiliserons par défaut pour ce système de fichiers.</string>
 
     <!-- Play service error alerts -->
-    <string name="alert_play_service_error_message">We\'re having trouble accessing the Google Play services to complete this action. Please try again later, and if the problem continues report it to a developer.</string>
-    <string name="alert_play_store_required">Paid apps require access to the Google Play Store for verification of payment. Please install it to continue.</string>
-    <string name="alert_subscriptions_unsupported_message">It looks like your version of the Play Store is too old to support subscriptions. Please update it to continue.</string>
-    <string name="alert_need_client_app_title">Can\'t find a client app!</string>
-    <string name="alert_need_client_app_message">You\'ll need an SSH or VNC client to complete this action, but it looks like you don\'t have the play store installed. Please install an SSH or VNC client application to continue.</string>
+    <string name="alert_play_service_error_message">Nous avons du mal à accéder aux services Google Play pour pouvoir terminer la démarche. Veuillez ré-essayer plus tard et, si le problème persiste, informer un développeur.</string>
+    <string name="alert_play_store_required">Les applis payantes nécessitent l’accès au Google Play Store pour la vérification du paiement. Veuillez l’installer pour continuer.</string>
+    <string name="alert_subscriptions_unsupported_message">Votre version de Google Play semble trop ancienne pour prendre en charge les abonnements. Veuillez la mettre à jour pour continuer.</string>
+    <string name="alert_need_client_app_title">Aucune appli client n’est trouvable !</string>
+    <string name="alert_need_client_app_message">ous aurez besoin d’un client SSH ou VNC pour terminer, mais Google Play n’est sans doute pas installé sur votre mobile. Veuillez installer une application client SSH ou VNC pour poursuivre.</string>
 
     <!-- Permissions necessary alert -->
-    <string name="alert_permissions_necessary_title">UserLAnd requires permissions!</string>
-    <string name="alert_permissions_necessary_message">To continue, enable storage permissions to allow UserLAnd to download files and move them from external storage to app local storage.</string>
-    <string name="alert_permissions_necessary_cancel_button">Cancel</string>
+    <string name="alert_permissions_necessary_title">UserLAnd a besoin de permissions !</string>
+    <string name="alert_permissions_necessary_message">Pour continuer, activer les permissions de stockage pour que UserLAnd puisse télécharger des fichiers et les déplacer du stockage externe au stockage local de l’appli.</string>
+    <string name="alert_permissions_necessary_cancel_button">Annuler</string>
 
     <!-- Network unavailable alert -->
-    <string name="alert_network_unavailable_title">No network available</string>
-    <string name="alert_network_unavailable_message">UserLAnd requires network availability to download required assets.</string>
-    <string name="alert_network_required_for_refresh">Refreshing apps requires an available or stronger network connection.</string>
-    <string name="alert_network_strength_too_low_for_downloads">Your network strength is too low to download required assets. Please try again with a strong connection.</string>
-
+    <string name="alert_network_unavailable_title">Aucun réseau disponible</string>
+    <string name="alert_network_unavailable_message">UserLAnd doit pouvoir se connecter à Internet pour pouvoir télécharger les contenus nécessaires. </string>
+    <string name="alert_network_required_for_refresh">Actualiser des applis nécessite la disponibiilité d'une connexion plus puissante.</string>
+    <string name="alert_network_strength_too_low_for_downloads">La puissance de votre connexion est trop faible pour télécharger les contenus nécessaires. Veuillez ré-essayer avec une très bonne connexion.</string>
+    
     <!-- Asset list failure alert -->
-    <string name="alert_asset_list_failure_title">Could not retrieve asset lists.</string>
-    <string name="alert_asset_list_failure_message">Either the asset lists cannot be fetched or they are not cached locally. Please try again shortly.</string>
+    <string name="alert_asset_list_failure_title">Impossible de récupérer les listes des contenus.</string>
+    <string name="alert_asset_list_failure_message">Soit la récupération des listes des contenus n’est pas possible, soit elles ne sont pas gardées en cache localement. Veuillez ré-essayer un peu plus tard.</string>
 
     <!-- Extraction failure alert -->
-    <string name="alert_extraction_failure_title">Could not extract filesystem.</string>
-    <string name="alert_extraction_failure_message">Something went wrong. Try deleting the filesystem and trying again.</string>
+    <string name="alert_extraction_failure_title">Impossible d’extraire le système de fichiers.</string>
+    <string name="alert_extraction_failure_message">Quelque chose s’est mal passé. Essayez de supprimer le système de fichiers, puis ré-essayer.</string>
 
     <!-- Filesystem missing assets alert -->
-    <string name="alert_filesystem_missing_requirements_title">This filesystem is missing required assets!</string>
-    <string name="alert_filesystem_missing_requirements_message">Please try starting the session again, and report this to a developer!</string>
+    <string name="alert_filesystem_missing_requirements_title">Des contenus requis manquent à ce système de fichiers !</string>
+    <string name="alert_filesystem_missing_requirements_message">Veuillez essayer de redémarrer le système et signaler ce problème à un développeur !</string>
 
     <!-- Wifi alert -->
-    <string name="alert_wifi_disabled_title">No wifi!</string>
-    <string name="alert_wifi_disabled_message">A large asset (~80mb) needs to be downloaded.</string>
-    <string name="alert_wifi_disabled_continue_button">Continue</string>
-    <string name="alert_wifi_disabled_turn_on_wifi_button">Turn On Wifi</string>
-    <string name="alert_wifi_disabled_cancel_button">Cancel</string>
+    <string name="alert_wifi_disabled_title">Pas de WiFi !</string>
+    <string name="alert_wifi_disabled_message">Nous devons télécharger un grand fichier (~ 80 Mo).</string>
+    <string name="alert_wifi_disabled_continue_button">Continuer</string>
+    <string name="alert_wifi_disabled_turn_on_wifi_button">Démarrer le WiFi</string>
+    <string name="alert_wifi_disabled_cancel_button">Annuler</string>
 
     <!-- Toasts -->
-    <string name="filesystem_delete_failure">Failed to delete!</string>
-    <string name="session_unique_name_required">Sessions require a unique name!</string>
-    <string name="filesystem_unique_name_required">Filesystems require a unique name!</string>
-    <string name="download_client_app">Please download the associated client app and try again.</string>
+    <string name="filesystem_delete_failure">Échec de la suppression !</string>
+    <string name="session_unique_name_required">Les Sessions ont besoin d'un nom unique !</string>
+    <string name="filesystem_unique_name_required">Les Systèmes de fichiers ont besoin d'un nom unique !</string>
+    <string name="download_client_app">Veuillez télécharger l'appli client associée et ré-essayez.</string>
     <!-- TODO remove this once multisession support is implemented -->
-    <string name="single_session_supported">UserLAnd currently only supports a single active session!</string>
-    <string name="no_supported_architecture">UserLAnd does not currently support your devices architecture.</string>
-    <string name="debug_log_deleted">Debug log deleted or does not exist!</string>
-    <string name="filesystem_extraction_failed">Could not extract filesystem!</string>
-    <string name="no_assets_need_updating">No assets need updating!</string>
-    <string name="client_not_found">Could not find a way to handle the type of client this session is attempting to start!</string>
-    <string name="error_apps_renamed">Apps cannot be run if their session or filesystem have been renamed.</string>
+    <string name="single_session_supported">Actuellement UserLAnd ne prend en charge qu’une seule session active !</string>
+    <string name="no_supported_architecture">L’architecture de votre dispositif n’est pas actuellement prise en charge par UserLAnd.</string>
+    <string name="debug_log_deleted">Le journal de débogage a été supprimé ou n’existe pas !</string>
+    <string name="filesystem_extraction_failed">Impossible d'extraire le système de fichiers !</string>
+    <string name="no_assets_need_updating">Aucun contenu n’a besoin d’être mis à jour !</string>
+    <string name="client_not_found">La gestion du type de client que cette session essaie de démarrer nous semble impossible !</string>
+    <string name="error_apps_renamed">Les applis ne peuvent pas s’exécuter après le renommage de leur session ou système de fichiers.</string>
 
     <!-- Content descriptions -->
-    <string name="desc_arrow">Image: Arrow denoting connection between session and filesystem.</string>
-    <string name="desc_filesystem_type">Image: Distribution logo</string>
+    <string name="desc_arrow">Image : Flèche indiquant la connexion entre la session et le système de fichiers.</string>
+    <string name="desc_filesystem_type">Image : Logo de la distribution</string>
 
     <!-- Misc -->
-    <string name="free_annotation">(Free)</string>
-    <string name="paid_annotation">(Paid)</string>
-    <string name="custom_sessions">Custom Sessions</string>
-    <string name="apps_sessions">Apps Sessions</string>
+    <string name="free_annotation">(Gratuit)</string>
+    <string name="paid_annotation">(Payant)</string>
+    <string name="custom_sessions">Sessions personnalisées</string>
+    <string name="apps_sessions">Sessions d'applis</string>
 
 </resources>
