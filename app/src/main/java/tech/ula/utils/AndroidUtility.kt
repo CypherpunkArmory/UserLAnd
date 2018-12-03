@@ -17,6 +17,7 @@ import android.os.Build
 import android.os.Environment
 import android.support.v4.content.ContextCompat
 import tech.ula.R
+import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
 import java.io.File
 import java.io.IOException
@@ -154,11 +155,12 @@ class AppsPreferences(private val prefs: SharedPreferences) {
         }
     }
 
-    fun getAppServiceTypePreference(appName: String): AppServiceTypePreference {
-        val pref = prefs.getString(appName, "") ?: ""
-        return when (pref.toLowerCase()) {
-            "ssh" -> SshTypePreference
-            "vnc" -> VncTypePreference
+    fun getAppServiceTypePreference(app: App): AppServiceTypePreference {
+        val pref = prefs.getString(app.name, "") ?: ""
+
+        return when {
+            pref.toLowerCase() == "ssh" || (app.supportsCli && !app.supportsGui) -> SshTypePreference
+            pref.toLowerCase() == "vnc" || (!app.supportsCli && app.supportsGui) -> VncTypePreference
             else -> PreferenceHasNotBeenSelected
         }
     }

@@ -54,7 +54,7 @@ class AppDetailsFragment : Fragment() {
     }
 
     private fun setupPreferredServiceTypeRadioGroup() {
-        val appServiceTypePreference = appsPreferences.getAppServiceTypePreference(app.name)
+        val appServiceTypePreference = appsPreferences.getAppServiceTypePreference(app)
         if (appServiceTypePreference == SshTypePreference) {
             apps_service_type_preferences.check(R.id.apps_ssh_preference)
         } else {

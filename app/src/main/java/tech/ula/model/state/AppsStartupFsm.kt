@@ -1,13 +1,8 @@
 package tech.ula.model.state
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MediatorLiveData
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Transformations
-import android.util.Log
 import kotlinx.coroutines.experimental.runBlocking
-import tech.ula.model.daos.FilesystemDao
-import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
@@ -40,12 +35,6 @@ class AppsStartupFsm (
         }
     }
     private val activeApps = mutableListOf<App>()
-
-    private val unselectedFilesystem = Filesystem(id = -1, name = "unselected")
-    private var lastSelectedAppsFilesystem = unselectedFilesystem
-
-    private val unselectedApp = App(name = "unselected")
-    private var lastSelectedApp = unselectedApp
 
     private val state = MutableLiveData<AppsStartupState>().apply { postValue(WaitingForAppSelection) }
 
@@ -89,59 +78,51 @@ class AppsStartupFsm (
         return state
     }
 
-    fun submitEvent(event: AppsStartupEvent) = runBlocking {
-        return@runBlocking when (event) {
+    fun submitEvent(event: AppsStartupEvent) {
+        return when (event) {
             is AppSelected -> appWasSelected(event.app)
             is SubmitAppsFilesystemCredentials -> {
-                setAppsFilesystemCredentials(event.username, event.password, event.vncPassword)
-                appWasSelected(lastSelectedApp)
+                setAppsFilesystemCredentials(event.filesystem, event.username, event.password, event.vncPassword)
+                appWasSelected(event.app)
             }
             is SubmitAppServicePreference -> {
+                val lastSelectedApp = event.app
                 setAppServicePreference(lastSelectedApp.name, event.serviceTypePreference)
                 appWasSelected(lastSelectedApp)
             }
         }
     }
 
-    private suspend fun appWasSelected(app: App) {
+    private fun appWasSelected(app: App) = runBlocking {
         // TODO more robust check
         if (activeSessions.isNotEmpty() && !activeSessions.any { it.name == app.name }) {
             state.postValue(SingleSessionPermitted)
-            return
+            return@runBlocking
         }
-        lastSelectedApp = app
-        val preferredServiceType = getAppServiceTypePreference(app)
-        lastSelectedAppsFilesystem = async { findAppsFilesystem(app) }.await()
-        val deferredAppsSession = async { findAppSession(app, preferredServiceType, lastSelectedAppsFilesystem) }
+
+        val preferredServiceType = appsPreferences.getAppServiceTypePreference(app)
+        val appsFilesystem = async { findAppsFilesystem(app) }.await()
+        val deferredAppsSession = async { findAppSession(app, preferredServiceType, appsFilesystem) }
 
         if (appIsRestartable(app)) {
             state.postValue(AppCanBeRestarted(deferredAppsSession.await()))
-            return
+            return@runBlocking
         }
 
-        if (appsFilesystemRequiresCredentials(lastSelectedAppsFilesystem)) {
-            state.postValue(AppsFilesystemRequiresCredentials)
-            return
+        if (appsFilesystemRequiresCredentials(appsFilesystem)) {
+            state.postValue(AppsFilesystemRequiresCredentials(app, appsFilesystem))
+            return@runBlocking
         }
 
         if (preferredServiceType is PreferenceHasNotBeenSelected) {
-            state.postValue(AppRequiresServiceTypePreference)
-            return
+            state.postValue(AppRequiresServiceTypePreference(app))
+            return@runBlocking
         }
 
         val appSession = deferredAppsSession.await()
-        updateAppSession(appSession, preferredServiceType, lastSelectedAppsFilesystem)
+        updateAppSession(appSession, preferredServiceType, appsFilesystem)
 
-        state.postValue(AppCanBeStarted(appSession, lastSelectedAppsFilesystem))
-    }
-
-    private fun getAppServiceTypePreference(app: App): AppServiceTypePreference {
-        return when {
-            app.supportsCli && app.supportsGui -> appsPreferences.getAppServiceTypePreference(app.name)
-            app.supportsCli && !app.supportsGui -> SshTypePreference
-            !app.supportsCli && app.supportsGui -> VncTypePreference
-            else -> PreferenceHasNotBeenSelected
-        }
+        state.postValue(AppCanBeStarted(appSession, appsFilesystem))
     }
 
     private fun setAppServicePreference(appName: String, serviceTypePreference: AppServiceTypePreference) {
@@ -149,9 +130,7 @@ class AppsStartupFsm (
     }
 
     private suspend fun findAppsFilesystem(app: App): Filesystem {
-        val potentialAppFilesystem = asyncAwait {
-            filesystemDao.findAppsFilesystemByType(app.filesystemRequired)
-        }
+        val potentialAppFilesystem = asyncAwait { filesystemDao.findAppsFilesystemByType(app.filesystemRequired) }
 
         if (potentialAppFilesystem.isEmpty()) {
             val deviceArchitecture = buildWrapper.getArchType()
@@ -184,9 +163,7 @@ class AppsStartupFsm (
             asyncAwait { sessionDao.insertSession(sessionToInsert) }
         }
 
-        return asyncAwait {
-            sessionDao.findAppsSession(app.name).first()
-        }
+        return sessionDao.findAppsSession(app.name).first()
     }
 
     private fun appIsRestartable(app: App): Boolean {
@@ -199,15 +176,15 @@ class AppsStartupFsm (
                 appsFilesystem.defaultVncPassword.isEmpty()
     }
 
-    private suspend fun setAppsFilesystemCredentials(username: String, password: String, vncPassword: String) {
+    private fun setAppsFilesystemCredentials(filesystem: Filesystem, username: String, password: String, vncPassword: String) = runBlocking {
         // TODO verify last selected is not unselected and error if not
-        lastSelectedAppsFilesystem.defaultUsername = username
-        lastSelectedAppsFilesystem.defaultPassword = password
-        lastSelectedAppsFilesystem.defaultVncPassword = vncPassword
-        async { filesystemDao.updateFilesystem(lastSelectedAppsFilesystem) }.await()
+        filesystem.defaultUsername = username
+        filesystem.defaultPassword = password
+        filesystem.defaultVncPassword = vncPassword
+        async { filesystemDao.updateFilesystem(filesystem) }.await()
     }
 
-    private suspend fun updateAppSession(appSession: Session, serviceTypePreference: AppServiceTypePreference, appsFilesystem: Filesystem) {
+    private fun updateAppSession(appSession: Session, serviceTypePreference: AppServiceTypePreference, appsFilesystem: Filesystem) = runBlocking {
         // TODO this will force the session to have values defined on the filesystem. is that harmful?
         appSession.serviceType = serviceTypePreference.toString()
         appSession.port = if (serviceTypePreference is SshTypePreference) 2022 else 51
@@ -222,8 +199,8 @@ sealed class AppsStartupState
 object WaitingForAppSelection : AppsStartupState()
 object AppsListIsEmpty : AppsStartupState()
 object SingleSessionPermitted : AppsStartupState()
-object AppsFilesystemRequiresCredentials : AppsStartupState()
-object AppRequiresServiceTypePreference : AppsStartupState()
+data class AppsFilesystemRequiresCredentials(val app: App, val filesystem: Filesystem) : AppsStartupState()
+data class AppRequiresServiceTypePreference(val app: App) : AppsStartupState()
 data class AppCanBeStarted(val appSession: Session, val appsFilesystem: Filesystem) : AppsStartupState()
 data class AppCanBeRestarted(val appSession: Session) : AppsStartupState()
 data class AppsHaveActivated(val activeApps: List<App>) : AppsStartupState()
@@ -231,5 +208,5 @@ data class AppsHaveDeactivated(val inactiveApps: List<App>) : AppsStartupState()
 
 sealed class AppsStartupEvent
 data class AppSelected(val app: App) : AppsStartupEvent()
-data class SubmitAppsFilesystemCredentials(val username: String, val password: String, val vncPassword: String) : AppsStartupEvent()
-data class SubmitAppServicePreference(val serviceTypePreference: AppServiceTypePreference) : AppsStartupEvent()
+data class SubmitAppsFilesystemCredentials(val app: App, val filesystem: Filesystem, val username: String, val password: String, val vncPassword: String) : AppsStartupEvent()
+data class SubmitAppServicePreference(val app: App, val serviceTypePreference: AppServiceTypePreference) : AppsStartupEvent()

@@ -98,8 +98,8 @@ class AppListFragment : Fragment(),
                 is WaitingForAppSelection -> {} // TODO appsAreClickable
                 is AppsListIsEmpty -> { doRefresh() }
                 is SingleSessionPermitted -> { showSingleSessionAlert() }
-                is AppsFilesystemRequiresCredentials -> getCredentials()
-                is AppRequiresServiceTypePreference -> getServiceTypePreference()
+                is AppsFilesystemRequiresCredentials -> getCredentials(startupState.app, startupState.filesystem)
+                is AppRequiresServiceTypePreference -> getServiceTypePreference(startupState.app)
                 is AppCanBeStarted -> startAppSession(startupState.appSession, startupState.appsFilesystem)
                 is AppCanBeRestarted -> restartAppSession(startupState.appSession)
                 is AppsHaveActivated -> { appAdapter.updateActiveApps(startupState.activeApps) }
@@ -236,7 +236,7 @@ class AppListFragment : Fragment(),
         return true
     }
 
-    private fun getCredentials() {
+    private fun getCredentials(app: App, filesystem: Filesystem) {
         val dialog = AlertDialog.Builder(activityContext)
         val dialogView = activityContext.layoutInflater.inflate(R.layout.dia_app_credentials, null)
         dialog.setView(dialogView)
@@ -252,7 +252,7 @@ class AppListFragment : Fragment(),
 
                 if (validateCredentials(username, password, vncPassword)) {
                     customDialog.dismiss()
-                    appsListViewModel.submitAppsStartupEvent(SubmitAppsFilesystemCredentials(username, password, vncPassword))
+                    appsListViewModel.submitAppsStartupEvent(SubmitAppsFilesystemCredentials(app, filesystem, username, password, vncPassword))
                 }
             }
         }
@@ -262,7 +262,7 @@ class AppListFragment : Fragment(),
         customDialog.show()
     }
 
-    private fun getServiceTypePreference() {
+    private fun getServiceTypePreference(app: App) {
         val dialog = AlertDialog.Builder(activityContext)
         val dialogView = layoutInflater.inflate(R.layout.dia_app_select_client, null)
         dialog.setView(dialogView)
@@ -276,7 +276,7 @@ class AppListFragment : Fragment(),
                 val sshTypePreference = customDialog.find<RadioButton>(R.id.ssh_radio_button)
                 val selectedPreference =
                         if (sshTypePreference.isChecked) SshTypePreference else VncTypePreference
-                appsListViewModel.submitAppsStartupEvent(SubmitAppServicePreference(selectedPreference))
+                appsListViewModel.submitAppsStartupEvent(SubmitAppServicePreference(app, selectedPreference))
             }
         }
         customDialog.setOnCancelListener {
