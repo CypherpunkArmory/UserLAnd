@@ -32,7 +32,6 @@ class AppsStartupFsm(
     private val state = MutableLiveData<AppsStartupState>().apply { postValue(WaitingForAppSelection) }
 
     // TODO Is there a way to combine these observers?
-    // TODO If an apps session is activated, it doesn't show the app as active
     init {
         activeSessionsObserver.observeForever {
             it?.let { list ->
@@ -178,7 +177,6 @@ class AppsStartupFsm(
     }
 
     private fun setAppsFilesystemCredentials(filesystem: Filesystem, username: String, password: String, vncPassword: String) = runBlocking {
-        // TODO verify last selected is not unselected and error if not
         filesystem.defaultUsername = username
         filesystem.defaultPassword = password
         filesystem.defaultVncPassword = vncPassword
@@ -186,7 +184,6 @@ class AppsStartupFsm(
     }
 
     private fun updateAppSession(appSession: Session, serviceTypePreference: AppServiceTypePreference, appsFilesystem: Filesystem) = runBlocking {
-        // TODO this will force the session to have values defined on the filesystem. is that harmful?
         appSession.serviceType = serviceTypePreference.toString()
         appSession.port = if (serviceTypePreference is SshTypePreference) 2022 else 51
         appSession.username = appsFilesystem.defaultUsername
