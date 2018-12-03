@@ -24,16 +24,8 @@ class AppsStartupFsm (
     }
     private val activeSessions = mutableListOf<Session>()
 
-    private val appsList = appsDao.getAllApps()
-    private val appsSessionsObserver = Transformations.map(sessionList) { sessions ->
-        appsList.value?.let { list ->
-            list.filter { app ->
-                sessions.any { session ->
-                    app.name == session.name
-                }
-            }
-        }
-    }
+    private val appsListLiveData = appsDao.getAllApps()
+    private val appsList = mutableListOf<App>()
     private val activeApps = mutableListOf<App>()
 
     private val state = MutableLiveData<AppsStartupState>().apply { postValue(WaitingForAppSelection) }
@@ -45,23 +37,31 @@ class AppsStartupFsm (
             it?.let { list ->
                 activeSessions.clear()
                 activeSessions.addAll(list)
+                updateActiveApps(newActiveSessions = list)
             }
         }
         // The appsList must be observed to propagate data. Otherwise the value will always be null.
-        appsList.observeForever {
+        appsListLiveData.observeForever {
             it?.let { list ->
+                appsList.clear()
+                appsList.addAll(list)
                 if (list.isEmpty()) state.postValue(AppsListIsEmpty)
-            }
-        }
-        appsSessionsObserver.observeForever {
-            it?.let { list ->
-                if (list != activeApps)
-                updateActiveApps(list)
+                else updateActiveApps()
             }
         }
     }
 
-    private fun updateActiveApps(newActiveApps: List<App>) {
+    /**
+     * This function is called twice because it requires both the apps list and active sessions to
+     * have been observed.
+     */
+    private fun updateActiveApps(newActiveSessions: List<Session> = activeSessions) {
+        val newActiveApps = appsList.filter { app ->
+            newActiveSessions.any { session ->
+                app.name == session.name
+            }
+        }
+
         if (newActiveApps.size > activeApps.size) {
             val newlyActiveApps = newActiveApps.subtract(activeApps)
             state.postValue(AppsHaveActivated(newlyActiveApps.toList()))
