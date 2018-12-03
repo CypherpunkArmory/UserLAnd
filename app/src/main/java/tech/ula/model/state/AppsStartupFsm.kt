@@ -61,6 +61,7 @@ class AppsStartupFsm (
                 app.name == session.name
             }
         }
+        if (newActiveApps == activeApps) return
 
         if (newActiveApps.size > activeApps.size) {
             val newlyActiveApps = newActiveApps.subtract(activeApps)
