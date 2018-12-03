@@ -12,7 +12,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import tech.ula.R
 import tech.ula.model.entities.App
-import tech.ula.model.entities.Session
 import tech.ula.utils.LocalFileLocator
 import kotlin.collections.ArrayList
 
@@ -184,7 +183,6 @@ class AppListAdapter(
 sealed class AppsListItem
 data class AppItem(val app: App) : AppsListItem()
 data class AppSeparatorItem(val category: String) : AppsListItem()
-
 
 // TODO we should really find a way to just redraw a single app item when its activity changes
 /**

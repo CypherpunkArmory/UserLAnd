@@ -20,7 +20,7 @@ import tech.ula.model.entities.App
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.utils.*
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 
 @RunWith(MockitoJUnitRunner::class)
 class AppsStartupFsmTest {
@@ -57,7 +57,7 @@ class AppsStartupFsmTest {
     val app2 = App(name = app2Name, supportsCli = true, supportsGui = true, filesystemRequired = appsFilesystemType)
 
     val nonAppActiveSession = Session(id = -1, name = "notAnApp", filesystemId = -1, active = true)
-    val app1ActiveSession = Session(id = -1, name = app1Name, filesystemId =  -1, active = true)
+    val app1ActiveSession = Session(id = -1, name = app1Name, filesystemId = -1, active = true)
     val app2ActiveSession = Session(id = -1, name = app2Name, filesystemId = -1, active = true)
     val app1InactiveSession = Session(id = -1, name = app1Name, filesystemId = -1, active = false)
 
@@ -81,7 +81,7 @@ class AppsStartupFsmTest {
 
         whenever(mockUlaDatabase.filesystemDao()).thenReturn(mockFilesystemDao)
 
-        appsFSM = AppsStartupFsm(mockUlaDatabase, mockAppsPreferences, mockBuildWrapper)  // TODO Showerthought: default initialization of arch in db entry and then erroring to BuildWrapper?
+        appsFSM = AppsStartupFsm(mockUlaDatabase, mockAppsPreferences, mockBuildWrapper) // TODO Showerthought: default initialization of arch in db entry and then erroring to BuildWrapper?
     }
 
     @After
@@ -122,7 +122,6 @@ class AppsStartupFsmTest {
         stubEmptyActiveSessions()
         stubFullAppsList()
 
-
         val expectedState = WaitingForAppSelection
         verify(mockStateObserver).onChanged(expectedState)
     }
@@ -132,7 +131,6 @@ class AppsStartupFsmTest {
         appsFSM.getState().observeForever(mockStateObserver)
         stubEmptyActiveSessions()
         stubEmptyAppsList()
-
 
         val expectedState = AppsListIsEmpty
         verify(mockStateObserver).onChanged(expectedState)
@@ -267,7 +265,7 @@ class AppsStartupFsmTest {
     fun `Updates filesystem when event is submitted`() {
         appsFSM.getState().observeForever(mockStateObserver)
         setupAppIsNotActiveSessionEarlyExitState()
-        val testFilesystem = Filesystem(id = -1, name ="test")
+        val testFilesystem = Filesystem(id = -1, name = "test")
 
         appsFSM.submitEvent(SubmitAppsFilesystemCredentials(app1, testFilesystem, defaultUsername, defaultPassword, defaultPassword))
 

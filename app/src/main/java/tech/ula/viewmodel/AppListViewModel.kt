@@ -4,19 +4,17 @@ import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
 import kotlinx.coroutines.experimental.launch
-import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
-import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AppsRepository
 import tech.ula.model.repositories.RefreshStatus
 import tech.ula.model.state.AppsStartupEvent
 import tech.ula.model.state.AppsStartupFsm
 import tech.ula.model.state.AppsStartupState
-import tech.ula.utils.zipLiveData
 
 class AppListViewModel(
-        private val appsStartupFsm: AppsStartupFsm,
-        private val appsRepository: AppsRepository) : ViewModel() {
+    private val appsStartupFsm: AppsStartupFsm,
+    private val appsRepository: AppsRepository
+) : ViewModel() {
 
     private val apps: LiveData<List<App>> by lazy {
         appsRepository.getAllApps()

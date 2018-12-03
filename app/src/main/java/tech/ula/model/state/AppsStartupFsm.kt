@@ -7,12 +7,13 @@ import tech.ula.model.entities.App
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.utils.*
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 
-class AppsStartupFsm (
-        ulaDatabase: UlaDatabase,
-        private val appsPreferences: AppsPreferences,
-        private val buildWrapper: BuildWrapper = BuildWrapper()) {
+class AppsStartupFsm(
+    ulaDatabase: UlaDatabase,
+    private val appsPreferences: AppsPreferences,
+    private val buildWrapper: BuildWrapper = BuildWrapper()
+) {
 
     private val sessionDao = ulaDatabase.sessionDao()
     private val filesystemDao = ulaDatabase.filesystemDao()
@@ -66,8 +67,7 @@ class AppsStartupFsm (
         if (newActiveApps.size > activeApps.size) {
             val newlyActiveApps = newActiveApps.subtract(activeApps)
             state.postValue(AppsHaveActivated(newlyActiveApps.toList()))
-        }
-        else {
+        } else {
             val newlyInactiveApps = activeApps.subtract(newActiveApps)
             state.postValue(AppsHaveDeactivated(newlyInactiveApps.toList()))
         }
@@ -75,7 +75,7 @@ class AppsStartupFsm (
         activeApps.addAll(newActiveApps)
     }
 
-    fun getState() : MutableLiveData<AppsStartupState> {
+    fun getState(): MutableLiveData<AppsStartupState> {
         return state
     }
 
