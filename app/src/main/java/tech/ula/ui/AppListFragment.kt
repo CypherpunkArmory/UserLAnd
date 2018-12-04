@@ -9,7 +9,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.os.Environment
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
@@ -36,12 +35,8 @@ import tech.ula.model.remote.GithubAppsFetcher
 import tech.ula.model.repositories.AppsRepository
 import tech.ula.model.repositories.RefreshStatus
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.utils.AppsPreferences
-import tech.ula.utils.DefaultPreferences
-import tech.ula.utils.ExecUtility
-import tech.ula.utils.FilesystemUtility
-import tech.ula.utils.ValidationUtility
-import tech.ula.utils.arePermissionsGranted
+import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
 
@@ -54,51 +49,36 @@ class AppListFragment : Fragment(),
         activityContext.resources.getString(R.string.permission_request_code).toInt()
     }
 
-    private lateinit var appsList: List<App>
     private val appAdapter by lazy {
         AppListAdapter(activityContext, this, this)
     }
 
-    private lateinit var activeSessions: List<Session>
-
     private val unselectedApp = App(name = "unselected")
     private var lastSelectedApp = unselectedApp
 
-    private lateinit var filesystemList: List<Filesystem>
-
-    private val execUtility by lazy {
-        val externalStoragePath = Environment.getExternalStorageDirectory().absolutePath
-        ExecUtility(activityContext.filesDir.path, externalStoragePath, DefaultPreferences(activityContext.defaultSharedPreferences))
-    }
-
-    private val filesystemUtility by lazy {
-        FilesystemUtility(activityContext.filesDir.path, execUtility)
-    }
-
     private var refreshStatus = RefreshStatus.INACTIVE
 
-    private val appsListPreferences by lazy {
+    private val appsPreferences by lazy {
         AppsPreferences(activityContext.getSharedPreferences("apps", Context.MODE_PRIVATE))
     }
 
     private val appsListViewModel: AppListViewModel by lazy {
         val ulaDatabase = UlaDatabase.getInstance(activityContext)
-        val sessionDao = ulaDatabase.sessionDao()
         val appsDao = ulaDatabase.appsDao()
-        val filesystemDao = ulaDatabase.filesystemDao()
         val githubFetcher = GithubAppsFetcher("${activityContext.filesDir}")
+        val appsStartupMachine = AppsStartupFsm(ulaDatabase, appsPreferences)
 
-        val appsRepository = AppsRepository(appsDao, githubFetcher, appsListPreferences)
-        ViewModelProviders.of(this, AppListViewModelFactory(appsRepository, sessionDao, filesystemDao)).get(AppListViewModel::class.java)
+        val appsRepository = AppsRepository(appsDao, githubFetcher, appsPreferences)
+        ViewModelProviders.of(this, AppListViewModelFactory(appsStartupMachine, appsRepository))
+                .get(AppListViewModel::class.java)
     }
 
-    private val appsAndActiveSessionObserver = Observer<Pair<List<App>, List<Session>>> {
-        it?.let {
-            appsList = it.first
-            activeSessions = it.second
-            appAdapter.updateAppsAndSessions(appsList, activeSessions)
-            if (appsList.isEmpty() || userlandIsNewVersion()) {
-                doRefresh()
+    // TODO move refreshing into state machine
+    private val appsObserver = Observer<List<App>> {
+        it?.let { list ->
+            appAdapter.updateApps(list)
+            if (list.isEmpty() || userlandIsNewVersion()) {
+//                doRefresh()
             }
         }
     }
@@ -112,9 +92,19 @@ class AppListFragment : Fragment(),
         }
     }
 
-    private val filesystemObserver = Observer<List<Filesystem>> {
-        it?.let {
-            filesystemList = it
+    private val startupStateObserver = Observer<AppsStartupState> {
+        it?.let { startupState ->
+            when (startupState) {
+                is WaitingForAppSelection -> {} // TODO appsAreClickable
+                is AppsListIsEmpty -> { doRefresh() }
+                is SingleSessionPermitted -> { showSingleSessionAlert() }
+                is AppsFilesystemRequiresCredentials -> getCredentials(startupState.app, startupState.filesystem)
+                is AppRequiresServiceTypePreference -> getServiceTypePreference(startupState.app)
+                is AppCanBeStarted -> startAppSession(startupState.appSession, startupState.appsFilesystem)
+                is AppCanBeRestarted -> restartAppSession(startupState.appSession)
+                is AppsHaveActivated -> { appAdapter.updateActiveApps(startupState.activeApps) }
+                is AppsHaveDeactivated -> { appAdapter.updateActiveApps(listOf()) } // TODO deactivate apps appropriately. Once adapter can accept single apps for activation/deactivation
+            }
         }
     }
 
@@ -157,9 +147,9 @@ class AppListFragment : Fragment(),
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         activityContext = activity!!
-        appsListViewModel.getAppsAndActiveSessions().observe(viewLifecycleOwner, appsAndActiveSessionObserver)
+        appsListViewModel.getAppsList().observe(viewLifecycleOwner, appsObserver)
         appsListViewModel.getRefreshStatus().observe(viewLifecycleOwner, refreshStatusObserver)
-        appsListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemObserver)
+        appsListViewModel.getAppsStartupState().observe(viewLifecycleOwner, startupStateObserver)
 
         registerForContextMenu(list_apps)
         list_apps.layoutManager = LinearLayoutManager(list_apps.context)
@@ -190,65 +180,13 @@ class AppListFragment : Fragment(),
     private fun handleAppSelection(selectedApp: App) {
         if (selectedApp == unselectedApp) return
 
-        val preferredServiceType = appsListViewModel.getAppServiceTypePreference(selectedApp).toLowerCase()
-
-        if (activeSessions.isNotEmpty()) {
-            if (activeSessions.any { it.name == selectedApp.name && it.serviceType == preferredServiceType }) {
-                val session = activeSessions.find { it.name == selectedApp.name && it.serviceType == preferredServiceType }
-                val serviceIntent = Intent(activityContext, ServerService::class.java)
-                        .putExtra("type", "restartRunningSession")
-                        .putExtra("session", session)
-                activityContext.startService(serviceIntent)
-                return
-            } else {
-                Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG)
-                        .show()
-                return
-            }
-        }
-
-        var filesystemExtracted = false
-        val possibleAppFilesystem = arrayListOf<Filesystem>()
-
-        for (filesystem in filesystemList) {
-            if (filesystem.distributionType == selectedApp.filesystemRequired) {
-                if (filesystem.isAppsFilesystem) {
-                    possibleAppFilesystem.add(filesystem)
-                    filesystemExtracted = filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")
-                }
-            }
-        }
-
-        if (!filesystemExtracted) {
-            getCredentials(selectedApp = selectedApp)
-            return
-        }
-
-        if (possibleAppFilesystem.isEmpty()) {
-            // TODO some error notification
-            return
-        }
-
-        val appFilesystem = possibleAppFilesystem.first()
-
-        if (!appSupportsOneServiceTypeAndSetPref(selectedApp)) {
-            if (appsListViewModel.getAppServiceTypePreference(selectedApp).isEmpty()) {
-                getClientPreferenceAndStart(selectedApp, appFilesystem.defaultUsername, appFilesystem.defaultPassword, appFilesystem.defaultVncPassword)
-                return
-            }
-        }
-
-        val startAppIntent = Intent(activityContext, ServerService::class.java)
-                .putExtra("type", "startApp")
-                .putExtra("app", selectedApp)
-                .putExtra("serviceType", preferredServiceType)
-        activityContext.startService(startAppIntent)
+        appsListViewModel.submitAppsStartupEvent(AppSelected(selectedApp))
     }
 
     private fun doContextItemSelected(app: App, item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.menu_item_app_details -> showAppDetails(app)
-            R.id.menu_item_stop_app -> stopApp(app)
+            R.id.menu_item_stop_app -> stopAppSession(app)
             else -> super.onContextItemSelected(item)
         }
     }
@@ -275,7 +213,22 @@ class AppListFragment : Fragment(),
         return true
     }
 
-    private fun stopApp(app: App): Boolean {
+    private fun startAppSession(appSession: Session, appsFilesystem: Filesystem) {
+        val startAppIntent = Intent(activityContext, ServerService::class.java)
+                .putExtra("type", "start")
+                .putExtra("session", appSession)
+                .putExtra("filesystem", appsFilesystem)
+        activityContext.startService(startAppIntent)
+    }
+
+    private fun restartAppSession(appSession: Session) {
+        val serviceIntent = Intent(activityContext, ServerService::class.java)
+                .putExtra("type", "restartRunningSession")
+                .putExtra("session", appSession)
+        activityContext.startService(serviceIntent)
+    }
+
+    private fun stopAppSession(app: App): Boolean {
         val serviceIntent = Intent(activityContext, ServerService::class.java)
                 .putExtra("type", "stopApp")
                 .putExtra("app", app)
@@ -283,7 +236,7 @@ class AppListFragment : Fragment(),
         return true
     }
 
-    private fun getCredentials(selectedApp: App) {
+    private fun getCredentials(app: App, filesystem: Filesystem) {
         val dialog = AlertDialog.Builder(activityContext)
         val dialogView = activityContext.layoutInflater.inflate(R.layout.dia_app_credentials, null)
         dialog.setView(dialogView)
@@ -299,52 +252,17 @@ class AppListFragment : Fragment(),
 
                 if (validateCredentials(username, password, vncPassword)) {
                     customDialog.dismiss()
-
-                    if (appSupportsOneServiceTypeAndSetPref(selectedApp)) {
-                        val serviceTypePreference = appsListViewModel.getAppServiceTypePreference(selectedApp)
-                        val serviceIntent = Intent(activityContext, ServerService::class.java)
-                                .putExtra("type", "startApp")
-                                .putExtra("username", username)
-                                .putExtra("password", password)
-                                .putExtra("vncPassword", vncPassword)
-                                .putExtra("app", selectedApp)
-                                .putExtra("serviceType", serviceTypePreference.toLowerCase())
-
-                        activityContext.startService(serviceIntent)
-                        return@setOnClickListener
-                    }
-
-                    if (appsListViewModel.getAppServiceTypePreference(selectedApp).isEmpty()) {
-                        getClientPreferenceAndStart(selectedApp, username, password, vncPassword)
-                        return@setOnClickListener
-                    }
-
-                    val serviceTypePreference = appsListViewModel.getAppServiceTypePreference(selectedApp)
-                    val serviceIntent = Intent(activityContext, ServerService::class.java)
-                            .putExtra("type", "startApp")
-                            .putExtra("username", username)
-                            .putExtra("password", password)
-                            .putExtra("vncPassword", vncPassword)
-                            .putExtra("app", selectedApp)
-                            .putExtra("serviceType", serviceTypePreference.toLowerCase())
-
-                    activityContext.startService(serviceIntent)
+                    appsListViewModel.submitAppsStartupEvent(SubmitAppsFilesystemCredentials(app, filesystem, username, password, vncPassword))
                 }
             }
+        }
+        customDialog.setOnCancelListener {
+            /* TODO submit event */
         }
         customDialog.show()
     }
 
-    private fun appSupportsOneServiceTypeAndSetPref(app: App): Boolean {
-        when {
-            app.supportsGui && app.supportsCli -> return false
-            app.supportsCli -> appsListViewModel.setAppServiceTypePreference(app, AppsPreferences.SSH)
-            app.supportsGui -> appsListViewModel.setAppServiceTypePreference(app, AppsPreferences.VNC)
-        }
-        return true
-    }
-
-    private fun getClientPreferenceAndStart(app: App, username: String, password: String, vncPassword: String) {
+    private fun getServiceTypePreference(app: App) {
         val dialog = AlertDialog.Builder(activityContext)
         val dialogView = layoutInflater.inflate(R.layout.dia_app_select_client, null)
         dialog.setView(dialogView)
@@ -356,27 +274,18 @@ class AppListFragment : Fragment(),
             customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { _ ->
                 customDialog.dismiss()
                 val sshTypePreference = customDialog.find<RadioButton>(R.id.ssh_radio_button)
-                if (sshTypePreference.isChecked) {
-                    appsListViewModel.setAppServiceTypePreference(app, AppsPreferences.SSH)
-                } else {
-                    appsListViewModel.setAppServiceTypePreference(app, AppsPreferences.VNC)
-                }
-
-                val serviceTypePreference = appsListViewModel.getAppServiceTypePreference(app)
-                val serviceIntent = Intent(activityContext, ServerService::class.java)
-                        .putExtra("type", "startApp")
-                        .putExtra("username", username)
-                        .putExtra("password", password)
-                        .putExtra("vncPassword", vncPassword)
-                        .putExtra("app", app)
-                        .putExtra("serviceType", serviceTypePreference.toLowerCase())
-
-                activityContext.startService(serviceIntent)
+                val selectedPreference =
+                        if (sshTypePreference.isChecked) SshTypePreference else VncTypePreference
+                appsListViewModel.submitAppsStartupEvent(SubmitAppServicePreference(app, selectedPreference))
             }
+        }
+        customDialog.setOnCancelListener {
+            /* TODO submit event */
         }
         customDialog.show()
     }
 
+    // TODO the view shouldn't be responsible for validation
     private fun validateCredentials(username: String, password: String, vncPassword: String): Boolean {
         val validator = ValidationUtility()
         var allCredentialsAreValid = false
@@ -439,6 +348,10 @@ class AppListFragment : Fragment(),
                 }
             }
         }
+    }
+
+    private fun showSingleSessionAlert() {
+        Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG).show()
     }
 
     private fun showRefreshUnavailableDialog() {

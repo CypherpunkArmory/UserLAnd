@@ -17,6 +17,7 @@ import android.os.Build
 import android.os.Environment
 import android.support.v4.content.ContextCompat
 import tech.ula.R
+import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
 import java.io.File
 import java.io.IOException
@@ -123,21 +124,45 @@ class AssetPreferences(private val prefs: SharedPreferences) {
     }
 }
 
-class AppsPreferences(private val prefs: SharedPreferences) {
-    companion object {
-        val SSH = "SSH"
-        val VNC = "VNC"
+sealed class AppServiceTypePreference
+object PreferenceHasNotBeenSelected : AppServiceTypePreference() {
+    override fun toString(): String {
+        return "unselected"
     }
+}
+object SshTypePreference : AppServiceTypePreference() {
+    override fun toString(): String {
+        return "ssh"
+    }
+}
+object VncTypePreference : AppServiceTypePreference() {
+    override fun toString(): String {
+        return "vnc"
+    }
+}
 
-    fun setAppServiceTypePreference(appName: String, serviceType: String) {
+class AppsPreferences(private val prefs: SharedPreferences) {
+
+    fun setAppServiceTypePreference(appName: String, serviceType: AppServiceTypePreference) {
+        val prefAsString = when (serviceType) {
+            is SshTypePreference -> "ssh"
+            is VncTypePreference -> "vnc"
+            else -> "unselected"
+        }
         with(prefs.edit()) {
-            putString(appName, serviceType)
+            putString(appName, prefAsString)
             apply()
         }
     }
 
-    fun getAppServiceTypePreference(appName: String): String {
-        return prefs.getString(appName, "") ?: ""
+    fun getAppServiceTypePreference(app: App): AppServiceTypePreference {
+        val pref = prefs.getString(app.name, "") ?: ""
+
+        return when {
+            pref.toLowerCase() == "ssh" || (app.supportsCli && !app.supportsGui) -> SshTypePreference
+            pref.toLowerCase() == "vnc" || (!app.supportsCli && app.supportsGui) -> VncTypePreference
+            else -> PreferenceHasNotBeenSelected
+        }
     }
 
     fun setAppsList(appsList: Set<String>) {

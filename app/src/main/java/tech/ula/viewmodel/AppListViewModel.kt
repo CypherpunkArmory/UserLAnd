@@ -4,35 +4,28 @@ import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
 import kotlinx.coroutines.experimental.launch
-import tech.ula.model.daos.FilesystemDao
-import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
-import tech.ula.model.entities.Filesystem
-import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AppsRepository
 import tech.ula.model.repositories.RefreshStatus
-import tech.ula.utils.zipLiveData
+import tech.ula.model.state.AppsStartupEvent
+import tech.ula.model.state.AppsStartupFsm
+import tech.ula.model.state.AppsStartupState
 
-class AppListViewModel(private val appsRepository: AppsRepository, private val sessionDao: SessionDao, private val filesystemDao: FilesystemDao) : ViewModel() {
-
-    private val activeSessions: LiveData<List<Session>> by lazy {
-        sessionDao.findActiveSessions()
-    }
+class AppListViewModel(
+    private val appsStartupFsm: AppsStartupFsm,
+    private val appsRepository: AppsRepository
+) : ViewModel() {
 
     private val apps: LiveData<List<App>> by lazy {
         appsRepository.getAllApps()
     }
 
-    fun getAppsAndActiveSessions(): LiveData<Pair<List<App>, List<Session>>> {
-        return zipLiveData(apps, activeSessions)
+    private val appStartupState: LiveData<AppsStartupState> by lazy {
+        appsStartupFsm.getState()
     }
 
-    fun getAppServiceTypePreference(app: App): String {
-        return appsRepository.getAppServiceTypePreference(app)
-    }
-
-    fun setAppServiceTypePreference(app: App, preferredClient: String) {
-        appsRepository.setAppServiceTypePreference(app, preferredClient)
+    fun getAppsList(): LiveData<List<App>> {
+        return apps
     }
 
     fun refreshAppsList() {
@@ -43,13 +36,17 @@ class AppListViewModel(private val appsRepository: AppsRepository, private val s
         return appsRepository.getRefreshStatus()
     }
 
-    fun getAllFilesystems(): LiveData<List<Filesystem>> {
-        return filesystemDao.getAllFilesystems()
+    fun getAppsStartupState(): LiveData<AppsStartupState> {
+        return appStartupState
+    }
+
+    fun submitAppsStartupEvent(event: AppsStartupEvent) {
+        appsStartupFsm.submitEvent(event)
     }
 }
 
-class AppListViewModelFactory(private val appsRepository: AppsRepository, private val sessionDao: SessionDao, private val filesystemDao: FilesystemDao) : ViewModelProvider.NewInstanceFactory() {
+class AppListViewModelFactory(private val appsStartupFsm: AppsStartupFsm, private val appsRepository: AppsRepository) : ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return AppListViewModel(appsRepository, sessionDao, filesystemDao) as T
+        return AppListViewModel(appsStartupFsm, appsRepository) as T
     }
 }

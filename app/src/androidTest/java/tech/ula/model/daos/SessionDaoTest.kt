@@ -1,7 +1,6 @@
 package tech.ula.model.daos
 
 import android.arch.core.executor.testing.InstantTaskExecutorRule
-import android.arch.lifecycle.Observer
 import android.arch.persistence.room.Room
 import android.database.sqlite.SQLiteConstraintException
 import android.support.test.InstrumentationRegistry
@@ -12,7 +11,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Filesystem
@@ -26,9 +24,6 @@ class SessionDaoTest {
 
     @get:Rule
     val instantExecutorRule = InstantTaskExecutorRule()
-
-    @Mock
-    private lateinit var observer: Observer<List<Session>>
 
     @Before
     fun setup() {

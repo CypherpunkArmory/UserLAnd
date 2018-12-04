@@ -2,10 +2,7 @@ package tech.ula.utils
 
 import android.content.res.Resources
 import kotlinx.coroutines.experimental.delay
-import org.jetbrains.anko.doAsync
 import tech.ula.R
-import tech.ula.model.daos.FilesystemDao
-import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
@@ -17,117 +14,6 @@ class SessionController(
     private val assetPreferences: AssetPreferences,
     private val timeUtility: TimeUtility = TimeUtility()
 ) {
-
-    @Throws // If device architecture is unsupported
-    suspend fun findAppsFilesystems(
-        requiredFilesystemType: String,
-        filesystemDao: FilesystemDao,
-        buildWrapper: BuildWrapper = BuildWrapper()
-    ): Filesystem {
-        val potentialAppFilesystem = asyncAwait {
-            filesystemDao.findAppsFilesystemByType(requiredFilesystemType)
-        }
-
-        if (potentialAppFilesystem.isEmpty()) {
-            val deviceArchitecture = buildWrapper.getArchType()
-            val fsToInsert = Filesystem(0, name = "apps", archType = deviceArchitecture,
-                    distributionType = requiredFilesystemType, isAppsFilesystem = true)
-            asyncAwait { filesystemDao.insertFilesystem(fsToInsert) }
-        }
-
-        return asyncAwait { filesystemDao.findAppsFilesystemByType(requiredFilesystemType).first() }
-    }
-
-    suspend fun findAppSession(
-        appName: String,
-        serviceType: String,
-        appsFilesystem: Filesystem,
-        sessionDao: SessionDao
-    ): Session {
-        val potentialAppSession = asyncAwait {
-            sessionDao.findAppsSession(appName)
-        }
-
-        // TODO revisit this when multiple sessions are supported
-        val portOrDisplay: Long = if (serviceType == "ssh") 2022 else 51
-
-        if (potentialAppSession.isEmpty()) {
-            val sessionToInsert = Session(id = 0, name = appName, filesystemId = appsFilesystem.id,
-                    filesystemName = appsFilesystem.name, serviceType = serviceType,
-                    username = appsFilesystem.defaultUsername,
-                    password = appsFilesystem.defaultPassword, vncPassword = appsFilesystem.defaultVncPassword,
-                    isAppsSession = true, port = portOrDisplay)
-            asyncAwait { sessionDao.insertSession(sessionToInsert) }
-        }
-
-        return asyncAwait {
-            sessionDao.findAppsSession(appName).first()
-        }
-    }
-
-    fun setAppsUsername(
-        username: String,
-        appsSession: Session,
-        appsFilesystem: Filesystem,
-        sessionDao: SessionDao,
-        filesystemDao: FilesystemDao
-    ) {
-        if (username.isEmpty()) { return }
-
-        appsFilesystem.defaultUsername = username
-        appsSession.username = username
-        doAsync {
-            sessionDao.updateSession(session = appsSession)
-            filesystemDao.updateFilesystem(filesystem = appsFilesystem)
-        }
-    }
-
-    fun setAppsPassword(
-        password: String,
-        appsSession: Session,
-        appsFilesystem: Filesystem,
-        sessionDao: SessionDao,
-        filesystemDao: FilesystemDao
-    ) {
-        if (password.isEmpty()) { return }
-
-        appsFilesystem.defaultPassword = password
-        appsSession.password = password
-        doAsync {
-            sessionDao.updateSession(session = appsSession)
-            filesystemDao.updateFilesystem(filesystem = appsFilesystem)
-        }
-    }
-
-    fun setAppsVncPassword(
-        vncPassword: String,
-        appsSession: Session,
-        appsFilesystem: Filesystem,
-        sessionDao: SessionDao,
-        filesystemDao: FilesystemDao
-    ) {
-        if (vncPassword.isEmpty()) { return }
-
-        appsFilesystem.defaultVncPassword = vncPassword
-        appsSession.vncPassword = vncPassword
-        doAsync {
-            sessionDao.updateSession(session = appsSession)
-            filesystemDao.updateFilesystem(filesystem = appsFilesystem)
-        }
-    }
-
-    fun setAppsServiceType(
-        serviceType: String,
-        appsSession: Session,
-        sessionDao: SessionDao
-    ) {
-        val portOrDisplay: Long = if (serviceType == "ssh") 2022 else 51
-        appsSession.port = portOrDisplay
-        appsSession.serviceType = serviceType
-        doAsync {
-            sessionDao.updateSession(session = appsSession)
-        }
-    }
 
     fun getAssetLists(): List<List<Asset>> {
         return try {

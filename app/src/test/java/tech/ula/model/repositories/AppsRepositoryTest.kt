@@ -44,6 +44,7 @@ class AppsRepositoryTest {
         verify(appsDao).getAllApps()
     }
 
+    // TODO these tests can be written now that livedata has been figured out. see AppsStartupFsmTest.kt
     @Test
     fun updatesStatusWhileFetchingRemoteApps() {
     }

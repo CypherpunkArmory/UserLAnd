@@ -107,6 +107,7 @@
     <!-- Alerts -->
     <string name="button_ok">OK!</string>
     <string name="general_error_title">Something unexpected happened!</string>
+    <string name="general_state_error_message">The app has entered an unexpected state. Please report this error to a developer.</string>
     <string name="filesystem_credentials_reasoning">We\'re creating a filesystem for your apps. Please enter the relevant required information for us to use as defaults for this filesystem.</string>
 
     <!-- Play service error alerts -->

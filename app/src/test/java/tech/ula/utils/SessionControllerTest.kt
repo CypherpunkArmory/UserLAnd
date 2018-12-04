@@ -1,9 +1,7 @@
 package tech.ula.utils
 
-import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
-import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -16,7 +14,6 @@ import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
-import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 
 @RunWith(MockitoJUnitRunner::class)
@@ -55,54 +52,6 @@ class SessionControllerTest {
     @Before
     fun setup() {
         sessionController = SessionController(assetRepository, filesystemUtility, assetPreferences, timeUtility)
-    }
-
-    @Test
-    fun insertsAppsFilesystemIfItDidNotExist() {
-        val requiredFilesystemType = "testDist"
-        val fakeArchitecture = "testArch"
-        val appsFilesystem = Filesystem(0, "apps",
-                archType = fakeArchitecture, distributionType = requiredFilesystemType, isAppsFilesystem = true)
-
-        whenever(buildWrapper.getArchType()).thenReturn(fakeArchitecture)
-        whenever(filesystemDao.findAppsFilesystemByType(requiredFilesystemType))
-                .thenReturn(listOf())
-                .thenReturn(listOf(appsFilesystem))
-
-        val returnedFs = runBlocking { sessionController.findAppsFilesystems(requiredFilesystemType, filesystemDao, buildWrapper) }
-
-        verify(filesystemDao).insertFilesystem(appsFilesystem)
-        verify(filesystemDao, times(2)).findAppsFilesystemByType(requiredFilesystemType)
-        assertEquals(appsFilesystem.name, returnedFs.name)
-        assertEquals(appsFilesystem.archType, returnedFs.archType)
-        assertEquals(appsFilesystem.distributionType, returnedFs.distributionType)
-        assertEquals(appsFilesystem.isAppsFilesystem, returnedFs.isAppsFilesystem)
-    }
-
-    @Test
-    fun insertsAppSessionIfItDidNotExist() {
-        val fakeArchitecture = "testArch"
-        val requiredFilesystemType = "testDist"
-        val appsFilesystem = Filesystem(0, "apps",
-                archType = fakeArchitecture, distributionType = requiredFilesystemType, isAppsFilesystem = true,
-                defaultUsername = "username", defaultPassword = "userland", defaultVncPassword = "userland")
-
-        val appName = "testApp"
-        val serviceType = "ssh"
-        val appSession = Session(0, name = appName, filesystemId = 0, filesystemName = "apps",
-                serviceType = serviceType, username = "username", isAppsSession = true)
-
-        whenever(sessionDao.findAppsSession(appName))
-                .thenReturn(listOf())
-                .thenReturn(listOf(appSession))
-
-        val returnedSession = runBlocking {
-            sessionController.findAppSession(appName, serviceType, appsFilesystem, sessionDao)
-        }
-
-        verify(sessionDao).insertSession(appSession)
-        verify(sessionDao, times(2)).findAppsSession(appName)
-        assertEquals(appSession, returnedSession)
     }
 
     @Test
