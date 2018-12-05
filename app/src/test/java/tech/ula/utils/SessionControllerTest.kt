@@ -24,9 +24,6 @@ class SessionControllerTest {
     val testFilesystem = Filesystem(name = "testFS", id = 1, lastUpdated = 0)
 
     @Mock
-    lateinit var buildWrapper: BuildWrapper
-
-    @Mock
     lateinit var assetRepository: AssetRepository
 
     @Mock
@@ -40,12 +37,6 @@ class SessionControllerTest {
 
     @Mock
     lateinit var networkUtility: NetworkUtility
-
-    @Mock
-    lateinit var filesystemDao: FilesystemDao
-
-    @Mock
-    lateinit var sessionDao: SessionDao
 
     lateinit var sessionController: SessionController
 
