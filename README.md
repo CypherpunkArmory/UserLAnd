@@ -47,7 +47,7 @@ There are two ways to use UserLAnd: single-click apps and user-defined custom se
 
 -> In UserLAnd Type: export DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:(PORT NUMBER)
 
--> Then Type: start lxde
+-> Then Type: startlxde
 
 -> Then Go Back To XSDL And The Desktop Will Show Up
 
