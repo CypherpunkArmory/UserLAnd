@@ -6,6 +6,8 @@ apply plugin: 'kotlin-android-extensions'
 
 apply plugin: 'kotlin-kapt'
 
+apply plugin: 'jacoco'
+
 android {
     compileSdkVersion 28
     defaultConfig {
@@ -29,6 +31,7 @@ android {
         debug {
             debuggable true
             minifyEnabled false
+            testCoverageEnabled true
             buildConfigField 'boolean', 'ENABLE_PLAY_SERVICES', 'false'
         }
         release {
@@ -44,6 +47,15 @@ android {
     lintOptions {
         disable 'MissingTranslation'
     }
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+}
+
+jacoco {
+    toolVersion = "$jacoco_version"
 }
 
 androidExtensions {
@@ -64,6 +76,10 @@ dependencies {
     ktlint "com.github.shyiko:ktlint:0.29.0"
 }
 
+tasks.withType(Test) {
+    jacoco.includeNoLocationClasses = true
+}
+
 task ktlint(type: JavaExec, group: "verification") {
     description = "Check Kotlin code style."
     classpath = configurations.ktlint
@@ -82,6 +98,25 @@ task ktlintFormat(type: JavaExec, group: "formatting") {
 task testAll(dependsOn: ['test', 'connectedAndroidTest']) {
     description = "Run all unit and instrumented tests."
 }
+
+task jacocoUnitTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest', 'createDebugCoverageReport']) {
+
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+
+    def fileFilter = [ '**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*' ]
+    def debugTree = fileTree(dir: "$project.buildDir/tmp/kotlin-classes/debug", excludes: fileFilter)
+    def mainSrc = "$project.projectDir/src/main/kotlin"
+
+    sourceDirectories = files([mainSrc])
+    classDirectories = files([debugTree])
+    executionData = fileTree(dir: project.buildDir, includes: [
+            'jacoco/testDebugUnitTest.exec', 'outputs/code-coverage/connected/*coverage.ec'
+    ])
+}
+
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
