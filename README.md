@@ -31,52 +31,54 @@ There are two ways to use UserLAnd: single-click apps and user-defined custom se
 
 ### Managing Packages 
 
-Debian Ubuntu And Kali:
+**Debian, Ubuntu, And Kali**:
 
--> Update: sudo apt-get update && sudo apt-get dist-upgrade
+-> Update: `sudo apt-get update && sudo apt-get dist-upgrade`
 
--> Install Packages: sudo apt-get install (package name)
+-> Install Packages: `sudo apt-get install <package name>`
 
--> Remove Packages: sudo apt-get remove (package name)
+-> Remove Packages: `sudo apt-get remove <package name>`
 
-Archlinux:
+**Archlinux**:
 
--> Update: sudo pacman -Syu
+-> Update: `sudo pacman -Syu`
 
--> Install Packages: sudo pacman -S (package name)
+-> Install Packages: `sudo pacman -S <package name>`
 
--> Remove Packages: sudo pacman -R (package name)
+-> Remove Packages: `sudo pacman -R <package name>`
 
 ### Installing A Desktop
 
-Debian Ubuntu And Kali:
+**Debian, Ubuntu, And Kali**:
 
--> Install Lxde: sudo apt-get install lxde (default desktop)
-
--> Install X Server Client: https://play.google.com/store/apps/details?id=x.org.server&hl=en
-
--> Launch XSDL
-
--> In UserLAnd Type: export DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:(PORT NUMBER)
-
--> Then Type: startlxde
-
--> Then Go Back To XSDL And The Desktop Will Show Up
-
-ArchLinux:
-
--> Install Lxde: sudo pacman -S lxde
+-> Install Lxde: `sudo apt-get install lxde` (default desktop)
 
 -> Install X Server Client: https://play.google.com/store/apps/details?id=x.org.server&hl=en
 
 -> Launch XSDL
 
--> In UserLAnd Type: export DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:(PORT NUMBER)
+-> In UserLAnd Type: `export DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:<PORT NUMBER>`
 
--> Then Type: startlxde
+-> Then Type: `startlxde`
 
 -> Then Go Back To XSDL And The Desktop Will Show Up
 
+**ArchLinux**:
+
+-> Install Lxde: `sudo pacman -S lxde`
+
+-> Install X Server Client: https://play.google.com/store/apps/details?id=x.org.server&hl=en
+
+-> Launch XSDL
+
+-> In UserLAnd Type: export `DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:<PORT NUMBER>`
+
+-> Then Type: `startlxde`
+
+-> Then Go Back To XSDL And The Desktop Will Show Up
+
+<br/>
+<br/>
 But you can do so much more than that. Your phone isn't just a play thing any more!
 
 This app is fully open source.  You can find our code and file issues [here](https://github.com/CypherpunkArmory/UserLAnd/).
