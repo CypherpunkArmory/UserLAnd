@@ -25,6 +25,11 @@ class AssetRepository(
             distributionType to deviceArchitecture
     )
 
+    // TODO implement
+    fun retrieveAllAssetLists(): List<List<Asset>> {
+        return listOf()
+    }
+
     fun getCachedAssetLists(): List<List<Asset>> {
         return assetPreferences.getAssetLists(allAssetListTypes)
     }

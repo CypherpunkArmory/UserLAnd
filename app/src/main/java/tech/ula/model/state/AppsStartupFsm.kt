@@ -1,5 +1,6 @@
 package tech.ula.model.state
 
+import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Transformations
 import kotlinx.coroutines.experimental.runBlocking
@@ -74,7 +75,7 @@ class AppsStartupFsm(
         activeApps.addAll(newActiveApps)
     }
 
-    fun getState(): MutableLiveData<AppsStartupState> {
+    fun getState(): LiveData<AppsStartupState> {
         return state
     }
 
