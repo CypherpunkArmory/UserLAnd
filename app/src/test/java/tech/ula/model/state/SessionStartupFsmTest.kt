@@ -64,6 +64,68 @@ class SessionStartupFsmTest {
     }
 
     @Test
+    fun `Only allows correct state transitions`() {
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        val testEvent = SessionSelected(inactiveSession)
+        val testState = WaitingForSessionSelection
+        val events = listOf(
+                SessionSelected(inactiveSession),
+                RetrieveAssetLists(filesystem),
+                GenerateDownloads(filesystem, assetLists),
+                DownloadAssets(assetLists),
+                AssetDownloadComplete(0),
+                CopyDownloadsToLocalStorage(File("test"), assetLists),
+                ExtractFilesystem(filesystem),
+                VerifyFilesystemAssets(filesystem)
+        )
+        val states = listOf(
+                IncorrectTransition(testEvent, testState),
+                WaitingForSessionSelection,
+                SingleSessionSupported,
+                SessionIsRestartable(inactiveSession),
+                SessionIsReadyForPreparation(inactiveSession),
+                RetrievingAssetLists,
+                AssetListsRetrievalSucceeded,
+                AssetListsRetrievalFailed,
+                GeneratingDownloadRequirements,
+                LargeDownloadRequired,
+                NoDownloadsRequired,
+                DownloadsRequired,
+                DownloadingRequirements,
+                DownloadsHaveSucceeded,
+                DownloadsHaveFailed(singleAssetList),
+                CopyingFilesToRequiredDirectories,
+                CopyingSucceeded,
+                CopyingFailed,
+                ExtractingFilesystem,
+                ExtractionSucceeded,
+                ExtractionFailed,
+                VerifyingFilesystemAssets,
+                FilesystemHasRequiredAssets,
+                FilesystemIsMissingRequiredAssets
+        )
+
+        for (event in events) {
+            for (state in states) {
+                sessionFsm.setState(state)
+                val result = sessionFsm.transitionIsAcceptable(event)
+                when {
+                    event is SessionSelected && state is WaitingForSessionSelection -> assertTrue(result)
+                    event is RetrieveAssetLists && state is SessionIsReadyForPreparation -> assertTrue(result)
+                    event is GenerateDownloads && state is AssetListsRetrievalSucceeded -> assertTrue(result)
+                    event is DownloadAssets && (state is GeneratingDownloadRequirements || state is LargeDownloadRequired) -> assertTrue(result)
+                    event is AssetDownloadComplete && state is DownloadingRequirements -> assertTrue(result)
+                    event is CopyDownloadsToLocalStorage && state is DownloadsHaveSucceeded -> assertTrue(result)
+                    event is ExtractFilesystem && (state is NoDownloadsRequired || state is CopyingSucceeded) -> assertTrue(result)
+                    event is VerifyFilesystemAssets && state is ExtractionSucceeded -> assertTrue(result)
+                    else -> assertFalse(result)
+                }
+            }
+        }
+    }
+
+    @Test
     fun `Initial state is WaitingForSessionSelection`() {
         sessionFsm.getState().observeForever(mockStateObserver)
 
@@ -71,7 +133,7 @@ class SessionStartupFsmTest {
     }
 
     @Test
-    fun `State is SingleSesssionSupported if active session is not selected one`() {
+    fun `State is SingleSessionSupported if active session is not selected one`() {
         sessionFsm.setState(WaitingForSessionSelection)
         sessionFsm.getState().observeForever(mockStateObserver)
         activeSessionLiveData.postValue(listOf(activeSession))
@@ -298,7 +360,7 @@ class SessionStartupFsmTest {
         sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem))
 
         verify(mockStateObserver).onChanged(VerifyingFilesystemAssets)
-        verify(mockStateObserver).onChanged(ExtractionSucceeded)
+        verify(mockStateObserver).onChanged(FilesystemHasRequiredAssets)
     }
 
     @Test
@@ -311,6 +373,6 @@ class SessionStartupFsmTest {
         sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem))
 
         verify(mockStateObserver).onChanged(VerifyingFilesystemAssets)
-        verify(mockStateObserver).onChanged(ExtractionFailed)
+        verify(mockStateObserver).onChanged(FilesystemIsMissingRequiredAssets)
     }
 }

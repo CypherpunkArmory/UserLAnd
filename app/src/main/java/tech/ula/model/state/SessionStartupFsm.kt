@@ -21,15 +21,34 @@ class SessionStartupFsm {
     }
 
     fun submitEvent(event: SessionStartupEvent) {
-        return when (event) {
+        if (!transitionIsAcceptable(event)) {
+            state.postValue(IncorrectTransition(event, state.value!!))
+            return
+        }
+        when (event) {
             is SessionSelected -> {}
             is DownloadAssets -> {}
             is AssetDownloadComplete -> {}
         }
     }
+
+    fun transitionIsAcceptable(event: SessionStartupEvent): Boolean {
+        val currentState = state.value!!
+        return when (event) {
+            is SessionSelected -> currentState is WaitingForSessionSelection
+            is RetrieveAssetLists -> currentState is SessionIsReadyForPreparation
+            is GenerateDownloads -> currentState is AssetListsRetrievalSucceeded
+            is DownloadAssets -> currentState is GeneratingDownloadRequirements || currentState is LargeDownloadRequired
+            is AssetDownloadComplete -> currentState is DownloadingRequirements
+            is CopyDownloadsToLocalStorage -> currentState is DownloadsHaveSucceeded
+            is ExtractFilesystem -> currentState is NoDownloadsRequired || currentState is CopyingSucceeded
+            is VerifyFilesystemAssets -> currentState is ExtractionSucceeded
+        }
+    }
 }
 
 sealed class SessionStartupState
+data class IncorrectTransition(val event: SessionStartupEvent, val state: SessionStartupState) : SessionStartupState()
 object WaitingForSessionSelection : SessionStartupState()
 object SingleSessionSupported : SessionStartupState()
 data class SessionIsRestartable(val session: Session) : SessionStartupState()
@@ -39,6 +58,8 @@ object AssetListsRetrievalSucceeded : SessionStartupState()
 object AssetListsRetrievalFailed : SessionStartupState()
 object GeneratingDownloadRequirements : SessionStartupState()
 object LargeDownloadRequired : SessionStartupState()
+object NoDownloadsRequired : SessionStartupState()
+object DownloadsRequired : SessionStartupState()
 object DownloadingRequirements : SessionStartupState()
 object DownloadsHaveSucceeded : SessionStartupState()
 data class DownloadsHaveFailed(val failedDownloads: List<Asset>) : SessionStartupState()
