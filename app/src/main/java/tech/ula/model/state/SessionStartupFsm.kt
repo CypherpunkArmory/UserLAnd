@@ -2,16 +2,27 @@ package tech.ula.model.state
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
+import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import java.io.File
 
-class SessionStartupFsm {
+class SessionStartupFsm(sessionDao: SessionDao) {
 
     private val state = MutableLiveData<SessionStartupState>().apply { postValue(WaitingForSessionSelection) }
 
+    private val activeSessionsLiveData = sessionDao.findActiveSessions()
+    private val activeSessions = mutableListOf<Session>()
 
+    init {
+        activeSessionsLiveData.observeForever {
+            it?.let {list ->
+                activeSessions.clear()
+                activeSessions.addAll(list)
+            }
+        }
+    }
 
     fun getState(): LiveData<SessionStartupState> {
         return state
@@ -27,10 +38,15 @@ class SessionStartupFsm {
             state.postValue(IncorrectTransition(event, state.value!!))
             return
         }
-        when (event) {
-            is SessionSelected -> {}
+        return when (event) {
+            is SessionSelected -> { handleSessionSelected(event.session) }
+            is RetrieveAssetLists -> {}
+            is GenerateDownloads -> {}
             is DownloadAssets -> {}
             is AssetDownloadComplete -> {}
+            is CopyDownloadsToLocalStorage -> {}
+            is ExtractFilesystem -> {}
+            is VerifyFilesystemAssets -> {}
         }
     }
 
@@ -46,6 +62,18 @@ class SessionStartupFsm {
             is ExtractFilesystem -> currentState is NoDownloadsRequired || currentState is CopyingSucceeded
             is VerifyFilesystemAssets -> currentState is ExtractionSucceeded
         }
+    }
+
+    private fun handleSessionSelected(session: Session) {
+        if (activeSessions.isNotEmpty()) {
+            if (activeSessions.contains(session)) {
+                state.postValue(SessionIsRestartable(session))
+                return
+            }
+            state.postValue(SingleSessionSupported)
+            return
+        }
+        state.postValue(SessionIsReadyForPreparation(session))
     }
 }
 

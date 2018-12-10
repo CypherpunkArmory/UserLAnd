@@ -16,6 +16,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
+import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
@@ -34,6 +35,8 @@ class SessionStartupFsmTest {
     // Mocks
 
     @get:Rule val instantTaskExecutorRule = InstantTaskExecutorRule()
+
+    @Mock lateinit var mockSessionDao: SessionDao
 
     @Mock lateinit var mockAssetRepository: AssetRepository
 
@@ -63,8 +66,9 @@ class SessionStartupFsmTest {
     @Before
     fun setup() {
         activeSessionLiveData = MutableLiveData()
+        whenever(mockSessionDao.findActiveSessions()).thenReturn(activeSessionLiveData)
 
-        sessionFsm = SessionStartupFsm()
+        sessionFsm = SessionStartupFsm(mockSessionDao)
     }
 
     @After

@@ -20,10 +20,7 @@ class AppsStartupFsm(
     private val filesystemDao = ulaDatabase.filesystemDao()
     private val appsDao = ulaDatabase.appsDao()
 
-    private val sessionList = sessionDao.findActiveSessions()
-    private val activeSessionsObserver = Transformations.map(sessionList) { sessions ->
-        sessions.filter { it.active }
-    }
+    private val activeSessionsLiveData = sessionDao.findActiveSessions()
     private val activeSessions = mutableListOf<Session>()
 
     private val appsListLiveData = appsDao.getAllApps()
@@ -34,7 +31,7 @@ class AppsStartupFsm(
 
     // TODO Is there a way to combine these observers?
     init {
-        activeSessionsObserver.observeForever {
+        activeSessionsLiveData.observeForever {
             it?.let { list ->
                 activeSessions.clear()
                 activeSessions.addAll(list)
