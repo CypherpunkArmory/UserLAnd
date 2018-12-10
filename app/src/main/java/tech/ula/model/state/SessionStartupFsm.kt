@@ -9,7 +9,9 @@ import java.io.File
 
 class SessionStartupFsm {
 
-    private val state = MutableLiveData<SessionStartupState>().apply { WaitingForSessionSelection }
+    private val state = MutableLiveData<SessionStartupState>().apply { postValue(WaitingForSessionSelection) }
+
+
 
     fun getState(): LiveData<SessionStartupState> {
         return state
@@ -38,7 +40,7 @@ class SessionStartupFsm {
             is SessionSelected -> currentState is WaitingForSessionSelection
             is RetrieveAssetLists -> currentState is SessionIsReadyForPreparation
             is GenerateDownloads -> currentState is AssetListsRetrievalSucceeded
-            is DownloadAssets -> currentState is GeneratingDownloadRequirements || currentState is LargeDownloadRequired
+            is DownloadAssets -> currentState is DownloadsRequired
             is AssetDownloadComplete -> currentState is DownloadingRequirements
             is CopyDownloadsToLocalStorage -> currentState is DownloadsHaveSucceeded
             is ExtractFilesystem -> currentState is NoDownloadsRequired || currentState is CopyingSucceeded
@@ -54,12 +56,11 @@ object SingleSessionSupported : SessionStartupState()
 data class SessionIsRestartable(val session: Session) : SessionStartupState()
 data class SessionIsReadyForPreparation(val session: Session) : SessionStartupState()
 object RetrievingAssetLists : SessionStartupState()
-object AssetListsRetrievalSucceeded : SessionStartupState()
+data class AssetListsRetrievalSucceeded(val assetLists: List<List<Asset>>) : SessionStartupState()
 object AssetListsRetrievalFailed : SessionStartupState()
 object GeneratingDownloadRequirements : SessionStartupState()
-object LargeDownloadRequired : SessionStartupState()
+data class DownloadsRequired(val largeDownloadIsRequired: Boolean) : SessionStartupState()
 object NoDownloadsRequired : SessionStartupState()
-object DownloadsRequired : SessionStartupState()
 object DownloadingRequirements : SessionStartupState()
 object DownloadsHaveSucceeded : SessionStartupState()
 data class DownloadsHaveFailed(val failedDownloads: List<Asset>) : SessionStartupState()

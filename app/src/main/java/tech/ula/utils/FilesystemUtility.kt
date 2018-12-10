@@ -96,6 +96,7 @@ class FilesystemUtility(
 
     fun moveAppScriptToRequiredLocations(appName: String, appFilesystem: Filesystem) {
         // TODO add error cases
+        // Profile.d scripts execute in alphabetical order.
         val fileNameToForceAppScriptToExecuteLast = "zzzzzzzzzzzzzzzz.sh"
         val appScriptSource = File("$applicationFilesDirPath/apps/$appName/$appName.sh")
         val appScriptSupportTarget = File("$applicationFilesDirPath/${appFilesystem.id}/support/$appName.sh")
