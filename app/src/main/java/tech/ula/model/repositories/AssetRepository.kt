@@ -7,84 +7,79 @@ import tech.ula.utils.TimestampPreferences
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
+import java.lang.Exception
 import javax.net.ssl.SSLHandshakeException
 
 class AssetRepository(
-    deviceArchitecture: String,
-    distributionType: String,
     private val applicationFilesDirPath: String,
     private val timestampPreferences: TimestampPreferences,
     private val assetPreferences: AssetPreferences,
     private val connectionUtility: ConnectionUtility = ConnectionUtility()
 ) {
 
-    private val allAssetListTypes = listOf(
-            "support" to "all",
-            "support" to deviceArchitecture,
-            distributionType to "all",
-            distributionType to deviceArchitecture
-    )
+    fun getAllAssetLists(distributionType: String, deviceArchitecture: String): List<List<Asset>> {
+        val allAssetListTypes = listOf(
+                "support" to "all",
+                "support" to deviceArchitecture,
+                distributionType to "all",
+                distributionType to deviceArchitecture
+        )
 
-    // TODO implement
-    fun retrieveAllAssetLists(): List<List<Asset>> {
-        return listOf()
+        if (connectionUtility.httpsHostIsReachable("github.com")) return getCachedAssetLists(allAssetListTypes)
+        return retrieveAllRemoteAssetLists(allAssetListTypes)
     }
 
-    fun getCachedAssetLists(): List<List<Asset>> {
+    private fun getCachedAssetLists(allAssetListTypes: List<Pair<String, String>>): List<List<Asset>> {
         return assetPreferences.getAssetLists(allAssetListTypes)
     }
 
-    fun getDistributionAssetsList(distributionType: String): List<Asset> {
-        val distributionAssetLists = allAssetListTypes.filter {
-            (assetType, _) ->
-            assetType == distributionType
-        }
-        val allAssets = assetPreferences.getAssetLists(distributionAssetLists).flatten()
-        return allAssets.filter { !(it.name.contains("rootfs.tar.gz")) }
+    fun getDistributionAssetsForExistingFilesystem(distributionType: String, deviceArchitecture: String): List<Asset> {
+        val distributionAssetListTypes = listOf(
+                distributionType to "all",
+                distributionType to deviceArchitecture
+        )
+        val allAssets = assetPreferences.getAssetLists(distributionAssetListTypes)
+        return allAssets.flatten().filter { !(it.name.contains("rootfs.tar.gz")) }
     }
 
-    @Throws(Exception::class)
-    fun retrieveAllRemoteAssetLists(): List<List<Asset>> {
+    @Throws
+    private fun retrieveAllRemoteAssetLists(allAssetListTypes: List<Pair<String, String>>): List<List<Asset>> {
         val allAssetLists = ArrayList<List<Asset>>()
         allAssetListTypes.forEach {
             (assetType, architectureType) ->
-            val assetList = retrieveAndParseAssetList(assetType, architectureType)
+            val assetList = try {
+                retrieveAndParseAssetList(assetType, architectureType)
+            } catch (err: Exception) {
+                emptyList<Asset>()
+            }
             allAssetLists.add(assetList)
             assetPreferences.setAssetList(assetType, architectureType, assetList)
         }
         return allAssetLists.toList()
     }
 
+    @Throws
     private fun retrieveAndParseAssetList(
         assetType: String,
-        architectureType: String,
-        protocol: String = "https"
+        architectureType: String
     ): List<Asset> {
         val assetList = ArrayList<Asset>()
 
         val branch = "master"
-        val url = "$protocol://github.com/CypherpunkArmory/UserLAnd-Assets-" +
+        val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-" +
                 "$assetType/raw/$branch/assets/$architectureType/assets.txt"
 
-        if (!connectionUtility.httpsHostIsReachable("github.com")) throw object : Exception("Host is unreachable.") {}
-        try {
-            val reader = BufferedReader(InputStreamReader(connectionUtility.getUrlInputStream(url)))
+        val reader = BufferedReader(InputStreamReader(connectionUtility.getUrlInputStream(url)))
 
-            reader.forEachLine {
-                val (filename, timestampAsString) = it.split(" ")
-                if (filename == "assets.txt") return@forEachLine
-                val remoteTimestamp = timestampAsString.toLong()
-                assetList.add(Asset(filename, assetType, architectureType, remoteTimestamp))
-            }
-
-            reader.close()
-            return assetList.toList()
-        } catch (err: SSLHandshakeException) {
-            // Try again with http if https fails
-            return retrieveAndParseAssetList(assetType, architectureType, "http")
-        } catch (err: Exception) {
-            throw object : Exception("Error getting asset list") {}
+        reader.forEachLine {
+            val (filename, timestampAsString) = it.split(" ")
+            if (filename == "assets.txt") return@forEachLine
+            val remoteTimestamp = timestampAsString.toLong()
+            assetList.add(Asset(filename, assetType, architectureType, remoteTimestamp))
         }
+
+        reader.close()
+        return assetList.toList()
     }
 
     fun doesAssetNeedToUpdated(asset: Asset): Boolean {

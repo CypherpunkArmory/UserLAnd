@@ -161,84 +161,84 @@ class ServerService : Service() {
     }
 
     private fun startSession(session: Session, filesystem: Filesystem, forceDownloads: Boolean) {
-        lastActivatedSession = session
-        lastActivatedFilesystem = filesystem
-
-        progressBarUpdater(getString(R.string.progress_bar_start_step), "")
-        startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
-
-        val assetRepository = AssetRepository(BuildWrapper().getArchType(),
-                filesystem.distributionType,
-                this.filesDir.path,
-                timestampPreferences,
-                assetPreferences)
-
-        val sessionController = SessionController(assetRepository, filesystemUtility, assetPreferences)
-
-        launch(CommonPool) {
-
-            progressBarUpdater(getString(R.string.progress_fetching_asset_lists), "")
-            val assetLists = asyncAwait {
-                sessionController.getAssetLists()
-            }
-            if (assetLists.any { it.isEmpty() }) {
-                dialogBroadcaster("errorFetchingAssetLists")
-                return@launch
-            }
-
-            val downloadRequirementsResult = sessionController
-                    .getDownloadRequirements(filesystem, assetLists, forceDownloads, networkUtility)
-
-            val requiredDownloads: List<Asset>
-            when (downloadRequirementsResult) {
-                is RequiresWifiResult -> {
-                    dialogBroadcaster("wifiRequired")
-                    return@launch
-                }
-                is RequiredAssetsResult -> requiredDownloads = downloadRequirementsResult.assetList
-            }
-
-            if (requiredDownloads.isNotEmpty() && !ConnectionUtility().httpsHostIsReachable("github.com")) {
-                dialogBroadcaster("networkTooWeakForDownloads")
-                return@launch
-            }
-            asyncAwait {
-                sessionController.downloadRequirements(filesystem.distributionType, requiredDownloads, downloadBroadcastReceiver,
-                        initDownloadUtility(), progressBarUpdater, resources)
-            }
-
-            progressBarUpdater(getString(R.string.progress_setting_up), "")
-            val wasExtractionSuccessful = asyncAwait {
-                sessionController.extractFilesystemIfNeeded(filesystem, filesystemExtractLogger)
-            }
-            if (!wasExtractionSuccessful) {
-                dialogBroadcaster("extractionFailed")
-                return@launch
-            }
-
-            sessionController.ensureFilesystemHasRequiredAssets(filesystem)
-
-            if (session.isAppsSession) {
-                // TODO handle file not downloaded/found case
-                // TODO determine if moving the script to profile.d before extraction is harmful
-                // TODO better error handling for renamed apps sessions and filesystems
-                if (!appsList.contains(session.name) || session.filesystemName != "apps") {
-                    killProgressBar()
-                    sendToastBroadcast(R.string.error_apps_renamed)
-                    return@launch
-                }
-
-                filesystemUtility.moveAppScriptToRequiredLocations(session.name, filesystem)
-            }
-
-            val updatedSession = asyncAwait { sessionController.activateSession(session, serverUtility) }
-
-            updatedSession.active = true
-            updateSession(updatedSession)
-            killProgressBar()
-            startClient(updatedSession)
-            activeSessions[updatedSession.pid] = updatedSession
-        }
+//        lastActivatedSession = session
+//        lastActivatedFilesystem = filesystem
+//
+//        progressBarUpdater(getString(R.string.progress_bar_start_step), "")
+//        startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
+//
+//        val assetRepository = AssetRepository(BuildWrapper().getArchType(),
+//                filesystem.distributionType,
+//                this.filesDir.path,
+//                timestampPreferences,
+//                assetPreferences)
+//
+//        val sessionController = SessionController(assetRepository, filesystemUtility, assetPreferences)
+//
+//        launch(CommonPool) {
+//
+//            progressBarUpdater(getString(R.string.progress_fetching_asset_lists), "")
+//            val assetLists = asyncAwait {
+//                sessionController.getAssetLists()
+//            }
+//            if (assetLists.any { it.isEmpty() }) {
+//                dialogBroadcaster("errorFetchingAssetLists")
+//                return@launch
+//            }
+//
+//            val downloadRequirementsResult = sessionController
+//                    .getDownloadRequirements(filesystem, assetLists, forceDownloads, networkUtility)
+//
+//            val requiredDownloads: List<Asset>
+//            when (downloadRequirementsResult) {
+//                is RequiresWifiResult -> {
+//                    dialogBroadcaster("wifiRequired")
+//                    return@launch
+//                }
+//                is RequiredAssetsResult -> requiredDownloads = downloadRequirementsResult.assetList
+//            }
+//
+//            if (requiredDownloads.isNotEmpty() && !ConnectionUtility().httpsHostIsReachable("github.com")) {
+//                dialogBroadcaster("networkTooWeakForDownloads")
+//                return@launch
+//            }
+//            asyncAwait {
+//                sessionController.downloadRequirements(filesystem.distributionType, requiredDownloads, downloadBroadcastReceiver,
+//                        initDownloadUtility(), progressBarUpdater, resources)
+//            }
+//
+//            progressBarUpdater(getString(R.string.progress_setting_up), "")
+//            val wasExtractionSuccessful = asyncAwait {
+//                sessionController.extractFilesystemIfNeeded(filesystem, filesystemExtractLogger)
+//            }
+//            if (!wasExtractionSuccessful) {
+//                dialogBroadcaster("extractionFailed")
+//                return@launch
+//            }
+//
+//            sessionController.ensureFilesystemHasRequiredAssets(filesystem)
+//
+//            if (session.isAppsSession) {
+//                // TODO handle file not downloaded/found case
+//                // TODO determine if moving the script to profile.d before extraction is harmful
+//                // TODO better error handling for renamed apps sessions and filesystems
+//                if (!appsList.contains(session.name) || session.filesystemName != "apps") {
+//                    killProgressBar()
+//                    sendToastBroadcast(R.string.error_apps_renamed)
+//                    return@launch
+//                }
+//
+//                filesystemUtility.moveAppScriptToRequiredLocations(session.name, filesystem)
+//            }
+//
+//            val updatedSession = asyncAwait { sessionController.activateSession(session, serverUtility) }
+//
+//            updatedSession.active = true
+//            updateSession(updatedSession)
+//            killProgressBar()
+//            startClient(updatedSession)
+//            activeSessions[updatedSession.pid] = updatedSession
+//        }
     }
 
     private fun stopApp(app: App) {

@@ -6,9 +6,12 @@ import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
+import tech.ula.model.repositories.AssetRepository
 import java.io.File
 
-class SessionStartupFsm(sessionDao: SessionDao) {
+class SessionStartupFsm(
+        sessionDao: SessionDao,
+        private val assetRepository: AssetRepository) {
 
     private val state = MutableLiveData<SessionStartupState>().apply { postValue(WaitingForSessionSelection) }
 
@@ -40,7 +43,7 @@ class SessionStartupFsm(sessionDao: SessionDao) {
         }
         return when (event) {
             is SessionSelected -> { handleSessionSelected(event.session) }
-            is RetrieveAssetLists -> {}
+            is RetrieveAssetLists -> { handleRetrieveAssetLists(event.filesystem) }
             is GenerateDownloads -> {}
             is DownloadAssets -> {}
             is AssetDownloadComplete -> {}
@@ -74,6 +77,16 @@ class SessionStartupFsm(sessionDao: SessionDao) {
             return
         }
         state.postValue(SessionIsReadyForPreparation(session))
+    }
+
+    private fun handleRetrieveAssetLists(filesystem: Filesystem) {
+        state.postValue(RetrievingAssetLists)
+        val assetLists = assetRepository.getAllAssetLists(filesystem.distributionType, filesystem.archType)
+        if (assetLists.any { it.isEmpty() }) {
+            state.postValue(AssetListsRetrievalFailed)
+            return
+        }
+        state.postValue(AssetListsRetrievalSucceeded(assetLists))
     }
 }
 

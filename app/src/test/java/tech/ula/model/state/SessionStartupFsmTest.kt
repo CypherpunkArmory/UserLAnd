@@ -68,7 +68,7 @@ class SessionStartupFsmTest {
         activeSessionLiveData = MutableLiveData()
         whenever(mockSessionDao.findActiveSessions()).thenReturn(activeSessionLiveData)
 
-        sessionFsm = SessionStartupFsm(mockSessionDao)
+        sessionFsm = SessionStartupFsm(mockSessionDao, mockAssetRepository)
     }
 
     @After
@@ -197,7 +197,7 @@ class SessionStartupFsmTest {
         sessionFsm.setState(SessionIsReadyForPreparation(inactiveSession))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockAssetRepository.retrieveAllAssetLists()).thenReturn(assetLists)
+        whenever(mockAssetRepository.getAllAssetLists(filesystem.distributionType, filesystem.archType)).thenReturn(assetLists)
 
         sessionFsm.submitEvent(RetrieveAssetLists(filesystem))
 
@@ -210,7 +210,7 @@ class SessionStartupFsmTest {
         sessionFsm.setState(SessionIsReadyForPreparation(inactiveSession))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockAssetRepository.retrieveAllAssetLists()).thenReturn(emptyAssetLists)
+        whenever(mockAssetRepository.getAllAssetLists(filesystem.distributionType, filesystem.archType)).thenReturn(emptyAssetLists)
 
         sessionFsm.submitEvent(RetrieveAssetLists(filesystem))
 
