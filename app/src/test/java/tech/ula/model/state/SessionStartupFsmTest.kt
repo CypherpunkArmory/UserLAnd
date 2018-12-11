@@ -68,7 +68,7 @@ class SessionStartupFsmTest {
         activeSessionLiveData = MutableLiveData()
         whenever(mockSessionDao.findActiveSessions()).thenReturn(activeSessionLiveData)
 
-        sessionFsm = SessionStartupFsm(mockSessionDao, mockAssetRepository)
+        sessionFsm = SessionStartupFsm(mockSessionDao, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility)
     }
 
     @After
@@ -86,7 +86,7 @@ class SessionStartupFsmTest {
                 SessionSelected(inactiveSession),
                 RetrieveAssetLists(filesystem),
                 GenerateDownloads(filesystem, assetLists),
-                DownloadAssets(assetLists),
+                DownloadAssets(singleAssetList),
                 AssetDownloadComplete(0),
                 CopyDownloadsToLocalStorage(File("test"), assetLists),
                 ExtractFilesystem(filesystem),
@@ -103,10 +103,10 @@ class SessionStartupFsmTest {
                 AssetListsRetrievalFailed,
                 GeneratingDownloadRequirements,
                 NoDownloadsRequired,
-                DownloadsRequired(false),
+                DownloadsRequired(singleAssetList,false),
                 DownloadingRequirements,
                 DownloadsHaveSucceeded,
-                DownloadsHaveFailed(singleAssetList),
+                DownloadsHaveFailed,
                 CopyingFilesToRequiredDirectories,
                 CopyingSucceeded,
                 CopyingFailed,
@@ -206,7 +206,7 @@ class SessionStartupFsmTest {
     }
 
     @Test
-    fun `State is AssetListsAreUnavailable if remote and cached assets cannot be fetched`() {
+    fun `State is AssetListsRetrievalFailed if remote and cached assets cannot be fetched`() {
         sessionFsm.setState(SessionIsReadyForPreparation(inactiveSession))
         sessionFsm.getState().observeForever(mockStateObserver)
 
@@ -214,23 +214,42 @@ class SessionStartupFsmTest {
 
         sessionFsm.submitEvent(RetrieveAssetLists(filesystem))
 
+        // TODO determine why this verification isn't needed but is for downloadsrequired tests
+        verify(mockStateObserver).onChanged(SessionIsReadyForPreparation(inactiveSession))
         verify(mockStateObserver).onChanged(RetrievingAssetLists)
         verify(mockStateObserver).onChanged(AssetListsRetrievalFailed)
     }
 
     @Test
-    fun `State is DownloadsRequired and includes true if a rootfs needs to be downloaded`() {
+    fun `State is DownloadsRequired and largeDownloadRequired is true if a rootfs needs to be downloaded`() {
         sessionFsm.setState(AssetListsRetrievalSucceeded(assetListsWithLargeAsset))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        val filesystem = Filesystem(id = -1)
-        whenever(mockAssetRepository.doesAssetNeedToUpdated(asset)).thenReturn(false)
+        whenever(mockAssetRepository.doesAssetNeedToUpdated(asset)).thenReturn(true)
         whenever(mockAssetRepository.doesAssetNeedToUpdated(largeAsset)).thenReturn(true)
+        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")).thenReturn(false)
 
         sessionFsm.submitEvent(GenerateDownloads(filesystem, assetListsWithLargeAsset))
 
+        verify(mockStateObserver).onChanged(AssetListsRetrievalSucceeded(assetListsWithLargeAsset))
         verify(mockStateObserver).onChanged(GeneratingDownloadRequirements)
-        verify(mockStateObserver).onChanged(DownloadsRequired(largeDownloadIsRequired = true))
+        verify(mockStateObserver).onChanged(DownloadsRequired(assetListsWithLargeAsset.flatten(), largeDownloadRequired = true))
+    }
+
+    @Test
+    fun `State is DownloadsRequired and largeDownloadRequired is false if a rootfs needs updating but the filesystem already exists`() {
+        sessionFsm.setState(AssetListsRetrievalSucceeded(assetListsWithLargeAsset))
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockAssetRepository.doesAssetNeedToUpdated(asset)).thenReturn(false)
+        whenever(mockAssetRepository.doesAssetNeedToUpdated(largeAsset)).thenReturn(true)
+        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")).thenReturn(true)
+
+        sessionFsm.submitEvent(GenerateDownloads(filesystem, assetListsWithLargeAsset))
+
+        verify(mockStateObserver).onChanged(AssetListsRetrievalSucceeded(assetListsWithLargeAsset))
+        verify(mockStateObserver).onChanged(GeneratingDownloadRequirements)
+        verify(mockStateObserver).onChanged(DownloadsRequired(assetListsWithLargeAsset.flatten(), largeDownloadRequired = false))
     }
 
     @Test
@@ -238,24 +257,24 @@ class SessionStartupFsmTest {
         sessionFsm.setState(AssetListsRetrievalSucceeded(assetLists))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        val filesystem = Filesystem(id = -1)
-        whenever(mockAssetRepository.doesAssetNeedToUpdated(asset)).thenReturn(false)
+        whenever(mockAssetRepository.doesAssetNeedToUpdated(asset)).thenReturn(true)
 
         sessionFsm.submitEvent(GenerateDownloads(filesystem, assetLists))
 
+        // TODO and not needed here?
         verify(mockStateObserver).onChanged(GeneratingDownloadRequirements)
-        verify(mockStateObserver).onChanged(DownloadsRequired(largeDownloadIsRequired = false))
+        verify(mockStateObserver).onChanged(DownloadsRequired(assetLists.flatten(), largeDownloadRequired = false))
     }
 
     @Test
     fun `State is DownloadsHaveSucceeded once downloads succeed`() {
-        sessionFsm.setState(DownloadingRequirements)
+        sessionFsm.setState(DownloadsRequired(singleAssetList, false))
         sessionFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockDownloadUtility.downloadRequirements(singleAssetList)).thenReturn(listOf(Pair(asset, 0L)))
         whenever(mockDownloadUtility.downloadedSuccessfully(0L)).thenReturn(true)
 
-        sessionFsm.submitEvent(DownloadAssets(assetLists))
+        sessionFsm.submitEvent(DownloadAssets(singleAssetList))
         sessionFsm.submitEvent(AssetDownloadComplete(0))
 
         verify(mockStateObserver).onChanged(DownloadingRequirements)
@@ -264,20 +283,20 @@ class SessionStartupFsmTest {
 
     @Test
     fun `State is DownloadsHaveFailed if any downloads fail`() {
-        sessionFsm.setState(DownloadingRequirements)
+        val assetList = listOf(asset, largeAsset)
+        sessionFsm.setState(DownloadsRequired(assetList, true))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        val assetList = listOf(asset, largeAsset)
         whenever(mockDownloadUtility.downloadRequirements(assetList)).thenReturn(listOf(Pair(asset, 0L), Pair(largeAsset, 1L)))
         whenever(mockDownloadUtility.downloadedSuccessfully(0)).thenReturn(true)
         whenever(mockDownloadUtility.downloadedSuccessfully(1)).thenReturn(false)
 
-        sessionFsm.submitEvent(DownloadAssets(listOf(assetList)))
+        sessionFsm.submitEvent(DownloadAssets(assetList))
         sessionFsm.submitEvent(AssetDownloadComplete(0))
         sessionFsm.submitEvent(AssetDownloadComplete(1))
 
         verify(mockStateObserver).onChanged(DownloadingRequirements)
-        verify(mockStateObserver).onChanged(DownloadsHaveFailed(listOf(largeAsset)))
+        verify(mockStateObserver).onChanged(DownloadsHaveFailed)
     }
 
     @Test

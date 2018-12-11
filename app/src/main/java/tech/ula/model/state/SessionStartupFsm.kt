@@ -7,16 +7,23 @@ import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
+import tech.ula.utils.DownloadUtility
+import tech.ula.utils.FilesystemUtility
 import java.io.File
 
 class SessionStartupFsm(
         sessionDao: SessionDao,
-        private val assetRepository: AssetRepository) {
+        private val assetRepository: AssetRepository,
+        private val filesystemUtility: FilesystemUtility,
+        private val downloadUtility: DownloadUtility) {
 
     private val state = MutableLiveData<SessionStartupState>().apply { postValue(WaitingForSessionSelection) }
 
     private val activeSessionsLiveData = sessionDao.findActiveSessions()
     private val activeSessions = mutableListOf<Session>()
+
+    private val downloadingAssets = mutableListOf<Pair<Asset, Long>>()
+    private val downloadedIds = mutableListOf<Long>()
 
     init {
         activeSessionsLiveData.observeForever {
@@ -44,9 +51,9 @@ class SessionStartupFsm(
         return when (event) {
             is SessionSelected -> { handleSessionSelected(event.session) }
             is RetrieveAssetLists -> { handleRetrieveAssetLists(event.filesystem) }
-            is GenerateDownloads -> {}
-            is DownloadAssets -> {}
-            is AssetDownloadComplete -> {}
+            is GenerateDownloads -> { handleGenerateDownloads(event.filesystem, event.assetLists) }
+            is DownloadAssets -> { handleDownloadAssets(event.assetsToDownload) }
+            is AssetDownloadComplete -> { handleAssetsDownloadComplete(event.downloadAssetId) }
             is CopyDownloadsToLocalStorage -> {}
             is ExtractFilesystem -> {}
             is VerifyFilesystemAssets -> {}
@@ -73,20 +80,68 @@ class SessionStartupFsm(
                 state.postValue(SessionIsRestartable(session))
                 return
             }
+
             state.postValue(SingleSessionSupported)
             return
         }
+
         state.postValue(SessionIsReadyForPreparation(session))
     }
 
     private fun handleRetrieveAssetLists(filesystem: Filesystem) {
         state.postValue(RetrievingAssetLists)
+
         val assetLists = assetRepository.getAllAssetLists(filesystem.distributionType, filesystem.archType)
+
         if (assetLists.any { it.isEmpty() }) {
             state.postValue(AssetListsRetrievalFailed)
             return
         }
+
         state.postValue(AssetListsRetrievalSucceeded(assetLists))
+    }
+
+    private fun handleGenerateDownloads(filesystem: Filesystem, assetLists: List<List<Asset>>) {
+        state.postValue(GeneratingDownloadRequirements)
+
+        val requiredDownloads = assetLists.map { assetList ->
+            assetList.filter { asset ->  
+                val needsUpdate = assetRepository.doesAssetNeedToUpdated(asset)
+
+                if (asset.isLarge && needsUpdate && filesystemUtility.
+                                hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")) {
+                    return@filter false
+                }
+                needsUpdate
+            }
+        }.flatten()
+
+        if (requiredDownloads.isEmpty()) {
+            state.postValue(NoDownloadsRequired)
+            return
+        }
+
+        val largeDownloadRequired = requiredDownloads.any { it.isLarge }
+        state.postValue(DownloadsRequired(requiredDownloads, largeDownloadRequired))
+    }
+
+    private fun handleDownloadAssets(assetsToDownload: List<Asset>) {
+        state.postValue(DownloadingRequirements)
+
+        downloadingAssets.clear()
+        downloadedIds.clear()
+
+        val newDownloads = downloadUtility.downloadRequirements(assetsToDownload)
+        downloadingAssets.addAll(newDownloads)
+    }
+
+    private fun handleAssetsDownloadComplete(downloadId: Long) {
+        if (!downloadUtility.downloadedSuccessfully(downloadId)) state.postValue(DownloadsHaveFailed)
+
+        downloadedIds.add(downloadId)
+        if (downloadingAssets.size != downloadedIds.size) return
+
+        state.postValue(DownloadsHaveSucceeded)
     }
 }
 
@@ -100,11 +155,11 @@ object RetrievingAssetLists : SessionStartupState()
 data class AssetListsRetrievalSucceeded(val assetLists: List<List<Asset>>) : SessionStartupState()
 object AssetListsRetrievalFailed : SessionStartupState()
 object GeneratingDownloadRequirements : SessionStartupState()
-data class DownloadsRequired(val largeDownloadIsRequired: Boolean) : SessionStartupState()
+data class DownloadsRequired(val requiredDownloads: List<Asset>, val largeDownloadRequired: Boolean) : SessionStartupState()
 object NoDownloadsRequired : SessionStartupState()
 object DownloadingRequirements : SessionStartupState()
 object DownloadsHaveSucceeded : SessionStartupState()
-data class DownloadsHaveFailed(val failedDownloads: List<Asset>) : SessionStartupState()
+object DownloadsHaveFailed : SessionStartupState()
 object CopyingFilesToRequiredDirectories : SessionStartupState()
 object CopyingSucceeded : SessionStartupState()
 object CopyingFailed : SessionStartupState()
@@ -119,7 +174,7 @@ sealed class SessionStartupEvent
 data class SessionSelected(val session: Session) : SessionStartupEvent()
 data class RetrieveAssetLists(val filesystem: Filesystem) : SessionStartupEvent()
 data class GenerateDownloads(val filesystem: Filesystem, val assetLists: List<List<Asset>>) : SessionStartupEvent()
-data class DownloadAssets(val assetLists: List<List<Asset>>) : SessionStartupEvent()
+data class DownloadAssets(val assetsToDownload: List<Asset>) : SessionStartupEvent()
 data class AssetDownloadComplete(val downloadAssetId: Long) : SessionStartupEvent()
 data class CopyDownloadsToLocalStorage(val filesDir: File, val assetLists: List<List<Asset>>) : SessionStartupEvent()
 data class ExtractFilesystem(val filesystem: Filesystem) : SessionStartupEvent()

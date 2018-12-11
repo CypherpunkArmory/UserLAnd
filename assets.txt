@@ -1,6 +1,0 @@
-execInProot.sh 1542668592
-isServerInProcTree.sh 1537176474
-killProcTree.sh 1532381687
-stat4 1537480463
-stat8 1537480463
-uptime 1537480463
