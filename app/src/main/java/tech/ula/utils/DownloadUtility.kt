@@ -53,7 +53,7 @@ class DownloadUtility(
         timestampPreferences.setSavedTimestampForFileToNow(titleName)
     }
 
-    @Throws
+    @Throws(Exception::class)
     fun moveAssetsToCorrectLocalDirectory() {
         downloadDirectory.walkBottomUp()
                 .filter { it.name.contains("UserLAnd-") }

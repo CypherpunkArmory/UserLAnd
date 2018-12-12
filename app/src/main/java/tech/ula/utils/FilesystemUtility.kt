@@ -19,7 +19,8 @@ class FilesystemUtility(
         return "$applicationFilesDirPath/$targetDirectoryName/support"
     }
 
-    fun copyDistributionAssetsToFilesystem(targetFilesystemName: String, distributionType: String) {
+    @Throws(Exception::class)
+    fun copyAssetsToFilesystem(targetFilesystemName: String, distributionType: String) {
         val sharedDirectory = File("$applicationFilesDirPath/$distributionType")
         val targetDirectory = File("$applicationFilesDirPath/$targetFilesystemName/support")
         if (!targetDirectory.exists()) targetDirectory.mkdirs()
@@ -39,7 +40,8 @@ class FilesystemUtility(
         }
     }
 
-    fun extractFilesystem(filesystem: Filesystem, targetDirectoryName: String, listener: (String) -> Any) {
+    fun extractFilesystem(filesystem: Filesystem, listener: (String) -> Any) {
+        val targetDirectoryName = "${filesystem.id}"
         val command = "../support/execInProot.sh /support/extractFilesystem.sh"
         try {
             val env = HashMap<String, String>()

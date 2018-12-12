@@ -63,6 +63,8 @@ class SessionStartupFsmTest {
 
     val filesDir = File("test")
 
+    val testLogger: (String) -> Unit = {}
+
     @Before
     fun setup() {
         activeSessionLiveData = MutableLiveData()
@@ -89,7 +91,7 @@ class SessionStartupFsmTest {
                 DownloadAssets(singleAssetList),
                 AssetDownloadComplete(0),
                 CopyDownloadsToLocalStorage(File("test"), assetLists),
-                ExtractFilesystem(filesystem),
+                ExtractFilesystem(filesystem, testLogger),
                 VerifyFilesystemAssets(filesystem)
         )
         val states = listOf(
@@ -241,7 +243,7 @@ class SessionStartupFsmTest {
         sessionFsm.setState(AssetListsRetrievalSucceeded(assetListsWithLargeAsset))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockAssetRepository.doesAssetNeedToUpdated(asset)).thenReturn(false)
+        whenever(mockAssetRepository.doesAssetNeedToUpdated(asset)).thenReturn(true)
         whenever(mockAssetRepository.doesAssetNeedToUpdated(largeAsset)).thenReturn(true)
         whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")).thenReturn(true)
 
@@ -249,7 +251,7 @@ class SessionStartupFsmTest {
 
         verify(mockStateObserver).onChanged(AssetListsRetrievalSucceeded(assetListsWithLargeAsset))
         verify(mockStateObserver).onChanged(GeneratingDownloadRequirements)
-        verify(mockStateObserver).onChanged(DownloadsRequired(assetListsWithLargeAsset.flatten(), largeDownloadRequired = false))
+        verify(mockStateObserver).onChanged(DownloadsRequired(singleAssetList, largeDownloadRequired = false))
     }
 
     @Test
@@ -316,6 +318,7 @@ class SessionStartupFsmTest {
         sessionFsm.setState(DownloadsHaveSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
 
+        // TODO research how throws annotation actually wraps jvm interop
         whenever(mockDownloadUtility.moveAssetsToCorrectLocalDirectory()).thenThrow(Exception::class.java)
 
         sessionFsm.submitEvent(CopyDownloadsToLocalStorage(filesDir, assetLists))
@@ -325,14 +328,44 @@ class SessionStartupFsmTest {
     }
 
     @Test
+    fun `Exits early if filesystem is already extracted`() {
+        sessionFsm.setState(CopyingSucceeded)
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")).thenReturn(true)
+
+        sessionFsm.submitEvent(ExtractFilesystem(filesystem, testLogger))
+
+        verify(mockFilesystemUtility, times(1)).hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")
+        verify(mockStateObserver).onChanged(ExtractionSucceeded)
+    }
+
+    @Test
+    fun `State is CopyingFailed if copying assets to filesystem fails`() {
+        sessionFsm.setState(CopyingSucceeded)
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")).thenReturn(false)
+        // TODO throws here too
+        whenever(mockFilesystemUtility.copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType)).thenThrow(Exception::class.java)
+
+        sessionFsm.submitEvent(ExtractFilesystem(filesystem, testLogger))
+
+        verify(mockFilesystemUtility, times(1)).hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")
+        verify(mockStateObserver).onChanged(CopyingFailed)
+    }
+
+    @Test
     fun `State is ExtractionSucceeded if extraction succeeds`() {
         sessionFsm.setState(CopyingSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockFilesystemUtility.isExtractionComplete("${filesystem.id}")).thenReturn(true)
-        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")).thenReturn(true)
+        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
+                .thenReturn(false)
+                .thenReturn(true)
 
-        sessionFsm.submitEvent(ExtractFilesystem(filesystem))
+        sessionFsm.submitEvent(ExtractFilesystem(filesystem, testLogger))
 
         verify(mockStateObserver).onChanged(ExtractingFilesystem)
         verify(mockStateObserver).onChanged(ExtractionSucceeded)
@@ -344,9 +377,11 @@ class SessionStartupFsmTest {
         sessionFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockFilesystemUtility.isExtractionComplete("${filesystem.id}")).thenReturn(true)
-        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")).thenReturn(false)
+        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
+                .thenReturn(false)
+                .thenReturn(false)
 
-        sessionFsm.submitEvent(ExtractFilesystem(filesystem))
+        sessionFsm.submitEvent(ExtractFilesystem(filesystem, testLogger))
 
         verify(mockStateObserver).onChanged(ExtractingFilesystem)
         verify(mockStateObserver).onChanged(ExtractionFailed)
@@ -357,7 +392,8 @@ class SessionStartupFsmTest {
         sessionFsm.setState(ExtractionSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", singleAssetList)).thenReturn(false)
+        whenever(mockAssetRepository.getDistributionAssetsForExistingFilesystem(filesystem.distributionType, filesystem.archType)).thenReturn(singleAssetList)
+        whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", singleAssetList)).thenReturn(true)
 
         sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem))
 
@@ -370,6 +406,7 @@ class SessionStartupFsmTest {
         sessionFsm.setState(ExtractionSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
 
+        whenever(mockAssetRepository.getDistributionAssetsForExistingFilesystem(filesystem.distributionType, filesystem.archType)).thenReturn(singleAssetList)
         whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", singleAssetList)).thenReturn(false)
 
         sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem))

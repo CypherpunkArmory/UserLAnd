@@ -54,7 +54,7 @@ class FilesystemUtilityTest {
         val defaultEnvironmentalVariables = hashMapOf<String, String>("INITIAL_USERNAME" to "username",
                 "INITIAL_PASSWORD" to "password", "INITIAL_VNC_PASSWORD" to "vncpass")
 
-        filesystemUtility.extractFilesystem(filesystem, targetDirectoryName, statelessListener)
+        filesystemUtility.extractFilesystem(filesystem, statelessListener)
         verify(execUtility).wrapWithBusyboxAndExecute(targetDirectoryName, command, statelessListener,
                 environmentVars = defaultEnvironmentalVariables)
     }
@@ -74,7 +74,7 @@ class FilesystemUtilityTest {
         targetFiles.forEach { assertFalse(it.exists()) }
         sharedFiles.forEach { assertTrue(it.exists()) }
 
-        filesystemUtility.copyDistributionAssetsToFilesystem("target", "shared")
+        filesystemUtility.copyAssetsToFilesystem("target", "shared")
 
         assertTrue(targetDirectory.exists())
         targetFiles.forEach {

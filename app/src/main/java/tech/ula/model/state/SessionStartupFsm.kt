@@ -2,6 +2,8 @@ package tech.ula.model.state
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
+import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.runBlocking
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
@@ -9,6 +11,7 @@ import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 import tech.ula.utils.DownloadUtility
 import tech.ula.utils.FilesystemUtility
+import tech.ula.utils.asyncAwait
 import java.io.File
 
 class SessionStartupFsm(
@@ -54,9 +57,9 @@ class SessionStartupFsm(
             is GenerateDownloads -> { handleGenerateDownloads(event.filesystem, event.assetLists) }
             is DownloadAssets -> { handleDownloadAssets(event.assetsToDownload) }
             is AssetDownloadComplete -> { handleAssetsDownloadComplete(event.downloadAssetId) }
-            is CopyDownloadsToLocalStorage -> {}
-            is ExtractFilesystem -> {}
-            is VerifyFilesystemAssets -> {}
+            is CopyDownloadsToLocalStorage -> { handleCopyDownloads() }
+            is ExtractFilesystem -> { handleExtractFilesystem(event.filesystem, event.extractionLogger) }
+            is VerifyFilesystemAssets -> { handleVerifyFilesystemAssets(event.filesystem) }
         }
     }
 
@@ -143,6 +146,60 @@ class SessionStartupFsm(
 
         state.postValue(DownloadsHaveSucceeded)
     }
+
+    private fun handleCopyDownloads() {
+        state.postValue(CopyingFilesToRequiredDirectories)
+        try {
+            downloadUtility.moveAssetsToCorrectLocalDirectory()
+        } catch (err: Exception) {
+            state.postValue(CopyingFailed)
+            return
+        }
+        state.postValue(CopyingSucceeded)
+    }
+
+    private fun handleExtractFilesystem(filesystem: Filesystem, extractionLogger: (line: String) -> Unit) = runBlocking {
+        val filesystemDirectoryName = "${filesystem.id}"
+
+        if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
+            state.postValue(ExtractionSucceeded)
+            return@runBlocking
+        }
+
+        state.postValue(ExtractingFilesystem)
+
+        try {
+            filesystemUtility.copyAssetsToFilesystem(filesystemDirectoryName, filesystem.distributionType)
+        } catch (err: Exception) {
+            state.postValue(CopyingFailed)
+            return@runBlocking
+        }
+
+        asyncAwait {
+            filesystemUtility.extractFilesystem(filesystem, extractionLogger)
+            while (!filesystemUtility.isExtractionComplete(filesystemDirectoryName)) {
+                delay(500)
+            }
+        }
+
+        if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
+            state.postValue(ExtractionSucceeded)
+            return@runBlocking
+        }
+
+        state.postValue(ExtractionFailed)
+    }
+
+    private fun handleVerifyFilesystemAssets(filesystem: Filesystem) {
+        state.postValue(VerifyingFilesystemAssets)
+
+        val requiredAssets = assetRepository.getDistributionAssetsForExistingFilesystem(filesystem.distributionType, filesystem.archType)
+        if (filesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", requiredAssets)) {
+            state.postValue(FilesystemHasRequiredAssets)
+            return
+        }
+        state.postValue(FilesystemIsMissingRequiredAssets)
+    }
 }
 
 sealed class SessionStartupState
@@ -177,5 +234,5 @@ data class GenerateDownloads(val filesystem: Filesystem, val assetLists: List<Li
 data class DownloadAssets(val assetsToDownload: List<Asset>) : SessionStartupEvent()
 data class AssetDownloadComplete(val downloadAssetId: Long) : SessionStartupEvent()
 data class CopyDownloadsToLocalStorage(val filesDir: File, val assetLists: List<List<Asset>>) : SessionStartupEvent()
-data class ExtractFilesystem(val filesystem: Filesystem) : SessionStartupEvent()
+data class ExtractFilesystem(val filesystem: Filesystem, val extractionLogger: (line: String) -> Unit) : SessionStartupEvent()
 data class VerifyFilesystemAssets(val filesystem: Filesystem) : SessionStartupEvent()
