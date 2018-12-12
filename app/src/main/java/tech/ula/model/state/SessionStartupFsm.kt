@@ -168,10 +168,9 @@ class SessionStartupFsm(
 
         state.postValue(ExtractingFilesystem)
 
-        try {
-            filesystemUtility.copyAssetsToFilesystem(filesystemDirectoryName, filesystem.distributionType)
-        } catch (err: Exception) {
-            state.postValue(CopyingFailed)
+        val copyingSucceeded = copyDistributionAssetsToFilesystem(filesystem)
+        if (!copyingSucceeded) {
+            state.postValue(DistributionCopyFailed)
             return@runBlocking
         }
 
@@ -190,15 +189,34 @@ class SessionStartupFsm(
         state.postValue(ExtractionFailed)
     }
 
+    private fun copyDistributionAssetsToFilesystem(filesystem: Filesystem): Boolean {
+        return try {
+            filesystemUtility.copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType)
+            true
+        } catch (err: Exception) {
+            false
+        }
+    }
+
     private fun handleVerifyFilesystemAssets(filesystem: Filesystem) {
         state.postValue(VerifyingFilesystemAssets)
 
-        val requiredAssets = assetRepository.getDistributionAssetsForExistingFilesystem(filesystem.distributionType, filesystem.archType)
-        if (filesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", requiredAssets)) {
-            state.postValue(FilesystemHasRequiredAssets)
-            return
+        val requiredAssets = assetRepository.getDistributionAssetsForExistingFilesystem(filesystem)
+        val allAssetsArePresent = filesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", requiredAssets)
+        val allAssetsAreUpToDate = filesystem.lastUpdated >= assetRepository.getLastDistributionUpdate(filesystem.distributionType)
+        when {
+            allAssetsArePresent && allAssetsAreUpToDate -> {
+                state.postValue(FilesystemHasRequiredAssets)
+            }
+            allAssetsArePresent-> {
+                val copyingSucceeded = copyDistributionAssetsToFilesystem(filesystem)
+                if (copyingSucceeded) state.postValue(FilesystemHasRequiredAssets)
+                else state.postValue(DistributionCopyFailed)
+            }
+            else -> {
+                state.postValue(FilesystemIsMissingRequiredAssets)
+            }
         }
-        state.postValue(FilesystemIsMissingRequiredAssets)
     }
 }
 
@@ -220,6 +238,7 @@ object DownloadsHaveFailed : SessionStartupState()
 object CopyingFilesToRequiredDirectories : SessionStartupState()
 object CopyingSucceeded : SessionStartupState()
 object CopyingFailed : SessionStartupState()
+object DistributionCopyFailed: SessionStartupState()
 object ExtractingFilesystem : SessionStartupState()
 object ExtractionSucceeded : SessionStartupState()
 object ExtractionFailed : SessionStartupState()

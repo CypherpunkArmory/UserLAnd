@@ -12,14 +12,17 @@ class DownloadUtility(
 ) {
 
     private val downloadDirectory = downloadManagerWrapper.getDownloadsDirectory()
+    private val startedDownloads = mutableListOf<Pair<Asset, Long>>()
+    private val completedDownloadsIds = mutableListOf<Long>()
 
     fun downloadRequirements(assetList: List<Asset>): List<Pair<Asset, Long>> {
         return assetList.map { it to download(it) }
     }
 
-    // TODO
     fun downloadedSuccessfully(id: Long): Boolean {
-        return true
+        val query = downloadManagerWrapper.generateQuery(id)
+        val cursor = downloadManagerWrapper.generateCursor(downloadManager, query)
+        return downloadManagerWrapper.downloadHasNotFailed(cursor)
     }
 
     private fun download(asset: Asset): Long {

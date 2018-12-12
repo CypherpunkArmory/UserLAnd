@@ -14,6 +14,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.times
 import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.entities.Asset
+import tech.ula.model.entities.Filesystem
 import tech.ula.utils.AssetPreferences
 import tech.ula.utils.ConnectionUtility
 import tech.ula.utils.TimestampPreferences
@@ -76,7 +77,8 @@ class AssetRepositoryTest {
         val assetListWithRootfsFile = listOf(listOf(asset1, asset2))
         `when`(assetPreferences.getAssetLists(distTypeAssetLists)).thenReturn(assetListWithRootfsFile)
 
-        val returnedAssetList = assetRepository.getDistributionAssetsForExistingFilesystem(distType, archType)
+        val filesystem = Filesystem(-1, distributionType = distType, archType = archType)
+        val returnedAssetList = assetRepository.getDistributionAssetsForExistingFilesystem(filesystem)
 
         assertTrue(returnedAssetList.size == 1)
         assertFalse(returnedAssetList.any { it.name == "rootfs.tar.gz" })

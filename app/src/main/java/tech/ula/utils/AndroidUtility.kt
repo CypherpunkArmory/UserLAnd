@@ -116,9 +116,9 @@ class AssetPreferences(private val prefs: SharedPreferences) {
         return prefs.getLong("$distributionType-lastUpdate", -1)
     }
 
-    fun setLastDistributionUpdate(distributionType: String, currentTimeMillis: Long) {
+    fun setLastDistributionUpdate(distributionType: String, lastUpdateTime: Long) {
         with(prefs.edit()) {
-            putLong("$distributionType-lastUpdate", currentTimeMillis)
+            putLong("$distributionType-lastUpdate", lastUpdateTime)
             apply()
         }
     }
@@ -278,6 +278,14 @@ class DownloadManagerWrapper {
             return cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_TITLE))
         }
         return ""
+    }
+
+    fun downloadHasNotFailed(cursor: Cursor): Boolean {
+        if (cursor.moveToFirst()) {
+            val status = cursor.getInt(cursor.getColumnIndex(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+            return status != DownloadManager.STATUS_FAILED
+        }
+        return false
     }
 
     fun getDownloadsDirectory(): File {

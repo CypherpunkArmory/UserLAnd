@@ -1,6 +1,7 @@
 package tech.ula.model.repositories
 
 import tech.ula.model.entities.Asset
+import tech.ula.model.entities.Filesystem
 import tech.ula.utils.AssetPreferences
 import tech.ula.utils.ConnectionUtility
 import tech.ula.utils.TimestampPreferences
@@ -17,6 +18,34 @@ class AssetRepository(
     private val connectionUtility: ConnectionUtility = ConnectionUtility()
 ) {
 
+    fun doesAssetNeedToUpdated(asset: Asset): Boolean {
+        val assetFile = File("$applicationFilesDirPath/${asset.pathName}")
+
+        if (!assetFile.exists()) return true
+
+        val localTimestamp = timestampPreferences.getSavedTimestampForFile(asset.concatenatedName)
+        return localTimestamp < asset.remoteTimestamp
+    }
+
+    fun getDistributionAssetsForExistingFilesystem(filesystem: Filesystem): List<Asset> {
+        val distributionType = filesystem.distributionType
+        val deviceArchitecture = filesystem.archType
+        val distributionAssetListTypes = listOf(
+                distributionType to "all",
+                distributionType to deviceArchitecture
+        )
+        val allAssets = assetPreferences.getAssetLists(distributionAssetListTypes)
+        return allAssets.flatten().filter { !(it.name.contains("rootfs.tar.gz")) }
+    }
+
+    fun getLastDistributionUpdate(distributionType: String): Long {
+        return assetPreferences.getLastDistributionUpdate(distributionType)
+    }
+
+    fun setLastDistributionUpdate(distributionType: String, lastUpdateTime: Long) {
+        assetPreferences.setLastDistributionUpdate(distributionType, lastUpdateTime)
+    }
+
     fun getAllAssetLists(distributionType: String, deviceArchitecture: String): List<List<Asset>> {
         val allAssetListTypes = listOf(
                 "support" to "all",
@@ -31,15 +60,6 @@ class AssetRepository(
 
     private fun getCachedAssetLists(allAssetListTypes: List<Pair<String, String>>): List<List<Asset>> {
         return assetPreferences.getAssetLists(allAssetListTypes)
-    }
-
-    fun getDistributionAssetsForExistingFilesystem(distributionType: String, deviceArchitecture: String): List<Asset> {
-        val distributionAssetListTypes = listOf(
-                distributionType to "all",
-                distributionType to deviceArchitecture
-        )
-        val allAssets = assetPreferences.getAssetLists(distributionAssetListTypes)
-        return allAssets.flatten().filter { !(it.name.contains("rootfs.tar.gz")) }
     }
 
     @Throws
@@ -80,14 +100,5 @@ class AssetRepository(
 
         reader.close()
         return assetList.toList()
-    }
-
-    fun doesAssetNeedToUpdated(asset: Asset): Boolean {
-        val assetFile = File("$applicationFilesDirPath/${asset.pathName}")
-
-        if (!assetFile.exists()) return true
-
-        val localTimestamp = timestampPreferences.getSavedTimestampForFile(asset.concatenatedName)
-        return localTimestamp < asset.remoteTimestamp
     }
 }
