@@ -12,8 +12,6 @@ class DownloadUtility(
 ) {
 
     private val downloadDirectory = downloadManagerWrapper.getDownloadsDirectory()
-    private val startedDownloads = mutableListOf<Pair<Asset, Long>>()
-    private val completedDownloadsIds = mutableListOf<Long>()
 
     fun downloadRequirements(assetList: List<Asset>): List<Pair<Asset, Long>> {
         return assetList.map { it to download(it) }

@@ -2,6 +2,7 @@ package tech.ula.model.state
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
 import tech.ula.model.daos.SessionDao
@@ -91,14 +92,16 @@ class SessionStartupFsm(
         state.postValue(SessionIsReadyForPreparation(session))
     }
 
-    private fun handleRetrieveAssetLists(filesystem: Filesystem) {
+    private fun handleRetrieveAssetLists(filesystem: Filesystem) = runBlocking {
         state.postValue(RetrievingAssetLists)
 
-        val assetLists = assetRepository.getAllAssetLists(filesystem.distributionType, filesystem.archType)
+        val assetLists = async {
+            assetRepository.getAllAssetLists(filesystem.distributionType, filesystem.archType)
+        }.await()
 
         if (assetLists.any { it.isEmpty() }) {
             state.postValue(AssetListsRetrievalFailed)
-            return
+            return@runBlocking
         }
 
         state.postValue(AssetListsRetrievalSucceeded(assetLists))
@@ -201,18 +204,25 @@ class SessionStartupFsm(
     private fun handleVerifyFilesystemAssets(filesystem: Filesystem) {
         state.postValue(VerifyingFilesystemAssets)
 
+        val filesystemDirectoryName = "${filesystem.id}"
         val requiredAssets = assetRepository.getDistributionAssetsForExistingFilesystem(filesystem)
-        val allAssetsArePresent = filesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", requiredAssets)
+        val allAssetsArePresent = filesystemUtility.areAllRequiredAssetsPresent(filesystemDirectoryName, requiredAssets)
         val allAssetsAreUpToDate = filesystem.lastUpdated >= assetRepository.getLastDistributionUpdate(filesystem.distributionType)
+
         when {
             allAssetsArePresent && allAssetsAreUpToDate -> {
                 state.postValue(FilesystemHasRequiredAssets)
             }
+
             allAssetsArePresent-> {
                 val copyingSucceeded = copyDistributionAssetsToFilesystem(filesystem)
-                if (copyingSucceeded) state.postValue(FilesystemHasRequiredAssets)
+                if (copyingSucceeded) {
+                    state.postValue(FilesystemHasRequiredAssets)
+                    filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
+                }
                 else state.postValue(DistributionCopyFailed)
             }
+
             else -> {
                 state.postValue(FilesystemIsMissingRequiredAssets)
             }

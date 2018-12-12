@@ -1,7 +1,6 @@
 package tech.ula.model.state
 
 import android.arch.core.executor.testing.InstantTaskExecutorRule
-import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Observer
 import com.nhaarman.mockitokotlin2.any
@@ -21,7 +20,6 @@ import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
-import tech.ula.utils.ConnectionUtility
 import tech.ula.utils.DownloadUtility
 import tech.ula.utils.FilesystemUtility
 import java.io.File
@@ -421,6 +419,7 @@ class SessionStartupFsmTest {
 
         sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem))
 
+        verify(mockFilesystemUtility).removeRootfsFilesFromFilesystem("${filesystem.id}")
         verify(mockStateObserver).onChanged(VerifyingFilesystemAssets)
         verify(mockStateObserver).onChanged(FilesystemHasRequiredAssets)
     }
