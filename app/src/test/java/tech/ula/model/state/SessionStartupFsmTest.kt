@@ -15,11 +15,13 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
+import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
+import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.DownloadUtility
 import tech.ula.utils.FilesystemUtility
 import java.io.File
@@ -34,7 +36,11 @@ class SessionStartupFsmTest {
 
     @get:Rule val instantTaskExecutorRule = InstantTaskExecutorRule()
 
+    @Mock lateinit var mockUlaDatabase: UlaDatabase
+
     @Mock lateinit var mockSessionDao: SessionDao
+
+    @Mock lateinit var mockFilesystemDao: FilesystemDao
 
     @Mock lateinit var mockAssetRepository: AssetRepository
 
@@ -66,9 +72,12 @@ class SessionStartupFsmTest {
     @Before
     fun setup() {
         activeSessionLiveData = MutableLiveData()
+
+        whenever(mockUlaDatabase.sessionDao()).thenReturn(mockSessionDao)
+        whenever(mockUlaDatabase.filesystemDao()).thenReturn(mockFilesystemDao)
         whenever(mockSessionDao.findActiveSessions()).thenReturn(activeSessionLiveData)
 
-        sessionFsm = SessionStartupFsm(mockSessionDao, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility)
+        sessionFsm = SessionStartupFsm(mockUlaDatabase, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility)
     }
 
     @After
@@ -97,7 +106,7 @@ class SessionStartupFsmTest {
                 WaitingForSessionSelection,
                 SingleSessionSupported,
                 SessionIsRestartable(inactiveSession),
-                SessionIsReadyForPreparation(inactiveSession),
+                SessionIsReadyForPreparation(inactiveSession, filesystem),
                 RetrievingAssetLists,
                 AssetListsRetrievalSucceeded(assetLists),
                 AssetListsRetrievalFailed,
@@ -189,12 +198,12 @@ class SessionStartupFsmTest {
 
         sessionFsm.submitEvent(SessionSelected(inactiveSession))
 
-        verify(mockStateObserver).onChanged(SessionIsReadyForPreparation(inactiveSession))
+        verify(mockStateObserver).onChanged(SessionIsReadyForPreparation(inactiveSession, filesystem))
     }
 
     @Test
     fun `State is RetrievingAssetLists and then AssetListsRetrieved`() {
-        sessionFsm.setState(SessionIsReadyForPreparation(inactiveSession))
+        sessionFsm.setState(SessionIsReadyForPreparation(inactiveSession, filesystem))
         sessionFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockAssetRepository.getAllAssetLists(filesystem.distributionType, filesystem.archType)).thenReturn(assetLists)
@@ -207,7 +216,7 @@ class SessionStartupFsmTest {
 
     @Test
     fun `State is AssetListsRetrievalFailed if remote and cached assets cannot be fetched`() {
-        sessionFsm.setState(SessionIsReadyForPreparation(inactiveSession))
+        sessionFsm.setState(SessionIsReadyForPreparation(inactiveSession, filesystem))
         sessionFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockAssetRepository.getAllAssetLists(filesystem.distributionType, filesystem.archType)).thenReturn(emptyAssetLists)
@@ -215,7 +224,7 @@ class SessionStartupFsmTest {
         sessionFsm.submitEvent(RetrieveAssetLists(filesystem))
 
         // TODO determine why this verification isn't needed but is for downloadsrequired tests
-        verify(mockStateObserver).onChanged(SessionIsReadyForPreparation(inactiveSession))
+        verify(mockStateObserver).onChanged(SessionIsReadyForPreparation(inactiveSession, filesystem))
         verify(mockStateObserver).onChanged(RetrievingAssetLists)
         verify(mockStateObserver).onChanged(AssetListsRetrievalFailed)
     }

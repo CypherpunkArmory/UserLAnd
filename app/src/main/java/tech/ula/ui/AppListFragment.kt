@@ -26,6 +26,7 @@ import kotlinx.android.synthetic.main.frag_app_list.* // ktlint-disable no-wildc
 import org.jetbrains.anko.bundleOf
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.find
+import tech.ula.MainActivity
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.App
@@ -44,7 +45,15 @@ class AppListFragment : Fragment(),
         AppListAdapter.OnAppsItemClicked,
         AppListAdapter.OnAppsCreateContextMenu {
 
-    private lateinit var activityContext: Activity
+    interface AppSelection {
+        fun appHasBeenSelected(app: App)
+    }
+
+    private val doOnAppSelection: AppSelection by lazy {
+        activityContext
+    }
+
+    private lateinit var activityContext: MainActivity
     private val permissionRequestCode: Int by lazy {
         activityContext.resources.getString(R.string.permission_request_code).toInt()
     }
@@ -146,7 +155,7 @@ class AppListFragment : Fragment(),
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        activityContext = activity!!
+        activityContext = activity!! as MainActivity
         appsListViewModel.getAppsList().observe(viewLifecycleOwner, appsObserver)
         appsListViewModel.getRefreshStatus().observe(viewLifecycleOwner, refreshStatusObserver)
         appsListViewModel.getAppsStartupState().observe(viewLifecycleOwner, startupStateObserver)

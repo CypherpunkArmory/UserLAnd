@@ -1,6 +1,9 @@
 package tech.ula
 
 import android.app.AlertDialog
+import android.app.DownloadManager
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProviders
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -8,8 +11,10 @@ import android.content.IntentFilter
 import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Bundle
+import android.os.Environment
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -23,10 +28,19 @@ import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.NavigationUI.setupWithNavController
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.defaultSharedPreferences
-import tech.ula.utils.NotificationUtility
-import tech.ula.utils.displayGenericErrorDialog
+import tech.ula.model.entities.App
+import tech.ula.model.entities.Session
+import tech.ula.model.repositories.AssetRepository
+import tech.ula.model.repositories.UlaDatabase
+import tech.ula.model.state.SessionStartupFsm
+import tech.ula.model.state.SessionStartupState
+import tech.ula.ui.AppListFragment
+import tech.ula.ui.SessionListFragment
+import tech.ula.utils.*
+import tech.ula.viewmodel.MainActivityViewModel
+import tech.ula.viewmodel.MainActivityViewModelFactory
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection {
 
     private var progressBarIsVisible = false
     private var currentFragmentDisplaysProgressDialog = false
@@ -59,6 +73,31 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val viewModel: MainActivityViewModel by lazy {
+        val ulaDatabase = UlaDatabase.getInstance(this)
+
+        val timestampPreferences = TimestampPreferences(this.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE))
+        val assetPreferences = AssetPreferences(this.getSharedPreferences("assetLists", Context.MODE_PRIVATE))
+        val assetRepository = AssetRepository(filesDir.path, timestampPreferences, assetPreferences)
+
+        val execUtility = ExecUtility(filesDir.path, Environment.getExternalStorageDirectory().absolutePath, DefaultPreferences(defaultSharedPreferences))
+        val filesystemUtility = FilesystemUtility(filesDir.path, execUtility)
+
+        val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val downloadManagerWrapper = DownloadManagerWrapper()
+        val downloadUtility = DownloadUtility(downloadManager, timestampPreferences, downloadManagerWrapper, filesDir)
+
+        val sessionStartupFsm = SessionStartupFsm(ulaDatabase, assetRepository, filesystemUtility, downloadUtility)
+        ViewModelProviders.of(this, MainActivityViewModelFactory(sessionStartupFsm))
+                .get(MainActivityViewModel::class.java)
+    }
+
+    private val sessionStartupStateObserver = Observer<SessionStartupState> {
+        it?.let { state ->
+            Log.i("MainActivity", "Session startup state: $state")
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -76,6 +115,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         setupWithNavController(bottom_nav_view, navController)
+
+        viewModel.getSessionStartupState().observe(this, sessionStartupStateObserver)
     }
 
     private fun setNavStartDestination() {
@@ -127,6 +168,30 @@ class MainActivity : AppCompatActivity() {
         LocalBroadcastManager.getInstance(this)
                 .unregisterReceiver(serverServiceBroadcastReceiver)
     }
+
+    override fun appHasBeenSelected(app: App) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun sessionHasBeenSelected(session: Session) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+//    private fun startSession(session: Session) {
+//        val filesystem = filesystemList.find { it.name == session.filesystemName }
+//        val serviceIntent = Intent(activityContext, ServerService::class.java)
+//        serviceIntent.putExtra("type", "start")
+//        serviceIntent.putExtra("session", session)
+//        serviceIntent.putExtra("filesystem", filesystem)
+//        activityContext.startService(serviceIntent)
+//    }
+//
+//    private fun restartRunningSession(session: Session) {
+//        val serviceIntent = Intent(activityContext, ServerService::class.java)
+//        serviceIntent.putExtra("type", "restartRunningSession")
+//        serviceIntent.putExtra("session", session)
+//        activityContext.startService(serviceIntent)
+//    }
 
     private fun showToast(intent: Intent) {
         val content = intent.getIntExtra("id", -1)

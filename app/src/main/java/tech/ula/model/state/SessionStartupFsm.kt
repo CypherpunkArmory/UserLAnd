@@ -10,30 +10,43 @@ import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
+import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.DownloadUtility
 import tech.ula.utils.FilesystemUtility
+import tech.ula.utils.TimeUtility
 import tech.ula.utils.asyncAwait
 import java.io.File
 
 class SessionStartupFsm(
-        sessionDao: SessionDao,
+        ulaDatabase: UlaDatabase,
         private val assetRepository: AssetRepository,
         private val filesystemUtility: FilesystemUtility,
         private val downloadUtility: DownloadUtility) {
 
     private val state = MutableLiveData<SessionStartupState>().apply { postValue(WaitingForSessionSelection) }
 
+    private val sessionDao = ulaDatabase.sessionDao()
     private val activeSessionsLiveData = sessionDao.findActiveSessions()
     private val activeSessions = mutableListOf<Session>()
+
+    private val filesystemDao = ulaDatabase.filesystemDao()
+    private val filesystemsLiveData = filesystemDao.getAllFilesystems()
+    private val filesystems = mutableListOf<Filesystem>()
 
     private val downloadingAssets = mutableListOf<Pair<Asset, Long>>()
     private val downloadedIds = mutableListOf<Long>()
 
     init {
         activeSessionsLiveData.observeForever {
-            it?.let {list ->
+            it?.let { list ->
                 activeSessions.clear()
                 activeSessions.addAll(list)
+            }
+        }
+        filesystemsLiveData.observeForever {
+            it?.let { list ->
+                filesystems.clear()
+                filesystems.addAll(list)
             }
         }
     }
@@ -78,6 +91,11 @@ class SessionStartupFsm(
         }
     }
 
+    // TODO handle non-existence?
+    private fun findFilesystemForSession(session: Session): Filesystem {
+        return filesystems.find { filesystem -> filesystem.id == session.filesystemId }!!
+    }
+
     private fun handleSessionSelected(session: Session) {
         if (activeSessions.isNotEmpty()) {
             if (activeSessions.contains(session)) {
@@ -89,7 +107,8 @@ class SessionStartupFsm(
             return
         }
 
-        state.postValue(SessionIsReadyForPreparation(session))
+        val filesystem = findFilesystemForSession(session)
+        state.postValue(SessionIsReadyForPreparation(session, filesystem))
     }
 
     private fun handleRetrieveAssetLists(filesystem: Filesystem) = runBlocking {
@@ -195,6 +214,7 @@ class SessionStartupFsm(
     private fun copyDistributionAssetsToFilesystem(filesystem: Filesystem): Boolean {
         return try {
             filesystemUtility.copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType)
+            assetRepository.setLastDistributionUpdate(filesystem.distributionType, TimeUtility().getCurrentTimeMillis()) // TODO inject and test
             true
         } catch (err: Exception) {
             false
@@ -237,7 +257,7 @@ data class IncorrectTransition(val event: SessionStartupEvent, val state: Sessio
 object WaitingForSessionSelection : SessionStartupState()
 object SingleSessionSupported : SessionStartupState()
 data class SessionIsRestartable(val session: Session) : SessionStartupState()
-data class SessionIsReadyForPreparation(val session: Session) : SessionStartupState()
+data class SessionIsReadyForPreparation(val session: Session, val filesystem: Filesystem) : SessionStartupState()
 object RetrievingAssetLists : SessionStartupState()
 data class AssetListsRetrievalSucceeded(val assetLists: List<List<Asset>>) : SessionStartupState()
 object AssetListsRetrievalFailed : SessionStartupState()

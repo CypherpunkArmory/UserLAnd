@@ -59,6 +59,11 @@ class AssetRepositoryTest {
     }
 
     @Test
+    fun `Retrieves cached assets if remote are unavailable`() {
+        // TODO
+    }
+
+    @Test
     fun allTypesOfCachedAssetListsAreRetrieved() {
         whenever(connectionUtility.httpsHostIsReachable("github.com")).thenReturn(true)
 

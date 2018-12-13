@@ -54,7 +54,7 @@ class AssetRepository(
                 distributionType to deviceArchitecture
         )
 
-        if (connectionUtility.httpsHostIsReachable("github.com")) return getCachedAssetLists(allAssetListTypes)
+        if (!connectionUtility.httpsHostIsReachable("github.com")) return getCachedAssetLists(allAssetListTypes)
         return retrieveAllRemoteAssetLists(allAssetListTypes)
     }
 
