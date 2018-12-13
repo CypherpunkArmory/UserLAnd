@@ -43,9 +43,6 @@ class SessionListFragment : Fragment() {
     }
 
     private lateinit var activityContext: MainActivity
-    private val permissionRequestCode: Int by lazy {
-        activityContext.resources.getString(R.string.permission_request_code).toInt()
-    }
 
     private lateinit var sessionList: List<Session>
     private lateinit var sessionAdapter: SessionListAdapter

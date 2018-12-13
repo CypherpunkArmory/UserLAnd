@@ -282,7 +282,7 @@ class DownloadManagerWrapper {
 
     fun downloadHasNotFailed(cursor: Cursor): Boolean {
         if (cursor.moveToFirst()) {
-            val status = cursor.getInt(cursor.getColumnIndex(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+            val status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
             return status != DownloadManager.STATUS_FAILED
         }
         return false
@@ -290,22 +290,6 @@ class DownloadManagerWrapper {
 
     fun getDownloadsDirectory(): File {
         return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-    }
-}
-
-class DownloadBroadcastReceiver : BroadcastReceiver() {
-    private var doOnReceived: (Long) -> Unit = {}
-
-    fun setDoOnReceived(action: (Long) -> Unit) {
-        doOnReceived = action
-    }
-
-    override fun onReceive(context: Context?, intent: Intent?) {
-        val downloadedId = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-        downloadedId?.let {
-            if (it == -1L) return@let
-            doOnReceived(it)
-        }
     }
 }
 

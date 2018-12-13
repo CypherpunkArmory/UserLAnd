@@ -1,5 +1,6 @@
 package tech.ula
 
+import android.Manifest
 import android.app.AlertDialog
 import android.app.DownloadManager
 import android.arch.lifecycle.Observer
@@ -32,8 +33,7 @@ import tech.ula.model.entities.App
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.model.state.SessionStartupFsm
-import tech.ula.model.state.SessionStartupState
+import tech.ula.model.state.*
 import tech.ula.ui.AppListFragment
 import tech.ula.ui.SessionListFragment
 import tech.ula.utils.*
@@ -41,6 +41,10 @@ import tech.ula.viewmodel.MainActivityViewModel
 import tech.ula.viewmodel.MainActivityViewModelFactory
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection {
+
+    private val permissionRequestCode: Int by lazy {
+        getString(R.string.permission_request_code).toInt()
+    }
 
     private var progressBarIsVisible = false
     private var currentFragmentDisplaysProgressDialog = false
@@ -53,10 +57,19 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         NotificationUtility(this)
     }
 
+    private val downloadBroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+            Log.i("MainActivity", "Download completed")
+            if (id == -1L) return
+            // TODO what happens if intent received from nonula download
+            else viewModel.submitSessionStartupEvent(AssetDownloadComplete(id))
+        }
+    }
+
     private val serverServiceBroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            intent?.let {
-                val type = it.getStringExtra("type")
+        override fun onReceive(context: Context, intent: Intent) {
+            intent.getStringExtra("type")?.let { type ->
                 when (type) {
                     "updateProgressBar" -> {
                         val step = intent.getStringExtra("step")
@@ -64,10 +77,10 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                         updateProgressBar(step, details)
                     }
                     "killProgressBar" -> killProgressBar()
-                    "isProgressBarActive" -> syncProgressBarDisplayedWithService(it)
+                    "isProgressBarActive" -> syncProgressBarDisplayedWithService(intent)
                     "displayNetworkChoices" -> displayNetworkChoicesDialog()
-                    "toast" -> showToast(it)
-                    "dialog" -> showDialog(it)
+                    "toast" -> showToast(intent)
+                    "dialog" -> showDialog(intent)
                 }
             }
         }
@@ -95,6 +108,18 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private val sessionStartupStateObserver = Observer<SessionStartupState> {
         it?.let { state ->
             Log.i("MainActivity", "Session startup state: $state")
+            when (state) {
+                is IncorrectTransition -> {}
+                is WaitingForSessionSelection -> viewModel.sessionsAreWaitingForSelection = true
+                is SingleSessionSupported -> {}
+                is SessionIsRestartable -> {}
+                is SessionIsReadyForPreparation -> {
+                    viewModel.lastSelectedSession = state.session
+                    viewModel.lastSelectedFilesystem = state.filesystem
+                    handleSessionPreparationState(state)
+                }
+                else -> handleSessionPreparationState(state)
+            }
         }
     }
 
@@ -143,6 +168,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         super.onStart()
         LocalBroadcastManager.getInstance(this)
                 .registerReceiver(serverServiceBroadcastReceiver, IntentFilter(ServerService.SERVER_SERVICE_RESULT))
+        registerReceiver(downloadBroadcastReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
     }
 
     override fun onResume() {
@@ -167,6 +193,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         super.onStop()
         LocalBroadcastManager.getInstance(this)
                 .unregisterReceiver(serverServiceBroadcastReceiver)
+        unregisterReceiver(downloadBroadcastReceiver)
     }
 
     override fun appHasBeenSelected(app: App) {
@@ -174,7 +201,61 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     override fun sessionHasBeenSelected(session: Session) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        if(!arePermissionsGranted(this)) {
+            showPermissionsNecessaryDialog()
+            return
+        }
+        if (viewModel.selectionsCanBeMade()) {
+            viewModel.submitSessionStartupEvent(SessionSelected(session))
+        }
+    }
+
+    fun handleSessionPreparationState(state: SessionStartupState) {
+        if (!viewModel.sessionPreparationRequirementsHaveBeenSelected()) {
+            // TODO error dialog
+            return
+        }
+        when (state) {
+            is SessionIsReadyForPreparation -> {
+                val filesystem = viewModel.lastSelectedFilesystem
+                viewModel.submitSessionStartupEvent(RetrieveAssetLists(filesystem))
+            }
+            is RetrievingAssetLists -> {}
+            is AssetListsRetrievalSucceeded -> {
+                val filesystem = viewModel.lastSelectedFilesystem
+                val assetLists = state.assetLists
+                viewModel.submitSessionStartupEvent(GenerateDownloads(filesystem, assetLists))
+            }
+            is AssetListsRetrievalFailed -> {}
+            is GeneratingDownloadRequirements -> {}
+            is DownloadsRequired -> {
+                if (state.largeDownloadRequired) {} // TODO
+                val assetsToDownload = state.requiredDownloads
+                viewModel.submitSessionStartupEvent(DownloadAssets(assetsToDownload))
+            }
+            is DownloadsHaveSucceeded -> {
+                viewModel.submitSessionStartupEvent(CopyDownloadsToLocalStorage)
+            }
+            is DownloadsHaveFailed -> {}
+            is CopyingFilesToRequiredDirectories -> {}
+            is CopyingSucceeded -> {
+                val filesystem = viewModel.lastSelectedFilesystem
+                viewModel.submitSessionStartupEvent(ExtractFilesystem(filesystem) {
+                    Log.i("MainActivity", "Extracting: $it")
+                })
+            }
+            is CopyingFailed -> {}
+            is DistributionCopyFailed -> {}
+            is ExtractingFilesystem -> {}
+            is ExtractionSucceeded -> {
+                val filesystem = viewModel.lastSelectedFilesystem
+                viewModel.submitSessionStartupEvent(VerifyFilesystemAssets(filesystem))
+            }
+            is ExtractionFailed -> {}
+            is VerifyingFilesystemAssets -> {}
+            is FilesystemHasRequiredAssets -> {}
+            is FilesystemIsMissingRequiredAssets -> {}
+        }
     }
 
 //    private fun startSession(session: Session) {
@@ -219,6 +300,24 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 displayGenericErrorDialog(this, R.string.general_error_title,
                         R.string.alert_network_strength_too_low_for_downloads)
         }
+    }
+
+    private fun showPermissionsNecessaryDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setMessage(R.string.alert_permissions_necessary_message)
+                .setTitle(R.string.alert_permissions_necessary_title)
+                .setPositiveButton(R.string.button_ok) {
+                    dialog, _ ->
+                    requestPermissions(arrayOf(
+                            Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                            permissionRequestCode)
+                    dialog.dismiss()
+                }
+                .setNegativeButton(R.string.alert_permissions_necessary_cancel_button) {
+                    dialog, _ ->
+                    dialog.dismiss()
+                }
+        builder.create().show()
     }
 
     private fun killProgressBar() {

@@ -284,6 +284,6 @@ data class RetrieveAssetLists(val filesystem: Filesystem) : SessionStartupEvent(
 data class GenerateDownloads(val filesystem: Filesystem, val assetLists: List<List<Asset>>) : SessionStartupEvent()
 data class DownloadAssets(val assetsToDownload: List<Asset>) : SessionStartupEvent()
 data class AssetDownloadComplete(val downloadAssetId: Long) : SessionStartupEvent()
-data class CopyDownloadsToLocalStorage(val filesDir: File, val assetLists: List<List<Asset>>) : SessionStartupEvent()
+object CopyDownloadsToLocalStorage : SessionStartupEvent()
 data class ExtractFilesystem(val filesystem: Filesystem, val extractionLogger: (line: String) -> Unit) : SessionStartupEvent()
 data class VerifyFilesystemAssets(val filesystem: Filesystem) : SessionStartupEvent()

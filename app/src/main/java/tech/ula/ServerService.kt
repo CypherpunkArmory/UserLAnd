@@ -36,7 +36,6 @@ class ServerService : Service() {
 
     private lateinit var broadcaster: LocalBroadcastManager
 
-    private val downloadBroadcastReceiver = DownloadBroadcastReceiver()
 
     private val notificationManager: NotificationUtility by lazy {
         NotificationUtility(this)
@@ -86,12 +85,6 @@ class ServerService : Service() {
 
     override fun onCreate() {
         broadcaster = LocalBroadcastManager.getInstance(this)
-        registerReceiver(downloadBroadcastReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
-    }
-
-    override fun onDestroy() {
-        unregisterReceiver(downloadBroadcastReceiver)
-        super.onDestroy()
     }
 
     override fun onBind(intent: Intent?): IBinder? {
