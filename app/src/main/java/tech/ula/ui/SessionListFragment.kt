@@ -3,24 +3,36 @@ package tech.ula.ui
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
+import android.app.DownloadManager
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Environment
 import android.support.v4.app.Fragment
+import android.util.Log
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_session_list.* // ktlint-disable no-wildcard-imports
 import org.jetbrains.anko.bundleOf
+import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.utils.arePermissionsGranted
+import tech.ula.model.repositories.AssetRepository
+import tech.ula.model.repositories.UlaDatabase
+import tech.ula.model.state.SessionSelected
+import tech.ula.model.state.SessionStartupFsm
+import tech.ula.model.state.SessionStartupState
+import tech.ula.model.state.WaitingForSessionSelection
+import tech.ula.utils.*
 import tech.ula.viewmodel.SessionListViewModel
+import tech.ula.viewmodel.SessionListViewModelFactory
 
 class SessionListFragment : Fragment() {
 
@@ -37,7 +49,30 @@ class SessionListFragment : Fragment() {
     private var lastSelectedSession = unselectedSession
 
     private val sessionListViewModel: SessionListViewModel by lazy {
-        ViewModelProviders.of(this).get(SessionListViewModel::class.java)
+        val ulaDatabase = UlaDatabase.getInstance(activityContext)
+        val appFilesDir = activityContext.filesDir
+
+        val timestampPreferences = TimestampPreferences(activityContext.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE))
+        val assetPreferences = AssetPreferences(activityContext.getSharedPreferences("assetLists", Context.MODE_PRIVATE))
+        val assetRepository = AssetRepository(appFilesDir.path, timestampPreferences, assetPreferences)
+
+        val execUtility = ExecUtility(appFilesDir.path, Environment.getExternalStorageDirectory().absolutePath, DefaultPreferences(activityContext.defaultSharedPreferences))
+        val filesystemUtility = FilesystemUtility(appFilesDir.path, execUtility)
+
+        val downloadManager = activityContext.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val downloadUtility = DownloadUtility(downloadManager, timestampPreferences, DownloadManagerWrapper(), appFilesDir)
+
+        val sessionStartupFsm = SessionStartupFsm(ulaDatabase.sessionDao(), assetRepository, filesystemUtility, downloadUtility)
+        ViewModelProviders.of(this, SessionListViewModelFactory(sessionStartupFsm, ulaDatabase)).get(SessionListViewModel::class.java)
+    }
+
+    private val startupStateObserver = Observer<SessionStartupState> {
+        it?.let { startupState ->
+            Log.i("FSM", "Session startup state: $startupState")
+            when (startupState) {
+                is WaitingForSessionSelection -> { Toast.makeText(activityContext, "WOO", Toast.LENGTH_LONG).show() }
+            }
+        }
     }
 
     private val sessionsAndFilesystemsChangeObserver = Observer<Pair<List<Session>, List<Filesystem>>> {
@@ -71,10 +106,10 @@ class SessionListFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        activityContext = activity!!
 
         sessionListViewModel.getSessionsAndFilesystems().observe(viewLifecycleOwner, sessionsAndFilesystemsChangeObserver)
-
-        activityContext = activity!!
+        sessionListViewModel.getSessionsStartupState().observe(viewLifecycleOwner, startupStateObserver)
 
         registerForContextMenu(list_sessions)
         list_sessions.onItemClickListener = AdapterView.OnItemClickListener {
@@ -102,15 +137,16 @@ class SessionListFragment : Fragment() {
 
     private fun handleSessionSelection(session: Session) {
         if (session == unselectedSession) return
-        if (session.active) {
-            restartRunningSession(session)
-        } else {
-            if (sessionList.any { it.active }) {
-                Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG).show()
-            } else {
-                startSession(session)
-            }
-        }
+        sessionListViewModel.submitSessionsStartupEvent(SessionSelected(session))
+//        if (session.active) {
+//            restartRunningSession(session)
+//        } else {
+//            if (sessionList.any { it.active }) {
+//                Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG).show()
+//            } else {
+//                startSession(session)
+//            }
+//        }
     }
 
     override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo) {
