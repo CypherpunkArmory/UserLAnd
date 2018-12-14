@@ -72,19 +72,16 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         override fun onReceive(context: Context, intent: Intent) {
             intent.getStringExtra("type")?.let { type ->
                 when (type) {
-                    "updateProgressBar" -> {
-                        val step = intent.getStringExtra("step")
-                        val details = intent.getStringExtra("details")
-                        updateProgressBar(step, details)
-                    }
-                    "killProgressBar" -> killProgressBar()
-                    "isProgressBarActive" -> syncProgressBarDisplayedWithService(intent)
-                    "displayNetworkChoices" -> displayNetworkChoicesDialog()
+                    "sessionActivated" -> viewModel.submitSessionStartupEvent(ResetState)
                     "toast" -> showToast(intent)
                     "dialog" -> showDialog(intent)
                 }
             }
         }
+    }
+
+    private val filesystemExtractionLogger: (String) -> Unit = { line ->
+        Log.i("MainActivity", "Extracting: $line")
     }
 
     private val viewModel: MainActivityViewModel by lazy {
@@ -109,18 +106,27 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private val sessionStartupStateObserver = Observer<SessionStartupState> {
         it?.let { state ->
             Log.i("MainActivity", "Session startup state: $state")
+            // Exit early in cases where state should not be reset
             when (state) {
                 is IncorrectTransition -> {}
-                is WaitingForSessionSelection -> viewModel.sessionsAreWaitingForSelection = true
+                is WaitingForSessionSelection -> {
+                    viewModel.sessionsAreWaitingForSelection = true
+                    return@let
+                }
                 is SingleSessionSupported -> {}
-                is SessionIsRestartable -> {}
+                is SessionIsRestartable -> { restartRunningSession(state.session) }
                 is SessionIsReadyForPreparation -> {
                     viewModel.lastSelectedSession = state.session
                     viewModel.lastSelectedFilesystem = state.filesystem
                     handleSessionPreparationState(state)
+                    return@let
                 }
-                else -> handleSessionPreparationState(state)
+                else -> {
+                    handleSessionPreparationState(state)
+                    return@let
+                }
             }
+            viewModel.submitSessionStartupEvent(ResetState)
         }
     }
 
@@ -211,7 +217,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         }
     }
 
-    fun handleSessionPreparationState(state: SessionStartupState) {
+    private fun handleSessionPreparationState(state: SessionStartupState) {
         if (!viewModel.sessionPreparationRequirementsHaveBeenSelected()) {
             // TODO error dialog
             return
@@ -234,6 +240,10 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 val assetsToDownload = state.requiredDownloads
                 viewModel.submitSessionStartupEvent(DownloadAssets(assetsToDownload))
             }
+            is NoDownloadsRequired -> {
+                val filesystem = viewModel.lastSelectedFilesystem
+                viewModel.submitSessionStartupEvent(ExtractFilesystem(filesystem, filesystemExtractionLogger))
+            }
             is DownloadsHaveSucceeded -> {
                 viewModel.submitSessionStartupEvent(CopyDownloadsToLocalStorage)
             }
@@ -241,9 +251,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             is CopyingFilesToRequiredDirectories -> {}
             is CopyingSucceeded -> {
                 val filesystem = viewModel.lastSelectedFilesystem
-                viewModel.submitSessionStartupEvent(ExtractFilesystem(filesystem) {
-                    Log.i("MainActivity", "Extracting: $it")
-                })
+                viewModel.submitSessionStartupEvent(ExtractFilesystem(filesystem, filesystemExtractionLogger))
             }
             is CopyingFailed -> {}
             is DistributionCopyFailed -> {}
@@ -268,13 +276,13 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 .putExtra("session", session)
         startService(serviceIntent)
     }
-//
-//    private fun restartRunningSession(session: Session) {
-//        val serviceIntent = Intent(activityContext, ServerService::class.java)
-//        serviceIntent.putExtra("type", "restartRunningSession")
-//        serviceIntent.putExtra("session", session)
-//        activityContext.startService(serviceIntent)
-//    }
+
+    private fun restartRunningSession(session: Session) {
+        val serviceIntent = Intent(this, ServerService::class.java)
+                .putExtra("type", "restartRunningSession")
+                .putExtra("session", session)
+        startService(serviceIntent)
+    }
 
     private fun showToast(intent: Intent) {
         val content = intent.getIntExtra("id", -1)
@@ -348,12 +356,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
         text_session_list_progress_step.text = step
         text_session_list_progress_details.text = details
-    }
-
-    private fun syncProgressBarDisplayedWithService(intent: Intent) {
-        val isActive = intent.getBooleanExtra("isProgressBarActive", false)
-        if (isActive) updateProgressBar("", "")
-        else killProgressBar()
     }
 
     private fun displayNetworkChoicesDialog() {

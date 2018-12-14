@@ -230,6 +230,7 @@ class ServerService : Service() {
             "vnc" -> startVncClient(session, "com.iiordanov.freebVNC")
             else -> sendToastBroadcast(R.string.client_not_found)
         }
+        sendSessionActivatedBroadcast()
     }
 
     private fun startSshClient(session: Session, packageName: String) {
@@ -284,6 +285,12 @@ class ServerService : Service() {
                 .forEach { killSession(it) }
 
         filesystemUtility.deleteFilesystem(filesystemId)
+    }
+
+    private fun sendSessionActivatedBroadcast() {
+        val intent = Intent(SERVER_SERVICE_RESULT)
+                .putExtra("type", "sessionActivated")
+        broadcaster.sendBroadcast(intent)
     }
 
     private fun sendToastBroadcast(id: Int) {

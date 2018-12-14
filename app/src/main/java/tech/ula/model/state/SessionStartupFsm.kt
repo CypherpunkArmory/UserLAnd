@@ -74,6 +74,7 @@ class SessionStartupFsm(
             is CopyDownloadsToLocalStorage -> { handleCopyDownloads() }
             is ExtractFilesystem -> { handleExtractFilesystem(event.filesystem, event.extractionLogger) }
             is VerifyFilesystemAssets -> { handleVerifyFilesystemAssets(event.filesystem) }
+            is ResetState -> { state.postValue(WaitingForSessionSelection) } // TODO test
         }
     }
 
@@ -88,6 +89,7 @@ class SessionStartupFsm(
             is CopyDownloadsToLocalStorage -> currentState is DownloadsHaveSucceeded
             is ExtractFilesystem -> currentState is NoDownloadsRequired || currentState is CopyingSucceeded
             is VerifyFilesystemAssets -> currentState is ExtractionSucceeded
+            is ResetState -> true // TODO test
         }
     }
 
@@ -164,6 +166,7 @@ class SessionStartupFsm(
         if (!downloadUtility.downloadedSuccessfully(downloadId)) state.postValue(DownloadsHaveFailed)
 
         downloadedIds.add(downloadId)
+        downloadUtility.setTimestampForDownloadedFile(downloadId) // TODO test
         if (downloadingAssets.size != downloadedIds.size) return
 
         state.postValue(DownloadsHaveSucceeded)
@@ -287,3 +290,4 @@ data class AssetDownloadComplete(val downloadAssetId: Long) : SessionStartupEven
 object CopyDownloadsToLocalStorage : SessionStartupEvent()
 data class ExtractFilesystem(val filesystem: Filesystem, val extractionLogger: (line: String) -> Unit) : SessionStartupEvent()
 data class VerifyFilesystemAssets(val filesystem: Filesystem) : SessionStartupEvent()
+object ResetState : SessionStartupEvent()
