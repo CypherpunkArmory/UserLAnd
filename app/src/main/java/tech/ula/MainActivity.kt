@@ -30,6 +30,7 @@ import androidx.navigation.ui.NavigationUI.setupWithNavController
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.model.entities.App
+import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.UlaDatabase
@@ -253,19 +254,20 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             }
             is ExtractionFailed -> {}
             is VerifyingFilesystemAssets -> {}
-            is FilesystemHasRequiredAssets -> {}
+            is FilesystemHasRequiredAssets -> {
+                val session = viewModel.lastSelectedSession
+                startSession(session)
+            }
             is FilesystemIsMissingRequiredAssets -> {}
         }
     }
 
-//    private fun startSession(session: Session) {
-//        val filesystem = filesystemList.find { it.name == session.filesystemName }
-//        val serviceIntent = Intent(activityContext, ServerService::class.java)
-//        serviceIntent.putExtra("type", "start")
-//        serviceIntent.putExtra("session", session)
-//        serviceIntent.putExtra("filesystem", filesystem)
-//        activityContext.startService(serviceIntent)
-//    }
+    private fun startSession(session: Session) {
+        val serviceIntent = Intent(this, ServerService::class.java)
+                .putExtra("type", "start")
+                .putExtra("session", session)
+        startService(serviceIntent)
+    }
 //
 //    private fun restartRunningSession(session: Session) {
 //        val serviceIntent = Intent(activityContext, ServerService::class.java)
