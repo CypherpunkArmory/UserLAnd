@@ -1,31 +1,20 @@
 package tech.ula.ui
 
-import android.Manifest
-import android.app.Activity
-import android.app.AlertDialog
-import android.app.DownloadManager
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
-import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
-import android.os.Environment
 import android.support.v4.app.Fragment
-import android.util.Log
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
-import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_session_list.* // ktlint-disable no-wildcard-imports
 import org.jetbrains.anko.bundleOf
-import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.MainActivity
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.state.*
 import tech.ula.utils.*

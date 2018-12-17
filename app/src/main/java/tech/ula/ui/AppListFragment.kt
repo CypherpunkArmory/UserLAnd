@@ -1,7 +1,6 @@
 package tech.ula.ui
 
 import android.Manifest
-import android.app.Activity
 import android.app.AlertDialog
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders

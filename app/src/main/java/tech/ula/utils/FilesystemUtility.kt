@@ -1,7 +1,7 @@
 package tech.ula.utils
 
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import java.io.File
@@ -83,7 +83,7 @@ class FilesystemUtility(
 
     fun deleteFilesystem(filesystemId: Long) {
         val directory = File("$applicationFilesDirPath/$filesystemId")
-        launch(CommonPool) {
+        GlobalScope.launch {
             if (directory.exists() && directory.isDirectory)
                 directory.deleteRecursively()
             val isDirectoryDeleted = directory.deleteRecursively()

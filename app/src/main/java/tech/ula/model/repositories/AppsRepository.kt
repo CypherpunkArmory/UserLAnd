@@ -3,13 +3,13 @@ package tech.ula.model.repositories
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.util.Log
+import kotlinx.coroutines.withContext
 import tech.ula.model.daos.AppsDao
 import tech.ula.model.entities.App
 import tech.ula.model.remote.RemoteAppsSource
 import tech.ula.utils.AppsPreferences
 import tech.ula.utils.ConnectionUtility
-
-import tech.ula.utils.asyncAwait
+import kotlin.coroutines.coroutineContext
 
 class AppsRepository(
     private val appsDao: AppsDao,
@@ -29,7 +29,7 @@ class AppsRepository(
             refreshStatus.postValue(RefreshStatus.FAILED)
             return
         }
-        asyncAwait {
+        withContext(coroutineContext) {
             refreshStatus.postValue(RefreshStatus.ACTIVE)
             try {
                 remoteAppsSource.fetchAppsList().forEach {
@@ -44,7 +44,7 @@ class AppsRepository(
             } catch (err: Exception) {
                 refreshStatus.postValue(RefreshStatus.FAILED)
                 Log.e("refresh", err.message)
-                return@asyncAwait
+                return@withContext
             }
             refreshStatus.postValue(RefreshStatus.FINISHED)
         }

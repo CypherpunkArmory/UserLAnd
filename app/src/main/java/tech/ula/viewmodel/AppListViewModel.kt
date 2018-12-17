@@ -3,7 +3,8 @@ package tech.ula.viewmodel
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import tech.ula.model.entities.App
 import tech.ula.model.repositories.AppsRepository
 import tech.ula.model.repositories.RefreshStatus
@@ -29,7 +30,7 @@ class AppListViewModel(
     }
 
     fun refreshAppsList() {
-        launch { appsRepository.refreshData() }
+        GlobalScope.launch { appsRepository.refreshData() }
     }
 
     fun getRefreshStatus(): LiveData<RefreshStatus> {

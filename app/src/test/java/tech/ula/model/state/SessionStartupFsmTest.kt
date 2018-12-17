@@ -112,7 +112,7 @@ class SessionStartupFsmTest {
                 AssetListsRetrievalFailed,
                 GeneratingDownloadRequirements,
                 NoDownloadsRequired,
-                DownloadsRequired(singleAssetList,false),
+                DownloadsRequired(singleAssetList, false),
                 DownloadingRequirements,
                 DownloadsHaveSucceeded,
                 DownloadsHaveFailed,

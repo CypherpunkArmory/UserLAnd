@@ -2,8 +2,10 @@ package tech.ula.model.state
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
-import android.arch.lifecycle.Transformations
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
@@ -99,7 +101,7 @@ class AppsStartupFsm(
         }
 
         val preferredServiceType = appsPreferences.getAppServiceTypePreference(app)
-        val appsFilesystem = async { findAppsFilesystem(app) }.await()
+        val appsFilesystem = withContext(coroutineContext) { findAppsFilesystem(app) }
         val deferredAppsSession = async { findAppSession(app, preferredServiceType, appsFilesystem) }
 
         if (appIsRestartable(app)) {
@@ -127,24 +129,28 @@ class AppsStartupFsm(
         appsPreferences.setAppServiceTypePreference(appName, serviceTypePreference)
     }
 
-    private suspend fun findAppsFilesystem(app: App): Filesystem {
-        val potentialAppFilesystem = asyncAwait { filesystemDao.findAppsFilesystemByType(app.filesystemRequired) }
+    private suspend fun findAppsFilesystem(app: App): Filesystem = coroutineScope {
+        val potentialAppFilesystem = withContext(coroutineContext) { filesystemDao.findAppsFilesystemByType(app.filesystemRequired) }
 
         if (potentialAppFilesystem.isEmpty()) {
             val deviceArchitecture = buildWrapper.getArchType()
             val fsToInsert = Filesystem(0, name = "apps", archType = deviceArchitecture,
                     distributionType = app.filesystemRequired, isAppsFilesystem = true)
-            asyncAwait { filesystemDao.insertFilesystem(fsToInsert) }
+            withContext(coroutineContext) { filesystemDao.insertFilesystem(fsToInsert) }
         }
 
-        return asyncAwait { filesystemDao.findAppsFilesystemByType(app.filesystemRequired).first() }
+        return@coroutineScope withContext(coroutineContext) { filesystemDao.findAppsFilesystemByType(app.filesystemRequired).first() }
     }
 
     // TODO possible to remove dependency on filesystem being immediately present and updating session
     // TODO appropriately later?
-    private suspend fun findAppSession(app: App, serviceTypePreference: AppServiceTypePreference, appsFilesystem: Filesystem): Session {
+    private suspend fun findAppSession(
+        app: App,
+        serviceTypePreference: AppServiceTypePreference,
+        appsFilesystem: Filesystem
+    ): Session = coroutineScope {
         val serviceType = serviceTypePreference.toString()
-        val potentialAppSession = asyncAwait {
+        val potentialAppSession = withContext(coroutineContext) {
             sessionDao.findAppsSession(app.name)
         }
 
@@ -158,10 +164,10 @@ class AppsStartupFsm(
                     password = appsFilesystem.defaultPassword,
                     vncPassword = appsFilesystem.defaultVncPassword, isAppsSession = true,
                     port = portOrDisplay)
-            asyncAwait { sessionDao.insertSession(sessionToInsert) }
+            withContext(coroutineContext) { sessionDao.insertSession(sessionToInsert) }
         }
 
-        return sessionDao.findAppsSession(app.name).first()
+        return@coroutineScope withContext(coroutineContext) { sessionDao.findAppsSession(app.name).first() }
     }
 
     private fun appIsRestartable(app: App): Boolean {
@@ -178,7 +184,7 @@ class AppsStartupFsm(
         filesystem.defaultUsername = username
         filesystem.defaultPassword = password
         filesystem.defaultVncPassword = vncPassword
-        async { filesystemDao.updateFilesystem(filesystem) }.await()
+        async { filesystemDao.updateFilesystem(filesystem) }
     }
 
     private fun updateAppSession(appSession: Session, serviceTypePreference: AppServiceTypePreference, appsFilesystem: Filesystem) = runBlocking {

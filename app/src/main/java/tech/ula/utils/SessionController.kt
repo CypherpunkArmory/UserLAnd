@@ -1,11 +1,6 @@
 package tech.ula.utils
 
-import android.content.res.Resources
-import kotlinx.coroutines.experimental.delay
-import tech.ula.R
 import tech.ula.model.entities.Asset
-import tech.ula.model.entities.Filesystem
-import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 
 class SessionController(

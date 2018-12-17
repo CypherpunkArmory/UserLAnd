@@ -1,28 +1,18 @@
 package tech.ula
 
-import android.app.DownloadManager
 import android.app.Service
 import android.content.ActivityNotFoundException
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
-import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Environment
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.*
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.doAsync
 import tech.ula.model.entities.App
-import tech.ula.model.entities.Asset
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.model.repositories.AssetRepository
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 
 class ServerService : Service() {
@@ -34,7 +24,6 @@ class ServerService : Service() {
     private val activeSessions: MutableMap<Long, Session> = mutableMapOf()
 
     private lateinit var broadcaster: LocalBroadcastManager
-
 
     private val notificationManager: NotificationUtility by lazy {
         NotificationUtility(this)
@@ -120,7 +109,7 @@ class ServerService : Service() {
 
     private fun startSession(session: Session) = runBlocking {
         startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
-        val updatedSession = asyncAwait {
+        val updatedSession = withContext(coroutineContext) {
             session.pid = serverUtility.startServer(session)
 
             while (!serverUtility.isServerRunning(session)) {

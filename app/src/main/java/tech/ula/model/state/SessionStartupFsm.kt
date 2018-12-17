@@ -2,10 +2,9 @@ package tech.ula.model.state
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.runBlocking
-import tech.ula.model.daos.SessionDao
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
@@ -14,14 +13,13 @@ import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.DownloadUtility
 import tech.ula.utils.FilesystemUtility
 import tech.ula.utils.TimeUtility
-import tech.ula.utils.asyncAwait
-import java.io.File
 
 class SessionStartupFsm(
-        ulaDatabase: UlaDatabase,
-        private val assetRepository: AssetRepository,
-        private val filesystemUtility: FilesystemUtility,
-        private val downloadUtility: DownloadUtility) {
+    ulaDatabase: UlaDatabase,
+    private val assetRepository: AssetRepository,
+    private val filesystemUtility: FilesystemUtility,
+    private val downloadUtility: DownloadUtility
+) {
 
     private val state = MutableLiveData<SessionStartupState>().apply { postValue(WaitingForSessionSelection) }
 
@@ -136,11 +134,11 @@ class SessionStartupFsm(
         state.postValue(GeneratingDownloadRequirements)
 
         val requiredDownloads = assetLists.map { assetList ->
-            assetList.filter { asset ->  
+            assetList.filter { asset ->
                 val needsUpdate = assetRepository.doesAssetNeedToUpdated(asset)
 
-                if (asset.isLarge && needsUpdate && filesystemUtility.
-                                hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")) {
+                if (asset.isLarge && needsUpdate && filesystemUtility
+                                .hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")) {
                     return@filter false
                 }
                 needsUpdate
@@ -171,7 +169,7 @@ class SessionStartupFsm(
 
         downloadedIds.add(downloadId)
         downloadUtility.setTimestampForDownloadedFile(downloadId) // TODO test
-        if (downloadingAssets.size != downloadedIds.size){
+        if (downloadingAssets.size != downloadedIds.size) {
             state.postValue(DownloadingRequirements(downloadedIds.size, downloadingAssets.size)) // TODO test
             return
         }
@@ -204,7 +202,7 @@ class SessionStartupFsm(
             return@runBlocking
         }
 
-        asyncAwait {
+        withContext(coroutineContext) {
             // TODO test
             filesystemUtility.extractFilesystem(filesystem, extractionLogger)
 //            while (!filesystemUtility.isExtractionComplete(filesystemDirectoryName)) {
@@ -243,13 +241,12 @@ class SessionStartupFsm(
                 state.postValue(FilesystemHasRequiredAssets)
             }
 
-            allAssetsArePresent-> {
+            allAssetsArePresent -> {
                 val copyingSucceeded = copyDistributionAssetsToFilesystem(filesystem)
                 if (copyingSucceeded) {
                     state.postValue(FilesystemHasRequiredAssets)
                     filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
-                }
-                else state.postValue(DistributionCopyFailed)
+                } else state.postValue(DistributionCopyFailed)
             }
 
             else -> {
@@ -279,7 +276,7 @@ object DownloadsHaveFailed : SessionStartupState()
 object CopyingFilesToRequiredDirectories : SessionStartupState()
 object CopyingSucceeded : SessionStartupState()
 object CopyingFailed : SessionStartupState()
-object DistributionCopyFailed: SessionStartupState()
+object DistributionCopyFailed : SessionStartupState()
 data class ExtractingFilesystem(val extractionTarget: String) : SessionStartupState()
 object ExtractionSucceeded : SessionStartupState()
 object ExtractionFailed : SessionStartupState()
