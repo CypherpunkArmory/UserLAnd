@@ -68,6 +68,7 @@
     <string name="progress_copying_downloads">Copying downloaded files to local storage&#8230;</string>
     <string name="progress_setting_up">Setting up filesystem&#8230;</string>
     <string name="progress_setting_up_extract_text">Extracting: %1$s</string>
+    <string name="progress_verifying_assets">Verifying assets&#8230;</string>
     <string name="progress_starting">Starting service&#8230;</string>
     <string name="progress_connecting">Connecting to service&#8230;</string>
 

@@ -36,6 +36,10 @@ class SessionStartupFsm(
     private val downloadingAssets = mutableListOf<Pair<Asset, Long>>()
     private val downloadedIds = mutableListOf<Long>()
 
+    private val extractionLogger: (String) -> Unit = { line ->
+        state.postValue(ExtractingFilesystem(line))
+    }
+
     init {
         activeSessionsLiveData.observeForever {
             it?.let { list ->
@@ -72,7 +76,7 @@ class SessionStartupFsm(
             is DownloadAssets -> { handleDownloadAssets(event.assetsToDownload) }
             is AssetDownloadComplete -> { handleAssetsDownloadComplete(event.downloadAssetId) }
             is CopyDownloadsToLocalStorage -> { handleCopyDownloads() }
-            is ExtractFilesystem -> { handleExtractFilesystem(event.filesystem, event.extractionLogger) }
+            is ExtractFilesystem -> { handleExtractFilesystem(event.filesystem) }
             is VerifyFilesystemAssets -> { handleVerifyFilesystemAssets(event.filesystem) }
             is ResetState -> { state.postValue(WaitingForSessionSelection) } // TODO test
         }
@@ -153,13 +157,13 @@ class SessionStartupFsm(
     }
 
     private fun handleDownloadAssets(assetsToDownload: List<Asset>) {
-        state.postValue(DownloadingRequirements)
 
         downloadingAssets.clear()
         downloadedIds.clear()
 
         val newDownloads = downloadUtility.downloadRequirements(assetsToDownload)
         downloadingAssets.addAll(newDownloads)
+        state.postValue(DownloadingRequirements(0, downloadingAssets.size)) // TODO test
     }
 
     private fun handleAssetsDownloadComplete(downloadId: Long) {
@@ -167,7 +171,10 @@ class SessionStartupFsm(
 
         downloadedIds.add(downloadId)
         downloadUtility.setTimestampForDownloadedFile(downloadId) // TODO test
-        if (downloadingAssets.size != downloadedIds.size) return
+        if (downloadingAssets.size != downloadedIds.size){
+            state.postValue(DownloadingRequirements(downloadedIds.size, downloadingAssets.size)) // TODO test
+            return
+        }
 
         state.postValue(DownloadsHaveSucceeded)
     }
@@ -183,15 +190,13 @@ class SessionStartupFsm(
         state.postValue(CopyingSucceeded)
     }
 
-    private fun handleExtractFilesystem(filesystem: Filesystem, extractionLogger: (line: String) -> Unit) = runBlocking {
+    private fun handleExtractFilesystem(filesystem: Filesystem) = runBlocking {
         val filesystemDirectoryName = "${filesystem.id}"
 
         if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
             state.postValue(ExtractionSucceeded)
             return@runBlocking
         }
-
-        state.postValue(ExtractingFilesystem)
 
         val copyingSucceeded = copyDistributionAssetsToFilesystem(filesystem)
         if (!copyingSucceeded) {
@@ -200,10 +205,11 @@ class SessionStartupFsm(
         }
 
         asyncAwait {
+            // TODO test
             filesystemUtility.extractFilesystem(filesystem, extractionLogger)
-            while (!filesystemUtility.isExtractionComplete(filesystemDirectoryName)) {
-                delay(500)
-            }
+//            while (!filesystemUtility.isExtractionComplete(filesystemDirectoryName)) {
+//                delay(500)
+//            }
         }
 
         if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
@@ -267,14 +273,14 @@ object AssetListsRetrievalFailed : SessionStartupState()
 object GeneratingDownloadRequirements : SessionStartupState()
 data class DownloadsRequired(val requiredDownloads: List<Asset>, val largeDownloadRequired: Boolean) : SessionStartupState()
 object NoDownloadsRequired : SessionStartupState()
-object DownloadingRequirements : SessionStartupState()
+data class DownloadingRequirements(val numCompleted: Int, val numTotal: Int) : SessionStartupState()
 object DownloadsHaveSucceeded : SessionStartupState()
 object DownloadsHaveFailed : SessionStartupState()
 object CopyingFilesToRequiredDirectories : SessionStartupState()
 object CopyingSucceeded : SessionStartupState()
 object CopyingFailed : SessionStartupState()
 object DistributionCopyFailed: SessionStartupState()
-object ExtractingFilesystem : SessionStartupState()
+data class ExtractingFilesystem(val extractionTarget: String) : SessionStartupState()
 object ExtractionSucceeded : SessionStartupState()
 object ExtractionFailed : SessionStartupState()
 object VerifyingFilesystemAssets : SessionStartupState()
@@ -288,6 +294,6 @@ data class GenerateDownloads(val filesystem: Filesystem, val assetLists: List<Li
 data class DownloadAssets(val assetsToDownload: List<Asset>) : SessionStartupEvent()
 data class AssetDownloadComplete(val downloadAssetId: Long) : SessionStartupEvent()
 object CopyDownloadsToLocalStorage : SessionStartupEvent()
-data class ExtractFilesystem(val filesystem: Filesystem, val extractionLogger: (line: String) -> Unit) : SessionStartupEvent()
+data class ExtractFilesystem(val filesystem: Filesystem) : SessionStartupEvent()
 data class VerifyFilesystemAssets(val filesystem: Filesystem) : SessionStartupEvent()
 object ResetState : SessionStartupEvent()

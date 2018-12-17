@@ -49,7 +49,8 @@ class FilesystemUtility(
             env["INITIAL_PASSWORD"] = filesystem.defaultPassword
             env["INITIAL_VNC_PASSWORD"] = filesystem.defaultVncPassword
 
-            execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, listener, environmentVars = env)
+            val proc = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, listener, environmentVars = env)
+            proc.waitFor()
         } catch (err: Exception) {
             logger.logRuntimeErrorForCommand(functionName = "extractFilesystem", command = command, err = err)
         }

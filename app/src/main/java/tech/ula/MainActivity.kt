@@ -72,16 +72,12 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         override fun onReceive(context: Context, intent: Intent) {
             intent.getStringExtra("type")?.let { type ->
                 when (type) {
-                    "sessionActivated" -> viewModel.submitSessionStartupEvent(ResetState)
+                    "sessionActivated" -> handleSessionHasBeenActivated()
                     "toast" -> showToast(intent)
                     "dialog" -> showDialog(intent)
                 }
             }
         }
-    }
-
-    private val filesystemExtractionLogger: (String) -> Unit = { line ->
-        Log.i("MainActivity", "Extracting: $line")
     }
 
     private val viewModel: MainActivityViewModel by lazy {
@@ -227,7 +223,11 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 val filesystem = viewModel.lastSelectedFilesystem
                 viewModel.submitSessionStartupEvent(RetrieveAssetLists(filesystem))
             }
-            is RetrievingAssetLists -> {}
+            is RetrievingAssetLists -> {
+                val step = getString(R.string.progress_fetching_asset_lists)
+                val details = ""
+                updateProgressBar(step, details)
+            }
             is AssetListsRetrievalSucceeded -> {
                 val filesystem = viewModel.lastSelectedFilesystem
                 val assetLists = state.assetLists
@@ -242,26 +242,43 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             }
             is NoDownloadsRequired -> {
                 val filesystem = viewModel.lastSelectedFilesystem
-                viewModel.submitSessionStartupEvent(ExtractFilesystem(filesystem, filesystemExtractionLogger))
+                viewModel.submitSessionStartupEvent(ExtractFilesystem(filesystem))
+            }
+            is DownloadingRequirements -> {
+                val step = getString(R.string.progress_downloading)
+                val details = getString(R.string.progress_downloading_out_of, state.numCompleted, state.numTotal)
+                updateProgressBar(step, details)
             }
             is DownloadsHaveSucceeded -> {
                 viewModel.submitSessionStartupEvent(CopyDownloadsToLocalStorage)
             }
             is DownloadsHaveFailed -> {}
-            is CopyingFilesToRequiredDirectories -> {}
+            is CopyingFilesToRequiredDirectories -> {
+                val step = getString(R.string.progress_copying_downloads)
+                val details = ""
+                updateProgressBar(step, details)
+            }
             is CopyingSucceeded -> {
                 val filesystem = viewModel.lastSelectedFilesystem
-                viewModel.submitSessionStartupEvent(ExtractFilesystem(filesystem, filesystemExtractionLogger))
+                viewModel.submitSessionStartupEvent(ExtractFilesystem(filesystem))
             }
             is CopyingFailed -> {}
             is DistributionCopyFailed -> {}
-            is ExtractingFilesystem -> {}
+            is ExtractingFilesystem -> {
+                val step = getString(R.string.progress_setting_up)
+                val details = getString(R.string.progress_setting_up_extract_text, state.extractionTarget)
+                updateProgressBar(step, details)
+            }
             is ExtractionSucceeded -> {
                 val filesystem = viewModel.lastSelectedFilesystem
                 viewModel.submitSessionStartupEvent(VerifyFilesystemAssets(filesystem))
             }
             is ExtractionFailed -> {}
-            is VerifyingFilesystemAssets -> {}
+            is VerifyingFilesystemAssets -> {
+                val step = getString(R.string.progress_verifying_assets)
+                val details = ""
+                updateProgressBar(step, details)
+            }
             is FilesystemHasRequiredAssets -> {
                 val session = viewModel.lastSelectedSession
                 startSession(session)
@@ -282,6 +299,11 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 .putExtra("type", "restartRunningSession")
                 .putExtra("session", session)
         startService(serviceIntent)
+    }
+
+    private fun handleSessionHasBeenActivated() {
+        viewModel.submitSessionStartupEvent(ResetState)
+        killProgressBar()
     }
 
     private fun showToast(intent: Intent) {
