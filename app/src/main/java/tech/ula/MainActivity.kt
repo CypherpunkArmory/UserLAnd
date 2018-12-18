@@ -52,6 +52,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         getString(R.string.permission_request_code).toInt()
     }
 
+    private val TAG = "UlaMainActivity"
+
     private var progressBarIsVisible = false
     private var currentFragmentDisplaysProgressDialog = false
 
@@ -116,7 +118,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     private val appsStartupStateObserver = Observer<AppsStartupState> {
         it?.let { state ->
-            Log.i("MainActvity", "AppsStartupState: $state")
+            Log.i(TAG, "AppsStartupState: $state")
             when (state) {
                 is WaitingForAppSelection -> viewModel.appsAreWaitingForSelection = true
                 is AppsListIsEmpty -> {} // TODO remove this state entirely?
@@ -132,7 +134,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 }
                 is AppCanBeStarted -> {
                     val appSession = state.appSession
-                    startSession(appSession)
+                    viewModel.submitSessionStartupEvent(SessionSelected(appSession))
                 }
                 is AppCanBeRestarted -> {
                     val appSession = state.appSession
@@ -144,7 +146,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     private val sessionStartupStateObserver = Observer<SessionStartupState> {
         it?.let { state ->
-            Log.i("MainActivity", "Session startup state: $state")
+            Log.i(TAG, "Session startup state: $state")
             // Exit early in cases where state should not be reset
             when (state) {
                 is IncorrectTransition -> {
