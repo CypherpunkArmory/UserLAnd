@@ -2,9 +2,7 @@ package tech.ula.model.state
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
@@ -21,7 +19,7 @@ class SessionStartupFsm(
     private val downloadUtility: DownloadUtility
 ) {
 
-    private val state = MutableLiveData<SessionStartupState>().apply { postValue(WaitingForSessionSelection) }
+    private val state = MutableLiveData<SessionStartupState>().apply { value = WaitingForSessionSelection }
 
     private val sessionDao = ulaDatabase.sessionDao()
     private val activeSessionsLiveData = sessionDao.findActiveSessions()
@@ -59,24 +57,24 @@ class SessionStartupFsm(
 
     // Exposed for testing purposes. This should not be called during real use cases.
     internal fun setState(newState: SessionStartupState) {
-        state.postValue(newState)
+        state.value = newState
     }
 
     fun submitEvent(event: SessionStartupEvent) {
         if (!transitionIsAcceptable(event)) {
-            state.postValue(IncorrectTransition(event, state.value!!))
+            state.value = IncorrectTransition(event, state.value!!)
             return
         }
-        return when (event) {
+        when (event) {
             is SessionSelected -> { handleSessionSelected(event.session) }
             is RetrieveAssetLists -> { handleRetrieveAssetLists(event.filesystem) }
             is GenerateDownloads -> { handleGenerateDownloads(event.filesystem, event.assetLists) }
             is DownloadAssets -> { handleDownloadAssets(event.assetsToDownload) }
             is AssetDownloadComplete -> { handleAssetsDownloadComplete(event.downloadAssetId) }
             is CopyDownloadsToLocalStorage -> { handleCopyDownloads() }
-            is ExtractFilesystem -> { handleExtractFilesystem(event.filesystem) }
+            is ExtractFilesystem -> { GlobalScope.launch { handleExtractFilesystem(event.filesystem) } }
             is VerifyFilesystemAssets -> { handleVerifyFilesystemAssets(event.filesystem) }
-            is ResetState -> { state.postValue(WaitingForSessionSelection) } // TODO test
+            is ResetState -> { state.value = WaitingForSessionSelection } // TODO test
         }
     }
 
@@ -103,35 +101,35 @@ class SessionStartupFsm(
     private fun handleSessionSelected(session: Session) {
         if (activeSessions.isNotEmpty()) {
             if (activeSessions.contains(session)) {
-                state.postValue(SessionIsRestartable(session))
+                state.value = SessionIsRestartable(session)
                 return
             }
 
-            state.postValue(SingleSessionSupported)
+            state.value = SingleSessionSupported
             return
         }
 
         val filesystem = findFilesystemForSession(session)
-        state.postValue(SessionIsReadyForPreparation(session, filesystem))
+        state.value = SessionIsReadyForPreparation(session, filesystem)
     }
 
-    private fun handleRetrieveAssetLists(filesystem: Filesystem) = runBlocking {
-        state.postValue(RetrievingAssetLists)
+    private fun handleRetrieveAssetLists(filesystem: Filesystem) {
+        state.value = RetrievingAssetLists
 
-        val assetLists = async {
+        val assetLists = runBlocking { withContext(Dispatchers.Default) {
             assetRepository.getAllAssetLists(filesystem.distributionType, filesystem.archType)
-        }.await()
+        } }
 
         if (assetLists.any { it.isEmpty() }) {
-            state.postValue(AssetListsRetrievalFailed)
-            return@runBlocking
+            state.value = AssetListsRetrievalFailed
+            return
         }
 
-        state.postValue(AssetListsRetrievalSucceeded(assetLists))
+        state.value = AssetListsRetrievalSucceeded(assetLists)
     }
 
     private fun handleGenerateDownloads(filesystem: Filesystem, assetLists: List<List<Asset>>) {
-        state.postValue(GeneratingDownloadRequirements)
+        state.value = GeneratingDownloadRequirements
 
         val requiredDownloads = assetLists.map { assetList ->
             assetList.filter { asset ->
@@ -146,63 +144,62 @@ class SessionStartupFsm(
         }.flatten()
 
         if (requiredDownloads.isEmpty()) {
-            state.postValue(NoDownloadsRequired)
+            state.value = NoDownloadsRequired
             return
         }
 
         val largeDownloadRequired = requiredDownloads.any { it.isLarge }
-        state.postValue(DownloadsRequired(requiredDownloads, largeDownloadRequired))
+        state.value = DownloadsRequired(requiredDownloads, largeDownloadRequired)
     }
 
     private fun handleDownloadAssets(assetsToDownload: List<Asset>) {
-
         downloadingAssets.clear()
         downloadedIds.clear()
 
         val newDownloads = downloadUtility.downloadRequirements(assetsToDownload)
         downloadingAssets.addAll(newDownloads)
-        state.postValue(DownloadingRequirements(0, downloadingAssets.size)) // TODO test
+        state.value = DownloadingRequirements(0, downloadingAssets.size) // TODO test
     }
 
     private fun handleAssetsDownloadComplete(downloadId: Long) {
-        if (!downloadUtility.downloadedSuccessfully(downloadId)) state.postValue(DownloadsHaveFailed)
+        if (!downloadUtility.downloadedSuccessfully(downloadId)) state.value = DownloadsHaveFailed
 
         downloadedIds.add(downloadId)
         downloadUtility.setTimestampForDownloadedFile(downloadId) // TODO test
         if (downloadingAssets.size != downloadedIds.size) {
-            state.postValue(DownloadingRequirements(downloadedIds.size, downloadingAssets.size)) // TODO test
+            state.value = DownloadingRequirements(downloadedIds.size, downloadingAssets.size) // TODO test
             return
         }
 
-        state.postValue(DownloadsHaveSucceeded)
+        state.value = DownloadsHaveSucceeded
     }
 
     private fun handleCopyDownloads() {
-        state.postValue(CopyingFilesToRequiredDirectories)
+        state.value = CopyingFilesToRequiredDirectories
         try {
             downloadUtility.moveAssetsToCorrectLocalDirectory()
         } catch (err: Exception) {
-            state.postValue(CopyingFailed)
+            state.value = CopyingFailed
             return
         }
-        state.postValue(CopyingSucceeded)
+        state.value = CopyingSucceeded
     }
 
-    private fun handleExtractFilesystem(filesystem: Filesystem) = runBlocking {
+    private suspend fun handleExtractFilesystem(filesystem: Filesystem) = withContext(Dispatchers.Default) {
         val filesystemDirectoryName = "${filesystem.id}"
 
         if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
             state.postValue(ExtractionSucceeded)
-            return@runBlocking
+            return@withContext
         }
 
         val copyingSucceeded = copyDistributionAssetsToFilesystem(filesystem)
         if (!copyingSucceeded) {
             state.postValue(DistributionCopyFailed)
-            return@runBlocking
+            return@withContext
         }
 
-        withContext(coroutineContext) {
+        withContext(Dispatchers.Default) {
             // TODO test
             filesystemUtility.extractFilesystem(filesystem, extractionLogger)
 //            while (!filesystemUtility.isExtractionComplete(filesystemDirectoryName)) {
@@ -212,7 +209,7 @@ class SessionStartupFsm(
 
         if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
             state.postValue(ExtractionSucceeded)
-            return@runBlocking
+            return@withContext
         }
 
         state.postValue(ExtractionFailed)
@@ -229,7 +226,7 @@ class SessionStartupFsm(
     }
 
     private fun handleVerifyFilesystemAssets(filesystem: Filesystem) {
-        state.postValue(VerifyingFilesystemAssets)
+        state.value = VerifyingFilesystemAssets
 
         val filesystemDirectoryName = "${filesystem.id}"
         val requiredAssets = assetRepository.getDistributionAssetsForExistingFilesystem(filesystem)
@@ -238,19 +235,19 @@ class SessionStartupFsm(
 
         when {
             allAssetsArePresent && allAssetsAreUpToDate -> {
-                state.postValue(FilesystemHasRequiredAssets)
+                state.value = FilesystemHasRequiredAssets
             }
 
             allAssetsArePresent -> {
                 val copyingSucceeded = copyDistributionAssetsToFilesystem(filesystem)
                 if (copyingSucceeded) {
-                    state.postValue(FilesystemHasRequiredAssets)
+                    state.value = FilesystemHasRequiredAssets
                     filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
-                } else state.postValue(DistributionCopyFailed)
+                } else state.value = DistributionCopyFailed
             }
 
             else -> {
-                state.postValue(FilesystemIsMissingRequiredAssets)
+                state.value = FilesystemIsMissingRequiredAssets
             }
         }
     }
