@@ -11,18 +11,12 @@ import kotlinx.coroutines.launch
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.model.state.SessionStartupEvent
-import tech.ula.model.state.SessionStartupFsm
-import tech.ula.model.state.SessionStartupState
+import tech.ula.model.state.*
 
-class MainActivityViewModel(private val sessionStartupFsm: SessionStartupFsm) : ViewModel() {
+class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private val sessionStartupFsm: SessionStartupFsm) : ViewModel() {
 
-    var appsAreWaitingForSelection = true // TODO default to false once apps fsm is wired up
+    var appsAreWaitingForSelection = false
     var sessionsAreWaitingForSelection = false
-
-    private val sessionState: LiveData<SessionStartupState> by lazy {
-        sessionStartupFsm.getState()
-    }
 
     private val unselectedApp = App(name = "UNSELECTED")
     var lastSelectedApp = unselectedApp
@@ -33,12 +27,34 @@ class MainActivityViewModel(private val sessionStartupFsm: SessionStartupFsm) : 
     private val unselectedFilesystem = Filesystem(id = -1, name = "UNSELECTED")
     var lastSelectedFilesystem = unselectedFilesystem
 
+    private val appsState: LiveData<AppsStartupState> by lazy {
+        appsStartupFsm.getState()
+    }
+
+    private val sessionState: LiveData<SessionStartupState> by lazy {
+        sessionStartupFsm.getState()
+    }
+
     fun selectionsCanBeMade(): Boolean {
         return appsAreWaitingForSelection && sessionsAreWaitingForSelection
     }
 
+    // TODO this should probably check that session are filesystem selections are for apps
+    fun appsPreprationRequirementsHaveBeenSelected(): Boolean {
+        return lastSelectedApp != unselectedApp && sessionPreparationRequirementsHaveBeenSelected()
+    }
+
     fun sessionPreparationRequirementsHaveBeenSelected(): Boolean {
         return lastSelectedSession != unselectedSession && lastSelectedFilesystem != unselectedFilesystem
+    }
+
+    fun getAppsStartupState(): LiveData<AppsStartupState> {
+        return appsState
+    }
+
+    fun submitAppsStartupEvent(event: AppsStartupEvent) {
+        val coroutineScope = CoroutineScope(Dispatchers.Default)
+        coroutineScope.launch { appsStartupFsm.submitEvent(event) }
     }
 
     fun getSessionStartupState(): LiveData<SessionStartupState> {
@@ -51,8 +67,8 @@ class MainActivityViewModel(private val sessionStartupFsm: SessionStartupFsm) : 
     }
 }
 
-class MainActivityViewModelFactory(private val sessionStartupFsm: SessionStartupFsm) : ViewModelProvider.NewInstanceFactory() {
+class MainActivityViewModelFactory(private val appsStartupFsm: AppsStartupFsm, private val sessionStartupFsm: SessionStartupFsm) : ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        return MainActivityViewModel(sessionStartupFsm) as T
+        return MainActivityViewModel(appsStartupFsm, sessionStartupFsm) as T
     }
 }

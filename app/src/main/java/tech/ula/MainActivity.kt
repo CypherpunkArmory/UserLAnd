@@ -21,6 +21,8 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.animation.AlphaAnimation
+import android.widget.EditText
+import android.widget.RadioButton
 import android.widget.Toast
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
@@ -30,8 +32,10 @@ import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.NavigationUI.setupWithNavController
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.defaultSharedPreferences
+import org.jetbrains.anko.find
 import org.jetbrains.anko.toast
 import tech.ula.model.entities.App
+import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.UlaDatabase
@@ -102,9 +106,40 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val downloadManagerWrapper = DownloadManagerWrapper()
         val downloadUtility = DownloadUtility(downloadManager, timestampPreferences, downloadManagerWrapper, filesDir)
 
+        val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
+
+        val appsStartupFsm = AppsStartupFsm(ulaDatabase, appsPreferences)
         val sessionStartupFsm = SessionStartupFsm(ulaDatabase, assetRepository, filesystemUtility, downloadUtility)
-        ViewModelProviders.of(this, MainActivityViewModelFactory(sessionStartupFsm))
+        ViewModelProviders.of(this, MainActivityViewModelFactory(appsStartupFsm, sessionStartupFsm))
                 .get(MainActivityViewModel::class.java)
+    }
+
+    private val appsStartupStateObserver = Observer<AppsStartupState> {
+        it?.let { state ->
+            Log.i("MainActvity", "AppsStartupState: $state")
+            when (state) {
+                is WaitingForAppSelection -> viewModel.appsAreWaitingForSelection = true
+                is AppsListIsEmpty -> {} // TODO remove this state entirely?
+                is SingleSessionPermitted -> { showToast(R.string.single_session_supported) } // TODO do we even need to handle this here
+                is AppsFilesystemRequiresCredentials -> {
+                    val app = state.app
+                    val filesystem = state.filesystem
+                    getCredentials(app, filesystem)
+                }
+                is AppRequiresServiceTypePreference -> {
+                    val app = state.app
+                    getServiceTypePreference(app)
+                }
+                is AppCanBeStarted -> {
+                    val appSession = state.appSession
+                    startSession(appSession)
+                }
+                is AppCanBeRestarted -> {
+                    val appSession = state.appSession
+                    restartRunningSession(appSession)
+                }
+            }
+        }
     }
 
     private val sessionStartupStateObserver = Observer<SessionStartupState> {
@@ -157,6 +192,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
         setupWithNavController(bottom_nav_view, navController)
 
+        viewModel.getAppsStartupState().observe(this, appsStartupStateObserver)
         viewModel.getSessionStartupState().observe(this, sessionStartupStateObserver)
     }
 
@@ -213,7 +249,13 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     override fun appHasBeenSelected(app: App) {
-        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
+        if (!arePermissionsGranted(this)) {
+            showPermissionsNecessaryDialog()
+            return
+        }
+        if (viewModel.selectionsCanBeMade()) {
+            viewModel.submitAppsStartupEvent(AppSelected(app))
+        }
     }
 
     override fun sessionHasBeenSelected(session: Session) {
@@ -446,5 +488,83 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 }
                 .create()
                 .show()
+    }
+
+    private fun getCredentials(app: App, filesystem: Filesystem) {
+        val dialog = AlertDialog.Builder(this)
+        val dialogView = this.layoutInflater.inflate(R.layout.dia_app_credentials, null)
+        dialog.setView(dialogView)
+        dialog.setCancelable(true)
+        dialog.setPositiveButton(R.string.button_continue, null)
+        val customDialog = dialog.create()
+
+        customDialog.setOnShowListener { _ ->
+            customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { _ ->
+                val username = customDialog.find<EditText>(R.id.text_input_username).text.toString()
+                val password = customDialog.find<EditText>(R.id.text_input_password).text.toString()
+                val vncPassword = customDialog.find<EditText>(R.id.text_input_vnc_password).text.toString()
+
+                if (validateCredentials(username, password, vncPassword)) {
+                    customDialog.dismiss()
+                    viewModel.submitAppsStartupEvent(SubmitAppsFilesystemCredentials(app, filesystem, username, password, vncPassword))
+                }
+            }
+        }
+        customDialog.setOnCancelListener {
+            /* TODO submit event */
+        }
+        customDialog.show()
+    }
+
+    private fun getServiceTypePreference(app: App) {
+        val dialog = AlertDialog.Builder(this)
+        val dialogView = layoutInflater.inflate(R.layout.dia_app_select_client, null)
+        dialog.setView(dialogView)
+        dialog.setCancelable(true)
+        dialog.setPositiveButton(R.string.button_continue, null)
+        val customDialog = dialog.create()
+
+        customDialog.setOnShowListener { _ ->
+            customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { _ ->
+                customDialog.dismiss()
+                val sshTypePreference = customDialog.find<RadioButton>(R.id.ssh_radio_button)
+                val selectedPreference =
+                        if (sshTypePreference.isChecked) SshTypePreference else VncTypePreference
+                viewModel.submitAppsStartupEvent(SubmitAppServicePreference(app, selectedPreference))
+            }
+        }
+        customDialog.setOnCancelListener {
+            /* TODO submit event */
+        }
+        customDialog.show()
+    }
+
+    // TODO the view shouldn't be responsible for validation
+    private fun validateCredentials(username: String, password: String, vncPassword: String): Boolean {
+        val validator = ValidationUtility()
+        var allCredentialsAreValid = false
+
+        when {
+            username.isEmpty() || password.isEmpty() || vncPassword.isEmpty() -> {
+                Toast.makeText(this, R.string.error_empty_field, Toast.LENGTH_LONG).show()
+            }
+            vncPassword.length > 8 || vncPassword.length < 6 -> {
+                Toast.makeText(this, R.string.error_vnc_password_length_incorrect, Toast.LENGTH_LONG).show()
+            }
+            !validator.isUsernameValid(username) -> {
+                Toast.makeText(this, R.string.error_username_invalid, Toast.LENGTH_LONG).show()
+            }
+            !validator.isPasswordValid(password) -> {
+                Toast.makeText(this, R.string.error_password_invalid, Toast.LENGTH_LONG).show()
+            }
+            !validator.isPasswordValid(vncPassword) -> {
+                Toast.makeText(this, R.string.error_vnc_password_invalid, Toast.LENGTH_LONG).show()
+            }
+            else -> {
+                allCredentialsAreValid = true
+                return allCredentialsAreValid
+            }
+        }
+        return allCredentialsAreValid
     }
 }
