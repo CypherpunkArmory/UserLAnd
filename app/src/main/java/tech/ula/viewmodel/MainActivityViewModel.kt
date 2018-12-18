@@ -5,6 +5,9 @@ import android.arch.lifecycle.MediatorLiveData
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
@@ -17,16 +20,8 @@ class MainActivityViewModel(private val sessionStartupFsm: SessionStartupFsm) : 
     var appsAreWaitingForSelection = true // TODO default to false once apps fsm is wired up
     var sessionsAreWaitingForSelection = false
 
-    private val _sessionState: LiveData<SessionStartupState> by lazy {
+    private val sessionState: LiveData<SessionStartupState> by lazy {
         sessionStartupFsm.getState()
-    }
-
-    private val sessionState: LiveData<SessionStartupState> = MediatorLiveData<SessionStartupState>().also {
-        mediator ->
-        mediator.addSource(_sessionState) {
-            Log.i("FSM", "$it")
-            mediator.postValue(it)
-        }
     }
 
     private val unselectedApp = App(name = "UNSELECTED")
@@ -51,7 +46,8 @@ class MainActivityViewModel(private val sessionStartupFsm: SessionStartupFsm) : 
     }
 
     fun submitSessionStartupEvent(event: SessionStartupEvent) {
-        sessionStartupFsm.submitEvent(event)
+        val coroutineScope = CoroutineScope(Dispatchers.Default)
+        coroutineScope.launch { sessionStartupFsm.submitEvent(event) }
     }
 }
 

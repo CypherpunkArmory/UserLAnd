@@ -13,6 +13,7 @@ import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.os.Environment
+import android.support.annotation.IdRes
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
@@ -29,6 +30,7 @@ import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.NavigationUI.setupWithNavController
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.defaultSharedPreferences
+import org.jetbrains.anko.toast
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
@@ -72,8 +74,15 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             intent.getStringExtra("type")?.let { type ->
                 when (type) {
                     "sessionActivated" -> handleSessionHasBeenActivated()
-                    "toast" -> showToast(intent)
-                    "dialog" -> showDialog(intent)
+                    "toast" -> {
+                        val resId = intent.getIntExtra("id", -1)
+                        if (resId == -1) return
+                        showToast(resId)
+                    }
+                    "dialog" -> {
+                        val type = intent.getStringExtra("dialogType") ?: ""
+                        showDialog(type)
+                    }
                 }
             }
         }
@@ -103,12 +112,17 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             Log.i("MainActivity", "Session startup state: $state")
             // Exit early in cases where state should not be reset
             when (state) {
-                is IncorrectTransition -> {}
+                is IncorrectTransition -> {
+                    val event = state.event
+                    val currentState = state.state
+                    Log.e("MainActivity", "Incorrect Transition: $event, $currentState")
+                    throw IllegalStateException()
+                }
                 is WaitingForSessionSelection -> {
                     viewModel.sessionsAreWaitingForSelection = true
                     return@let
                 }
-                is SingleSessionSupported -> {}
+                is SingleSessionSupported -> { showToast(R.string.single_session_supported) }
                 is SessionIsRestartable -> { restartRunningSession(state.session) }
                 is SessionIsReadyForPreparation -> {
                     viewModel.lastSelectedSession = state.session
@@ -219,74 +233,101 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         }
         when (state) {
             is SessionIsReadyForPreparation -> {
+                val step = getString(R.string.progress_start_step)
+                val details = ""
+                updateProgressBar(step, details)
+
                 val filesystem = viewModel.lastSelectedFilesystem
                 viewModel.submitSessionStartupEvent(RetrieveAssetLists(filesystem))
             }
+
             is RetrievingAssetLists -> {
                 val step = getString(R.string.progress_fetching_asset_lists)
                 val details = ""
                 updateProgressBar(step, details)
             }
+
             is AssetListsRetrievalSucceeded -> {
                 val filesystem = viewModel.lastSelectedFilesystem
                 val assetLists = state.assetLists
                 viewModel.submitSessionStartupEvent(GenerateDownloads(filesystem, assetLists))
             }
-            is AssetListsRetrievalFailed -> {}
-            is GeneratingDownloadRequirements -> {}
+
+            is GeneratingDownloadRequirements -> {
+                val step = getString(R.string.progress_checking_for_required_updates)
+                val details = ""
+                updateProgressBar(step, details)
+            }
+
             is DownloadsRequired -> {
                 if (state.largeDownloadRequired) {} // TODO
                 val assetsToDownload = state.requiredDownloads
                 viewModel.submitSessionStartupEvent(DownloadAssets(assetsToDownload))
             }
+
             is NoDownloadsRequired -> {
                 val filesystem = viewModel.lastSelectedFilesystem
                 viewModel.submitSessionStartupEvent(ExtractFilesystem(filesystem))
             }
+
             is DownloadingRequirements -> {
                 val step = getString(R.string.progress_downloading)
                 val details = getString(R.string.progress_downloading_out_of, state.numCompleted, state.numTotal)
                 updateProgressBar(step, details)
             }
+
             is DownloadsHaveSucceeded -> {
                 viewModel.submitSessionStartupEvent(CopyDownloadsToLocalStorage)
             }
-            is DownloadsHaveFailed -> {}
+
             is CopyingFilesToRequiredDirectories -> {
                 val step = getString(R.string.progress_copying_downloads)
                 val details = ""
                 updateProgressBar(step, details)
             }
+
             is CopyingSucceeded -> {
                 val filesystem = viewModel.lastSelectedFilesystem
                 viewModel.submitSessionStartupEvent(ExtractFilesystem(filesystem))
             }
-            is CopyingFailed -> {}
-            is DistributionCopyFailed -> {}
+
             is ExtractingFilesystem -> {
-                val step = getString(R.string.progress_setting_up)
-                val details = getString(R.string.progress_setting_up_extract_text, state.extractionTarget)
+                val step = getString(R.string.progress_setting_up_filesystem)
+                val details = getString(R.string.progress_extraction_details, state.extractionTarget)
                 updateProgressBar(step, details)
             }
+
             is ExtractionSucceeded -> {
                 val filesystem = viewModel.lastSelectedFilesystem
                 viewModel.submitSessionStartupEvent(VerifyFilesystemAssets(filesystem))
             }
-            is ExtractionFailed -> {}
+
             is VerifyingFilesystemAssets -> {
                 val step = getString(R.string.progress_verifying_assets)
                 val details = ""
                 updateProgressBar(step, details)
             }
+
             is FilesystemHasRequiredAssets -> {
                 val session = viewModel.lastSelectedSession
                 startSession(session)
             }
-            is FilesystemIsMissingRequiredAssets -> {}
+
+            else -> {
+                handleSessionFailureState(state)
+            }
         }
     }
 
+    private fun handleSessionFailureState(state: SessionStartupState) {
+
+    }
+
     private fun startSession(session: Session) {
+        val step = getString(R.string.progress_starting)
+        val details = ""
+        updateProgressBar(step, details)
+
         val serviceIntent = Intent(this, ServerService::class.java)
                 .putExtra("type", "start")
                 .putExtra("session", session)
@@ -305,16 +346,15 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         killProgressBar()
     }
 
-    private fun showToast(intent: Intent) {
-        val content = intent.getIntExtra("id", -1)
-        if (content == -1) return
+    private fun showToast(resId: Int) {
+        val content = getString(resId)
         Toast.makeText(this, content, Toast.LENGTH_LONG).show()
     }
 
-    private fun showDialog(intent: Intent) {
-        when (intent.getStringExtra("dialogType")) {
+    // TODO sealed classes?
+    private fun showDialog(dialogType: String) {
+        when (dialogType) {
             "wifiRequired" -> displayNetworkChoicesDialog()
-
             "errorFetchingAssetLists" ->
                 displayGenericErrorDialog(this, R.string.alert_network_unavailable_title,
                         R.string.alert_network_unavailable_message)
