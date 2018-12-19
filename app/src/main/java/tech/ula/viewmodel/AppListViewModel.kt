@@ -22,8 +22,16 @@ class AppListViewModel(
         appsRepository.getAllApps()
     }
 
+    private val activeAppsLiveData: LiveData<List<App>> by lazy {
+        appsRepository.getActiveApps()
+    }
+
     fun getAppsList(): LiveData<List<App>> {
         return apps
+    }
+
+    fun getActiveApps(): LiveData<List<App>> {
+        return activeAppsLiveData
     }
 
     fun refreshAppsList() {

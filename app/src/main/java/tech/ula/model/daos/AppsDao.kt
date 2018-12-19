@@ -15,6 +15,11 @@ interface AppsDao {
     @Query("select * from apps where name = :name")
     fun getAppByName(name: String): App
 
+    // TODO test
+    // TODO add preferredServiceType to apps and join with session.serviceType
+    @Query("select apps.* from apps inner join session on apps.name = session.name and session.active = 1")
+    fun getActiveApps(): LiveData<List<App>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertApp(application: App)
 }

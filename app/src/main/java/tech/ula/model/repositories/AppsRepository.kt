@@ -22,6 +22,10 @@ class AppsRepository(
         return appsDao.getAllApps()
     }
 
+    fun getActiveApps(): LiveData<List<App>> {
+        return appsDao.getActiveApps()
+    }
+
     suspend fun refreshData() {
         val appsList = mutableSetOf<String>()
         val distributionsList = mutableSetOf<String>()

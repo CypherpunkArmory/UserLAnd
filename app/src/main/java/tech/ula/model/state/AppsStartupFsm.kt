@@ -22,56 +22,21 @@ class AppsStartupFsm(
     private val filesystemDao = ulaDatabase.filesystemDao()
     private val appsDao = ulaDatabase.appsDao()
 
-    private val activeSessionsLiveData = sessionDao.findActiveSessions()
     private val activeSessions = mutableListOf<Session>()
 
-    private val appsListLiveData = appsDao.getAllApps()
-    private val appsList = mutableListOf<App>()
-    private val activeApps = mutableListOf<App>()
+    private val activeAppsSessionsLiveData = appsDao.getActiveApps()
+    private val activeAppsSessions = mutableListOf<App>()
 
     private val state = MutableLiveData<AppsStartupState>().apply { postValue(WaitingForAppSelection) }
 
     // TODO Is there a way to combine these observers?
     init {
-        activeSessionsLiveData.observeForever {
+        activeAppsSessionsLiveData.observeForever {
             it?.let { list ->
-                activeSessions.clear()
-                activeSessions.addAll(list)
-                updateActiveApps(newActiveSessions = list)
+                activeAppsSessions.clear()
+                activeAppsSessions.addAll(list)
             }
         }
-        // The appsList must be observed to propagate data. Otherwise the value will always be null.
-        appsListLiveData.observeForever {
-            it?.let { list ->
-                appsList.clear()
-                appsList.addAll(list)
-                if (list.isEmpty()) state.postValue(AppsListIsEmpty)
-                else updateActiveApps()
-            }
-        }
-    }
-
-    /**
-     * This function is called twice because it requires both the apps list and active sessions to
-     * have been observed.
-     */
-    private fun updateActiveApps(newActiveSessions: List<Session> = activeSessions) {
-        val newActiveApps = appsList.filter { app ->
-            newActiveSessions.any { session ->
-                app.name == session.name
-            }
-        }
-        if (newActiveApps == activeApps) return
-
-        if (newActiveApps.size > activeApps.size) {
-            val newlyActiveApps = newActiveApps.subtract(activeApps)
-            state.postValue(AppsHaveActivated(newlyActiveApps.toList()))
-        } else {
-            val newlyInactiveApps = activeApps.subtract(newActiveApps)
-            state.postValue(AppsHaveDeactivated(newlyInactiveApps.toList()))
-        }
-        activeApps.clear()
-        activeApps.addAll(newActiveApps)
     }
 
     fun getState(): LiveData<AppsStartupState> {
@@ -171,7 +136,7 @@ class AppsStartupFsm(
     }
 
     private fun appIsRestartable(app: App): Boolean {
-        return activeApps.contains(app)
+        return activeAppsSessions.contains(app)
     }
 
     private fun appsFilesystemRequiresCredentials(appsFilesystem: Filesystem): Boolean {
@@ -199,14 +164,11 @@ class AppsStartupFsm(
 
 sealed class AppsStartupState
 object WaitingForAppSelection : AppsStartupState()
-object AppsListIsEmpty : AppsStartupState()
 object SingleSessionPermitted : AppsStartupState()
 data class AppsFilesystemRequiresCredentials(val app: App, val filesystem: Filesystem) : AppsStartupState()
 data class AppRequiresServiceTypePreference(val app: App) : AppsStartupState()
 data class AppCanBeStarted(val appSession: Session, val appsFilesystem: Filesystem) : AppsStartupState()
 data class AppCanBeRestarted(val appSession: Session) : AppsStartupState()
-data class AppsHaveActivated(val activeApps: List<App>) : AppsStartupState()
-data class AppsHaveDeactivated(val inactiveApps: List<App>) : AppsStartupState()
 
 sealed class AppsStartupEvent
 data class AppSelected(val app: App) : AppsStartupEvent()

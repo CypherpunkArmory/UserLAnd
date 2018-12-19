@@ -83,6 +83,12 @@ class AppListFragment : Fragment(),
         }
     }
 
+    private val activeAppsObserver = Observer<List<App>> {
+        it?.let { list ->
+            appAdapter.updateActiveApps(list)
+        }
+    }
+
     private val refreshStatusObserver = Observer<RefreshStatus> {
         it?.let { newStatus ->
             refreshStatus = newStatus
@@ -132,6 +138,7 @@ class AppListFragment : Fragment(),
         super.onActivityCreated(savedInstanceState)
         activityContext = activity!! as MainActivity
         appsListViewModel.getAppsList().observe(viewLifecycleOwner, appsObserver)
+        appsListViewModel.getActiveApps().observe(viewLifecycleOwner, activeAppsObserver)
         appsListViewModel.getRefreshStatus().observe(viewLifecycleOwner, refreshStatusObserver)
 
         registerForContextMenu(list_apps)

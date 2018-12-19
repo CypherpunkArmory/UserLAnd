@@ -121,7 +121,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             Log.i(TAG, "AppsStartupState: $state")
             when (state) {
                 is WaitingForAppSelection -> viewModel.appsAreWaitingForSelection = true
-                is AppsListIsEmpty -> {} // TODO remove this state entirely?
                 is SingleSessionPermitted -> { showToast(R.string.single_session_supported) } // TODO do we even need to handle this here
                 is AppsFilesystemRequiresCredentials -> {
                     val app = state.app
