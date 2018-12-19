@@ -97,15 +97,17 @@ class FilesystemUtility(
         }
     }
 
+    @Throws(Exception::class)
     fun moveAppScriptToRequiredLocations(appName: String, appFilesystem: Filesystem) {
-        // TODO add error cases
         // Profile.d scripts execute in alphabetical order.
         val fileNameToForceAppScriptToExecuteLast = "zzzzzzzzzzzzzzzz.sh"
         val appScriptSource = File("$applicationFilesDirPath/apps/$appName/$appName.sh")
-        val appScriptSupportTarget = File("$applicationFilesDirPath/${appFilesystem.id}/support/$appName.sh")
-        val appScriptProfileDTarget = File("$applicationFilesDirPath/${appFilesystem.id}" +
-                "/etc/profile.d/$fileNameToForceAppScriptToExecuteLast")
-        appScriptSource.copyTo(appScriptSupportTarget, overwrite = true)
+        val appFilesystemProfileDDir = File("$applicationFilesDirPath/${appFilesystem.id}/etc/profile.d")
+        val appScriptProfileDTarget = File("$appFilesystemProfileDDir/$fileNameToForceAppScriptToExecuteLast")
+
+        appFilesystemProfileDDir.mkdirs()
         appScriptSource.copyTo(appScriptProfileDTarget, overwrite = true)
+
+        if (!appScriptProfileDTarget.exists()) throw Exception()
     }
 }

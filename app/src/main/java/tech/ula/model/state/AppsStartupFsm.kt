@@ -15,6 +15,7 @@ import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 class AppsStartupFsm(
     ulaDatabase: UlaDatabase,
     private val appsPreferences: AppsPreferences,
+    private val filesysemUtility: FilesystemUtility,
     private val buildWrapper: BuildWrapper = BuildWrapper()
 ) {
 
@@ -82,6 +83,13 @@ class AppsStartupFsm(
         if (preferredServiceType is PreferenceHasNotBeenSelected) {
             state.postValue(AppRequiresServiceTypePreference(app))
             return@runBlocking
+        }
+
+        // TODO test
+        try {
+            filesysemUtility.moveAppScriptToRequiredLocations(app.name, appsFilesystem)
+        } catch(err: Exception) {
+            state.postValue(CopyingScriptFailed(app))
         }
 
         val appSession = deferredAppsSession.await()
@@ -167,6 +175,7 @@ object WaitingForAppSelection : AppsStartupState()
 object SingleSessionPermitted : AppsStartupState()
 data class AppsFilesystemRequiresCredentials(val app: App, val filesystem: Filesystem) : AppsStartupState()
 data class AppRequiresServiceTypePreference(val app: App) : AppsStartupState()
+data class CopyingScriptFailed(val app: App) : AppsStartupState()
 data class AppCanBeStarted(val appSession: Session, val appsFilesystem: Filesystem) : AppsStartupState()
 data class AppCanBeRestarted(val appSession: Session) : AppsStartupState()
 

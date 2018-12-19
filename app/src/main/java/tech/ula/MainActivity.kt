@@ -68,7 +68,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private val downloadBroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-            Log.i("MainActivity", "Download completed")
             if (id == -1L) return
             // TODO what happens if intent received from nonula download
             else viewModel.submitSessionStartupEvent(AssetDownloadComplete(id))
@@ -110,7 +109,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
         val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
 
-        val appsStartupFsm = AppsStartupFsm(ulaDatabase, appsPreferences)
+        val appsStartupFsm = AppsStartupFsm(ulaDatabase, appsPreferences, filesystemUtility)
         val sessionStartupFsm = SessionStartupFsm(ulaDatabase, assetRepository, filesystemUtility, downloadUtility)
         ViewModelProviders.of(this, MainActivityViewModelFactory(appsStartupFsm, sessionStartupFsm))
                 .get(MainActivityViewModel::class.java)
@@ -118,7 +117,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     private val appsStartupStateObserver = Observer<AppsStartupState> {
         it?.let { state ->
-            Log.i(TAG, "AppsStartupState: $state")
+            Log.i(TAG, "Session startup state: $state")
             when (state) {
                 is WaitingForAppSelection -> viewModel.appsAreWaitingForSelection = true
                 is SingleSessionPermitted -> { showToast(R.string.single_session_supported) } // TODO do we even need to handle this here
@@ -145,14 +144,15 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     private val sessionStartupStateObserver = Observer<SessionStartupState> {
         it?.let { state ->
-            Log.i(TAG, "Session startup state: $state")
             // Exit early in cases where state should not be reset
+            Log.i(TAG, "Apps startup state: $state")
             when (state) {
                 is IncorrectTransition -> {
                     val event = state.event
                     val currentState = state.state
                     Log.e("MainActivity", "Incorrect Transition: $event, $currentState")
-                    throw IllegalStateException()
+//                    throw IllegalStateException()
+                    return@let
                 }
                 is WaitingForSessionSelection -> {
                     viewModel.sessionsAreWaitingForSelection = true

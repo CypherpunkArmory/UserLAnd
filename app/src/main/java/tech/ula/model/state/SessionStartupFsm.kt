@@ -78,13 +78,14 @@ class SessionStartupFsm(
         }
     }
 
-    suspend fun transitionIsAcceptable(event: SessionStartupEvent): Boolean {
+    fun transitionIsAcceptable(event: SessionStartupEvent): Boolean {
         val currentState = state.value!!
         return when (event) {
             is SessionSelected -> currentState is WaitingForSessionSelection
             is RetrieveAssetLists -> currentState is SessionIsReadyForPreparation
             is GenerateDownloads -> currentState is AssetListsRetrievalSucceeded
             is DownloadAssets -> currentState is DownloadsRequired
+            // TODO sometimes the state transition to DownloadingRequirements won't propagate before an AssetDownloadComplete
             is AssetDownloadComplete -> currentState is DownloadingRequirements
             is CopyDownloadsToLocalStorage -> currentState is DownloadsHaveSucceeded
             is ExtractFilesystem -> currentState is NoDownloadsRequired || currentState is CopyingSucceeded
@@ -156,9 +157,11 @@ class SessionStartupFsm(
         downloadingAssets.clear()
         downloadedIds.clear()
 
+        // If the state isn't updated first, AssetDownloadComplete events will be submitted before
+        // the transition is acceptable.
+        state.postValue(DownloadingRequirements(0, downloadingAssets.size)) // TODO test
         val newDownloads = downloadUtility.downloadRequirements(assetsToDownload)
         downloadingAssets.addAll(newDownloads)
-        state.postValue(DownloadingRequirements(0, downloadingAssets.size)) // TODO test
     }
 
     private fun handleAssetsDownloadComplete(downloadId: Long) {
