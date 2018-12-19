@@ -57,7 +57,9 @@ class AssetRepository(
     ): List<Asset> {
         val assetList = ArrayList<Asset>()
 
-        val branch = "master"
+        var branch = "master"
+        if (assetType.equals("support",true))
+            branch = "add-dbclient"
         val url = "$protocol://github.com/CypherpunkArmory/UserLAnd-Assets-" +
                 "$assetType/raw/$branch/assets/$architectureType/assets.txt"
 

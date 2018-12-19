@@ -18,7 +18,10 @@ class DownloadUtility(
     }
 
     private fun download(asset: Asset): Long {
-        val branch = "master"
+        var branch = "master"
+        if (asset.distributionType.equals("support",true))
+            if (asset.name.equals("dbclient") || asset.name.equals("libutil.so") || asset.name.equals("libtermuxauth.so") || asset.name.equals("libcrypto.so.1.1"))
+                branch = "add-dbclient"
         val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-" +
                 "${asset.distributionType}/raw/$branch/assets/" +
                 "${asset.architectureType}/${asset.name}"

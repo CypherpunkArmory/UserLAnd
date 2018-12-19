@@ -28,7 +28,7 @@ class GithubAppsFetcher(private val applicationFilesDir: String, private val con
     operator fun <T> List<T>.component6() = get(5)
     operator fun <T> List<T>.component7() = get(6)
 
-    private val branch = "master" // Base off different support branches for testing.
+    private val branch = "add-dbclient" // Base off different support branches for testing.
     private val baseUrl = "://github.com/CypherpunkArmory/UserLAnd-Assets-Support/raw/$branch/apps"
     private var protocol = "https"
     private val hostname = "$protocol$baseUrl"
