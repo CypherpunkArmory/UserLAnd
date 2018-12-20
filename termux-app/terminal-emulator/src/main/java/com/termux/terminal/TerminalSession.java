@@ -176,52 +176,70 @@ public final class TerminalSession extends TerminalOutput {
         mEmulator = new TerminalEmulator(this, columns, rows, /* transcript= */2000);
 
         int[] processId = new int[1];
-        mTerminalFileDescriptor = JNI.createSubprocess(mShellPath, mCwd, mArgs, mEnv, processId, rows, columns);
-        mShellPid = processId[0];
+        String cwd = "/data/data/tech.ula/files/support";
 
-        final FileDescriptor terminalFileDescriptorWrapped = wrapFileDescriptor(mTerminalFileDescriptor);
+        String libAuthRenameCmd = "/data/data/tech.ula/files/usr/bin/applets/mv";
+        String[] libAuthRenameArgs = {libAuthRenameCmd, "libtermuxauth.so", "libtermux-auth.so"};
 
-        new Thread("TermSessionInputReader[pid=" + mShellPid + "]") {
-            @Override
-            public void run() {
-                try (InputStream termIn = new FileInputStream(terminalFileDescriptorWrapped)) {
-                    final byte[] buffer = new byte[4096];
-                    while (true) {
-                        int read = termIn.read(buffer);
-                        if (read == -1) return;
-                        if (!mProcessToTerminalIOQueue.write(buffer, 0, read)) return;
-                        mMainThreadHandler.sendEmptyMessage(MSG_NEW_INPUT);
+        String[] shellPaths = {libAuthRenameCmd, mShellPath};
+
+        // Should do the same
+        for (String shellPath : shellPaths ) {
+            if (shellPath.contains("mv")) {
+                mTerminalFileDescriptor = JNI.createSubprocess(shellPath, cwd, libAuthRenameArgs, mEnv, processId, rows, columns);
+            } else {
+                mTerminalFileDescriptor = JNI.createSubprocess(shellPath, cwd, mArgs, mEnv, processId, rows, columns);
+            }
+
+            mShellPid = processId[0];
+
+            final FileDescriptor terminalFileDescriptorWrapped = wrapFileDescriptor(mTerminalFileDescriptor);
+
+            if (shellPath.contains("dbclient")) {
+                new Thread("TermSessionInputReader[pid=" + mShellPid + "]") {
+                    @Override
+                    public void run() {
+                        try (InputStream termIn = new FileInputStream(terminalFileDescriptorWrapped)) {
+                            final byte[] buffer = new byte[4096];
+                            while (true) {
+                                int read = termIn.read(buffer);
+                                if (read == -1) return;
+                                if (!mProcessToTerminalIOQueue.write(buffer, 0, read)) return;
+                                mMainThreadHandler.sendEmptyMessage(MSG_NEW_INPUT);
+                            }
+                        } catch (Exception e) {
+                            // Ignore, just shutting down.
+                        }
                     }
-                } catch (Exception e) {
-                    // Ignore, just shutting down.
-                }
-            }
-        }.start();
+                }.start();
 
-        new Thread("TermSessionOutputWriter[pid=" + mShellPid + "]") {
-            @Override
-            public void run() {
-                final byte[] buffer = new byte[4096];
-                try (FileOutputStream termOut = new FileOutputStream(terminalFileDescriptorWrapped)) {
-                    while (true) {
-                        int bytesToWrite = mTerminalToProcessIOQueue.read(buffer, true);
-                        if (bytesToWrite == -1) return;
-                        termOut.write(buffer, 0, bytesToWrite);
+                new Thread("TermSessionWaiter[pid=" + mShellPid + "]") {
+                    @Override
+                    public void run() {
+                        int processExitCode = JNI.waitFor(mShellPid);
+                        if (!shellPath.contains("mv")) {
+                            mMainThreadHandler.sendMessage(mMainThreadHandler.obtainMessage(MSG_PROCESS_EXITED, processExitCode));
+                        }
                     }
-                } catch (IOException e) {
-                    // Ignore.
-                }
-            }
-        }.start();
+                }.start();
 
-        new Thread("TermSessionWaiter[pid=" + mShellPid + "]") {
-            @Override
-            public void run() {
-                int processExitCode = JNI.waitFor(mShellPid);
-                mMainThreadHandler.sendMessage(mMainThreadHandler.obtainMessage(MSG_PROCESS_EXITED, processExitCode));
+                new Thread("TermSessionOutputWriter[pid=" + mShellPid + "]") {
+                    @Override
+                    public void run() {
+                        final byte[] buffer = new byte[4096];
+                        try (FileOutputStream termOut = new FileOutputStream(terminalFileDescriptorWrapped)) {
+                            while (true) {
+                                int bytesToWrite = mTerminalToProcessIOQueue.read(buffer, true);
+                                if (bytesToWrite == -1) return;
+                                termOut.write(buffer, 0, bytesToWrite);
+                            }
+                        } catch (IOException e) {
+                            // Ignore.
+                        }
+                    }
+                }.start();
             }
-        }.start();
-
+        }
     }
 
     /** Write data to the shell process. */

@@ -49,6 +49,7 @@ public final class TermuxService extends Service implements SessionChangedCallba
     /** Note that this is a symlink on the Android M preview. */
     @SuppressLint("SdCardPath")
     public static String FILES_PATH = "/data/data/tech.ula/files";
+    public static final String SUPPORT_PATH = FILES_PATH + "/support/";
     public static final String PREFIX_PATH = FILES_PATH + "/usr";
     public static final String HOME_PATH = FILES_PATH + "/home";
 
@@ -265,8 +266,8 @@ public final class TermuxService extends Service implements SessionChangedCallba
         boolean isLoginShell = false;
 
         if (executablePath == null) {
-            for (String shellBinary : new String[]{"login", "bash", "zsh"}) {
-                File shellFile = new File(PREFIX_PATH + "/bin/" + shellBinary);
+            for (String shellBinary : new String[]{"dbclient"}) {
+                File shellFile = new File(SUPPORT_PATH + shellBinary);
                 if (shellFile.canExecute()) {
                     executablePath = shellFile.getAbsolutePath();
                     break;
@@ -276,8 +277,8 @@ public final class TermuxService extends Service implements SessionChangedCallba
             if (executablePath == null) {
                 // Fall back to system shell as last resort:
                 executablePath = "/system/bin/sh";
+                isLoginShell = true;
             }
-            isLoginShell = true;
         }
 
         String[] processArgs = BackgroundJob.setupProcessArgs(executablePath, arguments);
