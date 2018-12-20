@@ -99,9 +99,6 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
 
     private static final String RELOAD_STYLE_ACTION = "com.termux.app.reload_style";
 
-    // Handle Intents
-    private static final String STATE_SELECTED_URI = "selectedUri";
-    protected Uri requested;
 
     /** The main view of the activity showing the terminal. Initialized in onCreate(). */
     @SuppressWarnings("NullableProblems")
@@ -198,28 +195,6 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
         } else {
             // Always granted before Android 6.0.
             return true;
-        }
-    }
-
-    String username = "";
-    String hostname = "";
-    String port = "";
-    String sessionName = "";
-
-    private void parseUserlandIntent(String intentData) {
-        String regexPattern = "ssh:\\/\\/([\\w\\W]+)@([\\w\\W]+):([\\d]+)\\/#([\\w\\W]+)";
-        Pattern pattern = Pattern.compile(regexPattern);
-
-        Matcher matcher = pattern.matcher(intentData);
-        if (matcher.find()) {
-            username = matcher.group(0);
-            hostname = matcher.group(1);
-            port = matcher.group(2);
-            sessionName = matcher.group(3);
-            String message = "Username: " + username + "\nHostname: " + hostname + "\n Port: " + port + "\n sessionName: " + sessionName;
-            println(message);
-        } else {
-            println("Unable to parse intent");
         }
     }
 
@@ -334,10 +309,6 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
         checkForFontAndColors();
 
         mBellSoundId = mBellSoundPool.load(this, R.raw.bell, 1);
-
-        // handle requested console from incoming intent
-        requested = getIntent().getData();
-        parseUserlandIntent(requested.toString());
     }
 
     void toggleShowExtraKeys() {

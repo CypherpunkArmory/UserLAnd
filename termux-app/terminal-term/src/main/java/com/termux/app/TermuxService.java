@@ -27,6 +27,8 @@ import com.termux.terminal.TerminalSession.SessionChangedCallback;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A service holding a list of terminal sessions, {@link #mTerminalSessions}, showing a foreground notification while
@@ -92,43 +94,39 @@ public final class TermuxService extends Service implements SessionChangedCallba
     /** If the user has executed the {@link #ACTION_STOP_SERVICE} intent. */
     boolean mWantsToStop = false;
 
+    /** Parse intent for connection parameters **/
+    private String username = "";
+    private String hostname = "";
+    private String port = "";
+    private String sessionName = "";
+
+    private void parseUserlandIntent(String intentData) {
+        String regexPattern = "ssh:\\/\\/([\\w\\W]+)@([\\w\\W]+):([\\d]+)\\/#([\\w\\W]+)";
+        Pattern pattern = Pattern.compile(regexPattern);
+
+        Matcher matcher = pattern.matcher(intentData);
+        if (matcher.find()) {
+            username = matcher.group(0);
+            hostname = matcher.group(1);
+            port = matcher.group(2);
+            sessionName = matcher.group(3);
+        } else {
+            // TODO: handle intent mismatch
+        }
+    }
+
     @SuppressLint("Wakelock")
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         String action = intent.getAction();
-        if (ACTION_STOP_SERVICE.equals(action)) {
-            mWantsToStop = true;
-            for (int i = 0; i < mTerminalSessions.size(); i++)
-                mTerminalSessions.get(i).finishIfRunning();
-            stopSelf();
-        } else if (ACTION_LOCK_WAKE.equals(action)) {
-            if (mWakeLock == null) {
-                PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-                mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, EmulatorDebug.LOG_TAG);
-                mWakeLock.acquire();
+        if (ACTION_EXECUTE.equals(action)) {
 
-                // http://tools.android.com/tech-docs/lint-in-studio-2-3#TOC-WifiManager-Leak
-                WifiManager wm = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-                mWifiLock = wm.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, EmulatorDebug.LOG_TAG);
-                mWifiLock.acquire();
-
-                updateNotification();
-            }
-        } else if (ACTION_UNLOCK_WAKE.equals(action)) {
-            if (mWakeLock != null) {
-                mWakeLock.release();
-                mWakeLock = null;
-
-                mWifiLock.release();
-                mWifiLock = null;
-
-                updateNotification();
-            }
-        } else if (ACTION_EXECUTE.equals(action)) {
             Uri executableUri = intent.getData();
             String executablePath = (executableUri == null ? null : executableUri.getPath());
 
-            String[] arguments = (executableUri == null ? null : intent.getStringArrayExtra(EXTRA_ARGUMENTS));
+            parseUserlandIntent(executablePath);
+            String[] arguments = {"-p", port, username + "@" + hostname};
+
             String cwd = intent.getStringExtra(EXTRA_CURRENT_WORKING_DIRECTORY);
 
             if (intent.getBooleanExtra(EXTRA_EXECUTE_IN_BACKGROUND, false)) {
