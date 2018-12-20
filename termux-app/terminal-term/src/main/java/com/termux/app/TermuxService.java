@@ -59,7 +59,7 @@ public final class TermuxService extends Service implements SessionChangedCallba
     private static final String ACTION_LOCK_WAKE = "com.termux.service_wake_lock";
     private static final String ACTION_UNLOCK_WAKE = "com.termux.service_wake_unlock";
     /** Intent action to launch a new terminal session. Executed from TermuxWidgetProvider. */
-    public static final String ACTION_EXECUTE = "com.termux.service_execute";
+    public static final String ACTION_EXECUTE = "android.intent.action.EXECUTE";
 
     public static final String EXTRA_ARGUMENTS = "com.termux.execute.arguments";
 
