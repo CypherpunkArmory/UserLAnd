@@ -41,6 +41,8 @@ class AppsStartupFsmTest {
 
     @Mock lateinit var mockAppsPreferences: AppsPreferences
 
+    @Mock lateinit var mockFilesystemUtility: FilesystemUtility
+
     @Mock lateinit var mockBuildWrapper: BuildWrapper
 
     @Mock lateinit var mockStateObserver: Observer<AppsStartupState>
@@ -81,7 +83,7 @@ class AppsStartupFsmTest {
 
         whenever(mockUlaDatabase.filesystemDao()).thenReturn(mockFilesystemDao)
 
-        appsFSM = AppsStartupFsm(mockUlaDatabase, mockAppsPreferences, mockBuildWrapper) // TODO Showerthought: default initialization of arch in db entry and then erroring to BuildWrapper?
+        appsFSM = AppsStartupFsm(mockUlaDatabase, mockAppsPreferences, mockFilesystemUtility, mockBuildWrapper) // TODO Showerthought: default initialization of arch in db entry and then erroring to BuildWrapper?
     }
 
     @After
@@ -123,16 +125,6 @@ class AppsStartupFsmTest {
         stubFullAppsList()
 
         val expectedState = WaitingForAppSelection
-        verify(mockStateObserver).onChanged(expectedState)
-    }
-
-    @Test
-    fun `Initial state is AppsListIsEmpty when apps db entries are not populated`() {
-        appsFSM.getState().observeForever(mockStateObserver)
-        stubEmptyActiveSessions()
-        stubEmptyAppsList()
-
-        val expectedState = AppsListIsEmpty
         verify(mockStateObserver).onChanged(expectedState)
     }
 
@@ -344,30 +336,5 @@ class AppsStartupFsmTest {
         verify(mockStateObserver)
                 .onChanged(AppCanBeStarted(app1InactiveSession, appsFilesystemWithCredentials))
         verify(mockSessionDao).updateSession(updatedSession)
-    }
-
-    @Test
-    fun `State becomes AppsHaveActivated when an apps session is activated`() {
-        appsFSM.getState().observeForever(mockStateObserver)
-        stubFullAppsList()
-        activeSessionLiveData.postValue(listOf())
-
-        activeSessionLiveData.postValue(listOf(app1ActiveSession))
-
-        verify(mockStateObserver).onChanged(WaitingForAppSelection)
-        verify(mockStateObserver).onChanged(AppsHaveActivated(listOf(app1)))
-    }
-
-    @Test
-    fun `State becomes AppsHaveDeactivated when an apps session is deactivated`() {
-        appsFSM.getState().observeForever(mockStateObserver)
-        stubFullAppsList()
-        activeSessionLiveData.postValue(listOf(app1ActiveSession))
-
-        activeSessionLiveData.postValue((listOf()))
-
-        verify(mockStateObserver).onChanged(WaitingForAppSelection)
-        verify(mockStateObserver).onChanged(AppsHaveActivated(listOf(app1)))
-        verify(mockStateObserver).onChanged(AppsHaveDeactivated(listOf(app1)))
     }
 }

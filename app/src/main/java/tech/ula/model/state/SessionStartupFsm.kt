@@ -9,6 +9,7 @@ import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.DownloadUtility
+import tech.ula.utils.ExecUtility
 import tech.ula.utils.FilesystemUtility
 import tech.ula.utils.TimeUtility
 
@@ -95,6 +96,7 @@ class SessionStartupFsm(
     }
 
     // TODO handle non-existence?
+    // TODO test
     private fun findFilesystemForSession(session: Session): Filesystem {
         return filesystems.find { filesystem -> filesystem.id == session.filesystemId }!!
     }
@@ -159,13 +161,16 @@ class SessionStartupFsm(
 
         // If the state isn't updated first, AssetDownloadComplete events will be submitted before
         // the transition is acceptable.
-        state.postValue(DownloadingRequirements(0, downloadingAssets.size)) // TODO test
+        state.postValue(DownloadingRequirements(0, assetsToDownload.size)) // TODO test
         val newDownloads = downloadUtility.downloadRequirements(assetsToDownload)
         downloadingAssets.addAll(newDownloads)
     }
 
     private fun handleAssetsDownloadComplete(downloadId: Long) {
-        if (!downloadUtility.downloadedSuccessfully(downloadId)) state.postValue(DownloadsHaveFailed)
+        if (!downloadUtility.downloadedSuccessfully(downloadId)) {
+            state.postValue(DownloadsHaveFailed)
+            return
+        }
 
         downloadedIds.add(downloadId)
         downloadUtility.setTimestampForDownloadedFile(downloadId) // TODO test

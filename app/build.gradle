@@ -62,12 +62,6 @@ androidExtensions {
     experimental true
 }
 
-kotlin {
-    experimental {
-        coroutines 'enable'
-    }
-}
-
 configurations {
     ktlint
 }

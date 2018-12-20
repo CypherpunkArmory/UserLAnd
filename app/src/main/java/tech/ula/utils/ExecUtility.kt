@@ -1,6 +1,5 @@
 package tech.ula.utils
 
-import android.util.Log
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
@@ -16,13 +15,7 @@ class ExecUtility(
     private val logger: LogUtility = LogUtility()
 ) {
 
-    companion object {
-        val EXEC_DEBUG_LOGGER = { line: String -> Unit
-            Log.d("EXEC_DEBUG_LOGGER", line)
-        }
-
-        val NOOP_CONSUMER: (line: String) -> Int = { 0 }
-    }
+    private val NOOP_CONSUMER: (line: String) -> Int = { 0 }
 
     fun execLocal(
         executionDirectory: File,
