@@ -112,7 +112,7 @@ public final class BackgroundJob {
             final String pathEnv = "PATH=" + System.getenv("PATH");
             return new String[]{termEnv, homeEnv, prefixEnv, androidRootEnv, androidDataEnv, pathEnv, externalStorageEnv};
         } else {
-            final String ldEnv = "LD_LIBRARY_PATH=" + TermuxService.PREFIX_PATH;
+            final String ldEnv = "LD_LIBRARY_PATH=" + TermuxService.FILES_PATH + "/support";
             final String langEnv = "LANG=en_US.UTF-8";
             final String pathEnv = "PATH=" + TermuxService.PREFIX_PATH + "/bin:" + TermuxService.PREFIX_PATH + "/bin/applets";
             final String pwdEnv = "PWD=" + cwd;
