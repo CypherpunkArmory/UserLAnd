@@ -31,7 +31,7 @@
         <activity
             android:name="com.termux.app.TermuxActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
-            android:launchMode="singleTop"
+            android:launchMode="singleInstance"
             android:resizeableActivity="true"
             android:windowSoftInputMode="adjustResize|stateAlwaysVisible" >
 
