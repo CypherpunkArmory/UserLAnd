@@ -58,7 +58,7 @@ class AppsStartupFsm(
             is SubmitAppServicePreference -> { setAppServicePreference(event.app, event.serviceTypePreference) }
             is CopyAppScriptToFilesystem -> { copyAppScriptToFilesystem(event.app, event.filesystem) }
             is SyncDatabaseEntries -> updateAppSession(event.app, event.session, event.filesystem)
-            is ResetAppState -> {}
+            is ResetAppState -> state.postValue(WaitingForAppSelection)
         }
     }
 
@@ -74,9 +74,9 @@ class AppsStartupFsm(
     }
 
     private fun checkAppsFilesystemCredentials(appsFilesystem: Filesystem) {
-        val credentialsAreSet = appsFilesystem.defaultUsername.isEmpty() ||
-                appsFilesystem.defaultPassword.isEmpty() ||
-                appsFilesystem.defaultVncPassword.isEmpty()
+        val credentialsAreSet = appsFilesystem.defaultUsername.isNotEmpty() &&
+                appsFilesystem.defaultPassword.isNotEmpty() &&
+                appsFilesystem.defaultVncPassword.isNotEmpty()
         if (credentialsAreSet) {
             state.postValue(AppsFilesystemHasCredentials)
             return
@@ -109,6 +109,7 @@ class AppsStartupFsm(
         appsPreferences.setAppServiceTypePreference(app.name, serviceTypePreference)
     }
 
+    @Throws(NoSuchElementException::class) // If second database call fails
     private suspend fun findAppsFilesystem(app: App): Filesystem = withContext(Dispatchers.IO) {
         val potentialAppFilesystem = filesystemDao.findAppsFilesystemByType(app.filesystemRequired)
 
@@ -122,11 +123,12 @@ class AppsStartupFsm(
         return@withContext filesystemDao.findAppsFilesystemByType(app.filesystemRequired).first()
     }
 
+    @Throws(NoSuchElementException::class) // If second database call fails
     private suspend fun findAppSession(app: App): Session = withContext(Dispatchers.IO) {
         val potentialAppSession = sessionDao.findAppsSession(app.name)
 
         if (potentialAppSession.isEmpty()) {
-            val sessionToInsert = Session(id = 0, name = app.name, filesystemId = -1, isAppsSession = true)
+            val sessionToInsert = Session(id = 0, name = app.name, filesystemId = 0, isAppsSession = true)
             sessionDao.insertSession(sessionToInsert)
         }
 
@@ -138,6 +140,7 @@ class AppsStartupFsm(
         filesystem.defaultPassword = password
         filesystem.defaultVncPassword = vncPassword
         withContext(Dispatchers.IO) { filesystemDao.updateFilesystem(filesystem) }
+        state.postValue(AppsFilesystemHasCredentials)
     }
 
     private suspend fun updateAppSession(app: App, appSession: Session, appsFilesystem: Filesystem) {

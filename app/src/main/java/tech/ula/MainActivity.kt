@@ -115,34 +115,34 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 .get(MainActivityViewModel::class.java)
     }
 
-    private val appsStartupStateObserver = Observer<AppsStartupState> {
-        it?.let { state ->
-            Log.i(TAG, "Session startup state: $state")
-            when (state) {
-                is WaitingForAppSelection -> viewModel.appsAreWaitingForSelection = true
-                is AppsFilesystemRequiresCredentials -> {
-                    val app = state.app
-                    val filesystem = state.appsFilesystem
-                    getCredentials(app, filesystem)
-                }
-                is AppRequiresServiceTypePreference -> {
-                    val app = state.app
-                    getServiceTypePreference(app)
-                }
-                is AppCanBeStarted -> {
-                    val appSession = state.appSession
-                    viewModel.submitSessionStartupEvent(SessionSelected(appSession))
-                }
-            }
-        }
-    }
+//    private val appsStartupStateObserver = Observer<AppsStartupState> {
+//        it?.let { state ->
+//            Log.i(TAG, "Session startup state: $state")
+//            when (state) {
+//                is WaitingForAppSelection -> viewModel.appsAreWaitingForSelection = true
+//                is AppsFilesystemRequiresCredentials -> {
+//                    val app = state.app
+//                    val filesystem = state.appsFilesystem
+//                    getCredentials(app, filesystem)
+//                }
+//                is AppRequiresServiceTypePreference -> {
+//                    val app = state.app
+//                    getServiceTypePreference(app)
+//                }
+//                is AppCanBeStarted -> {
+//                    val appSession = state.appSession
+//                    viewModel.submitSessionStartupEvent(SessionSelected(appSession))
+//                }
+//            }
+//        }
+//    }
 
     private val sessionStartupStateObserver = Observer<SessionStartupState> {
         it?.let { state ->
             // Exit early in cases where state should not be reset
             Log.i(TAG, "Apps startup state: $state")
             when (state) {
-                is IncorrectTransition -> {
+                is IncorrectSessionTransition -> {
                     val event = state.event
                     val currentState = state.state
                     Log.e("MainActivity", "Incorrect Transition: $event, $currentState")
@@ -166,7 +166,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                     return@let
                 }
             }
-            viewModel.submitSessionStartupEvent(ResetState)
+            viewModel.submitSessionStartupEvent(ResetSessionState)
         }
     }
 
@@ -188,7 +188,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
         setupWithNavController(bottom_nav_view, navController)
 
-        viewModel.getAppsStartupState().observe(this, appsStartupStateObserver)
+//        viewModel.getAppsStartupState().observe(this, appsStartupStateObserver)
         viewModel.getSessionStartupState().observe(this, sessionStartupStateObserver)
     }
 
@@ -380,7 +380,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleSessionHasBeenActivated() {
-        viewModel.submitSessionStartupEvent(ResetState)
+        viewModel.submitSessionStartupEvent(ResetSessionState)
         killProgressBar()
     }
 
@@ -502,7 +502,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
                 if (validateCredentials(username, password, vncPassword)) {
                     customDialog.dismiss()
-                    viewModel.submitAppsStartupEvent(SubmitAppsFilesystemCredentials(app, filesystem, username, password, vncPassword))
+//                    viewModel.submitAppsStartupEvent(SubmitAppsFilesystemCredentials(app, filesystem, username, password, vncPassword))
                 }
             }
         }

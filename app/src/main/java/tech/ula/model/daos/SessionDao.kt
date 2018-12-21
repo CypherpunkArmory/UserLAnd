@@ -19,8 +19,8 @@ interface SessionDao {
     @Query("select * from session where name = :name")
     fun getSessionByName(name: String): Session
 
-    @Query("select * from session where name = :appType and isAppsSession = 1")
-    fun findAppsSession(appType: String): List<Session>
+    @Query("select * from session where name = :appName and isAppsSession = 1")
+    fun findAppsSession(appName: String): List<Session>
 
     @Query("select * from session where active = 1")
     fun findActiveSessions(): LiveData<List<Session>>

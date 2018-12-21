@@ -7,9 +7,6 @@ import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.*
@@ -28,7 +25,6 @@ import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.DownloadUtility
 import tech.ula.utils.FilesystemUtility
-import java.io.File
 import java.lang.Exception
 
 @RunWith(MockitoJUnitRunner::class)
@@ -91,8 +87,8 @@ class SessionStartupFsmTest {
     fun `Only allows correct state transitions`() = runBlocking {
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        val testEvent = SessionSelected(inactiveSession)
-        val testState = WaitingForSessionSelection
+        val incorrectTransitionEvent = SessionSelected(inactiveSession)
+        val incorrectTransitionState = RetrievingAssetLists
         val events = listOf(
                 SessionSelected(inactiveSession),
                 RetrieveAssetLists(filesystem),
@@ -104,7 +100,7 @@ class SessionStartupFsmTest {
                 VerifyFilesystemAssets(filesystem)
         )
         val states = listOf(
-                IncorrectTransition(testEvent, testState),
+                IncorrectSessionTransition(incorrectTransitionEvent, incorrectTransitionState),
                 WaitingForSessionSelection,
                 SingleSessionSupported,
                 SessionIsRestartable(inactiveSession),
@@ -157,7 +153,7 @@ class SessionStartupFsmTest {
         val event = RetrieveAssetLists(filesystem)
         sessionFsm.submitEvent(event)
 
-        verify(mockStateObserver, times(1)).onChanged(IncorrectTransition(event, state))
+        verify(mockStateObserver, times(1)).onChanged(IncorrectSessionTransition(event, state))
         verify(mockStateObserver, times(2)).onChanged(any()) // Observes when registered and again on state emission
     }
 
