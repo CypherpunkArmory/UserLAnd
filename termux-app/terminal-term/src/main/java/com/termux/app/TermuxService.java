@@ -107,10 +107,10 @@ public final class TermuxService extends Service implements SessionChangedCallba
 
         Matcher matcher = pattern.matcher(intentData);
         if (matcher.find()) {
-            username = matcher.group(0);
-            hostname = matcher.group(1);
-            port = matcher.group(2);
-            sessionName = matcher.group(3);
+            username = matcher.group(1);
+            hostname = matcher.group(2);
+            port = matcher.group(3);
+            sessionName = matcher.group(4);
         } else {
             // TODO: handle intent mismatch
         }
@@ -123,7 +123,7 @@ public final class TermuxService extends Service implements SessionChangedCallba
         if (ACTION_EXECUTE.equals(action)) {
 
             Uri executableUri = intent.getData();
-            String executablePath = (executableUri == null ? null : executableUri.getPath());
+            String executablePath = (executableUri == null ? null : executableUri.toString());
 
             parseUserlandIntent(executablePath);
             String[] arguments = {"-p", port, username + "@" + hostname};
@@ -265,19 +265,11 @@ public final class TermuxService extends Service implements SessionChangedCallba
         String[] env = BackgroundJob.buildEnvironment(failSafe, cwd);
         boolean isLoginShell = false;
 
-        if (executablePath == null) {
-            for (String shellBinary : new String[]{"dbclient"}) {
-                File shellFile = new File(SUPPORT_PATH + shellBinary);
-                if (shellFile.canExecute()) {
-                    executablePath = shellFile.getAbsolutePath();
-                    break;
-                }
-            }
-
-            if (executablePath == null) {
-                // Fall back to system shell as last resort:
-                executablePath = "/system/bin/sh";
-                isLoginShell = true;
+        for (String shellBinary : new String[]{"dbclient"}) {
+            File shellFile = new File(SUPPORT_PATH + shellBinary);
+            if (shellFile.canExecute()) {
+                executablePath = shellFile.getAbsolutePath();
+                break;
             }
         }
 
