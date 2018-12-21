@@ -62,7 +62,7 @@ class AssetRepositoryTest {
 
     @Test
     fun allTypesOfCachedAssetListsAreRetrieved() {
-        whenever(connectionUtility.httpsHostIsReachable("github.com")).thenReturn(true)
+        whenever(connectionUtility.httpsHostIsReachable("github.com")).thenReturn(false)
 
         assetRepository.getAllAssetLists(distType, archType)
         verify(assetPreferences).getAssetLists(allAssetListTypes)

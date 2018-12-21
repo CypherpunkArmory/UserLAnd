@@ -7,34 +7,34 @@ import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.repositories.AssetRepository
 
-@RunWith(MockitoJUnitRunner::class)
-class SessionControllerTest {
+//@RunWith(MockitoJUnitRunner::class)
+//class SessionControllerTest {
+//
+//    // Class dependencies
+//
+//    val testFilesystem = Filesystem(name = "testFS", id = 1, lastUpdated = 0)
+//
+//    @Mock
+//    lateinit var assetRepository: AssetRepository
+//
+//    @Mock
+//    lateinit var filesystemUtility: FilesystemUtility
+//
+//    @Mock
+//    lateinit var assetPreferences: AssetPreferences
+//
+//    @Mock
+//    lateinit var timeUtility: TimeUtility
+//
+//    @Mock
+//    lateinit var networkUtility: NetworkUtility
+//
+//    lateinit var sessionController: SessionController
 
-    // Class dependencies
-
-    val testFilesystem = Filesystem(name = "testFS", id = 1, lastUpdated = 0)
-
-    @Mock
-    lateinit var assetRepository: AssetRepository
-
-    @Mock
-    lateinit var filesystemUtility: FilesystemUtility
-
-    @Mock
-    lateinit var assetPreferences: AssetPreferences
-
-    @Mock
-    lateinit var timeUtility: TimeUtility
-
-    @Mock
-    lateinit var networkUtility: NetworkUtility
-
-    lateinit var sessionController: SessionController
-
-    @Before
-    fun setup() {
-        sessionController = SessionController(assetRepository, filesystemUtility, assetPreferences, timeUtility)
-    }
+//    @Before
+//    fun setup() {
+//        sessionController = SessionController(assetRepository, filesystemUtility, assetPreferences, timeUtility)
+//    }
 
 //    @Test
 //    fun retrievesRemoteAssetLists() {
@@ -151,4 +151,4 @@ class SessionControllerTest {
 //        verify(filesystemUtility).copyDistributionAssetsToFilesystem(filesystemDirectoryName, testFilesystem.distributionType)
 //        verify(filesystemUtility).removeRootfsFilesFromFilesystem(filesystemDirectoryName)
 //    }
-}
+//}
