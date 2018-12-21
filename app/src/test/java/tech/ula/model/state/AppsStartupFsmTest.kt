@@ -147,11 +147,12 @@ class AppsStartupFsmTest {
     fun `State can be reset`() {
         appsFsm.getState().observeForever(mockStateObserver)
 
-        val numberOfStates = possibleStates.size
         for (state in possibleStates) {
             appsFsm.setState(state)
             runBlocking { appsFsm.submitEvent(ResetAppState) }
         }
+
+        val numberOfStates = possibleStates.size
         // Will initially be WaitingForAppSelection (+1), the test for that state (+1), and then reset for each
         verify(mockStateObserver, times(numberOfStates + 2)).onChanged(WaitingForAppSelection)
     }
