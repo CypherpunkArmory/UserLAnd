@@ -39,7 +39,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
         return appsAreWaitingForSelection && sessionsAreWaitingForSelection
     }
 
-    // TODO this should probably check that session are filesystem selections are for apps
+    // TODO this should probably check that session and filesystem selections are for app an app
     fun appsPreprationRequirementsHaveBeenSelected(): Boolean {
         return lastSelectedApp != unselectedApp && sessionPreparationRequirementsHaveBeenSelected()
     }

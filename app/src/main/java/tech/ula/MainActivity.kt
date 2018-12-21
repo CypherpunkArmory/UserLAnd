@@ -115,58 +115,68 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 .get(MainActivityViewModel::class.java)
     }
 
-//    private val appsStartupStateObserver = Observer<AppsStartupState> {
-//        it?.let { state ->
-//            Log.i(TAG, "Session startup state: $state")
-//            when (state) {
-//                is WaitingForAppSelection -> viewModel.appsAreWaitingForSelection = true
-//                is AppsFilesystemRequiresCredentials -> {
-//                    val app = state.app
-//                    val filesystem = state.appsFilesystem
-//                    getCredentials(app, filesystem)
-//                }
-//                is AppRequiresServiceTypePreference -> {
-//                    val app = state.app
-//                    getServiceTypePreference(app)
-//                }
-//                is AppCanBeStarted -> {
-//                    val appSession = state.appSession
-//                    viewModel.submitSessionStartupEvent(SessionSelected(appSession))
-//                }
-//            }
-//        }
-//    }
+    private val appsStartupStateObserver = Observer<AppsStartupState> {
+        it?.let { state ->
+            Log.i(TAG, "App startup state: $state")
+            if (state !is WaitingForAppSelection) {
+                viewModel.appsAreWaitingForSelection = false
+            }
+            when (state) {
+                is IncorrectAppTransition -> {
+                    val event = state.event
+                    val currentState = state.state
+                    Log.e(TAG, "Incorrect Transition: $event, $currentState")
+                }
+
+                is WaitingForAppSelection -> viewModel.appsAreWaitingForSelection = true
+
+                is DatabaseEntriesFetched -> {
+                    // Alert viewmodel that the filesystem is selected, such that preparation steps can continue
+                    viewModel.lastSelectedSession = state.appSession
+                    viewModel.lastSelectedFilesystem = state.appsFilesystem
+                    handleAppPreparationState(state)
+                }
+
+                else -> handleAppPreparationState(state)
+            }
+        }
+    }
 
     private val sessionStartupStateObserver = Observer<SessionStartupState> {
         it?.let { state ->
             // Exit early in cases where state should not be reset
-            Log.i(TAG, "Apps startup state: $state")
+            Log.i(TAG, "Session startup state: $state")
+            if (state !is WaitingForSessionSelection) {
+                viewModel.sessionsAreWaitingForSelection = false
+            }
             when (state) {
                 is IncorrectSessionTransition -> {
                     val event = state.event
                     val currentState = state.state
-                    Log.e("MainActivity", "Incorrect Transition: $event, $currentState")
+                    Log.e(TAG, "Incorrect Transition: $event, $currentState")
 //                    throw IllegalStateException()
-                    return@let
                 }
-                is WaitingForSessionSelection -> {
-                    viewModel.sessionsAreWaitingForSelection = true
-                    return@let
+
+                is WaitingForSessionSelection -> viewModel.sessionsAreWaitingForSelection = true
+
+                is SingleSessionSupported -> {
+                    showToast(R.string.single_session_supported)
+                    viewModel.submitSessionStartupEvent(ResetSessionState)
                 }
-                is SingleSessionSupported -> { showToast(R.string.single_session_supported) }
-                is SessionIsRestartable -> { restartRunningSession(state.session) }
+
+                is SessionIsRestartable -> {
+                    restartRunningSession(state.session)
+                    viewModel.submitSessionStartupEvent(ResetSessionState)
+                }
+
                 is SessionIsReadyForPreparation -> {
-                    viewModel.lastSelectedSession = state.session
+                    // Alert viewmodel that the filesystem is selected, such that preparation steps can continue
                     viewModel.lastSelectedFilesystem = state.filesystem
                     handleSessionPreparationState(state)
-                    return@let
                 }
-                else -> {
-                    handleSessionPreparationState(state)
-                    return@let
-                }
+
+                else -> handleSessionPreparationState(state)
             }
-            viewModel.submitSessionStartupEvent(ResetSessionState)
         }
     }
 
@@ -188,7 +198,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
         setupWithNavController(bottom_nav_view, navController)
 
-//        viewModel.getAppsStartupState().observe(this, appsStartupStateObserver)
+        viewModel.getAppsStartupState().observe(this, appsStartupStateObserver)
         viewModel.getSessionStartupState().observe(this, sessionStartupStateObserver)
     }
 
@@ -250,8 +260,61 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             return
         }
         if (viewModel.selectionsCanBeMade()) {
+            viewModel.lastSelectedApp = app
             viewModel.submitAppsStartupEvent(AppSelected(app))
         }
+    }
+
+    private fun handleAppPreparationState(state: AppsStartupState) {
+        if (!viewModel.appsPreprationRequirementsHaveBeenSelected()) {
+            // TODO error dialog
+            return
+        }
+        when (state) {
+            is FetchingDatabaseEntries -> { }
+
+            is DatabaseEntriesFetched -> {
+                viewModel.submitAppsStartupEvent(CheckAppsFilesystemCredentials(viewModel.lastSelectedFilesystem))
+            }
+
+            is AppsFilesystemHasCredentials -> {
+                viewModel.submitAppsStartupEvent(CheckAppServicePreference(viewModel.lastSelectedApp))
+            }
+
+            is AppsFilesystemRequiresCredentials -> { }
+
+            is AppHasServiceTypePreferenceSet -> {
+                val app = viewModel.lastSelectedApp
+                val filesystem = viewModel.lastSelectedFilesystem
+                viewModel.submitAppsStartupEvent(CopyAppScriptToFilesystem(app, filesystem))
+            }
+
+            is AppRequiresServiceTypePreference -> { }
+
+            is CopyingAppScript -> { }
+
+            is AppScriptCopySucceeded -> {
+                val app = viewModel.lastSelectedApp
+                val session = viewModel.lastSelectedSession
+                val filesystem = viewModel.lastSelectedFilesystem
+                viewModel.submitAppsStartupEvent(SyncDatabaseEntries(app, session, filesystem))
+            }
+
+            is SyncingDatabaseEntries -> { }
+
+            is AppDatabaseEntriesSynced -> {
+                viewModel.lastSelectedApp = state.app
+                viewModel.lastSelectedSession = state.session
+                viewModel.lastSelectedFilesystem = state.filesystem
+                // TODO session startup
+            }
+
+            else -> handleAppFailureState()
+        }
+    }
+
+    private fun handleAppFailureState() {
+        // TODO
     }
 
     override fun sessionHasBeenSelected(session: Session) {
@@ -260,6 +323,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             return
         }
         if (viewModel.selectionsCanBeMade()) {
+            viewModel.lastSelectedSession = session
             viewModel.submitSessionStartupEvent(SessionSelected(session))
         }
     }
@@ -275,7 +339,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 val details = ""
                 updateProgressBar(step, details)
 
-                val filesystem = viewModel.lastSelectedFilesystem
+                val filesystem = state.filesystem
                 viewModel.submitSessionStartupEvent(RetrieveAssetLists(filesystem))
             }
 

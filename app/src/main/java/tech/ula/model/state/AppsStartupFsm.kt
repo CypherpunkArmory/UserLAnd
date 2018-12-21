@@ -154,7 +154,7 @@ class AppsStartupFsm(
         appSession.password = appsFilesystem.defaultPassword
         appSession.vncPassword = appsFilesystem.defaultVncPassword
         withContext(Dispatchers.IO) { sessionDao.updateSession(appSession) }
-        state.postValue(AppDatabaseEntriesSynced)
+        state.postValue(AppDatabaseEntriesSynced(app, appSession, appsFilesystem))
     }
 }
 
@@ -172,7 +172,7 @@ object CopyingAppScript : AppsStartupState()
 object AppScriptCopySucceeded : AppsStartupState()
 object AppScriptCopyFailed : AppsStartupState()
 object SyncingDatabaseEntries : AppsStartupState()
-object AppDatabaseEntriesSynced : AppsStartupState()
+data class AppDatabaseEntriesSynced(val app: App, val session: Session, val filesystem: Filesystem) : AppsStartupState()
 
 sealed class AppsStartupEvent
 data class AppSelected(val app: App) : AppsStartupEvent()
