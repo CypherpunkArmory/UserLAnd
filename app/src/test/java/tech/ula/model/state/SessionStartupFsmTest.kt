@@ -292,6 +292,20 @@ class SessionStartupFsmTest {
     }
 
     @Test
+    fun `State is NoDownloadsRequired if everything is up to date`() {
+        sessionFsm.setState(AssetListsRetrievalSucceeded(assetLists))
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockAssetRepository.doesAssetNeedToUpdated(asset))
+                .thenReturn(false)
+
+        runBlocking { sessionFsm.submitEvent(GenerateDownloads(filesystem, assetLists)) }
+
+        verify(mockStateObserver).onChanged(GeneratingDownloadRequirements)
+        verify(mockStateObserver).onChanged(NoDownloadsRequired)
+    }
+
+    @Test
     fun `State is DownloadsHaveSucceeded once downloads succeed`() {
         val downloadList = listOf(asset, largeAsset)
         sessionFsm.setState(DownloadsRequired(downloadList, true))

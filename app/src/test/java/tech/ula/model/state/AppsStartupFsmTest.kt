@@ -316,6 +316,16 @@ class AppsStartupFsmTest {
     }
 
     @Test
+    fun `Sets service preference on event submission`() {
+        appsFsm.setState(AppRequiresServiceTypePreference)
+        appsFsm.getState().observeForever(mockStateObserver)
+
+        runBlocking { appsFsm.submitEvent(SubmitAppServicePreference(app, SshTypePreference)) }
+
+        verify(mockAppsPreferences).setAppServiceTypePreference(app.name, SshTypePreference)
+    }
+
+    @Test
     fun `State is CopySucceeded`() {
         appsFsm.setState(AppHasServiceTypePreferenceSet)
         appsFsm.getState().observeForever(mockStateObserver)
