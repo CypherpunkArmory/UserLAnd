@@ -34,11 +34,11 @@ import java.lang.Exception
 @RunWith(MockitoJUnitRunner::class)
 class SessionStartupFsmTest {
 
-    @Mock lateinit var activeSessionLiveData: MutableLiveData<List<Session>>
+    @get:Rule val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     // Mocks
 
-    @get:Rule val instantTaskExecutorRule = InstantTaskExecutorRule()
+    @Mock lateinit var activeSessionLiveData: MutableLiveData<List<Session>>
 
     @Mock lateinit var mockUlaDatabase: UlaDatabase
 
@@ -368,7 +368,7 @@ class SessionStartupFsmTest {
     fun `State is ExtractionSucceeded if extraction succeeds`() = runBlocking {
         sessionFsm.setState(CopyingSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
-        
+
         whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
                 .thenReturn(false)
                 .thenReturn(true)

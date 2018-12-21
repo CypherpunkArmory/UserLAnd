@@ -120,10 +120,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             Log.i(TAG, "Session startup state: $state")
             when (state) {
                 is WaitingForAppSelection -> viewModel.appsAreWaitingForSelection = true
-                is SingleSessionPermitted -> { showToast(R.string.single_session_supported) } // TODO do we even need to handle this here
                 is AppsFilesystemRequiresCredentials -> {
                     val app = state.app
-                    val filesystem = state.filesystem
+                    val filesystem = state.appsFilesystem
                     getCredentials(app, filesystem)
                 }
                 is AppRequiresServiceTypePreference -> {
@@ -133,10 +132,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 is AppCanBeStarted -> {
                     val appSession = state.appSession
                     viewModel.submitSessionStartupEvent(SessionSelected(appSession))
-                }
-                is AppCanBeRestarted -> {
-                    val appSession = state.appSession
-                    restartRunningSession(appSession)
                 }
             }
         }

@@ -61,24 +61,6 @@ class SessionStartupFsm(
         state.postValue(newState)
     }
 
-    suspend fun submitEvent(event: SessionStartupEvent) {
-        if (!transitionIsAcceptable(event)) {
-            state.postValue(IncorrectTransition(event, state.value!!))
-            return
-        }
-        when (event) {
-            is SessionSelected -> { handleSessionSelected(event.session) }
-            is RetrieveAssetLists -> { handleRetrieveAssetLists(event.filesystem) }
-            is GenerateDownloads -> { handleGenerateDownloads(event.filesystem, event.assetLists) }
-            is DownloadAssets -> { handleDownloadAssets(event.assetsToDownload) }
-            is AssetDownloadComplete -> { handleAssetsDownloadComplete(event.downloadAssetId) }
-            is CopyDownloadsToLocalStorage -> { handleCopyDownloads() }
-            is ExtractFilesystem -> { handleExtractFilesystem(event.filesystem) }
-            is VerifyFilesystemAssets -> { handleVerifyFilesystemAssets(event.filesystem) }
-            is ResetState -> { state.postValue(WaitingForSessionSelection) } // TODO test
-        }
-    }
-
     fun transitionIsAcceptable(event: SessionStartupEvent): Boolean {
         val currentState = state.value!!
         return when (event) {
@@ -91,7 +73,25 @@ class SessionStartupFsm(
             is CopyDownloadsToLocalStorage -> currentState is DownloadsHaveSucceeded
             is ExtractFilesystem -> currentState is NoDownloadsRequired || currentState is CopyingSucceeded
             is VerifyFilesystemAssets -> currentState is ExtractionSucceeded
-            is ResetState -> true // TODO test
+            is ResetSessionState -> true // TODO test
+        }
+    }
+
+    suspend fun submitEvent(event: SessionStartupEvent) {
+        if (!transitionIsAcceptable(event)) {
+            state.postValue(IncorrectSessionTransition(event, state.value!!))
+            return
+        }
+        when (event) {
+            is SessionSelected -> { handleSessionSelected(event.session) }
+            is RetrieveAssetLists -> { handleRetrieveAssetLists(event.filesystem) }
+            is GenerateDownloads -> { handleGenerateDownloads(event.filesystem, event.assetLists) }
+            is DownloadAssets -> { handleDownloadAssets(event.assetsToDownload) }
+            is AssetDownloadComplete -> { handleAssetsDownloadComplete(event.downloadAssetId) }
+            is CopyDownloadsToLocalStorage -> { handleCopyDownloads() }
+            is ExtractFilesystem -> { handleExtractFilesystem(event.filesystem) }
+            is VerifyFilesystemAssets -> { handleVerifyFilesystemAssets(event.filesystem) }
+            is ResetSessionState -> { state.postValue(WaitingForSessionSelection) } // TODO test
         }
     }
 
@@ -259,7 +259,7 @@ class SessionStartupFsm(
 }
 
 sealed class SessionStartupState
-data class IncorrectTransition(val event: SessionStartupEvent, val state: SessionStartupState) : SessionStartupState()
+data class IncorrectSessionTransition(val event: SessionStartupEvent, val state: SessionStartupState) : SessionStartupState()
 object WaitingForSessionSelection : SessionStartupState()
 object SingleSessionSupported : SessionStartupState()
 data class SessionIsRestartable(val session: Session) : SessionStartupState()
@@ -293,4 +293,4 @@ data class AssetDownloadComplete(val downloadAssetId: Long) : SessionStartupEven
 object CopyDownloadsToLocalStorage : SessionStartupEvent()
 data class ExtractFilesystem(val filesystem: Filesystem) : SessionStartupEvent()
 data class VerifyFilesystemAssets(val filesystem: Filesystem) : SessionStartupEvent()
-object ResetState : SessionStartupEvent()
+object ResetSessionState : SessionStartupEvent()
