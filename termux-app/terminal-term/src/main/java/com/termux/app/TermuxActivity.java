@@ -461,29 +461,14 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
             return true;
         });
 
-        if (mTermService.getSessions().isEmpty()) {
-            if (mIsVisible) {
-                TermuxInstaller.setupIfNeeded(TermuxActivity.this, () -> {
-                    if (mTermService == null) return; // Activity might have been destroyed.
-                    try {
-                        addNewSession(false, null);
-                    } catch (WindowManager.BadTokenException e) {
-                        // Activity finished - ignore.
-                    }
-                });
-            } else {
-                // The service connected while not in foreground - just bail out.
-                finish();
-            }
-        } else {
-            Intent i = getIntent();
-            if (i != null && Intent.ACTION_RUN.equals(i.getAction())) {
-                // Android 7.1 app shortcut from res/xml/shortcuts.xml.
+        TermuxInstaller.setupIfNeeded(TermuxActivity.this, () -> {
+            if (mTermService == null) return; // Activity might have been destroyed.
+            try {
                 addNewSession(false, null);
-            } else {
-                switchToSession(getStoredCurrentSessionOrLast());
+            } catch (WindowManager.BadTokenException e) {
+                // Activity finished - ignore.
             }
-        }
+        });
     }
 
     public void switchToSession(boolean forward) {
