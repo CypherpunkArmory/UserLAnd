@@ -99,6 +99,7 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
 
     private static final String RELOAD_STYLE_ACTION = "com.termux.app.reload_style";
 
+    protected Uri intentData;
 
     /** The main view of the activity showing the terminal. Initialized in onCreate(). */
     @SuppressWarnings("NullableProblems")
@@ -301,6 +302,10 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
         registerForContextMenu(mTerminalView);
 
         Intent serviceIntent = new Intent(this, TermuxService.class);
+        intentData = getIntent().getData();
+        serviceIntent.setData(intentData);
+        serviceIntent.setAction(TermuxService.ACTION_EXECUTE);
+
         // Start the service and make it run regardless of who is bound to it:
         startService(serviceIntent);
         if (!bindService(serviceIntent, this, 0))
