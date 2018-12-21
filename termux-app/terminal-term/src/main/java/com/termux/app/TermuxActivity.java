@@ -91,7 +91,6 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
     private static final int CONTEXTMENU_KILL_PROCESS_ID = 4;
     private static final int CONTEXTMENU_RESET_TERMINAL_ID = 5;
     private static final int CONTEXTMENU_STYLING_ID = 6;
-    private static final int CONTEXTMENU_HELP_ID = 8;
 
     private static final int MAX_SESSIONS = 8;
 
@@ -640,7 +639,6 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
         menu.add(Menu.NONE, CONTEXTMENU_RESET_TERMINAL_ID, Menu.NONE, R.string.reset_terminal);
         menu.add(Menu.NONE, CONTEXTMENU_KILL_PROCESS_ID, Menu.NONE, getResources().getString(R.string.kill_process, getCurrentTermSession().getPid())).setEnabled(currentSession.isRunning());
         menu.add(Menu.NONE, CONTEXTMENU_STYLING_ID, Menu.NONE, R.string.style_terminal);
-        menu.add(Menu.NONE, CONTEXTMENU_HELP_ID, Menu.NONE, R.string.help);
     }
 
     /** Hook system menu to show context menu instead. */
@@ -757,9 +755,6 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
                 }
                 return true;
             }
-            case CONTEXTMENU_HELP_ID:
-                startActivity(new Intent(this, TermuxHelpActivity.class));
-                return true;
             default:
                 return super.onContextItemSelected(item);
         }

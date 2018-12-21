@@ -8,7 +8,6 @@
    <string name="reset_terminal">Reset</string>
    <string name="style_terminal">Style</string>
    <string name="share_transcript_title">Terminal transcript</string>
-   <string name="help">Help</string>
 
    <string name="bootstrap_installer_body">Installing…</string>
    <string name="bootstrap_error_title">Unable to install</string>
