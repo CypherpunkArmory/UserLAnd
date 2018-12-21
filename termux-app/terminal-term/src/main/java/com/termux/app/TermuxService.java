@@ -273,7 +273,8 @@ public final class TermuxService extends Service implements SessionChangedCallba
             }
         }
 
-        String[] processArgs = BackgroundJob.setupProcessArgs(executablePath, arguments);
+        String[] dbclientArgs = {"-p", port, username + "@" + hostname};
+        String[] processArgs = BackgroundJob.setupProcessArgs(executablePath, dbclientArgs);
         executablePath = processArgs[0];
         int lastSlashIndex = executablePath.lastIndexOf('/');
         String processName = (isLoginShell ? "-" : "") +
@@ -284,6 +285,7 @@ public final class TermuxService extends Service implements SessionChangedCallba
         if (processArgs.length > 1) System.arraycopy(processArgs, 1, args, 1, processArgs.length - 1);
 
         TerminalSession session = new TerminalSession(executablePath, cwd, args, env, this);
+        session.mSessionName = sessionName;
         mTerminalSessions.add(session);
         updateNotification();
         return session;
