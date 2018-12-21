@@ -35,9 +35,9 @@ class AppsStartupFsm(
             is AppSelected -> currentState is WaitingForAppSelection
             is CheckAppsFilesystemCredentials -> currentState is DatabaseEntriesFetched
             is SubmitAppsFilesystemCredentials -> currentState is AppsFilesystemRequiresCredentials
-            is CheckAppsServicePreference -> currentState is AppsFilesystemHasCredentials
+            is CheckAppServicePreference -> currentState is AppsFilesystemHasCredentials
             is SubmitAppServicePreference -> currentState is AppRequiresServiceTypePreference
-            is CopyAppScript -> currentState is AppHasServiceTypePreferenceSet
+            is CopyAppScriptToFilesystem -> currentState is AppHasServiceTypePreferenceSet
             is SyncDatabaseEntries -> currentState is AppScriptCopySucceeded
             is ResetAppState -> true
         }
@@ -49,80 +49,88 @@ class AppsStartupFsm(
             return
         }
         return when (event) {
-            is AppSelected -> appWasSelected(event.app)
+            is AppSelected -> fetchDatabaseEntries(event.app)
+            is CheckAppsFilesystemCredentials -> checkAppsFilesystemCredentials(event.appsFilesystem)
             is SubmitAppsFilesystemCredentials -> {
                 setAppsFilesystemCredentials(event.filesystem, event.username, event.password, event.vncPassword)
-                appWasSelected(event.app)
             }
-            is SubmitAppServicePreference -> {
-                val lastSelectedApp = event.app
-                setAppServicePreference(lastSelectedApp.name, event.serviceTypePreference)
-                appWasSelected(lastSelectedApp)
-            }
+            is CheckAppServicePreference -> checkAppServiceTypePreference(event.app)
+            is SubmitAppServicePreference -> { setAppServicePreference(event.app, event.serviceTypePreference) }
+            is CopyAppScriptToFilesystem -> { copyAppScriptToFilesystem(event.app, event.filesystem) }
+            is SyncDatabaseEntries -> updateAppSession(event.app, event.session, event.filesystem)
+            is ResetAppState -> {}
         }
     }
 
-    private suspend fun appWasSelected(app: App) {
-        val appsFilesystem = findAppsFilesystem(app)
-        if (appsFilesystemRequiresCredentials(appsFilesystem)) {
-            state.postValue(AppsFilesystemRequiresCredentials(app, appsFilesystem))
-            return
-        }
-
-        val preferredServiceType = appsPreferences.getAppServiceTypePreference(app)
-        if (preferredServiceType is PreferenceHasNotBeenSelected) {
-            state.postValue(AppRequiresServiceTypePreference(app))
-            return
-        }
-
+    private suspend fun fetchDatabaseEntries(app: App) {
+        state.postValue(FetchingDatabaseEntries)
         try {
-            filesystemUtility.moveAppScriptToRequiredLocation(app.name, appsFilesystem)
-        } catch(err: Exception) {
-            state.postValue(CopyingScriptFailed(app))
+            val appsFilesystem = findAppsFilesystem(app)
+            val appSession = findAppSession(app)
+            state.postValue(DatabaseEntriesFetched(appsFilesystem, appSession))
+        } catch (err: Exception) {
+            state.postValue(DatabaseEntriesFetchFailed)
         }
-
-        val appSession = findAppSession(app)
-//        updateAppSession(appSession, preferredServiceType, appsFilesystem)
-
-        state.postValue(AppCanBeStarted(appSession, appsFilesystem))
     }
 
-    private fun setAppServicePreference(appName: String, serviceTypePreference: AppServiceTypePreference) {
-        appsPreferences.setAppServiceTypePreference(appName, serviceTypePreference)
+    private fun checkAppsFilesystemCredentials(appsFilesystem: Filesystem) {
+        val credentialsAreSet = appsFilesystem.defaultUsername.isEmpty() ||
+                appsFilesystem.defaultPassword.isEmpty() ||
+                appsFilesystem.defaultVncPassword.isEmpty()
+        if (credentialsAreSet) {
+            state.postValue(AppsFilesystemHasCredentials)
+            return
+        }
+        state.postValue(AppsFilesystemRequiresCredentials(appsFilesystem))
     }
 
-    private suspend fun findAppsFilesystem(app: App): Filesystem {
-        val potentialAppFilesystem = withContext(Dispatchers.IO) {
-            filesystemDao.findAppsFilesystemByType(app.filesystemRequired)
+    private fun checkAppServiceTypePreference(app: App) {
+        val serviceTypePreference = appsPreferences.getAppServiceTypePreference(app)
+        if (serviceTypePreference == PreferenceHasNotBeenSelected) {
+            state.postValue(AppRequiresServiceTypePreference)
+            return
         }
+        state.postValue(AppHasServiceTypePreferenceSet)
+    }
+
+    private suspend fun copyAppScriptToFilesystem(app: App, filesystem: Filesystem) {
+        state.postValue(CopyingAppScript)
+        try {
+            withContext(Dispatchers.IO) {
+                filesystemUtility.moveAppScriptToRequiredLocation(app.name, filesystem)
+            }
+            state.postValue(AppScriptCopySucceeded)
+        } catch (err: Exception) {
+            state.postValue(AppScriptCopyFailed)
+        }
+    }
+
+    private fun setAppServicePreference(app: App, serviceTypePreference: AppServiceTypePreference) {
+        appsPreferences.setAppServiceTypePreference(app.name, serviceTypePreference)
+    }
+
+    private suspend fun findAppsFilesystem(app: App): Filesystem = withContext(Dispatchers.IO) {
+        val potentialAppFilesystem = filesystemDao.findAppsFilesystemByType(app.filesystemRequired)
 
         if (potentialAppFilesystem.isEmpty()) {
             val deviceArchitecture = buildWrapper.getArchType()
             val fsToInsert = Filesystem(0, name = "apps", archType = deviceArchitecture,
                     distributionType = app.filesystemRequired, isAppsFilesystem = true)
-            withContext(Dispatchers.IO) { filesystemDao.insertFilesystem(fsToInsert) }
+            filesystemDao.insertFilesystem(fsToInsert)
         }
 
-        return withContext(Dispatchers.IO) { filesystemDao.findAppsFilesystemByType(app.filesystemRequired).first() }
+        return@withContext filesystemDao.findAppsFilesystemByType(app.filesystemRequired).first()
     }
 
-    private suspend fun findAppSession(app: App): Session {
-        val potentialAppSession = withContext(Dispatchers.IO) {
-            sessionDao.findAppsSession(app.name)
-        }
+    private suspend fun findAppSession(app: App): Session = withContext(Dispatchers.IO) {
+        val potentialAppSession = sessionDao.findAppsSession(app.name)
 
         if (potentialAppSession.isEmpty()) {
             val sessionToInsert = Session(id = 0, name = app.name, filesystemId = -1, isAppsSession = true)
-            withContext(Dispatchers.IO) { sessionDao.insertSession(sessionToInsert) }
+            sessionDao.insertSession(sessionToInsert)
         }
 
-        return withContext(Dispatchers.IO) { sessionDao.findAppsSession(app.name).first() }
-    }
-
-    private fun appsFilesystemRequiresCredentials(appsFilesystem: Filesystem): Boolean {
-        return appsFilesystem.defaultUsername.isEmpty() ||
-                appsFilesystem.defaultPassword.isEmpty() ||
-                appsFilesystem.defaultVncPassword.isEmpty()
+        return@withContext sessionDao.findAppsSession(app.name).first()
     }
 
     private suspend fun setAppsFilesystemCredentials(filesystem: Filesystem, username: String, password: String, vncPassword: String) {
@@ -132,10 +140,9 @@ class AppsStartupFsm(
         withContext(Dispatchers.IO) { filesystemDao.updateFilesystem(filesystem) }
     }
 
-    private suspend fun updateAppSession(appSession: Session,
-                                         serviceTypePreference: AppServiceTypePreference,
-                                         appsFilesystem: Filesystem){
+    private suspend fun updateAppSession(app: App, appSession: Session, appsFilesystem: Filesystem) {
         state.postValue(SyncingDatabaseEntries)
+        val serviceTypePreference = appsPreferences.getAppServiceTypePreference(app)
         appSession.filesystemId = appsFilesystem.id
         appSession.filesystemName = appsFilesystem.name
         appSession.serviceType = serviceTypePreference.toString()
@@ -144,34 +151,32 @@ class AppsStartupFsm(
         appSession.password = appsFilesystem.defaultPassword
         appSession.vncPassword = appsFilesystem.defaultVncPassword
         withContext(Dispatchers.IO) { sessionDao.updateSession(appSession) }
+        state.postValue(AppDatabaseEntriesSynced)
     }
 }
 
 sealed class AppsStartupState
-data class IncorrectAppTransition(val event: AppsStartupEvent, val state: AppsStartupState)
+data class IncorrectAppTransition(val event: AppsStartupEvent, val state: AppsStartupState) : AppsStartupState()
 object WaitingForAppSelection : AppsStartupState()
 object FetchingDatabaseEntries : AppsStartupState()
-object DatabaseEntriesFetched : AppsStartupState()
+data class DatabaseEntriesFetched(val appsFilesystem: Filesystem, val appSession: Session) : AppsStartupState()
 object DatabaseEntriesFetchFailed : AppsStartupState()
 object AppsFilesystemHasCredentials : AppsStartupState()
-data class AppsFilesystemRequiresCredentials(val app: App, val appsFilesystem: Filesystem) : AppsStartupState()
-object CheckingAppServiceTypePreference : AppsStartupState()
+data class AppsFilesystemRequiresCredentials(val appsFilesystem: Filesystem) : AppsStartupState()
 object AppHasServiceTypePreferenceSet : AppsStartupState()
-data class AppRequiresServiceTypePreference(val app: App) : AppsStartupState()
+object AppRequiresServiceTypePreference : AppsStartupState()
 object CopyingAppScript : AppsStartupState()
 object AppScriptCopySucceeded : AppsStartupState()
-data class AppScriptCopyFailed(val app: App) : AppsStartupState()
+object AppScriptCopyFailed : AppsStartupState()
 object SyncingDatabaseEntries : AppsStartupState()
-object DatabaseSyncSucceeded : AppsStartupState()
-object DatabaseSyncFailed : AppsStartupState()
 object AppDatabaseEntriesSynced : AppsStartupState()
 
 sealed class AppsStartupEvent
 data class AppSelected(val app: App) : AppsStartupEvent()
-object CheckAppsFilesystemCredentials : AppsStartupEvent()
-data class SubmitAppsFilesystemCredentials(val app: App, val filesystem: Filesystem, val username: String, val password: String, val vncPassword: String) : AppsStartupEvent()
-object CheckAppsServicePreference : AppsStartupEvent()
+data class CheckAppsFilesystemCredentials(val appsFilesystem: Filesystem) : AppsStartupEvent()
+data class SubmitAppsFilesystemCredentials(val filesystem: Filesystem, val username: String, val password: String, val vncPassword: String) : AppsStartupEvent()
+data class CheckAppServicePreference(val app: App) : AppsStartupEvent()
 data class SubmitAppServicePreference(val app: App, val serviceTypePreference: AppServiceTypePreference) : AppsStartupEvent()
-object CopyAppScript : AppsStartupEvent()
-object SyncDatabaseEntries : AppsStartupEvent()
+data class CopyAppScriptToFilesystem(val app: App, val filesystem: Filesystem) : AppsStartupEvent()
+data class SyncDatabaseEntries(val app: App, val session: Session, val filesystem: Filesystem) : AppsStartupEvent()
 object ResetAppState : AppsStartupEvent()
