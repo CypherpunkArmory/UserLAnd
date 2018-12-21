@@ -178,14 +178,14 @@ public final class TerminalSession extends TerminalOutput {
         int[] processId = new int[1];
         String cwd = "/data/data/tech.ula/files/support";
 
-        String libAuthRenameCmd = "/data/data/tech.ula/files/usr/bin/applets/mv";
+        String libAuthRenameCmd = "/data/data/tech.ula/files/usr/bin/applets/cp";
         String[] libAuthRenameArgs = {libAuthRenameCmd, "libtermuxauth.so", "libtermux-auth.so"};
 
         String[] shellPaths = {libAuthRenameCmd, mShellPath};
 
         // Should do the same
         for (String shellPath : shellPaths ) {
-            if (shellPath.contains("mv")) {
+            if (shellPath.contains("cp")) {
                 mTerminalFileDescriptor = JNI.createSubprocess(shellPath, cwd, libAuthRenameArgs, mEnv, processId, rows, columns);
             } else {
                 mTerminalFileDescriptor = JNI.createSubprocess(shellPath, cwd, mArgs, mEnv, processId, rows, columns);
@@ -217,9 +217,7 @@ public final class TerminalSession extends TerminalOutput {
                     @Override
                     public void run() {
                         int processExitCode = JNI.waitFor(mShellPid);
-                        if (!shellPath.contains("mv")) {
-                            mMainThreadHandler.sendMessage(mMainThreadHandler.obtainMessage(MSG_PROCESS_EXITED, processExitCode));
-                        }
+                        mMainThreadHandler.sendMessage(mMainThreadHandler.obtainMessage(MSG_PROCESS_EXITED, processExitCode));
                     }
                 }.start();
 
