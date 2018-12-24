@@ -1,6 +1,7 @@
 package tech.ula
 
 import android.Manifest
+import android.annotation.TargetApi
 import android.app.AlertDialog
 import android.app.DownloadManager
 import android.arch.lifecycle.Observer
@@ -11,6 +12,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import android.net.wifi.WifiManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.support.annotation.IdRes
@@ -52,8 +54,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         getString(R.string.permission_request_code).toInt()
     }
 
-    private val TAG = "UlaMainActivity"
-
     private var progressBarIsVisible = false
     private var currentFragmentDisplaysProgressDialog = false
 
@@ -70,7 +70,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
             if (id == -1L) return
             // TODO what happens if intent received from nonula download
-            else viewModel.submitSessionStartupEvent(AssetDownloadComplete(id))
+            // TODO submit event
+            else viewModel.submitCompletedDownloadId(id)
         }
     }
 
@@ -115,71 +116,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 .get(MainActivityViewModel::class.java)
     }
 
-    private val appsStartupStateObserver = Observer<AppsStartupState> {
-        it?.let { state ->
-            Log.i(TAG, "App startup state: $state")
-            if (state !is WaitingForAppSelection) {
-                viewModel.appsAreWaitingForSelection = false
-            }
-            when (state) {
-                is IncorrectAppTransition -> {
-                    val event = state.event
-                    val currentState = state.state
-                    Log.e(TAG, "Incorrect Transition: $event, $currentState")
-                }
-
-                is WaitingForAppSelection -> viewModel.appsAreWaitingForSelection = true
-
-                is DatabaseEntriesFetched -> {
-                    // Alert viewmodel that the filesystem is selected, such that preparation steps can continue
-                    viewModel.lastSelectedSession = state.appSession
-                    viewModel.lastSelectedFilesystem = state.appsFilesystem
-                    handleAppPreparationState(state)
-                }
-
-                else -> handleAppPreparationState(state)
-            }
-        }
-    }
-
-    private val sessionStartupStateObserver = Observer<SessionStartupState> {
-        it?.let { state ->
-            // Exit early in cases where state should not be reset
-            Log.i(TAG, "Session startup state: $state")
-            if (state !is WaitingForSessionSelection) {
-                viewModel.sessionsAreWaitingForSelection = false
-            }
-            when (state) {
-                is IncorrectSessionTransition -> {
-                    val event = state.event
-                    val currentState = state.state
-                    Log.e(TAG, "Incorrect Transition: $event, $currentState")
-//                    throw IllegalStateException()
-                }
-
-                is WaitingForSessionSelection -> viewModel.sessionsAreWaitingForSelection = true
-
-                is SingleSessionSupported -> {
-                    showToast(R.string.single_session_supported)
-                    viewModel.submitSessionStartupEvent(ResetSessionState)
-                }
-
-                is SessionIsRestartable -> {
-                    restartRunningSession(state.session)
-                    viewModel.submitSessionStartupEvent(ResetSessionState)
-                }
-
-                is SessionIsReadyForPreparation -> {
-                    // Alert viewmodel that the filesystem is selected, such that preparation steps can continue
-                    viewModel.lastSelectedFilesystem = state.filesystem
-                    handleSessionPreparationState(state)
-                }
-
-                else -> handleSessionPreparationState(state)
-            }
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -197,9 +133,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         }
 
         setupWithNavController(bottom_nav_view, navController)
-
-        viewModel.getAppsStartupState().observe(this, appsStartupStateObserver)
-        viewModel.getSessionStartupState().observe(this, sessionStartupStateObserver)
     }
 
     private fun setNavStartDestination() {
@@ -259,62 +192,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             showPermissionsNecessaryDialog()
             return
         }
-        if (viewModel.selectionsCanBeMade()) {
-            viewModel.lastSelectedApp = app
-            viewModel.submitAppsStartupEvent(AppSelected(app))
-        }
-    }
-
-    private fun handleAppPreparationState(state: AppsStartupState) {
-        if (!viewModel.appsPreprationRequirementsHaveBeenSelected()) {
-            // TODO error dialog
-            return
-        }
-        when (state) {
-            is FetchingDatabaseEntries -> { }
-
-            is DatabaseEntriesFetched -> {
-                viewModel.submitAppsStartupEvent(CheckAppsFilesystemCredentials(viewModel.lastSelectedFilesystem))
-            }
-
-            is AppsFilesystemHasCredentials -> {
-                viewModel.submitAppsStartupEvent(CheckAppServicePreference(viewModel.lastSelectedApp))
-            }
-
-            is AppsFilesystemRequiresCredentials -> { }
-
-            is AppHasServiceTypePreferenceSet -> {
-                val app = viewModel.lastSelectedApp
-                val filesystem = viewModel.lastSelectedFilesystem
-                viewModel.submitAppsStartupEvent(CopyAppScriptToFilesystem(app, filesystem))
-            }
-
-            is AppRequiresServiceTypePreference -> { }
-
-            is CopyingAppScript -> { }
-
-            is AppScriptCopySucceeded -> {
-                val app = viewModel.lastSelectedApp
-                val session = viewModel.lastSelectedSession
-                val filesystem = viewModel.lastSelectedFilesystem
-                viewModel.submitAppsStartupEvent(SyncDatabaseEntries(app, session, filesystem))
-            }
-
-            is SyncingDatabaseEntries -> { }
-
-            is AppDatabaseEntriesSynced -> {
-                viewModel.lastSelectedApp = state.app
-                viewModel.lastSelectedSession = state.session
-                viewModel.lastSelectedFilesystem = state.filesystem
-                // TODO session startup
-            }
-
-            else -> handleAppFailureState()
-        }
-    }
-
-    private fun handleAppFailureState() {
-        // TODO
+        viewModel.submitAppSelection(app)
     }
 
     override fun sessionHasBeenSelected(session: Session) {
@@ -322,107 +200,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             showPermissionsNecessaryDialog()
             return
         }
-        if (viewModel.selectionsCanBeMade()) {
-            viewModel.lastSelectedSession = session
-            viewModel.submitSessionStartupEvent(SessionSelected(session))
-        }
-    }
-
-    private fun handleSessionPreparationState(state: SessionStartupState) {
-        if (!viewModel.sessionPreparationRequirementsHaveBeenSelected()) {
-            // TODO error dialog
-            return
-        }
-        when (state) {
-            is SessionIsReadyForPreparation -> {
-                val step = getString(R.string.progress_start_step)
-                val details = ""
-                updateProgressBar(step, details)
-
-                val filesystem = state.filesystem
-                viewModel.submitSessionStartupEvent(RetrieveAssetLists(filesystem))
-            }
-
-            is RetrievingAssetLists -> {
-                val step = getString(R.string.progress_fetching_asset_lists)
-                val details = ""
-                updateProgressBar(step, details)
-            }
-
-            is AssetListsRetrievalSucceeded -> {
-                val filesystem = viewModel.lastSelectedFilesystem
-                val assetLists = state.assetLists
-                viewModel.submitSessionStartupEvent(GenerateDownloads(filesystem, assetLists))
-            }
-
-            is GeneratingDownloadRequirements -> {
-                val step = getString(R.string.progress_checking_for_required_updates)
-                val details = ""
-                updateProgressBar(step, details)
-            }
-
-            is DownloadsRequired -> {
-                if (state.largeDownloadRequired) {} // TODO
-                val assetsToDownload = state.requiredDownloads
-                viewModel.submitSessionStartupEvent(DownloadAssets(assetsToDownload))
-            }
-
-            is NoDownloadsRequired -> {
-                val filesystem = viewModel.lastSelectedFilesystem
-                viewModel.submitSessionStartupEvent(ExtractFilesystem(filesystem))
-            }
-
-            is DownloadingRequirements -> {
-                val step = getString(R.string.progress_downloading)
-                val details = getString(R.string.progress_downloading_out_of, state.numCompleted, state.numTotal)
-                updateProgressBar(step, details)
-            }
-
-            is DownloadsHaveSucceeded -> {
-                viewModel.submitSessionStartupEvent(CopyDownloadsToLocalStorage)
-            }
-
-            is CopyingFilesToRequiredDirectories -> {
-                val step = getString(R.string.progress_copying_downloads)
-                val details = ""
-                updateProgressBar(step, details)
-            }
-
-            is CopyingSucceeded -> {
-                val filesystem = viewModel.lastSelectedFilesystem
-                viewModel.submitSessionStartupEvent(ExtractFilesystem(filesystem))
-            }
-
-            is ExtractingFilesystem -> {
-                val step = getString(R.string.progress_setting_up_filesystem)
-                val details = getString(R.string.progress_extraction_details, state.extractionTarget)
-                updateProgressBar(step, details)
-            }
-
-            is ExtractionSucceeded -> {
-                val filesystem = viewModel.lastSelectedFilesystem
-                viewModel.submitSessionStartupEvent(VerifyFilesystemAssets(filesystem))
-            }
-
-            is VerifyingFilesystemAssets -> {
-                val step = getString(R.string.progress_verifying_assets)
-                val details = ""
-                updateProgressBar(step, details)
-            }
-
-            is FilesystemHasRequiredAssets -> {
-                val session = viewModel.lastSelectedSession
-                startSession(session)
-            }
-
-            else -> {
-                handleSessionFailureState(state)
-            }
-        }
-    }
-
-    private fun handleSessionFailureState(state: SessionStartupState) {
-
+        viewModel.submitSessionSelection(session)
     }
 
     private fun startSession(session: Session) {
@@ -444,7 +222,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleSessionHasBeenActivated() {
-        viewModel.submitSessionStartupEvent(ResetSessionState)
+//        viewModel.submitSessionStartupEvent(ResetSessionState) TODO move to vm
         killProgressBar()
     }
 
@@ -475,6 +253,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.M)
     private fun showPermissionsNecessaryDialog() {
         val builder = AlertDialog.Builder(this)
         builder.setMessage(R.string.alert_permissions_necessary_message)
@@ -550,7 +329,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 .show()
     }
 
-    private fun getCredentials(app: App, filesystem: Filesystem) {
+    private fun getCredentials(filesystem: Filesystem) {
         val dialog = AlertDialog.Builder(this)
         val dialogView = this.layoutInflater.inflate(R.layout.dia_app_credentials, null)
         dialog.setView(dialogView)
@@ -566,7 +345,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
                 if (validateCredentials(username, password, vncPassword)) {
                     customDialog.dismiss()
-//                    viewModel.submitAppsStartupEvent(SubmitAppsFilesystemCredentials(app, filesystem, username, password, vncPassword))
+                    // TODO submit credentials
+//                    viewModel.submitAppsStartupEvent(SubmitAppsFilesystemCredentials(filesystem, username, password, vncPassword))
                 }
             }
         }
@@ -576,7 +356,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         customDialog.show()
     }
 
-    private fun getServiceTypePreference(app: App) {
+    private fun getAppServiceTypePreference(app: App) {
         val dialog = AlertDialog.Builder(this)
         val dialogView = layoutInflater.inflate(R.layout.dia_app_select_client, null)
         dialog.setView(dialogView)
@@ -584,18 +364,20 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         dialog.setPositiveButton(R.string.button_continue, null)
         val customDialog = dialog.create()
 
-        customDialog.setOnShowListener { _ ->
-            customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { _ ->
+        customDialog.setOnShowListener {
+            customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 customDialog.dismiss()
                 val sshTypePreference = customDialog.find<RadioButton>(R.id.ssh_radio_button)
                 val selectedPreference =
                         if (sshTypePreference.isChecked) SshTypePreference else VncTypePreference
-                viewModel.submitAppsStartupEvent(SubmitAppServicePreference(app, selectedPreference))
+                // TODO submit selection
+//                viewModel.submitAppsStartupEvent(SubmitAppServicePreference(app, selectedPreference))
             }
         }
         customDialog.setOnCancelListener {
             /* TODO submit event */
         }
+
         customDialog.show()
     }
 
