@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import tech.ula.R
 import tech.ula.model.entities.App
+import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.state.*
@@ -36,6 +37,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
 
     init {
         state.addSource(appsState) { it?.let { update ->
+            Log.i("VIEWVIEWMODELMODEL", "$update")
             // Update stateful variables before handling the update so they can be used during it
             when (update) {
                 is WaitingForAppSelection -> {
@@ -54,6 +56,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
             handleAppsPreparationState(update)
         } }
         state.addSource(sessionState) { it?.let { update ->
+            Log.i("VIEWVIEWMODELMODEL", "$update")
             // Update stateful variables before handling the update so they can be used during it
             when (update) {
                 is WaitingForSessionSelection -> {
@@ -68,16 +71,31 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
         } }
     }
 
+    fun getState(): LiveData<State> {
+        return state
+    }
+
     fun submitAppSelection(app: App) {
         if (!selectionsCanBeMade()) return
+        submitAppsStartupEvent(AppSelected(app))
     }
 
     fun submitSessionSelection(session: Session) {
         if (!selectionsCanBeMade()) return
+        submitSessionStartupEvent(SessionSelected(session))
     }
 
     fun submitCompletedDownloadId(id: Long) {
+        submitSessionStartupEvent(AssetDownloadComplete(id))
+    }
 
+    fun handleUserInputCancelled() {
+
+    }
+
+    // Exposed so that downloads can be continued from activity
+    fun startAssetDownloads(requiredDownloads: List<Asset>) {
+        submitSessionStartupEvent(DownloadAssets(requiredDownloads))
     }
 
     private fun handleAppsPreparationState(newState: AppsStartupState) {
@@ -89,14 +107,22 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
             is IncorrectAppTransition -> {}
             is WaitingForAppSelection -> {}
             is FetchingDatabaseEntries -> {}
-            is DatabaseEntriesFetched -> {}
+            is DatabaseEntriesFetched -> {
+                submitAppsStartupEvent(CheckAppsFilesystemCredentials(lastSelectedFilesystem))
+            }
             is DatabaseEntriesFetchFailed -> {}
-            is AppsFilesystemHasCredentials -> {}
+            is AppsFilesystemHasCredentials -> {
+                submitAppsStartupEvent(CheckAppServicePreference(lastSelectedApp))
+            }
             is AppsFilesystemRequiresCredentials -> {}
-            is AppHasServiceTypePreferenceSet -> {}
+            is AppHasServiceTypePreferenceSet -> {
+                submitAppsStartupEvent(CopyAppScriptToFilesystem(lastSelectedApp, lastSelectedFilesystem))
+            }
             is AppRequiresServiceTypePreference -> {}
             is CopyingAppScript -> {}
-            is AppScriptCopySucceeded -> {}
+            is AppScriptCopySucceeded -> {
+                submitAppsStartupEvent(SyncDatabaseEntries(lastSelectedApp, lastSelectedSession, lastSelectedFilesystem))
+            }
             is AppScriptCopyFailed -> {}
             is SyncingDatabaseEntries -> {}
             is AppDatabaseEntriesSynced -> {}
@@ -112,31 +138,68 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
             is IncorrectSessionTransition -> {}
             is WaitingForSessionSelection -> {}
             is SingleSessionSupported -> {}
-            is SessionIsRestartable -> {}
-            is SessionIsReadyForPreparation -> {}
-            is RetrievingAssetLists -> {}
-            is AssetListsRetrievalSucceeded -> {}
+            is SessionIsRestartable -> {
+                state.postValue(SessionCanBeRestarted(newState.session))
+            }
+            is SessionIsReadyForPreparation -> {
+                state.postValue(StartingSetup)
+                submitSessionStartupEvent(RetrieveAssetLists(lastSelectedFilesystem))
+            }
+            is RetrievingAssetLists -> {
+                state.postValue(FetchingAssetLists)
+            }
+            is AssetListsRetrievalSucceeded -> {
+                submitSessionStartupEvent(GenerateDownloads(lastSelectedFilesystem, newState.assetLists))
+            }
             is AssetListsRetrievalFailed -> {}
-            is GeneratingDownloadRequirements -> {}
-            is DownloadsRequired -> {}
-            is NoDownloadsRequired -> {}
-            is DownloadingRequirements -> {}
-            is DownloadsHaveSucceeded -> {}
+            is GeneratingDownloadRequirements -> {
+                state.postValue(CheckingForAssetsUpdates)
+            }
+            is DownloadsRequired -> {
+                if (newState.largeDownloadRequired) {
+                    // TODO
+                    startAssetDownloads(newState.requiredDownloads)
+                }
+                else {
+                    startAssetDownloads(newState.requiredDownloads)
+                }
+
+            }
+            is NoDownloadsRequired -> {
+                submitSessionStartupEvent(ExtractFilesystem(lastSelectedFilesystem))
+            }
+            is DownloadingRequirements -> {
+                state.postValue(DownloadProgress(newState.numCompleted, newState.numTotal))
+            }
+            is DownloadsHaveSucceeded -> {
+                submitSessionStartupEvent(CopyDownloadsToLocalStorage)
+            }
             is DownloadsHaveFailed -> {}
-            is CopyingFilesToRequiredDirectories -> {}
-            is CopyingSucceeded -> {}
+            is CopyingFilesToRequiredDirectories -> {
+                state.postValue(CopyingDownloads)
+            }
+            is CopyingSucceeded -> {
+                submitSessionStartupEvent(ExtractFilesystem(lastSelectedFilesystem))
+            }
             is CopyingFailed -> {}
             is DistributionCopyFailed -> {}
-            is ExtractingFilesystem -> {}
-            is ExtractionSucceeded -> {}
+            is ExtractingFilesystem -> {
+                state.postValue(FilesystemExtraction(newState.extractionTarget))
+            }
+            is ExtractionSucceeded -> {
+                submitSessionStartupEvent(VerifyFilesystemAssets(lastSelectedFilesystem))
+            }
             is ExtractionFailed -> {}
-            is VerifyingFilesystemAssets -> {}
-            is FilesystemHasRequiredAssets -> {}
+            is VerifyingFilesystemAssets -> {
+                state.postValue(VerifyingFilesystem)
+            }
+            is FilesystemHasRequiredAssets -> {
+                state.postValue(SessionCanBeRestarted(lastSelectedSession))
+            }
             is FilesystemIsMissingRequiredAssets -> {}
         }
     }
 
-    // Handle this internally in viewmodel
     private fun selectionsCanBeMade(): Boolean {
         return appsAreWaitingForSelection && sessionsAreWaitingForSelection
     }
@@ -162,19 +225,22 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
 }
 
 sealed class State
-sealed class UserInputRequiredState : State() {
-    object FilesystemCredentialsRequired : UserInputRequiredState()
-    object AppServiceTypePreferenceRequired : UserInputRequiredState()
-}
-sealed class ProgressBarUpdate(val stepResId: Int, val detailsResId: Int) : State() {
-    data class DownloadProgressUpdate(val numComplete: Int, val numTotal: Int) :
-            ProgressBarUpdate(R.string.progress_downloading, R.string.progress_downloading_out_of)
-    data class FilesystemExtractionProgressUpdate(val extractionTarget: String) :
-            ProgressBarUpdate(R.string.progress_setting_up_extract_text, R.string.progress_extraction_details)
-}
-data class SessionIsStartable(val session: Session) : State()
-data class SessionIsRestartable(val session: Session) : State()
+data class SessionCanBeStarted(val session: Session) : State()
+data class SessionCanBeRestarted(val session: Session) : State()
 data class IllegalState(val reason: String): State()
+
+sealed class UserInputRequiredState : State()
+object FilesystemCredentialsRequired : UserInputRequiredState()
+object AppServiceTypePreferenceRequired : UserInputRequiredState()
+
+sealed class ProgressBarUpdateState : State()
+object StartingSetup : ProgressBarUpdateState()
+object FetchingAssetLists : ProgressBarUpdateState()
+object CheckingForAssetsUpdates : ProgressBarUpdateState()
+data class DownloadProgress(val numComplete: Int, val numTotal: Int) : ProgressBarUpdateState()
+object CopyingDownloads : ProgressBarUpdateState()
+data class FilesystemExtraction(val extractionTarget: String) : ProgressBarUpdateState()
+object VerifyingFilesystem : ProgressBarUpdateState()
 
 class MainActivityViewModelFactory(private val appsStartupFsm: AppsStartupFsm, private val sessionStartupFsm: SessionStartupFsm) : ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {

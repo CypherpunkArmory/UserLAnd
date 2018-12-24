@@ -45,8 +45,7 @@ import tech.ula.model.state.*
 import tech.ula.ui.AppListFragment
 import tech.ula.ui.SessionListFragment
 import tech.ula.utils.*
-import tech.ula.viewmodel.MainActivityViewModel
-import tech.ula.viewmodel.MainActivityViewModelFactory
+import tech.ula.viewmodel.*
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection {
 
@@ -94,6 +93,12 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         }
     }
 
+    private val stateObserver = Observer<State> {
+        it?.let { state ->
+            handleStateUpdate(state)
+        }
+    }
+
     private val viewModel: MainActivityViewModel by lazy {
         val ulaDatabase = UlaDatabase.getInstance(this)
 
@@ -133,6 +138,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         }
 
         setupWithNavController(bottom_nav_view, navController)
+
+        viewModel.getState().observe(this, stateObserver)
     }
 
     private fun setNavStartDestination() {
@@ -203,6 +210,16 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         viewModel.submitSessionSelection(session)
     }
 
+    private fun handleStateUpdate(newState: State) {
+        return when (newState) {
+            is SessionCanBeStarted -> { startSession(newState.session) }
+            is SessionCanBeRestarted -> { restartRunningSession(newState.session) }
+            is IllegalState -> {} // TODO
+            is UserInputRequiredState -> { handleUserInputState(newState) }
+            is ProgressBarUpdateState -> { handleProgressBarUpdateState(newState) }
+        }
+    }
+
     private fun startSession(session: Session) {
         val step = getString(R.string.progress_starting)
         val details = ""
@@ -225,10 +242,18 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 //        viewModel.submitSessionStartupEvent(ResetSessionState) TODO move to vm
         killProgressBar()
     }
-
+    
     private fun showToast(resId: Int) {
         val content = getString(resId)
         Toast.makeText(this, content, Toast.LENGTH_LONG).show()
+    }
+    
+    private fun handleUserInputState(state: UserInputRequiredState) {
+        // TODO
+        return when (state) {
+            is FilesystemCredentialsRequired -> {}
+            is AppServiceTypePreferenceRequired -> {}
+        }
     }
 
     // TODO sealed classes?
@@ -271,15 +296,41 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 }
         builder.create().show()
     }
-
-    private fun killProgressBar() {
-        val outAnimation = AlphaAnimation(1f, 0f)
-        outAnimation.duration = 200
-        layout_progress.animation = outAnimation
-        layout_progress.visibility = View.GONE
-        layout_progress.isFocusable = false
-        layout_progress.isClickable = false
-        progressBarIsVisible = false
+    
+    private fun handleProgressBarUpdateState(state: ProgressBarUpdateState) {
+        // TODO
+        return when (state) {
+            is StartingSetup -> {
+                val step = getString(R.string.progress_start_step)
+                updateProgressBar(step, "")
+            }
+            is FetchingAssetLists -> {
+                val step = getString(R.string.progress_fetching_asset_lists)
+                updateProgressBar(step, "")
+            }
+            is CheckingForAssetsUpdates -> {
+                val step = getString(R.string.progress_checking_for_required_updates)
+                updateProgressBar(step, "")
+            }
+            is DownloadProgress -> {
+                val step = getString(R.string.progress_downloading)
+                val details = getString(R.string.progress_downloading_out_of, state.numComplete, state.numTotal)
+                updateProgressBar(step, details)
+            }
+            is CopyingDownloads -> {
+                val step = getString(R.string.progress_copying_downloads)
+                updateProgressBar(step, "")
+            }
+            is FilesystemExtraction -> {
+                val step = getString(R.string.progress_setting_up_filesystem)
+                val details = getString(R.string.progress_extraction_details, state.extractionTarget)
+                updateProgressBar(step, details)
+            }
+            is VerifyingFilesystem -> {
+                val step = getString(R.string.progress_verifying_assets)
+                updateProgressBar(step, "")
+            }
+        }
     }
 
     private fun updateProgressBar(step: String, details: String) {
@@ -298,6 +349,16 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
         text_session_list_progress_step.text = step
         text_session_list_progress_details.text = details
+    }
+
+    private fun killProgressBar() {
+        val outAnimation = AlphaAnimation(1f, 0f)
+        outAnimation.duration = 200
+        layout_progress.animation = outAnimation
+        layout_progress.visibility = View.GONE
+        layout_progress.isFocusable = false
+        layout_progress.isClickable = false
+        progressBarIsVisible = false
     }
 
     private fun displayNetworkChoicesDialog() {

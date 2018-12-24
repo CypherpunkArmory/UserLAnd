@@ -254,8 +254,6 @@ class SessionStartupFsm(
             }
         }
     }
-
-    // TODO handle moving apps files to profiled
 }
 
 sealed class SessionStartupState

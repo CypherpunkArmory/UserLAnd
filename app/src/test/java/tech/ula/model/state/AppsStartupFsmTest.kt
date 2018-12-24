@@ -87,7 +87,7 @@ class AppsStartupFsmTest {
             AppScriptCopySucceeded,
             AppScriptCopyFailed,
             SyncingDatabaseEntries,
-            AppDatabaseEntriesSynced
+            AppDatabaseEntriesSynced(app, appSession, appsFilesystem)
     )
 
     @Before
@@ -371,7 +371,7 @@ class AppsStartupFsmTest {
 
         verify(mockSessionDao).updateSession(updatedAppSession)
         verify(mockStateObserver).onChanged(SyncingDatabaseEntries)
-        verify(mockStateObserver).onChanged(AppDatabaseEntriesSynced)
+        verify(mockStateObserver).onChanged(AppDatabaseEntriesSynced(app, updatedAppSession, appsFilesystemWithCredentials))
     }
 
     @Test
@@ -395,6 +395,6 @@ class AppsStartupFsmTest {
 
         verify(mockSessionDao).updateSession(updatedAppSession)
         verify(mockStateObserver).onChanged(SyncingDatabaseEntries)
-        verify(mockStateObserver).onChanged(AppDatabaseEntriesSynced)
+        verify(mockStateObserver).onChanged(AppDatabaseEntriesSynced(app, updatedAppSession, appsFilesystemWithCredentials))
     }
 }

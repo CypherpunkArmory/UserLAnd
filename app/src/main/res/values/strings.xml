@@ -58,12 +58,11 @@
     <string name="service_notification_description">UserLAnd is running a background service.</string>
 
     <!-- Progress bar messages -->
-    <string name="progress_start_step">Getting things ready for you&#8230;</string>
     <string name="progress_basic_app_setup">Setting up app database information&#8230;</string>
+    <string name="progress_start_step">Getting things ready for you&#8230;</string>
     <string name="progress_fetching_asset_lists">Fetching asset lists&#8230;</string>
     <string name="progress_checking_for_required_updates">Checking whether updates are required&#8230;</string>
     <string name="progress_downloading">Downloading required assets&#8230;</string>
-    <string name="progress_downloading_check_updates">Looking for updates.</string>
     <string name="progress_downloading_out_of">%1$d out of %2$d complete</string>
     <string name="progress_copying_downloads">Copying downloaded files to local storage&#8230;</string>
     <string name="progress_setting_up_filesystem">Setting up filesystem&#8230;</string>
