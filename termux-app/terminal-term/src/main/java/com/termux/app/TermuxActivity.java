@@ -137,12 +137,6 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
         @Override
         public void onReceive(Context context, Intent intent) {
             if (mIsVisible) {
-                String whatToReload = intent.getStringExtra(RELOAD_STYLE_ACTION);
-                if ("storage".equals(whatToReload)) {
-                    if (ensureStoragePermissionGranted())
-                        TermuxInstaller.setupStorageSymlinks(TermuxActivity.this);
-                    return;
-                }
                 checkForFontAndColors();
                 mSettings.reloadFromProperties(TermuxActivity.this);
             }
@@ -179,22 +173,6 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
         TerminalSession session = getCurrentTermSession();
         if (session != null && session.getEmulator() != null) {
             getWindow().getDecorView().setBackgroundColor(session.getEmulator().mColors.mCurrentColors[TextStyle.COLOR_INDEX_BACKGROUND]);
-        }
-    }
-
-    /** For processes to access shared internal storage (/sdcard) we need this permission. */
-    @TargetApi(Build.VERSION_CODES.M)
-    public boolean ensureStoragePermissionGranted() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                return true;
-            } else {
-                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUESTCODE_PERMISSION_STORAGE);
-                return false;
-            }
-        } else {
-            // Always granted before Android 6.0.
-            return true;
         }
     }
 
@@ -397,7 +375,6 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
                         // Ignore the bell character.
                         break;
                 }
-
             }
 
             @Override
@@ -461,14 +438,12 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
             return true;
         });
 
-        TermuxInstaller.setupIfNeeded(TermuxActivity.this, () -> {
-            if (mTermService == null) return; // Activity might have been destroyed.
-            try {
-                addNewSession(false, null);
-            } catch (WindowManager.BadTokenException e) {
-                // Activity finished - ignore.
-            }
-        });
+        if (mTermService == null) return; // Activity might have been destroyed.
+        try {
+            addNewSession(false, null);
+        } catch (WindowManager.BadTokenException e) {
+            // Activity finished - ignore.
+        }
     }
 
     public void switchToSession(boolean forward) {
@@ -561,12 +536,6 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
             if (mTermService.getSessions().size() == 0 && !mTermService.isWakelockEnabled()) {
                 File termuxTmpDir = new File(TermuxService.PREFIX_PATH + "/tmp");
                 if (termuxTmpDir.exists()) {
-                    try {
-                        TermuxInstaller.deleteFolder(termuxTmpDir);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
                     termuxTmpDir.mkdirs();
                 }
             }
@@ -742,13 +711,6 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
             }
             default:
                 return super.onContextItemSelected(item);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
-        if (requestCode == REQUESTCODE_PERMISSION_STORAGE && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            TermuxInstaller.setupStorageSymlinks(this);
         }
     }
 
