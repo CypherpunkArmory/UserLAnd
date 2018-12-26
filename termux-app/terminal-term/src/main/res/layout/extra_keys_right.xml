@@ -4,7 +4,7 @@
     android:id="@+id/text_input"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:imeOptions="actionSend|flagNoFullscreen"
+    android:imeOptions="actionNext|flagNoFullscreen"
     android:maxLines="1"
     android:inputType="text"
     android:textColor="@android:color/white"
