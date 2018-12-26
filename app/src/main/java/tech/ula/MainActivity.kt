@@ -10,6 +10,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
@@ -200,6 +201,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     override fun appHasBeenSelected(app: App) {
         if (!arePermissionsGranted(this)) {
             showPermissionsNecessaryDialog()
+            viewModel.waitForPermissions(appToContinue = app)
             return
         }
         viewModel.submitAppSelection(app)
@@ -208,6 +210,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     override fun sessionHasBeenSelected(session: Session) {
         if (!arePermissionsGranted(this)) {
             showPermissionsNecessaryDialog()
+            viewModel.waitForPermissions(sessionToContinue = session)
             return
         }
         viewModel.submitSessionSelection(session)
@@ -307,6 +310,24 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                     dialog.dismiss()
                 }
         builder.create().show()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            permissionRequestCode -> {
+
+                val grantedPermissions = (grantResults.isNotEmpty() &&
+                        grantResults[0] == PackageManager.PERMISSION_GRANTED &&
+                        grantResults[1] == PackageManager.PERMISSION_GRANTED)
+
+                if (grantedPermissions) {
+                    viewModel.permissionsHaveBeenGranted()
+                } else {
+                    showPermissionsNecessaryDialog()
+                }
+            }
+        }
     }
     
     private fun handleProgressBarUpdateState(state: ProgressBarUpdateState) {

@@ -8,7 +8,6 @@ import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
@@ -74,6 +73,24 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
 
     fun getState(): LiveData<State> {
         return state
+    }
+
+    fun waitForPermissions(appToContinue: App = unselectedApp, sessionToContinue: Session = unselectedSession) {
+        resetStartupState()
+        lastSelectedApp = appToContinue
+        lastSelectedSession = sessionToContinue
+    }
+
+    fun permissionsHaveBeenGranted() {
+        if (lastSelectedApp != unselectedApp && lastSelectedSession != unselectedSession) {
+            // TODO error
+            return
+        }
+        if (lastSelectedApp != unselectedApp) {
+            submitAppsStartupEvent(AppSelected(lastSelectedApp))
+        } else {
+            submitSessionStartupEvent(SessionSelected(lastSelectedSession))
+        }
     }
 
     fun submitAppSelection(app: App) {
