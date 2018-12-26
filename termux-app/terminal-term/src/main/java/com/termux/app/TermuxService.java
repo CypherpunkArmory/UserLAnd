@@ -260,7 +260,7 @@ public final class TermuxService extends Service implements SessionChangedCallba
             }
         }
 
-        String[] dbclientArgs = {"-p", port, username + "@" + hostname};
+        String[] dbclientArgs = {"-y", "-y", "-p", port, username + "@" + hostname};
         String[] processArgs = BackgroundJob.setupProcessArgs(executablePath, dbclientArgs);
         executablePath = processArgs[0];
         int lastSlashIndex = executablePath.lastIndexOf('/');
