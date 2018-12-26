@@ -10,6 +10,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Build
@@ -37,6 +39,7 @@ import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.find
 import org.jetbrains.anko.toast
 import tech.ula.model.entities.App
+import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
@@ -212,6 +215,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     private fun handleStateUpdate(newState: State) {
         return when (newState) {
+            is CanOnlyStartSingleSession -> { showToast(R.string.single_session_supported) }
             is SessionCanBeStarted -> { startSession(newState.session) }
             is SessionCanBeRestarted -> { restartRunningSession(newState.session) }
             is IllegalState -> {} // TODO
@@ -239,7 +243,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleSessionHasBeenActivated() {
-//        viewModel.submitSessionStartupEvent(ResetSessionState) TODO move to vm
         killProgressBar()
     }
     
@@ -249,17 +252,26 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
     
     private fun handleUserInputState(state: UserInputRequiredState) {
-        // TODO
         return when (state) {
-            is FilesystemCredentialsRequired -> {}
-            is AppServiceTypePreferenceRequired -> {}
+            is FilesystemCredentialsRequired -> {
+                getCredentials()
+            }
+            is AppServiceTypePreferenceRequired -> {
+                getServiceTypePreference()
+            }
+            is LargeDownloadRequired -> {
+                if (wifiIsEnabled()) {
+                    viewModel.startAssetDownloads(state.requiredDownloads)
+                    return
+                }
+                displayNetworkChoicesDialog(state.requiredDownloads)
+            }
         }
     }
 
     // TODO sealed classes?
     private fun showDialog(dialogType: String) {
         when (dialogType) {
-            "wifiRequired" -> displayNetworkChoicesDialog()
             "errorFetchingAssetLists" ->
                 displayGenericErrorDialog(this, R.string.alert_network_unavailable_title,
                         R.string.alert_network_unavailable_message)
@@ -361,36 +373,46 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         progressBarIsVisible = false
     }
 
-    private fun displayNetworkChoicesDialog() {
+    private fun wifiIsEnabled(): Boolean {
+        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        for (network in connectivityManager.allNetworks) {
+            val capabilities = connectivityManager.getNetworkCapabilities(network)
+            if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) return true
+        }
+        return false
+    }
+
+    private fun displayNetworkChoicesDialog(downloadsToContinue: List<Asset>) {
         val builder = AlertDialog.Builder(this)
         builder.setMessage(R.string.alert_wifi_disabled_message)
                 .setTitle(R.string.alert_wifi_disabled_title)
                 .setPositiveButton(R.string.alert_wifi_disabled_continue_button) {
                     dialog, _ ->
                     dialog.dismiss()
-                    val serviceIntent = Intent(this, ServerService::class.java)
-                    serviceIntent.putExtra("type", "forceDownloads")
-                    this.startService(serviceIntent)
+                    viewModel.startAssetDownloads(downloadsToContinue)
                 }
                 .setNegativeButton(R.string.alert_wifi_disabled_turn_on_wifi_button) {
                     dialog, _ ->
                     dialog.dismiss()
                     startActivity(Intent(WifiManager.ACTION_PICK_WIFI_NETWORK))
+                    viewModel.handleUserInputCancelled()
                     killProgressBar()
                 }
                 .setNeutralButton(R.string.alert_wifi_disabled_cancel_button) {
                     dialog, _ ->
                     dialog.dismiss()
+                    viewModel.handleUserInputCancelled()
                     killProgressBar()
                 }
                 .setOnCancelListener {
+                    viewModel.handleUserInputCancelled()
                     killProgressBar()
                 }
                 .create()
                 .show()
     }
 
-    private fun getCredentials(filesystem: Filesystem) {
+    private fun getCredentials() {
         val dialog = AlertDialog.Builder(this)
         val dialogView = this.layoutInflater.inflate(R.layout.dia_app_credentials, null)
         dialog.setView(dialogView)
@@ -406,18 +428,17 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
                 if (validateCredentials(username, password, vncPassword)) {
                     customDialog.dismiss()
-                    // TODO submit credentials
-//                    viewModel.submitAppsStartupEvent(SubmitAppsFilesystemCredentials(filesystem, username, password, vncPassword))
+                    viewModel.submitFilesystemCredentials(username, password, vncPassword)
                 }
             }
         }
         customDialog.setOnCancelListener {
-            /* TODO submit event */
+            viewModel.handleUserInputCancelled()
         }
         customDialog.show()
     }
 
-    private fun getAppServiceTypePreference(app: App) {
+    private fun getServiceTypePreference() {
         val dialog = AlertDialog.Builder(this)
         val dialogView = layoutInflater.inflate(R.layout.dia_app_select_client, null)
         dialog.setView(dialogView)
@@ -431,12 +452,11 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 val sshTypePreference = customDialog.find<RadioButton>(R.id.ssh_radio_button)
                 val selectedPreference =
                         if (sshTypePreference.isChecked) SshTypePreference else VncTypePreference
-                // TODO submit selection
-//                viewModel.submitAppsStartupEvent(SubmitAppServicePreference(app, selectedPreference))
+                viewModel.submitAppServicePreference(selectedPreference)
             }
         }
         customDialog.setOnCancelListener {
-            /* TODO submit event */
+            viewModel.handleUserInputCancelled()
         }
 
         customDialog.show()

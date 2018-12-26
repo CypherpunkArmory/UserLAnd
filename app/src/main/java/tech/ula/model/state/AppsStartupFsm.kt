@@ -66,7 +66,7 @@ class AppsStartupFsm(
         state.postValue(FetchingDatabaseEntries)
         try {
             val appsFilesystem = findAppsFilesystem(app)
-            val appSession = findAppSession(app)
+            val appSession = findAppSession(app, appsFilesystem.id) // TODO test id
             state.postValue(DatabaseEntriesFetched(appsFilesystem, appSession))
         } catch (err: Exception) {
             state.postValue(DatabaseEntriesFetchFailed)
@@ -107,6 +107,7 @@ class AppsStartupFsm(
 
     private fun setAppServicePreference(app: App, serviceTypePreference: AppServiceTypePreference) {
         appsPreferences.setAppServiceTypePreference(app.name, serviceTypePreference)
+        state.postValue(AppHasServiceTypePreferenceSet) // TODO test
     }
 
     @Throws(NoSuchElementException::class) // If second database call fails
@@ -124,11 +125,11 @@ class AppsStartupFsm(
     }
 
     @Throws(NoSuchElementException::class) // If second database call fails
-    private suspend fun findAppSession(app: App): Session = withContext(Dispatchers.IO) {
+    private suspend fun findAppSession(app: App, filesystemId: Long): Session = withContext(Dispatchers.IO) {
         val potentialAppSession = sessionDao.findAppsSession(app.name)
 
         if (potentialAppSession.isEmpty()) {
-            val sessionToInsert = Session(id = 0, name = app.name, filesystemId = 0, isAppsSession = true)
+            val sessionToInsert = Session(id = 0, name = app.name, filesystemId = filesystemId, isAppsSession = true)
             sessionDao.insertSession(sessionToInsert)
         }
 

@@ -14,6 +14,7 @@ import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.state.*
+import tech.ula.utils.AppServiceTypePreference
 
 class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private val sessionStartupFsm: SessionStartupFsm) : ViewModel() {
 
@@ -77,11 +78,13 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
 
     fun submitAppSelection(app: App) {
         if (!selectionsCanBeMade()) return
+        lastSelectedApp = app
         submitAppsStartupEvent(AppSelected(app))
     }
 
     fun submitSessionSelection(session: Session) {
         if (!selectionsCanBeMade()) return
+        lastSelectedSession = session
         submitSessionStartupEvent(SessionSelected(session))
     }
 
@@ -89,8 +92,24 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
         submitSessionStartupEvent(AssetDownloadComplete(id))
     }
 
-    fun handleUserInputCancelled() {
+    fun submitFilesystemCredentials(username: String, password: String, vncPassword: String) {
+        if (lastSelectedFilesystem == unselectedFilesystem) {
+            // TODO error
+            return
+        }
+        submitAppsStartupEvent(SubmitAppsFilesystemCredentials(lastSelectedFilesystem, username, password, vncPassword))
+    }
 
+    fun submitAppServicePreference(preference: AppServiceTypePreference) {
+        if (lastSelectedApp == unselectedApp) {
+            // TODO error
+            return
+        }
+        submitAppsStartupEvent(SubmitAppServicePreference(lastSelectedApp, preference))
+    }
+
+    fun handleUserInputCancelled() {
+        resetStartupState()
     }
 
     // Exposed so that downloads can be continued from activity
@@ -101,6 +120,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
     private fun handleAppsPreparationState(newState: AppsStartupState) {
         if (!appsPreparationRequirementsHaveBeenSelected()) {
             // TODO error
+            return
         }
         // Return when statement for compile-time exhaustiveness check
         return when (newState) {
@@ -114,32 +134,43 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
             is AppsFilesystemHasCredentials -> {
                 submitAppsStartupEvent(CheckAppServicePreference(lastSelectedApp))
             }
-            is AppsFilesystemRequiresCredentials -> {}
+            is AppsFilesystemRequiresCredentials -> {
+                state.postValue(FilesystemCredentialsRequired)
+            }
             is AppHasServiceTypePreferenceSet -> {
                 submitAppsStartupEvent(CopyAppScriptToFilesystem(lastSelectedApp, lastSelectedFilesystem))
             }
-            is AppRequiresServiceTypePreference -> {}
+            is AppRequiresServiceTypePreference -> {
+                state.postValue(AppServiceTypePreferenceRequired)
+            }
             is CopyingAppScript -> {}
             is AppScriptCopySucceeded -> {
                 submitAppsStartupEvent(SyncDatabaseEntries(lastSelectedApp, lastSelectedSession, lastSelectedFilesystem))
             }
             is AppScriptCopyFailed -> {}
             is SyncingDatabaseEntries -> {}
-            is AppDatabaseEntriesSynced -> {}
+            is AppDatabaseEntriesSynced -> {
+                submitSessionStartupEvent(SessionSelected(lastSelectedSession))
+            }
         }
     }
 
     private fun handleSessionPreparationState(newState: SessionStartupState) {
         if (!sessionPreparationRequirementsHaveBeenSelected()) {
             // TODO error
+            return
         }
         // Return when statement for compile-time exhaustiveness check
         return when (newState) {
             is IncorrectSessionTransition -> {}
             is WaitingForSessionSelection -> {}
-            is SingleSessionSupported -> {}
+            is SingleSessionSupported -> {
+                state.postValue(CanOnlyStartSingleSession)
+                resetStartupState()
+            }
             is SessionIsRestartable -> {
                 state.postValue(SessionCanBeRestarted(newState.session))
+                resetStartupState()
             }
             is SessionIsReadyForPreparation -> {
                 state.postValue(StartingSetup)
@@ -157,8 +188,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
             }
             is DownloadsRequired -> {
                 if (newState.largeDownloadRequired) {
-                    // TODO
-                    startAssetDownloads(newState.requiredDownloads)
+                    state.postValue(LargeDownloadRequired(newState.requiredDownloads))
                 }
                 else {
                     startAssetDownloads(newState.requiredDownloads)
@@ -194,10 +224,19 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
                 state.postValue(VerifyingFilesystem)
             }
             is FilesystemHasRequiredAssets -> {
-                state.postValue(SessionCanBeRestarted(lastSelectedSession))
+                state.postValue(SessionCanBeStarted(lastSelectedSession))
+                resetStartupState()
             }
             is FilesystemIsMissingRequiredAssets -> {}
         }
+    }
+
+    private fun resetStartupState() {
+        lastSelectedApp = unselectedApp
+        lastSelectedSession = unselectedSession
+        lastSelectedFilesystem = unselectedFilesystem
+        submitAppsStartupEvent(ResetAppState)
+        submitSessionStartupEvent(ResetSessionState)
     }
 
     private fun selectionsCanBeMade(): Boolean {
@@ -225,6 +264,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
 }
 
 sealed class State
+object CanOnlyStartSingleSession : State()
 data class SessionCanBeStarted(val session: Session) : State()
 data class SessionCanBeRestarted(val session: Session) : State()
 data class IllegalState(val reason: String): State()
@@ -232,6 +272,7 @@ data class IllegalState(val reason: String): State()
 sealed class UserInputRequiredState : State()
 object FilesystemCredentialsRequired : UserInputRequiredState()
 object AppServiceTypePreferenceRequired : UserInputRequiredState()
+data class LargeDownloadRequired(val requiredDownloads: List<Asset>) : UserInputRequiredState()
 
 sealed class ProgressBarUpdateState : State()
 object StartingSetup : ProgressBarUpdateState()
