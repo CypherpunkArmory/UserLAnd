@@ -19,8 +19,8 @@ class DownloadUtility(
 
     private fun download(asset: Asset): Long {
         var branch = "master"
-        if (asset.distributionType.equals("support",true))
-            if (asset.name.equals("dbclient") || asset.name.equals("libutil.so") || asset.name.equals("libtermuxauth.so") || asset.name.equals("libcrypto.so.1.1"))
+        if (asset.distributionType.equals("support", true))
+            if (asset.name.equals("dbclient") || asset.name.equals("libutil.so") || asset.name.equals("libtermux-auth.so") || asset.name.equals("libcrypto.so.1.1"))
                 branch = "add-dbclient"
         val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-" +
                 "${asset.distributionType}/raw/$branch/assets/" +
@@ -55,7 +55,7 @@ class DownloadUtility(
         downloadDirectory.walkBottomUp()
                 .filter { it.name.contains("UserLAnd-") }
                 .forEach {
-                    val delimitedContents = it.name.split("-")
+                    val delimitedContents = it.name.split("-", limit = 3)
                     if (delimitedContents.size != 3) return@forEach
                     val (_, directory, filename) = delimitedContents
                     val containingDirectory = File("${applicationFilesDir.path}/$directory")
