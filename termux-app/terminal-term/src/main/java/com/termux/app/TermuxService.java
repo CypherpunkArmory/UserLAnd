@@ -135,19 +135,6 @@ public final class TermuxService extends Service implements SessionChangedCallba
                 mBackgroundTasks.add(task);
                 updateNotification();
             } else {
-                TerminalSession newSession = createTermSession(executablePath, arguments, cwd, false);
-
-                // Transform executable path to session name, e.g. "/bin/do-something.sh" => "do something.sh".
-                if (executablePath != null) {
-                    int lastSlash = executablePath.lastIndexOf('/');
-                    String name = (lastSlash == -1) ? executablePath : executablePath.substring(lastSlash + 1);
-                    name = name.replace('-', ' ');
-                    newSession.mSessionName = name;
-                }
-
-                // Make the newly created session the current one to be displayed:
-                TermuxPreferences.storeCurrentSession(this, newSession);
-
                 // Launch the main Termux app, which will now show the current session:
                 startActivity(new Intent(this, TermuxActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             }
