@@ -4,7 +4,6 @@ import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MediatorLiveData
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
-import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -37,7 +36,6 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
 
     init {
         state.addSource(appsState) { it?.let { update ->
-            Log.i("VIEWVIEWMODELMODEL", "$update")
             // Update stateful variables before handling the update so they can be used during it
             when (update) {
                 is WaitingForAppSelection -> {
@@ -56,7 +54,6 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
             handleAppsPreparationState(update)
         } }
         state.addSource(sessionState) { it?.let { update ->
-            Log.i("VIEWVIEWMODELMODEL", "$update")
             // Update stateful variables before handling the update so they can be used during it
             when (update) {
                 is WaitingForSessionSelection -> {
@@ -141,13 +138,17 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
         }
         // Return when statement for compile-time exhaustiveness check
         return when (newState) {
-            is IncorrectAppTransition -> {}
+            is IncorrectAppTransition -> {
+                state.postValue(IllegalState("Bad state transition: $newState"))
+            }
             is WaitingForAppSelection -> {}
             is FetchingDatabaseEntries -> {}
             is DatabaseEntriesFetched -> {
                 submitAppsStartupEvent(CheckAppsFilesystemCredentials(lastSelectedFilesystem))
             }
-            is DatabaseEntriesFetchFailed -> {}
+            is DatabaseEntriesFetchFailed -> {
+                state.postValue(IllegalState("Couldn't fetch apps database entries."))
+            }
             is AppsFilesystemHasCredentials -> {
                 submitAppsStartupEvent(CheckAppServicePreference(lastSelectedApp))
             }
@@ -164,7 +165,9 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
             is AppScriptCopySucceeded -> {
                 submitAppsStartupEvent(SyncDatabaseEntries(lastSelectedApp, lastSelectedSession, lastSelectedFilesystem))
             }
-            is AppScriptCopyFailed -> {}
+            is AppScriptCopyFailed -> {
+                state.postValue(IllegalState("Couldn't copy app script."))
+            }
             is SyncingDatabaseEntries -> {}
             is AppDatabaseEntriesSynced -> {
                 submitSessionStartupEvent(SessionSelected(lastSelectedSession))
@@ -199,7 +202,9 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
             is AssetListsRetrievalSucceeded -> {
                 submitSessionStartupEvent(GenerateDownloads(lastSelectedFilesystem, newState.assetLists))
             }
-            is AssetListsRetrievalFailed -> {}
+            is AssetListsRetrievalFailed -> {
+                state.postValue(IllegalState("Failed to retrieve asset lists."))
+            }
             is GeneratingDownloadRequirements -> {
                 state.postValue(CheckingForAssetsUpdates)
             }
@@ -219,22 +224,30 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
             is DownloadsHaveSucceeded -> {
                 submitSessionStartupEvent(CopyDownloadsToLocalStorage)
             }
-            is DownloadsHaveFailed -> {}
+            is DownloadsHaveFailed -> {
+                state.postValue(IllegalState("Failed to download assets."))
+            }
             is CopyingFilesToRequiredDirectories -> {
                 state.postValue(CopyingDownloads)
             }
             is CopyingSucceeded -> {
                 submitSessionStartupEvent(ExtractFilesystem(lastSelectedFilesystem))
             }
-            is CopyingFailed -> {}
-            is DistributionCopyFailed -> {}
+            is CopyingFailed -> {
+                state.postValue(IllegalState("Failed to copy assets to local storage."))
+            }
+            is DistributionCopyFailed -> {
+                state.postValue(IllegalState("Failed to copy assets to filesystem."))
+            }
             is ExtractingFilesystem -> {
                 state.postValue(FilesystemExtraction(newState.extractionTarget))
             }
             is ExtractionSucceeded -> {
                 submitSessionStartupEvent(VerifyFilesystemAssets(lastSelectedFilesystem))
             }
-            is ExtractionFailed -> {}
+            is ExtractionFailed -> {
+                state.postValue(IllegalState("Failed to extract filesystem."))
+            }
             is VerifyingFilesystemAssets -> {
                 state.postValue(VerifyingFilesystem)
             }
@@ -242,7 +255,9 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
                 state.postValue(SessionCanBeStarted(lastSelectedSession))
                 resetStartupState()
             }
-            is FilesystemIsMissingRequiredAssets -> {}
+            is FilesystemIsMissingRequiredAssets -> {
+                state.postValue(IllegalState("Filesystem is missing assets."))
+            }
         }
     }
 
