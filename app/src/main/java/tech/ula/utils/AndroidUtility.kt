@@ -114,9 +114,9 @@ class AssetPreferences(private val prefs: SharedPreferences) {
         return prefs.getLong("$distributionType-lastUpdate", -1)
     }
 
-    fun setLastDistributionUpdate(distributionType: String, lastUpdateTime: Long) {
+    fun setLastDistributionUpdate(distributionType: String) {
         with(prefs.edit()) {
-            putLong("$distributionType-lastUpdate", lastUpdateTime)
+            putLong("$distributionType-lastUpdate", System.currentTimeMillis())
             apply()
         }
     }
@@ -163,17 +163,6 @@ class AppsPreferences(private val prefs: SharedPreferences) {
         }
     }
 
-    fun setAppsList(appsList: Set<String>) {
-        with(prefs.edit()) {
-            putStringSet("appsList", appsList)
-            apply()
-        }
-    }
-
-    fun getAppsList(): Set<String> {
-        return prefs.getStringSet("appsList", setOf()) ?: setOf()
-    }
-
     fun setDistributionsList(distributionList: Set<String>) {
         with(prefs.edit()) {
             putStringSet("distributionsList", distributionList)
@@ -187,7 +176,7 @@ class AppsPreferences(private val prefs: SharedPreferences) {
 }
 
 class BuildWrapper {
-    fun getSupportedAbis(): Array<String> {
+    private fun getSupportedAbis(): Array<String> {
         return Build.SUPPORTED_ABIS
     }
 
@@ -314,11 +303,5 @@ class LocalFileLocator(private val applicationFilesDir: String, private val reso
             return resources.getString(R.string.error_app_description_not_found)
         }
         return appDescriptionFile.readText()
-    }
-}
-
-class TimeUtility {
-    fun getCurrentTimeMillis(): Long {
-        return System.currentTimeMillis()
     }
 }

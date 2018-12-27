@@ -26,7 +26,6 @@ class ExecUtility(
         environmentVars: HashMap<String, String> = HashMap()
     ): Process {
 
-        // TODO refactor naming convention to command debugging log
         val prootDebuggingEnabled = defaultPreferences.getProotDebuggingEnabled()
         val prootDebuggingLevel =
                 if (prootDebuggingEnabled) defaultPreferences.getProotDebuggingLevel()

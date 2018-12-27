@@ -7,7 +7,10 @@ import android.net.Uri
 import android.os.Environment
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.doAsync
 import tech.ula.model.entities.App
@@ -56,8 +59,9 @@ class ServerService : Service() {
         val intentType = intent?.getStringExtra("type")
         when (intentType) {
             "start" -> {
+                val coroutineScope = CoroutineScope(Dispatchers.Default)
                 val session: Session = intent.getParcelableExtra("session")
-                startSession(session)
+                coroutineScope.launch { startSession(session) }
             }
             "stopApp" -> {
                 val app: App = intent.getParcelableExtra("app")
@@ -107,100 +111,18 @@ class ServerService : Service() {
         updateSession(session)
     }
 
-    private fun startSession(session: Session) = runBlocking {
+    private suspend fun startSession(session: Session) {
         startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
-        val updatedSession = withContext(coroutineContext) {
-            session.pid = serverUtility.startServer(session)
+        session.pid = serverUtility.startServer(session)
 
-            while (!serverUtility.isServerRunning(session)) {
-                delay(500)
-            }
-
-            session
+        while (!serverUtility.isServerRunning(session)) {
+            delay(500)
         }
 
-        updatedSession.active = true
-        updateSession(updatedSession)
-        startClient(updatedSession)
-        activeSessions[updatedSession.pid] = updatedSession
-//        lastActivatedSession = session
-//        lastActivatedFilesystem = filesystem
-//
-//        progressBarUpdater(getString(R.string.progress_bar_start_step), "")
-//        startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
-//
-//        val assetRepository = AssetRepository(BuildWrapper().getArchType(),
-//                filesystem.distributionType,
-//                this.filesDir.path,
-//                timestampPreferences,
-//                assetPreferences)
-//
-//        val sessionController = SessionController(assetRepository, filesystemUtility, assetPreferences)
-//
-//        launch(CommonPool) {
-//
-//            progressBarUpdater(getString(R.string.progress_fetching_asset_lists), "")
-//            val assetLists = asyncAwait {
-//                sessionController.getAssetLists()
-//            }
-//            if (assetLists.any { it.isEmpty() }) {
-//                dialogBroadcaster("errorFetchingAssetLists")
-//                return@launch
-//            }
-//
-//            val downloadRequirementsResult = sessionController
-//                    .getDownloadRequirements(filesystem, assetLists, forceDownloads, networkUtility)
-//
-//            val requiredDownloads: List<Asset>
-//            when (downloadRequirementsResult) {
-//                is RequiresWifiResult -> {
-//                    dialogBroadcaster("wifiRequired")
-//                    return@launch
-//                }
-//                is RequiredAssetsResult -> requiredDownloads = downloadRequirementsResult.assetList
-//            }
-//
-//            if (requiredDownloads.isNotEmpty() && !ConnectionUtility().httpsHostIsReachable("github.com")) {
-//                dialogBroadcaster("networkTooWeakForDownloads")
-//                return@launch
-//            }
-//            asyncAwait {
-//                sessionController.downloadRequirements(filesystem.distributionType, requiredDownloads, downloadBroadcastReceiver,
-//                        initDownloadUtility(), progressBarUpdater, resources)
-//            }
-//
-//            progressBarUpdater(getString(R.string.progress_setting_up), "")
-//            val wasExtractionSuccessful = asyncAwait {
-//                sessionController.extractFilesystemIfNeeded(filesystem, filesystemExtractLogger)
-//            }
-//            if (!wasExtractionSuccessful) {
-//                dialogBroadcaster("extractionFailed")
-//                return@launch
-//            }
-//
-//            sessionController.ensureFilesystemHasRequiredAssets(filesystem)
-//
-//            if (session.isAppsSession) {
-//                // TODO handle file not downloaded/found case
-//                // TODO determine if moving the script to profile.d before extraction is harmful
-//                // TODO better error handling for renamed apps sessions and filesystems
-//                if (!appsList.contains(session.name) || session.filesystemName != "apps") {
-//                    killProgressBar()
-//                    sendToastBroadcast(R.string.error_apps_renamed)
-//                    return@launch
-//                }
-//
-//                filesystemUtility.moveAppScriptToRequiredLocations(session.name, filesystem)
-//            }
-//
-//            val updatedSession = asyncAwait { sessionController.activateSession(session, serverUtility) }
-//
-//            updatedSession.active = true
-//            updateSession(updatedSession)
-//            killProgressBar()
-//            startClient(updatedSession)
-//            activeSessions[updatedSession.pid] = updatedSession
-//        }
+        session.active = true
+        updateSession(session)
+        startClient(session)
+        activeSessions[session.pid] = session
     }
 
     private fun stopApp(app: App) {
@@ -266,6 +188,7 @@ class ServerService : Service() {
     }
 
     private fun cleanUpFilesystem(filesystemId: Long) {
+        // TODO This could potentially be handled by the main activity (viewmodel) now
         if (filesystemId == (-1).toLong()) {
             throw Exception("Did not receive filesystemId")
         }

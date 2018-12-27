@@ -3,13 +3,10 @@ package tech.ula.model.state
 import android.arch.core.executor.testing.InstantTaskExecutorRule
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Observer
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.times
-import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.whenever
+import com.nhaarman.mockitokotlin2.* // ktlint-disable no-wildcard-imports
 import kotlinx.coroutines.runBlocking
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -138,6 +135,7 @@ class SessionStartupFsmTest {
                     event is CopyDownloadsToLocalStorage && state is DownloadsHaveSucceeded -> assertTrue(result)
                     event is ExtractFilesystem && (state is NoDownloadsRequired || state is CopyingSucceeded) -> assertTrue(result)
                     event is VerifyFilesystemAssets && state is ExtractionSucceeded -> assertTrue(result)
+                    event is ResetSessionState -> assertTrue(result)
                     else -> assertFalse(result)
                 }
             }
@@ -324,6 +322,8 @@ class SessionStartupFsmTest {
             sessionFsm.submitEvent(AssetDownloadComplete(1))
         }
 
+        verify(mockDownloadUtility).setTimestampForDownloadedFile(0)
+        verify(mockDownloadUtility).setTimestampForDownloadedFile(1)
         verify(mockStateObserver).onChanged(DownloadingRequirements(0, 2))
         verify(mockStateObserver).onChanged(DownloadingRequirements(1, 2))
         verify(mockStateObserver).onChanged(DownloadsHaveSucceeded)
@@ -348,6 +348,8 @@ class SessionStartupFsmTest {
             sessionFsm.submitEvent(AssetDownloadComplete(1))
         }
 
+        verify(mockDownloadUtility).setTimestampForDownloadedFile(0)
+        verify(mockDownloadUtility, never()).setTimestampForDownloadedFile(1)
         verify(mockStateObserver).onChanged(DownloadingRequirements(0, 2))
         verify(mockStateObserver).onChanged(DownloadingRequirements(1, 2))
         verify(mockStateObserver).onChanged(DownloadsHaveFailed)
@@ -473,6 +475,7 @@ class SessionStartupFsmTest {
         runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem)) }
 
         verify(mockFilesystemUtility).removeRootfsFilesFromFilesystem("${filesystem.id}")
+        verify(mockAssetRepository).setLastDistributionUpdate(filesystem.distributionType)
         verify(mockStateObserver).onChanged(VerifyingFilesystemAssets)
         verify(mockStateObserver).onChanged(FilesystemHasRequiredAssets)
     }

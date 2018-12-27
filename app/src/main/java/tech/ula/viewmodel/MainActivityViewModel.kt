@@ -12,7 +12,7 @@ import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.model.state.*
+import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.AppServiceTypePreference
 
 class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private val sessionStartupFsm: SessionStartupFsm) : ViewModel() {
@@ -206,11 +206,9 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
             is DownloadsRequired -> {
                 if (newState.largeDownloadRequired) {
                     state.postValue(LargeDownloadRequired(newState.requiredDownloads))
-                }
-                else {
+                } else {
                     startAssetDownloads(newState.requiredDownloads)
                 }
-
             }
             is NoDownloadsRequired -> {
                 submitSessionStartupEvent(ExtractFilesystem(lastSelectedFilesystem))
@@ -284,7 +282,7 @@ sealed class State
 object CanOnlyStartSingleSession : State()
 data class SessionCanBeStarted(val session: Session) : State()
 data class SessionCanBeRestarted(val session: Session) : State()
-data class IllegalState(val reason: String): State()
+data class IllegalState(val reason: String) : State()
 
 sealed class UserInputRequiredState : State()
 object FilesystemCredentialsRequired : UserInputRequiredState()

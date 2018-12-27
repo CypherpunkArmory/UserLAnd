@@ -18,10 +18,8 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.support.annotation.IdRes
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -35,21 +33,19 @@ import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.NavigationUI.setupWithNavController
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_main.* // ktlint-disable no-wildcard-imports
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.find
-import org.jetbrains.anko.toast
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
-import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.model.state.*
+import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.ui.AppListFragment
 import tech.ula.ui.SessionListFragment
-import tech.ula.utils.*
-import tech.ula.viewmodel.*
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection {
 
@@ -72,16 +68,14 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         override fun onReceive(context: Context, intent: Intent) {
             val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
             if (id == -1L) return
-            // TODO what happens if intent received from nonula download
-            // TODO submit event
             else viewModel.submitCompletedDownloadId(id)
         }
     }
 
     private val serverServiceBroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            intent.getStringExtra("type")?.let { type ->
-                when (type) {
+            intent.getStringExtra("type")?.let { intentType ->
+                when (intentType) {
                     "sessionActivated" -> handleSessionHasBeenActivated()
                     "toast" -> {
                         val resId = intent.getIntExtra("id", -1)
@@ -248,12 +242,12 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private fun handleSessionHasBeenActivated() {
         killProgressBar()
     }
-    
+
     private fun showToast(resId: Int) {
         val content = getString(resId)
         Toast.makeText(this, content, Toast.LENGTH_LONG).show()
     }
-    
+
     private fun handleUserInputState(state: UserInputRequiredState) {
         return when (state) {
             is FilesystemCredentialsRequired -> {
@@ -329,9 +323,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             }
         }
     }
-    
+
     private fun handleProgressBarUpdateState(state: ProgressBarUpdateState) {
-        // TODO
         return when (state) {
             is StartingSetup -> {
                 val step = getString(R.string.progress_start_step)

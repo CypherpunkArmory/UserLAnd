@@ -2,16 +2,15 @@ package tech.ula.model.state
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.DownloadUtility
-import tech.ula.utils.ExecUtility
 import tech.ula.utils.FilesystemUtility
-import tech.ula.utils.TimeUtility
 
 class SessionStartupFsm(
     ulaDatabase: UlaDatabase,
@@ -68,12 +67,11 @@ class SessionStartupFsm(
             is RetrieveAssetLists -> currentState is SessionIsReadyForPreparation
             is GenerateDownloads -> currentState is AssetListsRetrievalSucceeded
             is DownloadAssets -> currentState is DownloadsRequired
-            // TODO sometimes the state transition to DownloadingRequirements won't propagate before an AssetDownloadComplete
             is AssetDownloadComplete -> currentState is DownloadingRequirements
             is CopyDownloadsToLocalStorage -> currentState is DownloadsHaveSucceeded
             is ExtractFilesystem -> currentState is NoDownloadsRequired || currentState is CopyingSucceeded
             is VerifyFilesystemAssets -> currentState is ExtractionSucceeded
-            is ResetSessionState -> true // TODO test
+            is ResetSessionState -> true
         }
     }
 
@@ -91,12 +89,10 @@ class SessionStartupFsm(
             is CopyDownloadsToLocalStorage -> { handleCopyDownloads() }
             is ExtractFilesystem -> { handleExtractFilesystem(event.filesystem) }
             is VerifyFilesystemAssets -> { handleVerifyFilesystemAssets(event.filesystem) }
-            is ResetSessionState -> { state.postValue(WaitingForSessionSelection) } // TODO test
+            is ResetSessionState -> { state.postValue(WaitingForSessionSelection) }
         }
     }
 
-    // TODO handle non-existence?
-    // TODO test
     private fun findFilesystemForSession(session: Session): Filesystem {
         return filesystems.find { filesystem -> filesystem.id == session.filesystemId }!!
     }
@@ -116,12 +112,12 @@ class SessionStartupFsm(
         state.postValue(SessionIsReadyForPreparation(session, filesystem))
     }
 
-    private fun handleRetrieveAssetLists(filesystem: Filesystem) {
+    private suspend fun handleRetrieveAssetLists(filesystem: Filesystem) {
         state.postValue(RetrievingAssetLists)
 
-        val assetLists = runBlocking { withContext(Dispatchers.Default) {
+        val assetLists = withContext(Dispatchers.IO) {
             assetRepository.getAllAssetLists(filesystem.distributionType, filesystem.archType)
-        } }
+        }
 
         if (assetLists.any { it.isEmpty() }) {
             state.postValue(AssetListsRetrievalFailed)
@@ -161,7 +157,7 @@ class SessionStartupFsm(
 
         // If the state isn't updated first, AssetDownloadComplete events will be submitted before
         // the transition is acceptable.
-        state.postValue(DownloadingRequirements(0, assetsToDownload.size)) // TODO test
+        state.postValue(DownloadingRequirements(0, assetsToDownload.size))
         val newDownloads = downloadUtility.downloadRequirements(assetsToDownload)
         downloadingAssets.addAll(newDownloads)
     }
@@ -173,9 +169,9 @@ class SessionStartupFsm(
         }
 
         downloadedIds.add(downloadId)
-        downloadUtility.setTimestampForDownloadedFile(downloadId) // TODO test
+        downloadUtility.setTimestampForDownloadedFile(downloadId)
         if (downloadingAssets.size != downloadedIds.size) {
-            state.postValue(DownloadingRequirements(downloadedIds.size, downloadingAssets.size)) // TODO test
+            state.postValue(DownloadingRequirements(downloadedIds.size, downloadingAssets.size))
             return
         }
 
@@ -207,7 +203,7 @@ class SessionStartupFsm(
             return@withContext
         }
 
-            // TODO test
+        // TODO test
         filesystemUtility.extractFilesystem(filesystem, extractionLogger)
 
         if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
@@ -221,7 +217,7 @@ class SessionStartupFsm(
     private fun copyDistributionAssetsToFilesystem(filesystem: Filesystem): Boolean {
         return try {
             filesystemUtility.copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType)
-            assetRepository.setLastDistributionUpdate(filesystem.distributionType, TimeUtility().getCurrentTimeMillis()) // TODO inject and test
+            assetRepository.setLastDistributionUpdate(filesystem.distributionType)
             true
         } catch (err: Exception) {
             false

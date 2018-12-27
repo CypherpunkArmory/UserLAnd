@@ -41,8 +41,8 @@ class AssetRepository(
         return assetPreferences.getLastDistributionUpdate(distributionType)
     }
 
-    fun setLastDistributionUpdate(distributionType: String, lastUpdateTime: Long) {
-        assetPreferences.setLastDistributionUpdate(distributionType, lastUpdateTime)
+    fun setLastDistributionUpdate(distributionType: String) {
+        assetPreferences.setLastDistributionUpdate(distributionType)
     }
 
     fun getAllAssetLists(distributionType: String, deviceArchitecture: String): List<List<Asset>> {

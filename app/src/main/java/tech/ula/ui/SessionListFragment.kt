@@ -16,8 +16,6 @@ import tech.ula.ServerService
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.model.state.*
-import tech.ula.utils.*
 import tech.ula.viewmodel.SessionListViewModel
 import tech.ula.viewmodel.SessionListViewModelFactory
 

@@ -1,22 +1,19 @@
 package tech.ula.model.state
 
 import android.arch.core.executor.testing.InstantTaskExecutorRule
-import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Observer
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import kotlinx.coroutines.runBlocking
-import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
-import tech.ula.model.daos.AppsDao
 import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
@@ -95,14 +92,13 @@ class AppsStartupFsmTest {
         whenever(mockUlaDatabase.filesystemDao()).thenReturn(mockFilesystemDao)
         whenever(mockUlaDatabase.sessionDao()).thenReturn(mockSessionDao)
 
-        appsFsm = AppsStartupFsm(mockUlaDatabase, mockAppsPreferences, mockFilesystemUtility, mockBuildWrapper) // TODO Showerthought: default initialization of arch in db entry and then erroring to BuildWrapper?
+        appsFsm = AppsStartupFsm(mockUlaDatabase, mockAppsPreferences, mockFilesystemUtility, mockBuildWrapper)
     }
 
     @Test
     fun `Only allows correct state transitions`() = runBlocking {
         appsFsm.getState().observeForever(mockStateObserver)
 
-        val session = Session(0, "", 0)
         for (event in possibleEvents) {
             for (state in possibleStates) {
                 appsFsm.setState(state)
@@ -121,7 +117,7 @@ class AppsStartupFsmTest {
             }
         }
     }
-    
+
     @Test
     fun `Exits early when an incorrect transition is submitted`() {
         val state = WaitingForAppSelection
@@ -323,6 +319,7 @@ class AppsStartupFsmTest {
         runBlocking { appsFsm.submitEvent(SubmitAppServicePreference(app, SshTypePreference)) }
 
         verify(mockAppsPreferences).setAppServiceTypePreference(app.name, SshTypePreference)
+        verify(mockStateObserver).onChanged(AppHasServiceTypePreferenceSet)
     }
 
     @Test

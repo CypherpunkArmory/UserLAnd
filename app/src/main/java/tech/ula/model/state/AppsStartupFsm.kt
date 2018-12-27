@@ -2,7 +2,8 @@ package tech.ula.model.state
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
@@ -66,7 +67,7 @@ class AppsStartupFsm(
         state.postValue(FetchingDatabaseEntries)
         try {
             val appsFilesystem = findAppsFilesystem(app)
-            val appSession = findAppSession(app, appsFilesystem.id) // TODO test id
+            val appSession = findAppSession(app, appsFilesystem.id)
             state.postValue(DatabaseEntriesFetched(appsFilesystem, appSession))
         } catch (err: Exception) {
             state.postValue(DatabaseEntriesFetchFailed)
@@ -107,7 +108,7 @@ class AppsStartupFsm(
 
     private fun setAppServicePreference(app: App, serviceTypePreference: AppServiceTypePreference) {
         appsPreferences.setAppServiceTypePreference(app.name, serviceTypePreference)
-        state.postValue(AppHasServiceTypePreferenceSet) // TODO test
+        state.postValue(AppHasServiceTypePreferenceSet)
     }
 
     @Throws(NoSuchElementException::class) // If second database call fails

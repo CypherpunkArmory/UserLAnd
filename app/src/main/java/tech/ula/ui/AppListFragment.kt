@@ -1,12 +1,10 @@
 package tech.ula.ui
 
-import android.Manifest
 import android.app.AlertDialog
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
@@ -17,25 +15,18 @@ import android.view.View
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MenuInflater
-import android.widget.Toast
-import android.widget.EditText
-import android.widget.RadioButton
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_app_list.* // ktlint-disable no-wildcard-imports
 import org.jetbrains.anko.bundleOf
 import org.jetbrains.anko.defaultSharedPreferences
-import org.jetbrains.anko.find
 import tech.ula.MainActivity
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.App
-import tech.ula.model.entities.Filesystem
-import tech.ula.model.entities.Session
 import tech.ula.model.remote.GithubAppsFetcher
 import tech.ula.model.repositories.AppsRepository
 import tech.ula.model.repositories.RefreshStatus
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
