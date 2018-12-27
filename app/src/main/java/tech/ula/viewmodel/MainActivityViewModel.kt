@@ -83,7 +83,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
 
     fun permissionsHaveBeenGranted() {
         if (lastSelectedApp != unselectedApp && lastSelectedSession != unselectedSession) {
-            // TODO error
+            state.postValue(IllegalState("An app and session have been selected when permissions are granted."))
             return
         }
         if (lastSelectedApp != unselectedApp) {
@@ -111,7 +111,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
 
     fun submitFilesystemCredentials(username: String, password: String, vncPassword: String) {
         if (lastSelectedFilesystem == unselectedFilesystem) {
-            // TODO error
+            state.postValue(IllegalState("Submitting credentials for an unselected filesystem"))
             return
         }
         submitAppsStartupEvent(SubmitAppsFilesystemCredentials(lastSelectedFilesystem, username, password, vncPassword))
@@ -119,7 +119,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
 
     fun submitAppServicePreference(preference: AppServiceTypePreference) {
         if (lastSelectedApp == unselectedApp) {
-            // TODO error
+            state.postValue(IllegalState("Submitting a preference for an unselected app"))
             return
         }
         submitAppsStartupEvent(SubmitAppServicePreference(lastSelectedApp, preference))
@@ -136,7 +136,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
 
     private fun handleAppsPreparationState(newState: AppsStartupState) {
         if (!appsPreparationRequirementsHaveBeenSelected()) {
-            // TODO error
+            state.postValue(IllegalState("Trying to handle app preparation before it has been selected."))
             return
         }
         // Return when statement for compile-time exhaustiveness check
@@ -174,7 +174,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
 
     private fun handleSessionPreparationState(newState: SessionStartupState) {
         if (!sessionPreparationRequirementsHaveBeenSelected()) {
-            // TODO error
+            state.postValue(IllegalState("Trying to handle session preparation before one has been selected."))
             return
         }
         // Return when statement for compile-time exhaustiveness check

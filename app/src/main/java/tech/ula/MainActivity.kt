@@ -215,7 +215,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             is CanOnlyStartSingleSession -> { showToast(R.string.single_session_supported) }
             is SessionCanBeStarted -> { startSession(newState.session) }
             is SessionCanBeRestarted -> { restartRunningSession(newState.session) }
-            is IllegalState -> {} // TODO
+            is IllegalState -> {
+                displayIllegalStateDialog(newState.reason)
+            }
             is UserInputRequiredState -> { handleUserInputState(newState) }
             is ProgressBarUpdateState -> { handleProgressBarUpdateState(newState) }
         }
@@ -285,6 +287,19 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 displayGenericErrorDialog(this, R.string.general_error_title,
                         R.string.alert_network_strength_too_low_for_downloads)
         }
+    }
+
+    // These need sealed classes and resource defined strings
+    private fun displayIllegalStateDialog(reason: String) {
+        AlertDialog.Builder(this)
+                .setMessage("$reason\n" +
+                        "Please restart the app and contact a developer.")
+                .setTitle("Illegal state!")
+                .setPositiveButton(R.string.button_ok) {
+                    dialog, _ ->
+                    dialog.dismiss()
+                }
+                .create().show()
     }
 
     @TargetApi(Build.VERSION_CODES.M)
