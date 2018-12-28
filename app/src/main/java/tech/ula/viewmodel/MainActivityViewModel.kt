@@ -20,13 +20,13 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
     private var sessionsAreWaitingForSelection = false
 
     private val unselectedApp = App(name = "UNSELECTED")
-    var lastSelectedApp = unselectedApp
+    private var lastSelectedApp = unselectedApp
 
     private val unselectedSession = Session(id = -1, name = "UNSELECTED", filesystemId = -1)
-    var lastSelectedSession = unselectedSession
+    private var lastSelectedSession = unselectedSession
 
     private val unselectedFilesystem = Filesystem(id = -1, name = "UNSELECTED")
-    var lastSelectedFilesystem = unselectedFilesystem
+    private var lastSelectedFilesystem = unselectedFilesystem
 
     private val appsState = appsStartupFsm.getState()
 
@@ -132,7 +132,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
     }
 
     private fun handleAppsPreparationState(newState: AppsStartupState) {
-        if (!appsPreparationRequirementsHaveBeenSelected()) {
+        if (!appsPreparationRequirementsHaveBeenSelected() && newState !is WaitingForAppSelection) {
             state.postValue(IllegalState("Trying to handle app preparation before it has been selected."))
             return
         }
@@ -176,7 +176,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
     }
 
     private fun handleSessionPreparationState(newState: SessionStartupState) {
-        if (!sessionPreparationRequirementsHaveBeenSelected()) {
+        if (!sessionPreparationRequirementsHaveBeenSelected() && newState !is WaitingForSessionSelection) {
             state.postValue(IllegalState("Trying to handle session preparation before one has been selected."))
             return
         }
