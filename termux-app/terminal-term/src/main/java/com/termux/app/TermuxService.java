@@ -120,7 +120,25 @@ public final class TermuxService extends Service implements SessionChangedCallba
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         String action = intent.getAction();
-        if (ACTION_EXECUTE.equals(action)) {
+        if (ACTION_STOP_SERVICE.equals(action)) {
+            mWantsToStop = true;
+            for (int i = 0; i < mTerminalSessions.size(); i++)
+                mTerminalSessions.get(i).finishIfRunning();
+            stopSelf();
+        } else if (ACTION_LOCK_WAKE.equals(action)) {
+            if (mWakeLock == null) {
+                PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+                mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, EmulatorDebug.LOG_TAG);
+                mWakeLock.acquire();
+
+                // http://tools.android.com/tech-docs/lint-in-studio-2-3#TOC-WifiManager-Leak
+                WifiManager wm = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                mWifiLock = wm.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, EmulatorDebug.LOG_TAG);
+                mWifiLock.acquire();
+
+                updateNotification();
+            }
+        } else if (ACTION_EXECUTE.equals(action)) {
 
             Uri executableUri = intent.getData();
             String executablePath = (executableUri == null ? null : executableUri.toString());
