@@ -18,7 +18,9 @@ class DownloadUtility(
     }
 
     private fun download(asset: Asset): Long {
-        val branch = "master"
+        var branch = "master"
+        if (asset.distributionType.equals("support", true))
+            branch = "staging"
         val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-" +
                 "${asset.distributionType}/raw/$branch/assets/" +
                 "${asset.architectureType}/${asset.name}"
@@ -52,7 +54,7 @@ class DownloadUtility(
         downloadDirectory.walkBottomUp()
                 .filter { it.name.contains("UserLAnd-") }
                 .forEach {
-                    val delimitedContents = it.name.split("-")
+                    val delimitedContents = it.name.split("-", limit = 3)
                     if (delimitedContents.size != 3) return@forEach
                     val (_, directory, filename) = delimitedContents
                     val containingDirectory = File("${applicationFilesDir.path}/$directory")
