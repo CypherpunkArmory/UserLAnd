@@ -275,7 +275,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
 
     // TODO this should probably check that session and filesystem selections are for an app
     private fun appsPreparationRequirementsHaveBeenSelected(): Boolean {
-        return lastSelectedApp != unselectedApp && sessionPreparationRequirementsHaveBeenSelected()
+        return lastSelectedApp != unselectedApp
     }
 
     private fun sessionPreparationRequirementsHaveBeenSelected(): Boolean {
