@@ -47,12 +47,12 @@ reference:
   android_config: &android_config
     working_directory: *workspace
     docker:
-      - image: circleci/android:api-28-alpha
+      - image: circleci/android:api-28-ndk
     environment:
       TERM: dumb
       # Limit JVM heap size to prevent exceeding container memory
-      _JAVA_OPTIONS: "-Xmx2048m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
-      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m"'
+      _JAVA_OPTIONS: "-Xmx3200m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
+      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx3200m"'
 
   export_gcloud_key: &export_gcloud_key
     run:

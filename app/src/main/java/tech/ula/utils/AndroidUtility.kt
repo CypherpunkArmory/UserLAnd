@@ -92,7 +92,7 @@ class AssetPreferences(private val prefs: SharedPreferences) {
             (assetType, architectureType) ->
             val allEntries = prefs.getStringSet("$assetType-$architectureType", setOf()) ?: setOf()
             val assetList: List<Asset> = allEntries.map {
-                val (filename, remoteTimestamp) = it.split("-")
+                val (filename, remoteTimestamp) = it.split(regex = "\\-(?=[^.]*\$)".toRegex(), limit = 2)
                 Asset(filename, assetType, architectureType, remoteTimestamp.toLong())
             }
             assetLists.add(assetList)

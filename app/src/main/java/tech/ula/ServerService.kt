@@ -150,11 +150,7 @@ class ServerService : Service() {
         connectBotIntent.data = Uri.parse("ssh://${session.username}@localhost:${session.port}/#userland")
         connectBotIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
 
-        if (clientIsPresent(connectBotIntent)) {
-            this.startActivity(connectBotIntent)
-        } else {
-            getClient(packageName)
-        }
+        startActivity(connectBotIntent)
     }
 
     private fun startVncClient(session: Session, packageName: String) {
