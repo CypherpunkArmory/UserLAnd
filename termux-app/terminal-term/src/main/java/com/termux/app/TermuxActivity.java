@@ -592,7 +592,6 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
         menu.add(Menu.NONE, CONTEXTMENU_SHARE_TRANSCRIPT_ID, Menu.NONE, R.string.select_all_and_share);
         menu.add(Menu.NONE, CONTEXTMENU_RESET_TERMINAL_ID, Menu.NONE, R.string.reset_terminal);
         menu.add(Menu.NONE, CONTEXTMENU_KILL_PROCESS_ID, Menu.NONE, getResources().getString(R.string.kill_process, getCurrentTermSession().getPid())).setEnabled(currentSession.isRunning());
-        menu.add(Menu.NONE, CONTEXTMENU_STYLING_ID, Menu.NONE, R.string.style_terminal);
     }
 
     /** Hook system menu to show context menu instead. */
@@ -693,19 +692,6 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
                 if (session != null) {
                     session.reset();
                     showToast(getResources().getString(R.string.reset_toast_notification), true);
-                }
-                return true;
-            }
-            case CONTEXTMENU_STYLING_ID: {
-                Intent stylingIntent = new Intent();
-                stylingIntent.setClassName("com.termux.styling", "com.termux.styling.TermuxStyleActivity");
-                try {
-                    startActivity(stylingIntent);
-                } catch (ActivityNotFoundException | IllegalArgumentException e) {
-                    // The startActivity() call is not documented to throw IllegalArgumentException.
-                    // However, crash reporting shows that it sometimes does, so catch it here.
-                    new AlertDialog.Builder(this).setMessage(R.string.styling_not_installed)
-                        .setPositiveButton(R.string.styling_install, (dialog, which) -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=com.termux.styling")))).setNegativeButton(android.R.string.cancel, null).show();
                 }
                 return true;
             }
