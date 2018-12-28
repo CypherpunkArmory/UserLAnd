@@ -137,6 +137,10 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
         @Override
         public void onReceive(Context context, Intent intent) {
             if (mIsVisible) {
+                String whatToReload = intent.getStringExtra(RELOAD_STYLE_ACTION);
+                if ("storage".equals(whatToReload)) {
+                    ensureStoragePermissionGranted();
+                }
                 checkForFontAndColors();
                 mSettings.reloadFromProperties(TermuxActivity.this);
             }
@@ -173,6 +177,22 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
         TerminalSession session = getCurrentTermSession();
         if (session != null && session.getEmulator() != null) {
             getWindow().getDecorView().setBackgroundColor(session.getEmulator().mColors.mCurrentColors[TextStyle.COLOR_INDEX_BACKGROUND]);
+        }
+    }
+
+    /** For processes to access shared internal storage (/sdcard) we need this permission. */
+    @TargetApi(Build.VERSION_CODES.M)
+    public boolean ensureStoragePermissionGranted() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                return true;
+            } else {
+                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUESTCODE_PERMISSION_STORAGE);
+                return false;
+            }
+        } else {
+            // Always granted before Android 6.0.
+            return true;
         }
     }
 
