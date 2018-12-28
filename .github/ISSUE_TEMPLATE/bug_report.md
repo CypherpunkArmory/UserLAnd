@@ -12,8 +12,11 @@ or **after** entering a terminal or vnc client session.
 # Steps to reproduce the behavior:
 
 Go to '...'
+
 Click on '....'
+
 Scroll down to '....'
+
 See error
 
 # Screenshots
