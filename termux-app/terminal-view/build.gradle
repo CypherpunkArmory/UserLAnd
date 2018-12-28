@@ -47,4 +47,3 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 }
 
-apply from: '../scripts/bintray-publish.gradle'
