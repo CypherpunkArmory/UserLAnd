@@ -138,6 +138,16 @@ public final class TermuxService extends Service implements SessionChangedCallba
 
                 updateNotification();
             }
+        } else if (ACTION_UNLOCK_WAKE.equals(action)) {
+            if (mWakeLock != null) {
+                mWakeLock.release();
+                mWakeLock = null;
+
+                mWifiLock.release();
+                mWifiLock = null;
+
+                updateNotification();
+            }
         } else if (ACTION_EXECUTE.equals(action)) {
 
             Uri executableUri = intent.getData();
