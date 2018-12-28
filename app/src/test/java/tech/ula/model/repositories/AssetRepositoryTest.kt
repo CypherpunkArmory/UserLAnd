@@ -17,10 +17,7 @@ import tech.ula.model.entities.Asset
 import tech.ula.utils.AssetPreferences
 import tech.ula.utils.ConnectionUtility
 import tech.ula.utils.TimestampPreferences
-import java.io.ByteArrayInputStream
 import java.io.File
-import java.io.InputStream
-import javax.net.ssl.SSLHandshakeException
 
 @RunWith(MockitoJUnitRunner::class)
 class AssetRepositoryTest {
@@ -78,27 +75,6 @@ class AssetRepositoryTest {
 
         assertTrue(returnedAssetList.size == 1)
         assertFalse(returnedAssetList.any { it.name == "rootfs.tar.gz" })
-    }
-
-    @Test
-    fun usesHttpIfHttpsIsInaccessible() {
-        val allUrlsWithoutProtocols = allAssetListTypes.map { (dist, arch) ->
-            "://github.com/CypherpunkArmory/UserLAnd-Assets-" +
-                    "$dist/raw/master/assets/$arch/assets.txt"
-        }
-        val inputStream = ByteArrayInputStream("asset 0".toByteArray()) as InputStream
-
-        allUrlsWithoutProtocols.forEach {
-            `when`(connectionUtility.getUrlInputStream("https$it")).thenThrow(SSLHandshakeException::class.java)
-            `when`(connectionUtility.httpsHostIsReachable("github.com")).thenReturn(true)
-            `when`(connectionUtility.getUrlInputStream("http$it")).thenReturn(inputStream)
-        }
-
-        assetRepository.retrieveAllRemoteAssetLists()
-
-        allUrlsWithoutProtocols.forEach {
-            verify(connectionUtility).getUrlInputStream("http$it")
-        }
     }
 
     @Test

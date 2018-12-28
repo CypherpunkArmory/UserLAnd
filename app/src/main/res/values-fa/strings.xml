@@ -5,8 +5,8 @@
 
     <!-- Labels -->
     <string name="apps">کاره‌ها</string>
-    <string name="sessions">جلسات</string>
-    <string name="edit_session">ویرایش جلسه</string>
+    <string name="sessions">نشست‌ها</string>
+    <string name="edit_session">ویرایش نشست</string>
     <string name="filesystems">فایل‌سیستم‌ها</string>
     <string name="edit_filesystem">ویرایش فایل‌سیستم</string>
     <string name="settings">تنظیمات</string>
@@ -28,13 +28,13 @@
 
     <!-- Hints -->
     <string name="hint_filesystem_name">نام فایل‌سیستم</string>
-    <string name="hint_session_name">نام جلسه</string>
+    <string name="hint_session_name">نام نشست</string>
     <string name="hint_username">نام کاربری</string>
     <string name="hint_password">گذرواژه</string>
     <string name="hint_vnc_password">گذرواژه VNC</string>
     
     <!-- Errors -->
-    <string name="error_session_name">باید نام جلسه را وارد کنید</string>
+    <string name="error_session_name">باید نام نشست را وارد کنید</string>
     <string name="error_filesystem_name">باید نام فایل‌سیستم را وارد کنید</string>
     <string name="error_username">باید نام کاربری را وارد کنید</string>
     <string name="error_empty_field">همه فیلدها باید پر شوند!</string>
@@ -91,8 +91,8 @@
     <string name="terminology">واژه‌شناسی:</string>
     <string name="desc_apps_title">کاره‌ها:</string>
     <string name="desc_apps_message">کاره‌ها، آسان‌ترین راه برای اجرای مرسوم‌ترین توزیع‌های گنو/لینوکسی هستند.</string>
-    <string name="desc_sessions_title">جلسات:</string>
-    <string name="desc_sessions_message">جلسات، کارسازی را بر روی فایل‌سیستم شما اجرا کرده و به شما اجزاه می‌دهند با کمک برنامه‌های کارخواه دیگر، به آن متصل شوید.</string>
+    <string name="desc_sessions_title">نشست‌ها:</string>
+    <string name="desc_sessions_message">نشست‌ها، کارسازی را بر روی فایل‌سیستم شما اجرا کرده و به شما اجزاه می‌دهند با کمک برنامه‌های کارخواه دیگر، به آن متصل شوید.</string>
     <string name="desc_filesystems_title">فایل‌سیستم‌ها:</string>
     <string name="desc_filesystems_message">معنی فایل‌سیستم مشخص است: مجموعه‌ای از کاربرها و یک ساختار پرونده است که اجازه فعالیت‌های شبه‌لینوکسی را می‌دهد.</string>
 
@@ -137,7 +137,7 @@
 
     <!-- Filesystem missing assets alert -->
     <string name="alert_filesystem_missing_requirements_title">این فایل‌سیستم فاید برخی اجزای ضروری است!</string>
-    <string name="alert_filesystem_missing_requirements_message">لطفا جلسه را دوباره شروع کنید و این مشکل را با توسعه‌دهندگان در میان بگذارید!</string>
+    <string name="alert_filesystem_missing_requirements_message">لطفا نشست را دوباره شروع کنید و این مشکل را با توسعه‌دهندگان در میان بگذارید!</string>
 
     <!-- Wifi alert -->
     <string name="alert_wifi_disabled_title">بدون وای‌فای!</string>
@@ -148,26 +148,26 @@
 
     <!-- Toasts -->
     <string name="filesystem_delete_failure">ناتوانی در پاک‌کردن!</string>
-    <string name="session_unique_name_required">نام جلسات باید یک‌تا باشد!</string>
+    <string name="session_unique_name_required">نام نشست‌ها باید یک‌تا باشد!</string>
     <string name="filesystem_unique_name_required">نام فایل‌سیستم‌ها باید یک‌تا باشد!</string>
     <string name="download_client_app">لطفا کاره کارخواه مرتبط را بارگیری و دوباره تلاش کنید.</string>
     <!-- TODO remove this once multisession support is implemented -->
-    <string name="single_session_supported">یوزرلند در حال حاضر تنها از یک جلسه فعال پشتیبانی می‌کند!</string>
+    <string name="single_session_supported">یوزرلند در حال حاضر تنها از یک نشست فعال پشتیبانی می‌کند!</string>
     <string name="no_supported_architecture">یوزرلند در حال حاضر از معماری دستگاه شما پیشتیبانی نمی‌کند.</string>
     <string name="debug_log_deleted">لاگ دیباگ یا پاک شده و یا وجود ندارد!</string>
     <string name="filesystem_extraction_failed">ناتوانی در استخراج فایل‌سیستم!</string>
     <string name="no_assets_need_updating">هیچ جزئی نیازمند به‌روزرسانی نیست!</string>
-    <string name="client_not_found">ناتوانی در یافتن راهی برای مدیریت نوع کارخواهی که این جلسه در تلاش است آن را شروع کند!</string>
-    <string name="error_apps_renamed">در صورت پاک کردن جلسه یا فایل‌سیستم، کاره‌ها نمی‌توانند اجرا شوند.</string>
+    <string name="client_not_found">ناتوانی در یافتن راهی برای مدیریت نوع کارخواهی که این نشست در تلاش است آن را شروع کند!</string>
+    <string name="error_apps_renamed">در صورت پاک کردن نشست یا فایل‌سیستم، کاره‌ها نمی‌توانند اجرا شوند.</string>
 
     <!-- Content descriptions -->
-    <string name="desc_arrow">تصویر: فلش، نشان‌دهنده اتصال بین جلسه و فایل‌سیستم است.</string>
+    <string name="desc_arrow">تصویر: فلش، نشان‌دهنده اتصال بین نشست و فایل‌سیستم است.</string>
     <string name="desc_filesystem_type">تصویر: لوگوی توزیع</string>
 
     <!-- Misc -->
     <string name="free_annotation">(رایگان)</string>
     <string name="paid_annotation">(پولی)</string>
-    <string name="custom_sessions">جلسات سفارشی</string>
-    <string name="apps_sessions">جلسات کاره‌ها</string>
+    <string name="custom_sessions">نشست‌های سفارشی</string>
+    <string name="apps_sessions">نشست‌های کاره‌ها</string>
 
 </resources>
