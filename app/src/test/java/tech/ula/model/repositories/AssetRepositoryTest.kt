@@ -81,27 +81,6 @@ class AssetRepositoryTest {
     }
 
     @Test
-    fun usesHttpIfHttpsIsInaccessible() {
-        val allUrlsWithoutProtocols = allAssetListTypes.map { (dist, arch) ->
-            "://github.com/CypherpunkArmory/UserLAnd-Assets-" +
-                    "$dist/raw/master/assets/$arch/assets.txt"
-        }
-        val inputStream = ByteArrayInputStream("asset 0".toByteArray()) as InputStream
-
-        allUrlsWithoutProtocols.forEach {
-            `when`(connectionUtility.getUrlInputStream("https$it")).thenThrow(SSLHandshakeException::class.java)
-            `when`(connectionUtility.httpsHostIsReachable("github.com")).thenReturn(true)
-            `when`(connectionUtility.getUrlInputStream("http$it")).thenReturn(inputStream)
-        }
-
-        assetRepository.retrieveAllRemoteAssetLists()
-
-        allUrlsWithoutProtocols.forEach {
-            verify(connectionUtility).getUrlInputStream("http$it")
-        }
-    }
-
-    @Test
     fun assetsNeedToBeUpdatedIfTheyAreNonexistent() {
         val asset = Asset("name", distType, archType, Long.MAX_VALUE)
 
