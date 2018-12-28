@@ -17,10 +17,7 @@ import tech.ula.model.entities.Asset
 import tech.ula.utils.AssetPreferences
 import tech.ula.utils.ConnectionUtility
 import tech.ula.utils.TimestampPreferences
-import java.io.ByteArrayInputStream
 import java.io.File
-import java.io.InputStream
-import javax.net.ssl.SSLHandshakeException
 
 @RunWith(MockitoJUnitRunner::class)
 class AssetRepositoryTest {
