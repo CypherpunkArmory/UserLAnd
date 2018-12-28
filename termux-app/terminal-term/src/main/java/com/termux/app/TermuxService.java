@@ -252,7 +252,7 @@ public final class TermuxService extends Service implements SessionChangedCallba
         String[] env = BackgroundJob.buildEnvironment(failSafe, cwd);
         boolean isLoginShell = false;
 
-        for (String shellBinary : new String[]{"dbclient"}) {
+        for (String shellBinary : new String[]{"busybox"}) {
             File shellFile = new File(SUPPORT_PATH + shellBinary);
             if (shellFile.canExecute()) {
                 executablePath = shellFile.getAbsolutePath();
@@ -260,7 +260,8 @@ public final class TermuxService extends Service implements SessionChangedCallba
             }
         }
 
-        String[] dbclientArgs = {"-y", "-y", "-p", port, username + "@" + hostname};
+        // TODO: Replace -y -y option with a way to support hostkey checking
+        String[] dbclientArgs = {"sh", "-c", SUPPORT_PATH + "dbclient -y -y " + username + "@" + hostname + "/" + port};
         String[] processArgs = BackgroundJob.setupProcessArgs(executablePath, dbclientArgs);
         executablePath = processArgs[0];
         int lastSlashIndex = executablePath.lastIndexOf('/');
