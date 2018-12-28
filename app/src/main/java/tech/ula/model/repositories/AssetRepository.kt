@@ -59,7 +59,7 @@ class AssetRepository(
 
         var branch = "master"
         if (assetType.equals("support", true))
-            branch = "dbclient-cleanup"
+            branch = "staging"
         val url = "$protocol://github.com/CypherpunkArmory/UserLAnd-Assets-" +
                 "$assetType/raw/$branch/assets/$architectureType/assets.txt"
 
