@@ -164,7 +164,8 @@ class SessionStartupFsm(
 
     private fun handleAssetsDownloadComplete(downloadId: Long) {
         if (!downloadUtility.downloadedSuccessfully(downloadId)) {
-            state.postValue(DownloadsHaveFailed)
+            val reason = downloadUtility.getReasonForDownloadFailure(downloadId)
+            state.postValue(DownloadsHaveFailed(reason))
             return
         }
 
@@ -266,7 +267,7 @@ data class DownloadsRequired(val requiredDownloads: List<Asset>, val largeDownlo
 object NoDownloadsRequired : SessionStartupState()
 data class DownloadingRequirements(val numCompleted: Int, val numTotal: Int) : SessionStartupState()
 object DownloadsHaveSucceeded : SessionStartupState()
-object DownloadsHaveFailed : SessionStartupState()
+data class DownloadsHaveFailed(val reason: String) : SessionStartupState()
 object CopyingFilesToRequiredDirectories : SessionStartupState()
 object CopyingSucceeded : SessionStartupState()
 object CopyingFailed : SessionStartupState()

@@ -108,8 +108,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val filesystemUtility = FilesystemUtility(filesDir.path, execUtility)
 
         val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        val downloadManagerWrapper = DownloadManagerWrapper()
-        val downloadUtility = DownloadUtility(downloadManager, timestampPreferences, downloadManagerWrapper, filesDir)
+        val downloadManagerWrapper = DownloadManagerWrapper(downloadManager)
+        val downloadUtility = DownloadUtility(timestampPreferences, downloadManagerWrapper, filesDir)
 
         val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
 

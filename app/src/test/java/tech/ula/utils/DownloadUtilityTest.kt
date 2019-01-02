@@ -1,7 +1,6 @@
 package tech.ula.utils
 
 import android.app.DownloadManager
-import android.database.Cursor
 import com.nhaarman.mockitokotlin2.verify
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
@@ -24,9 +23,6 @@ class DownloadUtilityTest {
     val tempFolder = TemporaryFolder()
 
     @Mock
-    lateinit var downloadManager: DownloadManager
-
-    @Mock
     lateinit var timestampPreferences: TimestampPreferences
 
     @Mock
@@ -34,12 +30,6 @@ class DownloadUtilityTest {
 
     @Mock
     lateinit var requestReturn: DownloadManager.Request
-
-    @Mock
-    lateinit var queryReturn: DownloadManager.Query
-
-    @Mock
-    lateinit var cursor: Cursor
 
     lateinit var downloadDirectory: File
 
@@ -54,7 +44,7 @@ class DownloadUtilityTest {
     fun setup() {
         downloadDirectory = tempFolder.newFolder("downloads")
         `when`(downloadManagerWrapper.getDownloadsDirectory()).thenReturn(downloadDirectory)
-        downloadUtility = DownloadUtility(downloadManager, timestampPreferences, downloadManagerWrapper, applicationFilesDir = tempFolder.root)
+        downloadUtility = DownloadUtility(timestampPreferences, downloadManagerWrapper, applicationFilesDir = tempFolder.root)
 
         asset1 = Asset("name1", "distType1", "archType1", 0)
         asset2 = Asset("name2", "distType2", "archType2", 0)
@@ -77,7 +67,7 @@ class DownloadUtilityTest {
     fun enqueuesDownload() {
         downloadUtility.downloadRequirements(assetList)
 
-        verify(downloadManager, times(2)).enqueue(any())
+        verify(downloadManagerWrapper, times(2)).enqueue(requestReturn)
     }
 
     @Test
@@ -99,7 +89,7 @@ class DownloadUtilityTest {
         assertTrue(asset2DownloadsFile.exists())
 
         downloadUtility.downloadRequirements(assetList)
-        verify(downloadManager, times(2)).enqueue(any())
+        verify(downloadManagerWrapper, times(2)).enqueue(requestReturn)
 
         assertFalse(asset1File.exists())
         assertFalse(asset2File.exists())
@@ -110,9 +100,7 @@ class DownloadUtilityTest {
     @Test
     fun setsTimestampWhenTitleIsRelevant() {
         val id = 1L
-        `when`(downloadManagerWrapper.generateQuery(id)).thenReturn(queryReturn)
-        `when`(downloadManagerWrapper.generateCursor(downloadManager, queryReturn)).thenReturn(cursor)
-        `when`(downloadManagerWrapper.getDownloadTitle(cursor)).thenReturn(asset1.concatenatedName)
+        `when`(downloadManagerWrapper.getDownloadTitle(id)).thenReturn(asset1.concatenatedName)
 
         downloadUtility.setTimestampForDownloadedFile(id)
 
@@ -123,9 +111,7 @@ class DownloadUtilityTest {
     fun ignoresIrrelevantDownloads() {
         val id = 1L
         val titleName = "notuserland"
-        `when`(downloadManagerWrapper.generateQuery(id)).thenReturn(queryReturn)
-        `when`(downloadManagerWrapper.generateCursor(downloadManager, queryReturn)).thenReturn(cursor)
-        `when`(downloadManagerWrapper.getDownloadTitle(cursor)).thenReturn(titleName)
+        `when`(downloadManagerWrapper.getDownloadTitle(id)).thenReturn(titleName)
 
         downloadUtility.setTimestampForDownloadedFile(id)
 

@@ -225,7 +225,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
                 submitSessionStartupEvent(CopyDownloadsToLocalStorage)
             }
             is DownloadsHaveFailed -> {
-                state.postValue(IllegalState("Failed to download assets."))
+                state.postValue(IllegalState(newState.reason))
             }
             is CopyingFilesToRequiredDirectories -> {
                 state.postValue(CopyingDownloads)

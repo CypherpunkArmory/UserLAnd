@@ -108,6 +108,8 @@ class FilesystemUtility(
         appFilesystemProfileDDir.mkdirs()
         appScriptSource.copyTo(appScriptProfileDTarget, overwrite = true)
 
-        if (!appScriptProfileDTarget.exists()) throw Exception()
+        appScriptProfileDTarget.apply {
+            if (!exists()) throw NoSuchFileException(this)
+        }
     }
 }

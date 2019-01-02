@@ -88,7 +88,7 @@ class SessionStartupFsmTest {
             DownloadsRequired(singleAssetList, false),
             DownloadingRequirements(0, 0),
             DownloadsHaveSucceeded,
-            DownloadsHaveFailed,
+            DownloadsHaveFailed(""),
             CopyingFilesToRequiredDirectories,
             CopyingSucceeded,
             CopyingFailed,
@@ -341,6 +341,8 @@ class SessionStartupFsmTest {
                 .thenReturn(true)
         whenever(mockDownloadUtility.downloadedSuccessfully(1))
                 .thenReturn(false)
+        whenever(mockDownloadUtility.getReasonForDownloadFailure(1))
+                .thenReturn("fail")
 
         runBlocking {
             sessionFsm.submitEvent(DownloadAssets(downloadList))
@@ -352,7 +354,7 @@ class SessionStartupFsmTest {
         verify(mockDownloadUtility, never()).setTimestampForDownloadedFile(1)
         verify(mockStateObserver).onChanged(DownloadingRequirements(0, 2))
         verify(mockStateObserver).onChanged(DownloadingRequirements(1, 2))
-        verify(mockStateObserver).onChanged(DownloadsHaveFailed)
+        verify(mockStateObserver).onChanged(DownloadsHaveFailed("fail"))
     }
 
     @Test

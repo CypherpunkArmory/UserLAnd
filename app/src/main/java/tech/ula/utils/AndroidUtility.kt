@@ -238,7 +238,7 @@ class ConnectionUtility {
     }
 }
 
-class DownloadManagerWrapper {
+class DownloadManagerWrapper(private val downloadManager: DownloadManager) {
     fun generateDownloadRequest(url: String, destination: String): DownloadManager.Request {
         val uri = Uri.parse(url)
         val request = DownloadManager.Request(uri)
@@ -250,29 +250,50 @@ class DownloadManagerWrapper {
         return request
     }
 
+    fun enqueue(request: DownloadManager.Request): Long {
+        return downloadManager.enqueue(request)
+    }
+
     fun generateQuery(id: Long): DownloadManager.Query {
         val query = DownloadManager.Query()
         query.setFilterById(id)
         return query
     }
 
-    fun generateCursor(downloadManager: DownloadManager, query: DownloadManager.Query): Cursor {
+    fun generateCursor(query: DownloadManager.Query): Cursor {
         return downloadManager.query(query)
     }
 
-    fun getDownloadTitle(cursor: Cursor): String {
+    fun getDownloadTitle(id: Long): String {
+        val query = generateQuery(id)
+        val cursor = generateCursor(query)
         if (cursor.moveToFirst()) {
             return cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_TITLE))
         }
         return ""
     }
 
-    fun downloadHasNotFailed(cursor: Cursor): Boolean {
+    fun downloadHasNotFailed(id: Long): Boolean {
+        val query = generateQuery(id)
+        val cursor = generateCursor(query)
         if (cursor.moveToFirst()) {
             val status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
             return status != DownloadManager.STATUS_FAILED
         }
         return false
+    }
+
+    // TODO this should be wrapped somehow to use string resources
+    fun getDownloadFailureReason(id: Long): String {
+        val query = generateQuery(id)
+        val cursor = generateCursor(query)
+        if (cursor.moveToFirst()) {
+            val status: String = cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_REASON))
+            if (status != "reason") {
+                return status
+            }
+        }
+        return "No reason for failure"
     }
 
     fun getDownloadsDirectory(): File {

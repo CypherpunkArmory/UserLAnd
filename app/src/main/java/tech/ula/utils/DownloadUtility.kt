@@ -1,11 +1,9 @@
 package tech.ula.utils
 
-import android.app.DownloadManager
 import tech.ula.model.entities.Asset
 import java.io.File
 
 class DownloadUtility(
-    private val downloadManager: DownloadManager,
     private val timestampPreferences: TimestampPreferences,
     private val downloadManagerWrapper: DownloadManagerWrapper,
     private val applicationFilesDir: File
@@ -18,9 +16,11 @@ class DownloadUtility(
     }
 
     fun downloadedSuccessfully(id: Long): Boolean {
-        val query = downloadManagerWrapper.generateQuery(id)
-        val cursor = downloadManagerWrapper.generateCursor(downloadManager, query)
-        return downloadManagerWrapper.downloadHasNotFailed(cursor)
+        return downloadManagerWrapper.downloadHasNotFailed(id)
+    }
+
+    fun getReasonForDownloadFailure(id: Long): String {
+        return downloadManagerWrapper.getDownloadFailureReason(id)
     }
 
     private fun download(asset: Asset): Long {
@@ -34,7 +34,7 @@ class DownloadUtility(
         val request = downloadManagerWrapper.generateDownloadRequest(url, destination)
         deletePreviousDownload(asset)
 
-        return downloadManager.enqueue(request)
+        return downloadManagerWrapper.enqueue(request)
     }
 
     private fun deletePreviousDownload(asset: Asset) {
@@ -48,9 +48,7 @@ class DownloadUtility(
     }
 
     fun setTimestampForDownloadedFile(id: Long) {
-        val query = downloadManagerWrapper.generateQuery(id)
-        val cursor = downloadManagerWrapper.generateCursor(downloadManager, query)
-        val titleName = downloadManagerWrapper.getDownloadTitle(cursor)
+        val titleName = downloadManagerWrapper.getDownloadTitle(id)
         if (titleName == "" || !titleName.contains("UserLAnd")) return
         // Title should be asset.concatenatedName
         timestampPreferences.setSavedTimestampForFileToNow(titleName)
