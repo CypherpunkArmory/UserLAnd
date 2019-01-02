@@ -79,14 +79,19 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
     }
 
     fun permissionsHaveBeenGranted() {
-        if (lastSelectedApp != unselectedApp && lastSelectedSession != unselectedSession) {
-            state.postValue(IllegalState("An app and session have been selected when permissions are granted."))
-            return
-        }
-        if (lastSelectedApp != unselectedApp) {
-            submitAppsStartupEvent(AppSelected(lastSelectedApp))
-        } else {
-            submitSessionStartupEvent(SessionSelected(lastSelectedSession))
+        when {
+            lastSelectedApp != unselectedApp && lastSelectedSession != unselectedSession -> {
+
+            }
+            lastSelectedApp == unselectedApp && lastSelectedSession == unselectedSession -> {
+                state.postValue(IllegalState("Neither a session nor app have been selected when permissions are granted."))
+            }
+            lastSelectedApp != unselectedApp -> {
+                submitAppsStartupEvent(AppSelected(lastSelectedApp))
+            }
+            lastSelectedSession != unselectedSession -> {
+                submitSessionStartupEvent(SessionSelected(lastSelectedSession))
+            }
         }
     }
 
