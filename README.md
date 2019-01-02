@@ -1,4 +1,4 @@
-![UserLAnd Feature Graphic](https://github.com/CypherpunkArmory/UserLAnd/raw/master/play_store/featureGraphic.png)
+![UserLAnd Feature Graphic](https://raw.githubusercontent.com/CypherpunkArmory/UserLAnd/staging/fastlane/metadata/android/en-US/images/featureGraphic.png)
 
 # Welcome to UserLAnd
 
