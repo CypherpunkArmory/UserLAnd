@@ -42,7 +42,6 @@ class FilesystemUtilityTest {
 
     @Test
     fun extractFilesystemIsCalledWithCorrectArguments() {
-        val targetDirectoryName = tempFolder.root.path
         val command = "../support/execInProot.sh /support/extractFilesystem.sh"
 
         val requiredFilesystemType = "testDist"
@@ -50,11 +49,12 @@ class FilesystemUtilityTest {
         val filesystem = Filesystem(0, "apps",
                 archType = fakeArchitecture, distributionType = requiredFilesystemType, isAppsFilesystem = true,
                 defaultUsername = "username", defaultPassword = "password", defaultVncPassword = "vncpass")
+        val targetDirectoryName = "${filesystem.id}"
 
         val defaultEnvironmentalVariables = hashMapOf<String, String>("INITIAL_USERNAME" to "username",
                 "INITIAL_PASSWORD" to "password", "INITIAL_VNC_PASSWORD" to "vncpass")
 
-        filesystemUtility.extractFilesystem(filesystem, targetDirectoryName, statelessListener)
+        filesystemUtility.extractFilesystem(filesystem, statelessListener)
         verify(execUtility).wrapWithBusyboxAndExecute(targetDirectoryName, command, statelessListener,
                 environmentVars = defaultEnvironmentalVariables)
     }
@@ -74,7 +74,7 @@ class FilesystemUtilityTest {
         targetFiles.forEach { assertFalse(it.exists()) }
         sharedFiles.forEach { assertTrue(it.exists()) }
 
-        filesystemUtility.copyDistributionAssetsToFilesystem("target", "shared")
+        filesystemUtility.copyAssetsToFilesystem("target", "shared")
 
         assertTrue(targetDirectory.exists())
         targetFiles.forEach {

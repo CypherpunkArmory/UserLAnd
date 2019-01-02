@@ -1,19 +1,19 @@
 package tech.ula.model.state
 
 import android.arch.core.executor.testing.InstantTaskExecutorRule
-import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Observer
+import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
-import org.junit.After
+import kotlinx.coroutines.runBlocking
+import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
-import tech.ula.model.daos.AppsDao
 import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
@@ -32,342 +32,366 @@ class AppsStartupFsmTest {
     @Mock lateinit var mockFilesystemDao: FilesystemDao
 
     @Mock lateinit var mockSessionDao: SessionDao
-    lateinit var activeSessionLiveData: MutableLiveData<List<Session>>
-
-    @Mock lateinit var mockAppsDao: AppsDao
-    lateinit var appsListLiveData: MutableLiveData<List<App>>
 
     @Mock lateinit var mockUlaDatabase: UlaDatabase
 
     @Mock lateinit var mockAppsPreferences: AppsPreferences
 
+    @Mock lateinit var mockFilesystemUtility: FilesystemUtility
+
     @Mock lateinit var mockBuildWrapper: BuildWrapper
 
     @Mock lateinit var mockStateObserver: Observer<AppsStartupState>
 
-    lateinit var appsFSM: AppsStartupFsm
+    lateinit var appsFsm: AppsStartupFsm
 
     // Test setup variables
-    val app1Name = "testApp1"
-    val app2Name = "testApp2"
     val appsFilesystemName = "apps"
     val appsFilesystemType = "type"
-
-    val app1 = App(name = app1Name, supportsCli = true, supportsGui = true, filesystemRequired = appsFilesystemType)
-    val app2 = App(name = app2Name, supportsCli = true, supportsGui = true, filesystemRequired = appsFilesystemType)
-
-    val nonAppActiveSession = Session(id = -1, name = "notAnApp", filesystemId = -1, active = true)
-    val app1ActiveSession = Session(id = -1, name = app1Name, filesystemId = -1, active = true)
-    val app2ActiveSession = Session(id = -1, name = app2Name, filesystemId = -1, active = true)
-    val app1InactiveSession = Session(id = -1, name = app1Name, filesystemId = -1, active = false)
+    val appName = "app"
 
     val defaultUsername = "user"
     val defaultPassword = "password"
     val appsFilesystem = Filesystem(id = 0, name = appsFilesystemName, distributionType = appsFilesystemType, isAppsFilesystem = true)
     val appsFilesystemWithCredentials = Filesystem(id = 0, name = appsFilesystemName, distributionType = appsFilesystemType, isAppsFilesystem = true, defaultUsername = defaultUsername, defaultPassword = defaultPassword, defaultVncPassword = defaultPassword)
 
-    // NOTE: order of live data posts will matter because of how observers in FSM interact
+    val appSession = Session(id = 0, name = appName, filesystemId = 0, isAppsSession = true)
+
+    val app = App(name = appName, filesystemRequired = appsFilesystemType)
+
+    val incorrectTransitionEvent = AppSelected(app)
+    val incorrectTransitionState = FetchingDatabaseEntries
+    val possibleEvents = listOf(
+            AppSelected(app),
+            CheckAppsFilesystemCredentials(appsFilesystem),
+            SubmitAppsFilesystemCredentials(appsFilesystem, "", "", ""),
+            CheckAppServicePreference(app),
+            SubmitAppServicePreference(app, PreferenceHasNotBeenSelected),
+            CopyAppScriptToFilesystem(app, appsFilesystem),
+            SyncDatabaseEntries(app, appSession, appsFilesystem),
+            ResetAppState
+    )
+    val possibleStates = listOf(
+            IncorrectAppTransition(incorrectTransitionEvent, incorrectTransitionState),
+            WaitingForAppSelection,
+            FetchingDatabaseEntries,
+            DatabaseEntriesFetched(appsFilesystem, appSession),
+            AppsFilesystemHasCredentials,
+            AppsFilesystemRequiresCredentials(appsFilesystem),
+            AppHasServiceTypePreferenceSet,
+            AppRequiresServiceTypePreference,
+            CopyingAppScript,
+            AppScriptCopySucceeded,
+            AppScriptCopyFailed,
+            SyncingDatabaseEntries,
+            AppDatabaseEntriesSynced(app, appSession, appsFilesystem)
+    )
 
     @Before
     fun setup() {
-        activeSessionLiveData = MutableLiveData()
-        appsListLiveData = MutableLiveData()
-
-        whenever(mockUlaDatabase.sessionDao()).thenReturn(mockSessionDao)
-        whenever(mockSessionDao.findActiveSessions()).thenReturn(activeSessionLiveData)
-
-        whenever(mockUlaDatabase.appsDao()).thenReturn(mockAppsDao)
-        whenever(mockAppsDao.getAllApps()).thenReturn(appsListLiveData)
-
         whenever(mockUlaDatabase.filesystemDao()).thenReturn(mockFilesystemDao)
+        whenever(mockUlaDatabase.sessionDao()).thenReturn(mockSessionDao)
 
-        appsFSM = AppsStartupFsm(mockUlaDatabase, mockAppsPreferences, mockBuildWrapper) // TODO Showerthought: default initialization of arch in db entry and then erroring to BuildWrapper?
+        appsFsm = AppsStartupFsm(mockUlaDatabase, mockAppsPreferences, mockFilesystemUtility, mockBuildWrapper)
     }
 
-    @After
-    fun teardown() {
-        activeSessionLiveData = MutableLiveData()
-        appsListLiveData = MutableLiveData()
+    @Test
+    fun `Only allows correct state transitions`() = runBlocking {
+        appsFsm.getState().observeForever(mockStateObserver)
+
+        for (event in possibleEvents) {
+            for (state in possibleStates) {
+                appsFsm.setState(state)
+                val result = appsFsm.transitionIsAcceptable(event)
+                when {
+                    event is AppSelected && state is WaitingForAppSelection -> assertTrue(result)
+                    event is CheckAppsFilesystemCredentials && state is DatabaseEntriesFetched -> assertTrue(result)
+                    event is SubmitAppsFilesystemCredentials && state is AppsFilesystemRequiresCredentials -> assertTrue(result)
+                    event is CheckAppServicePreference && state is AppsFilesystemHasCredentials -> assertTrue(result)
+                    event is SubmitAppServicePreference && state is AppRequiresServiceTypePreference -> assertTrue(result)
+                    event is CopyAppScriptToFilesystem && state is AppHasServiceTypePreferenceSet -> assertTrue(result)
+                    event is SyncDatabaseEntries && state is AppScriptCopySucceeded -> assertTrue(result)
+                    event is ResetAppState -> assertTrue(result)
+                    else -> assertFalse(result)
+                }
+            }
+        }
     }
 
-    fun stubEmptyActiveSessions() {
-        activeSessionLiveData.postValue(listOf())
-    }
+    @Test
+    fun `Exits early when an incorrect transition is submitted`() {
+        val state = WaitingForAppSelection
+        appsFsm.setState(state)
+        appsFsm.getState().observeForever(mockStateObserver)
 
-    fun stubEmptyAppsList() {
-        appsListLiveData.postValue(listOf())
-    }
+        val event = CheckAppsFilesystemCredentials(appsFilesystem)
+        runBlocking { appsFsm.submitEvent(event) }
 
-    fun stubFullAppsList() {
-        appsListLiveData.postValue(listOf(app1, app2))
-    }
-
-    fun setupAppIsRestartableEarlyExitState() {
-        stubFullAppsList()
-        activeSessionLiveData.postValue(listOf(app1ActiveSession))
-
-        whenever(mockFilesystemDao.findAppsFilesystemByType(app1.filesystemRequired)).thenReturn(listOf(appsFilesystemWithCredentials))
-        whenever(mockSessionDao.findAppsSession(app1.name)).thenReturn(listOf(app1InactiveSession))
-        whenever(mockAppsPreferences.getAppServiceTypePreference(app1)).thenReturn(SshTypePreference)
-    }
-
-    fun setupAppIsNotActiveSessionEarlyExitState() {
-        stubFullAppsList()
-        activeSessionLiveData.postValue(listOf(nonAppActiveSession))
+        verify(mockStateObserver).onChanged(IncorrectAppTransition(event, state))
+        verify(mockStateObserver, times(2)).onChanged(any())
     }
 
     @Test
     fun `Initial state is WaitingForApps`() {
-        appsFSM.getState().observeForever(mockStateObserver)
-        stubEmptyActiveSessions()
-        stubFullAppsList()
+        appsFsm.getState().observeForever(mockStateObserver)
 
         val expectedState = WaitingForAppSelection
         verify(mockStateObserver).onChanged(expectedState)
     }
 
     @Test
-    fun `Initial state is AppsListIsEmpty when apps db entries are not populated`() {
-        appsFSM.getState().observeForever(mockStateObserver)
-        stubEmptyActiveSessions()
-        stubEmptyAppsList()
+    fun `State can be reset`() {
+        appsFsm.getState().observeForever(mockStateObserver)
 
-        val expectedState = AppsListIsEmpty
-        verify(mockStateObserver).onChanged(expectedState)
+        for (state in possibleStates) {
+            appsFsm.setState(state)
+            runBlocking { appsFsm.submitEvent(ResetAppState) }
+        }
+
+        val numberOfStates = possibleStates.size
+        // Will initially be WaitingForAppSelection (+1), the test for that state (+1), and then reset for each
+        verify(mockStateObserver, times(numberOfStates + 2)).onChanged(WaitingForAppSelection)
     }
 
     @Test
-    fun `State is SingleSessionPermitted when a session is running that is not an app`() {
-        appsFSM.getState().observeForever(mockStateObserver)
-        stubFullAppsList()
-        activeSessionLiveData.postValue(listOf(nonAppActiveSession))
+    fun `Inserts apps filesystem DB entry if not yet present in DB`() {
+        appsFsm.setState(WaitingForAppSelection)
+        appsFsm.getState().observeForever(mockStateObserver)
 
-        appsFSM.submitEvent(AppSelected(app1))
-
-        verify(mockStateObserver).onChanged(SingleSessionPermitted)
-    }
-
-    @Test
-    fun `State is SingleSessionPermitted when the selected app is not the active one`() {
-        appsFSM.getState().observeForever(mockStateObserver)
-        stubFullAppsList()
-        activeSessionLiveData.postValue(listOf(app2ActiveSession))
-
-        appsFSM.submitEvent(AppSelected(app1))
-
-        verify(mockStateObserver).onChanged(SingleSessionPermitted)
-    }
-
-    @Test
-    fun `State is AppIsRestartable if selected app is active one`() {
-        appsFSM.getState().observeForever(mockStateObserver)
-        stubFullAppsList()
-        whenever(mockAppsPreferences.getAppServiceTypePreference(app1)).thenReturn(SshTypePreference)
-        whenever(mockFilesystemDao.findAppsFilesystemByType(appsFilesystemType)).thenReturn(listOf(appsFilesystem))
-        whenever(mockSessionDao.findAppsSession(app1.name)).thenReturn(listOf(app1ActiveSession))
-
-        activeSessionLiveData.postValue(listOf(app1ActiveSession))
-
-        appsFSM.submitEvent(AppSelected(app1))
-
-        verify(mockStateObserver).onChanged(WaitingForAppSelection)
-        verify(mockStateObserver).onChanged(AppCanBeRestarted(app1ActiveSession))
-    }
-
-    @Test
-    fun `Apps filesystem is inserted if not in db`() {
-        appsFSM.getState().observeForever(mockStateObserver)
-        setupAppIsRestartableEarlyExitState()
-        whenever(mockSessionDao.findAppsSession(app1.name)).thenReturn(listOf(app1ActiveSession))
-
-        whenever(mockFilesystemDao.findAppsFilesystemByType(app1.filesystemRequired))
+        whenever(mockSessionDao.findAppsSession(app.name))
+                .thenReturn(listOf(appSession))
+        whenever(mockBuildWrapper.getArchType())
+                .thenReturn("")
+        whenever(mockFilesystemDao.findAppsFilesystemByType(app.filesystemRequired))
                 .thenReturn(listOf())
                 .thenReturn(listOf(appsFilesystem))
-        whenever(mockBuildWrapper.getArchType()).thenReturn("")
 
-        appsFSM.submitEvent(AppSelected(app1))
+        runBlocking { appsFsm.submitEvent(AppSelected(app)) }
 
-        verify(mockStateObserver).onChanged(AppCanBeRestarted(app1ActiveSession))
-        verify(mockFilesystemDao, times(2)).findAppsFilesystemByType(appsFilesystemType)
+        verify(mockStateObserver).onChanged(FetchingDatabaseEntries)
+        verify(mockStateObserver).onChanged(DatabaseEntriesFetched(appsFilesystem, appSession))
+        verify(mockFilesystemDao, times(2)).findAppsFilesystemByType(app.filesystemRequired)
         verify(mockFilesystemDao).insertFilesystem(appsFilesystem)
     }
 
     @Test
-    fun `App session is inserted if not in db`() {
-        appsFSM.getState().observeForever(mockStateObserver)
-        setupAppIsRestartableEarlyExitState()
-        whenever(mockFilesystemDao.findAppsFilesystemByType(app1.filesystemRequired)).thenReturn(listOf(appsFilesystem))
+    fun `Inserts app session DB entry if not yet present in DB`() {
+        appsFsm.setState(WaitingForAppSelection)
+        appsFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockSessionDao.findAppsSession(app1.name))
+        whenever(mockFilesystemDao.findAppsFilesystemByType(app.filesystemRequired))
+                .thenReturn(listOf(appsFilesystem))
+        whenever(mockSessionDao.findAppsSession(app.name))
                 .thenReturn(listOf())
-                .thenReturn(listOf(app1ActiveSession))
+                .thenReturn(listOf(appSession))
 
-        appsFSM.submitEvent(AppSelected(app1))
+        runBlocking { appsFsm.submitEvent(AppSelected(app)) }
 
-        val insertedSession = Session(id = 0, name = app1.name, filesystemId = appsFilesystem.id, filesystemName = appsFilesystem.name, serviceType = "ssh", isAppsSession = true, port = 2022)
-        verify(mockStateObserver).onChanged(AppCanBeRestarted(app1ActiveSession))
-        verify(mockSessionDao, times(2)).findAppsSession(app1.name)
-        verify(mockSessionDao).insertSession(insertedSession)
+        verify(mockStateObserver).onChanged(FetchingDatabaseEntries)
+        verify(mockStateObserver).onChanged(DatabaseEntriesFetched(appsFilesystem, appSession))
+        verify(mockSessionDao, times(2)).findAppsSession(app.name)
+        verify(mockSessionDao).insertSession(appSession)
     }
 
     @Test
-    fun `State is FilesystemRequiresCredentials if username is not set`() {
-        appsFSM.getState().observeForever(mockStateObserver)
-        stubFullAppsList()
-        stubEmptyActiveSessions()
-        whenever(mockAppsPreferences.getAppServiceTypePreference(app1)).thenReturn(SshTypePreference)
-        whenever(mockSessionDao.findAppsSession(app1.name)).thenReturn(listOf(app1ActiveSession))
+    fun `Fetches database entries when app selected`() {
+        appsFsm.setState(WaitingForAppSelection)
+        appsFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockFilesystemDao.findAppsFilesystemByType(app.filesystemRequired))
+                .thenReturn(listOf(appsFilesystem))
+        whenever(mockSessionDao.findAppsSession(app.name))
+                .thenReturn(listOf(appSession))
+
+        runBlocking { appsFsm.submitEvent(AppSelected(app)) }
+
+        verify(mockStateObserver).onChanged(FetchingDatabaseEntries)
+        verify(mockStateObserver).onChanged(DatabaseEntriesFetched(appsFilesystem, appSession))
+    }
+
+    @Test
+    fun `Posts failure state if database fetching fails`() {
+        appsFsm.setState(WaitingForAppSelection)
+        appsFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockBuildWrapper.getArchType())
+                .thenReturn("")
+        whenever(mockFilesystemDao.findAppsFilesystemByType(app.filesystemRequired))
+                .thenReturn(listOf())
+                .thenReturn(listOf()) // Simulate failure to retrieve previous insertion
+
+        runBlocking { appsFsm.submitEvent(AppSelected(app)) }
+
+        verify(mockFilesystemDao, times(2)).findAppsFilesystemByType(app.filesystemRequired)
+        verify(mockFilesystemDao).insertFilesystem(appsFilesystem)
+        verify(mockStateObserver).onChanged(FetchingDatabaseEntries)
+        verify(mockStateObserver).onChanged(DatabaseEntriesFetchFailed)
+    }
+
+    @Test
+    fun `Requires credentials to be set if username is missing`() {
+        appsFsm.setState(DatabaseEntriesFetched(appsFilesystem, appSession))
+        appsFsm.getState().observeForever(mockStateObserver)
 
         val filesystemWithoutUsername = appsFilesystemWithCredentials
         filesystemWithoutUsername.defaultUsername = ""
-        whenever(mockFilesystemDao.findAppsFilesystemByType(appsFilesystemType)).thenReturn(listOf(filesystemWithoutUsername))
+        runBlocking { appsFsm.submitEvent(CheckAppsFilesystemCredentials(filesystemWithoutUsername)) }
 
-        appsFSM.submitEvent(AppSelected(app1))
-
-        verify(mockStateObserver).onChanged(AppsFilesystemRequiresCredentials(app1, filesystemWithoutUsername))
+        verify(mockStateObserver).onChanged(AppsFilesystemRequiresCredentials(filesystemWithoutUsername))
     }
 
     @Test
-    fun `State is FilesystemRequiresCredentials if password is not set`() {
-        appsFSM.getState().observeForever(mockStateObserver)
-        stubFullAppsList()
-        stubEmptyActiveSessions()
-        whenever(mockAppsPreferences.getAppServiceTypePreference(app1)).thenReturn(SshTypePreference)
-        whenever(mockSessionDao.findAppsSession(app1.name)).thenReturn(listOf(app1ActiveSession))
+    fun `Requires credentials to be set if password is missing`() {
+        appsFsm.setState(DatabaseEntriesFetched(appsFilesystem, appSession))
+        appsFsm.getState().observeForever(mockStateObserver)
 
         val filesystemWithoutPassword = appsFilesystemWithCredentials
         filesystemWithoutPassword.defaultPassword = ""
-        whenever(mockFilesystemDao.findAppsFilesystemByType(appsFilesystemType)).thenReturn(listOf(filesystemWithoutPassword))
+        runBlocking { appsFsm.submitEvent(CheckAppsFilesystemCredentials(filesystemWithoutPassword)) }
 
-        appsFSM.submitEvent(AppSelected(app1))
-
-        verify(mockStateObserver).onChanged(AppsFilesystemRequiresCredentials(app1, filesystemWithoutPassword))
+        verify(mockStateObserver).onChanged(AppsFilesystemRequiresCredentials(filesystemWithoutPassword))
     }
 
     @Test
-    fun `State is FilesystemRequiresCredentials if VNC password is not set`() {
-        appsFSM.getState().observeForever(mockStateObserver)
-        stubFullAppsList()
-        stubEmptyActiveSessions()
-        whenever(mockAppsPreferences.getAppServiceTypePreference(app1)).thenReturn(SshTypePreference)
-        whenever(mockSessionDao.findAppsSession(app1.name)).thenReturn(listOf(app1ActiveSession))
+    fun `Requires credentials to be set if vnc password is missing`() {
+        appsFsm.setState(DatabaseEntriesFetched(appsFilesystem, appSession))
+        appsFsm.getState().observeForever(mockStateObserver)
 
         val filesystemWithoutVncPassword = appsFilesystemWithCredentials
         filesystemWithoutVncPassword.defaultVncPassword = ""
-        whenever(mockFilesystemDao.findAppsFilesystemByType(appsFilesystemType)).thenReturn(listOf(filesystemWithoutVncPassword))
+        runBlocking { appsFsm.submitEvent(CheckAppsFilesystemCredentials(filesystemWithoutVncPassword)) }
 
-        appsFSM.submitEvent(AppSelected(app1))
-
-        verify(mockStateObserver).onChanged(AppsFilesystemRequiresCredentials(app1, filesystemWithoutVncPassword))
+        verify(mockStateObserver).onChanged(AppsFilesystemRequiresCredentials(filesystemWithoutVncPassword))
     }
 
     @Test
-    fun `Updates filesystem when event is submitted`() {
-        appsFSM.getState().observeForever(mockStateObserver)
-        setupAppIsNotActiveSessionEarlyExitState()
-        val testFilesystem = Filesystem(id = -1, name = "test")
+    fun `State is AppsFilesystemHasCredentials if they are set`() {
+        appsFsm.setState(DatabaseEntriesFetched(appsFilesystem, appSession))
+        appsFsm.getState().observeForever(mockStateObserver)
 
-        appsFSM.submitEvent(SubmitAppsFilesystemCredentials(app1, testFilesystem, defaultUsername, defaultPassword, defaultPassword))
+        runBlocking { appsFsm.submitEvent(CheckAppsFilesystemCredentials(appsFilesystemWithCredentials)) }
 
-        testFilesystem.defaultUsername = defaultUsername
-        testFilesystem.defaultPassword = defaultPassword
-        testFilesystem.defaultVncPassword = defaultPassword
-        verify(mockFilesystemDao).updateFilesystem(testFilesystem)
+        verify(mockStateObserver).onChanged(AppsFilesystemHasCredentials)
     }
 
     @Test
-    fun `State is AppRequiresServiceTypePreference if preference not set`() {
-        appsFSM.getState().observeForever(mockStateObserver)
-        stubFullAppsList()
-        stubEmptyActiveSessions()
+    fun `Sets credentials and updates state to AppsFilesystemHasCredentials on event submission`() {
+        appsFsm.setState(AppsFilesystemRequiresCredentials(appsFilesystem))
+        appsFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockFilesystemDao.findAppsFilesystemByType(app1.filesystemRequired))
-                .thenReturn(listOf(appsFilesystemWithCredentials))
-        whenever(mockSessionDao.findAppsSession(app1.name))
-                .thenReturn(listOf(app1InactiveSession))
+        runBlocking { appsFsm.submitEvent(SubmitAppsFilesystemCredentials(appsFilesystem, defaultUsername, defaultPassword, defaultPassword)) }
 
-        whenever(mockAppsPreferences.getAppServiceTypePreference(app1))
+        verify(mockFilesystemDao).updateFilesystem(appsFilesystemWithCredentials)
+        verify(mockStateObserver).onChanged(AppsFilesystemHasCredentials)
+    }
+
+    @Test
+    fun `State is AppServiceTypePreferenceSet if already set`() {
+        appsFsm.setState(AppsFilesystemHasCredentials)
+        appsFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockAppsPreferences.getAppServiceTypePreference(app))
+                .thenReturn(SshTypePreference)
+
+        runBlocking { appsFsm.submitEvent(CheckAppServicePreference(app)) }
+
+        verify(mockStateObserver).onChanged(AppHasServiceTypePreferenceSet)
+    }
+
+    @Test
+    fun `State is AppRequiresServiceTypePreference is it is not set`() {
+        appsFsm.setState(AppsFilesystemHasCredentials)
+        appsFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockAppsPreferences.getAppServiceTypePreference(app))
                 .thenReturn(PreferenceHasNotBeenSelected)
 
-        appsFSM.submitEvent(AppSelected(app1))
+        runBlocking { appsFsm.submitEvent(CheckAppServicePreference(app)) }
 
-        verify(mockStateObserver).onChanged(AppRequiresServiceTypePreference(app1))
+        verify(mockStateObserver).onChanged(AppRequiresServiceTypePreference)
     }
 
     @Test
-    fun `Updates service preference when event is submitted`() {
-        appsFSM.getState().observeForever(mockStateObserver)
-        setupAppIsNotActiveSessionEarlyExitState()
+    fun `Sets service preference on event submission`() {
+        appsFsm.setState(AppRequiresServiceTypePreference)
+        appsFsm.getState().observeForever(mockStateObserver)
 
-        appsFSM.submitEvent(SubmitAppServicePreference(app1, VncTypePreference))
+        runBlocking { appsFsm.submitEvent(SubmitAppServicePreference(app, SshTypePreference)) }
 
-        verify(mockAppsPreferences).setAppServiceTypePreference(app1.name, VncTypePreference)
+        verify(mockAppsPreferences).setAppServiceTypePreference(app.name, SshTypePreference)
+        verify(mockStateObserver).onChanged(AppHasServiceTypePreferenceSet)
     }
 
     @Test
-    fun `State is AppCanBeStarted when everything is ready, and updates session with latest info`() {
-        appsFSM.getState().observeForever(mockStateObserver)
-        stubFullAppsList()
-        stubEmptyActiveSessions()
+    fun `State is CopySucceeded`() {
+        appsFsm.setState(AppHasServiceTypePreferenceSet)
+        appsFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockAppsPreferences.getAppServiceTypePreference(app1))
+        runBlocking { appsFsm.submitEvent(CopyAppScriptToFilesystem(app, appsFilesystem)) }
+
+        verify(mockStateObserver).onChanged(CopyingAppScript)
+        verify(mockStateObserver).onChanged(AppScriptCopySucceeded)
+    }
+
+    @Test
+    fun `State is CopyFailed`() {
+        appsFsm.setState(AppHasServiceTypePreferenceSet)
+        appsFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockFilesystemUtility.moveAppScriptToRequiredLocation(app.name, appsFilesystem))
+                .thenThrow(Exception())
+
+        runBlocking { appsFsm.submitEvent(CopyAppScriptToFilesystem(app, appsFilesystem)) }
+
+        verify(mockStateObserver).onChanged(CopyingAppScript)
+        verify(mockStateObserver).onChanged(AppScriptCopyFailed)
+    }
+
+    @Test
+    fun `Syncs database entries correctly for ssh sessions`() {
+        appsFsm.setState(AppScriptCopySucceeded)
+        appsFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockAppsPreferences.getAppServiceTypePreference(app))
                 .thenReturn(SshTypePreference)
-        whenever(mockFilesystemDao.findAppsFilesystemByType(app1.filesystemRequired))
-                .thenReturn(listOf(appsFilesystemWithCredentials))
-        whenever(mockSessionDao.findAppsSession(app1.name))
-                .thenReturn(listOf(app1InactiveSession))
 
-        appsFSM.submitEvent(AppSelected(app1))
+        runBlocking { appsFsm.submitEvent(SyncDatabaseEntries(app, appSession, appsFilesystemWithCredentials)) }
 
-        val updatedSession = Session(id = -1, name = app1Name, filesystemId = -1, active = false, serviceType = "ssh", port = 2022, username = defaultUsername, password = defaultPassword, vncPassword = defaultPassword)
-        verify(mockStateObserver)
-                .onChanged(AppCanBeStarted(app1InactiveSession, appsFilesystemWithCredentials))
-        verify(mockSessionDao).updateSession(updatedSession)
+        val updatedAppSession = appSession
+        updatedAppSession.filesystemId = appsFilesystemWithCredentials.id
+        updatedAppSession.filesystemName = appsFilesystemWithCredentials.name
+        updatedAppSession.serviceType = "ssh"
+        updatedAppSession.port = 2022
+        updatedAppSession.username = appsFilesystemWithCredentials.defaultUsername
+        updatedAppSession.password = appsFilesystemWithCredentials.defaultPassword
+        updatedAppSession.vncPassword = appsFilesystemWithCredentials.defaultVncPassword
+
+        verify(mockSessionDao).updateSession(updatedAppSession)
+        verify(mockStateObserver).onChanged(SyncingDatabaseEntries)
+        verify(mockStateObserver).onChanged(AppDatabaseEntriesSynced(app, updatedAppSession, appsFilesystemWithCredentials))
     }
 
     @Test
-    fun `State is AppCanBeStarted when everything is ready, and updates session with latest info, using 51 as port`() {
-        appsFSM.getState().observeForever(mockStateObserver)
-        stubFullAppsList()
-        stubEmptyActiveSessions()
+    fun `Syncs database entries correctly for vnc sessions`() {
+        appsFsm.setState(AppScriptCopySucceeded)
+        appsFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockAppsPreferences.getAppServiceTypePreference(app1))
+        whenever(mockAppsPreferences.getAppServiceTypePreference(app))
                 .thenReturn(VncTypePreference)
-        whenever(mockFilesystemDao.findAppsFilesystemByType(app1.filesystemRequired))
-                .thenReturn(listOf(appsFilesystemWithCredentials))
-        whenever(mockSessionDao.findAppsSession(app1.name))
-                .thenReturn(listOf(app1InactiveSession))
 
-        appsFSM.submitEvent(AppSelected(app1))
+        runBlocking { appsFsm.submitEvent(SyncDatabaseEntries(app, appSession, appsFilesystemWithCredentials)) }
 
-        val updatedSession = Session(id = -1, name = app1Name, filesystemId = -1, active = false, serviceType = "vnc", port = 51, username = defaultUsername, password = defaultPassword, vncPassword = defaultPassword)
-        verify(mockStateObserver)
-                .onChanged(AppCanBeStarted(app1InactiveSession, appsFilesystemWithCredentials))
-        verify(mockSessionDao).updateSession(updatedSession)
-    }
+        val updatedAppSession = appSession
+        updatedAppSession.filesystemId = appsFilesystemWithCredentials.id
+        updatedAppSession.filesystemName = appsFilesystemWithCredentials.name
+        updatedAppSession.serviceType = "vnc"
+        updatedAppSession.port = 51
+        updatedAppSession.username = appsFilesystemWithCredentials.defaultUsername
+        updatedAppSession.password = appsFilesystemWithCredentials.defaultPassword
+        updatedAppSession.vncPassword = appsFilesystemWithCredentials.defaultVncPassword
 
-    @Test
-    fun `State becomes AppsHaveActivated when an apps session is activated`() {
-        appsFSM.getState().observeForever(mockStateObserver)
-        stubFullAppsList()
-        activeSessionLiveData.postValue(listOf())
-
-        activeSessionLiveData.postValue(listOf(app1ActiveSession))
-
-        verify(mockStateObserver).onChanged(WaitingForAppSelection)
-        verify(mockStateObserver).onChanged(AppsHaveActivated(listOf(app1)))
-    }
-
-    @Test
-    fun `State becomes AppsHaveDeactivated when an apps session is deactivated`() {
-        appsFSM.getState().observeForever(mockStateObserver)
-        stubFullAppsList()
-        activeSessionLiveData.postValue(listOf(app1ActiveSession))
-
-        activeSessionLiveData.postValue((listOf()))
-
-        verify(mockStateObserver).onChanged(WaitingForAppSelection)
-        verify(mockStateObserver).onChanged(AppsHaveActivated(listOf(app1)))
-        verify(mockStateObserver).onChanged(AppsHaveDeactivated(listOf(app1)))
+        verify(mockSessionDao).updateSession(updatedAppSession)
+        verify(mockStateObserver).onChanged(SyncingDatabaseEntries)
+        verify(mockStateObserver).onChanged(AppDatabaseEntriesSynced(app, updatedAppSession, appsFilesystemWithCredentials))
     }
 }

@@ -1,43 +1,43 @@
 package tech.ula.ui
 
-import android.Manifest
-import android.app.Activity
-import android.app.AlertDialog
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
-import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_session_list.* // ktlint-disable no-wildcard-imports
 import org.jetbrains.anko.bundleOf
+import tech.ula.MainActivity
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.utils.arePermissionsGranted
+import tech.ula.model.repositories.UlaDatabase
 import tech.ula.viewmodel.SessionListViewModel
+import tech.ula.viewmodel.SessionListViewModelFactory
 
 class SessionListFragment : Fragment() {
 
-    private lateinit var activityContext: Activity
-    private val permissionRequestCode: Int by lazy {
-        activityContext.resources.getString(R.string.permission_request_code).toInt()
+    interface SessionSelection {
+        fun sessionHasBeenSelected(session: Session)
     }
+
+    private val doOnSessionSelection: SessionSelection by lazy {
+        activityContext
+    }
+
+    private lateinit var activityContext: MainActivity
 
     private lateinit var sessionList: List<Session>
     private lateinit var sessionAdapter: SessionListAdapter
     private lateinit var filesystemList: List<Filesystem>
 
-    private val unselectedSession = Session(id = 0, name = "UNSELECTED", filesystemId = 0)
-    private var lastSelectedSession = unselectedSession
-
     private val sessionListViewModel: SessionListViewModel by lazy {
-        ViewModelProviders.of(this).get(SessionListViewModel::class.java)
+        val ulaDatabase = UlaDatabase.getInstance(activityContext)
+        ViewModelProviders.of(this, SessionListViewModelFactory(ulaDatabase)).get(SessionListViewModel::class.java)
     }
 
     private val sessionsAndFilesystemsChangeObserver = Observer<Pair<List<Session>, List<Filesystem>>> {
@@ -71,10 +71,9 @@ class SessionListFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        activityContext = activity!! as MainActivity
 
         sessionListViewModel.getSessionsAndFilesystems().observe(viewLifecycleOwner, sessionsAndFilesystemsChangeObserver)
-
-        activityContext = activity!!
 
         registerForContextMenu(list_sessions)
         list_sessions.onItemClickListener = AdapterView.OnItemClickListener {
@@ -91,26 +90,7 @@ class SessionListFragment : Fragment() {
     }
 
     private fun doSessionItemClicked(session: Session) {
-        lastSelectedSession = session
-
-        if (arePermissionsGranted(activityContext)) {
-            handleSessionSelection(lastSelectedSession)
-        } else {
-            showPermissionsNecessaryDialog()
-        }
-    }
-
-    private fun handleSessionSelection(session: Session) {
-        if (session == unselectedSession) return
-        if (session.active) {
-            restartRunningSession(session)
-        } else {
-            if (sessionList.any { it.active }) {
-                Toast.makeText(activityContext, R.string.single_session_supported, Toast.LENGTH_LONG).show()
-            } else {
-                startSession(session)
-            }
-        }
+        doOnSessionSelection.sessionHasBeenSelected(session)
     }
 
     override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo) {
@@ -179,57 +159,5 @@ class SessionListFragment : Fragment() {
         stopService(session)
         sessionListViewModel.deleteSessionById(session.id)
         return true
-    }
-
-    private fun startSession(session: Session) {
-        val filesystem = filesystemList.find { it.name == session.filesystemName }
-        val serviceIntent = Intent(activityContext, ServerService::class.java)
-        serviceIntent.putExtra("type", "start")
-        serviceIntent.putExtra("session", session)
-        serviceIntent.putExtra("filesystem", filesystem)
-        activityContext.startService(serviceIntent)
-    }
-
-    private fun restartRunningSession(session: Session) {
-        val serviceIntent = Intent(activityContext, ServerService::class.java)
-        serviceIntent.putExtra("type", "restartRunningSession")
-        serviceIntent.putExtra("session", session)
-        activityContext.startService(serviceIntent)
-    }
-
-    private fun showPermissionsNecessaryDialog() {
-        val builder = AlertDialog.Builder(activityContext)
-        builder.setMessage(R.string.alert_permissions_necessary_message)
-                .setTitle(R.string.alert_permissions_necessary_title)
-                .setPositiveButton(R.string.button_ok) {
-                    dialog, _ ->
-                    requestPermissions(arrayOf(
-                            Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                            permissionRequestCode)
-                    dialog.dismiss()
-                }
-                .setNegativeButton(R.string.alert_permissions_necessary_cancel_button) {
-                    dialog, _ ->
-                    dialog.dismiss()
-                }
-        builder.create().show()
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            permissionRequestCode -> {
-
-                val grantedPermissions = (grantResults.isNotEmpty() &&
-                        grantResults[0] == PackageManager.PERMISSION_GRANTED &&
-                        grantResults[1] == PackageManager.PERMISSION_GRANTED)
-
-                if (grantedPermissions) {
-                    handleSessionSelection(lastSelectedSession)
-                } else {
-                    showPermissionsNecessaryDialog()
-                }
-            }
-        }
     }
 }
