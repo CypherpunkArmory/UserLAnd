@@ -141,7 +141,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
             is IncorrectAppTransition -> {
                 state.postValue(IllegalState("Bad state transition: $newState"))
             }
-            is WaitingForAppSelection -> {}
+            is WaitingForAppSelection -> { }
             is FetchingDatabaseEntries -> {}
             is DatabaseEntriesFetched -> {
                 submitAppsStartupEvent(CheckAppsFilesystemCredentials(lastSelectedFilesystem))
@@ -273,7 +273,6 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
         return appsAreWaitingForSelection && sessionsAreWaitingForSelection
     }
 
-    // TODO this should probably check that session and filesystem selections are for an app
     private fun appsPreparationRequirementsHaveBeenSelected(): Boolean {
         return lastSelectedApp != unselectedApp
     }
