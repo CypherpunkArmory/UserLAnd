@@ -51,8 +51,8 @@ reference:
     environment:
       TERM: dumb
       # Limit JVM heap size to prevent exceeding container memory
-      _JAVA_OPTIONS: "-Xmx2048m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1"
-      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m"'
+      _JAVA_OPTIONS: "-Xmx1536m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1"
+      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m" -Dorg.gradle.parallel=true'
 
   export_gcloud_key: &export_gcloud_key
     run:
