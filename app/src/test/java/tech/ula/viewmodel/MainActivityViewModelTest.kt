@@ -44,6 +44,17 @@ class MainActivityViewModelTest {
     private val unselectedSession = Session(id = -1, name = "UNSELECTED", filesystemId = -1)
     private val unselectedFilesystem = Filesystem(id = -1, name = "UNSELECTED")
 
+    private fun makeAppSelections() {
+        mainActivityViewModel.lastSelectedApp = selectedApp
+        mainActivityViewModel.lastSelectedSession = selectedSession
+        mainActivityViewModel.lastSelectedFilesystem = selectedFilesystem
+    }
+
+    private fun makeSessionSelections() {
+        mainActivityViewModel.lastSelectedSession = selectedSession
+        mainActivityViewModel.lastSelectedFilesystem = selectedFilesystem
+    }
+
     @Before
     fun setup() {
         appsStartupStateLiveData = MutableLiveData()
@@ -125,6 +136,7 @@ class MainActivityViewModelTest {
 
     @Test
     fun `Submits app selection if selections can be made`() {
+        // App and session state are initialized to waiting for selection
         mainActivityViewModel.submitAppSelection(selectedApp)
 
         runBlocking {
@@ -134,6 +146,7 @@ class MainActivityViewModelTest {
 
     @Test
     fun `Submits session selection if selections can be made`() {
+        // App and session state are initialized to waiting for selection
         mainActivityViewModel.submitSessionSelection(selectedSession)
 
         runBlocking {
@@ -215,6 +228,138 @@ class MainActivityViewModelTest {
 
         runBlocking {
             verify(mockSessionStartupFsm).submitEvent(DownloadAssets(downloads))
+        }
+    }
+
+    @Test
+    fun `Does not post IllegalState if app, session, and filesystem have not been selected and observed event is WaitingForAppSelection`() {
+        appsStartupStateLiveData.postValue(WaitingForAppSelection)
+
+        verify(mockStateObserver, never()).onChanged(IllegalState("Trying to handle app preparation before it has been selected."))
+    }
+
+    @Test
+    fun `Does not post IllegalState if app, session, and filesystem have not been selected and observed event is FetchingDatabaseEntries`() {
+        appsStartupStateLiveData.postValue(FetchingDatabaseEntries)
+
+        verify(mockStateObserver, never()).onChanged(IllegalState("Trying to handle app preparation before it has been selected."))
+    }
+
+    @Test
+    fun `Posts IllegalState if app, session, and filesystem have not been selected and an app state event is observed that is not the above`() {
+        appsStartupStateLiveData.postValue(DatabaseEntriesFetchFailed)
+
+        verify(mockStateObserver).onChanged(IllegalState("Trying to handle app preparation before it has been selected."))
+    }
+
+    @Test
+    fun `Posts IllegalState on incorrect app transitions`() {
+        makeAppSelections()
+
+        val event = SubmitAppServicePreference(selectedApp, SshTypePreference)
+        val state = WaitingForAppSelection
+        val badTransition = IncorrectAppTransition(event, state)
+        appsStartupStateLiveData.postValue(IncorrectAppTransition(event, state))
+
+        verify(mockStateObserver).onChanged(IllegalState("Bad state transition: $badTransition"))
+    }
+
+    @Test
+    fun `Updates last selected session and filesystem and submits check credentials event when app database entries are fetched`() {
+        makeAppSelections()
+
+        appsStartupStateLiveData.postValue(DatabaseEntriesFetched(selectedFilesystem, selectedSession))
+
+        assertEquals(selectedFilesystem, mainActivityViewModel.lastSelectedFilesystem)
+        assertEquals(selectedSession, mainActivityViewModel.lastSelectedSession)
+
+        runBlocking {
+            verify(mockAppsStartupFsm).submitEvent(CheckAppsFilesystemCredentials(selectedFilesystem))
+        }
+    }
+
+    @Test
+    fun `Posts IllegalState if app database entry fetch fails`() {
+        makeAppSelections()
+
+        appsStartupStateLiveData.postValue(DatabaseEntriesFetchFailed)
+
+        verify(mockStateObserver).onChanged(IllegalState("Couldn't fetch apps database entries."))
+    }
+
+    @Test
+    fun `Submit preference check event if observed event is filesystem has credentials`() {
+        makeAppSelections()
+
+        appsStartupStateLiveData.postValue(AppsFilesystemHasCredentials)
+
+        runBlocking {
+            verify(mockAppsStartupFsm).submitEvent(CheckAppServicePreference(selectedApp))
+        }
+    }
+
+    @Test
+    fun `Posts FilesystemCredentialsRequired if observed event is filesystem requires credentials`() {
+        makeAppSelections()
+
+        appsStartupStateLiveData.postValue(AppsFilesystemRequiresCredentials(selectedFilesystem))
+
+        verify(mockStateObserver).onChanged(FilesystemCredentialsRequired)
+    }
+
+    @Test
+    fun `Submits CopyAppScript event if observed event is app has service preference set`() {
+        makeAppSelections()
+
+        appsStartupStateLiveData.postValue(AppHasServiceTypePreferenceSet)
+
+        runBlocking {
+            verify(mockAppsStartupFsm).submitEvent(CopyAppScriptToFilesystem(selectedApp, selectedFilesystem))
+        }
+    }
+
+    @Test
+    fun `Posts PreferenceRequired if equivalent event observed`() {
+        makeAppSelections()
+
+        appsStartupStateLiveData.postValue(AppRequiresServiceTypePreference)
+
+        verify(mockStateObserver).onChanged(AppServiceTypePreferenceRequired)
+    }
+
+    @Test
+    fun `Submits SyncDataBaseEntries when observed event is app script copying succeeded`() {
+        makeAppSelections()
+
+        appsStartupStateLiveData.postValue(AppScriptCopySucceeded)
+
+        runBlocking {
+            verify(mockAppsStartupFsm).submitEvent(SyncDatabaseEntries(selectedApp, selectedSession, selectedFilesystem))
+        }
+    }
+
+    @Test
+    fun `Posts IllegalState if app script copy fails`() {
+        makeAppSelections()
+
+        appsStartupStateLiveData.postValue(AppScriptCopyFailed)
+
+        verify(mockStateObserver).onChanged(IllegalState("Couldn't copy app script."))
+    }
+
+    @Test
+    fun `Updates session and filesystem and submits session selected event once database entries sync`() {
+        makeAppSelections()
+
+        val updatedSession = Session(0, name = "updated", filesystemId = 0)
+        val updatedFilesystem = Filesystem(0, name = "updated")
+        appsStartupStateLiveData.postValue(AppDatabaseEntriesSynced(selectedApp, updatedSession, updatedFilesystem))
+
+        assertEquals(updatedSession, mainActivityViewModel.lastSelectedSession)
+        assertEquals(updatedFilesystem, mainActivityViewModel.lastSelectedFilesystem)
+
+        runBlocking {
+            verify(mockSessionStartupFsm).submitEvent(SessionSelected(updatedSession))
         }
     }
 }

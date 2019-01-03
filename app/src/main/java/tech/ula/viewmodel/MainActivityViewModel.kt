@@ -140,7 +140,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
     }
 
     private fun handleAppsPreparationState(newState: AppsStartupState) {
-        if (!appsPreparationRequirementsHaveBeenSelected() && newState !is WaitingForAppSelection) {
+        if (!appsPreparationRequirementsHaveBeenSelected() && newState !is WaitingForAppSelection && newState !is FetchingDatabaseEntries) {
             state.postValue(IllegalState("Trying to handle app preparation before it has been selected."))
             return
         }
@@ -284,7 +284,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
     }
 
     private fun appsPreparationRequirementsHaveBeenSelected(): Boolean {
-        return lastSelectedApp != unselectedApp
+        return lastSelectedApp != unselectedApp && sessionPreparationRequirementsHaveBeenSelected()
     }
 
     private fun sessionPreparationRequirementsHaveBeenSelected(): Boolean {
