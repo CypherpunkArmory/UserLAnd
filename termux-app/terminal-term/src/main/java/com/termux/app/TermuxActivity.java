@@ -299,7 +299,8 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
         Intent serviceIntent = new Intent(this, TermuxService.class);
         String intentData = getIntent().getDataString();
         if (intentData == null || intentData.isEmpty()) {
-            throw new RuntimeException("TermuxActivity dataString from Intent does not have any data");
+            Log.e(EmulatorDebug.LOG_TAG, "Currently only intents from UserLAnd are supported");
+            return;
         }
 
         parseUserlandIntent(intentData);

@@ -128,10 +128,10 @@ public final class TermuxService extends Service implements SessionChangedCallba
                 updateNotification();
             }
         } else if (ACTION_EXECUTE.equals(action)) {
-            String username = intent.getStringExtra("username");
-            String hostname = intent.getStringExtra("hostname");
-            String port = intent.getStringExtra("port");
-            String sessionName = intent.getStringExtra("sessionName");
+            username = intent.getStringExtra("username");
+            hostname = intent.getStringExtra("hostname");
+            port = intent.getStringExtra("port");
+            sessionName = intent.getStringExtra("sessionName");
 
             if (username.isEmpty() || hostname.isEmpty() || port.isEmpty() || sessionName.isEmpty()) {
                 Log.e(EmulatorDebug.LOG_TAG, "Currently only intents from UserLAnd are supported");
