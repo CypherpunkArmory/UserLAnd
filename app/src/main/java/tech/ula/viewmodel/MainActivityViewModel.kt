@@ -13,17 +13,17 @@ import tech.ula.utils.AppServiceTypePreference
 
 class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private val sessionStartupFsm: SessionStartupFsm) : ViewModel() {
 
-    private var appsAreWaitingForSelection = true
-    private var sessionsAreWaitingForSelection = true
+    private var appsAreWaitingForSelection = false
+    private var sessionsAreWaitingForSelection = false
 
     private val unselectedApp = App(name = "UNSELECTED")
-    private var lastSelectedApp = unselectedApp
+    var lastSelectedApp = unselectedApp
 
     private val unselectedSession = Session(id = -1, name = "UNSELECTED", filesystemId = -1)
-    private var lastSelectedSession = unselectedSession
+    var lastSelectedSession = unselectedSession
 
     private val unselectedFilesystem = Filesystem(id = -1, name = "UNSELECTED")
-    private var lastSelectedFilesystem = unselectedFilesystem
+    var lastSelectedFilesystem = unselectedFilesystem
 
     private val appsState = appsStartupFsm.getState()
 
