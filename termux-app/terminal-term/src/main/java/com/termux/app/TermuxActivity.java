@@ -11,6 +11,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -299,7 +300,7 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
         Intent serviceIntent = new Intent(this, TermuxService.class);
         String intentData = getIntent().getDataString();
         if (intentData == null || intentData.isEmpty()) {
-            Log.e(EmulatorDebug.LOG_TAG, "Currently only intents from UserLAnd are supported");
+            showErrorAndGoBackToUserland("Intent data is empty.  Only UserLAnd intents are supported");
             return;
         }
 
@@ -345,8 +346,24 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
                 sessionName = matcher.group(4);
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error occurred while parsing intent data with regex: " + e);
+            showErrorAndGoBackToUserland("Error occurred while parsing intent data with regex: " + e);
         }
+    }
+
+    public void showErrorAndGoBackToUserland(String errorMessage) {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+
+        alertDialogBuilder.setTitle("An error has occurred")
+                .setMessage(errorMessage)
+                .setCancelable(true)
+                .setPositiveButton("Exit",new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // if this button is clicked, close current activity
+                        finish();
+                    }
+                });
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
     }
 
     void toggleShowExtraKeys() {
