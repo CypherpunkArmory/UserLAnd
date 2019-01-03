@@ -1,9 +1,6 @@
 package tech.ula.viewmodel
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MediatorLiveData
-import android.arch.lifecycle.ViewModel
-import android.arch.lifecycle.ViewModelProvider
+import android.arch.lifecycle.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -16,8 +13,8 @@ import tech.ula.utils.AppServiceTypePreference
 
 class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private val sessionStartupFsm: SessionStartupFsm) : ViewModel() {
 
-    private var appsAreWaitingForSelection = false
-    private var sessionsAreWaitingForSelection = false
+    private var appsAreWaitingForSelection = true
+    private var sessionsAreWaitingForSelection = true
 
     private val unselectedApp = App(name = "UNSELECTED")
     private var lastSelectedApp = unselectedApp
@@ -37,6 +34,9 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
     init {
         state.addSource(appsState) { it?.let { update ->
             // Update stateful variables before handling the update so they can be used during it
+            if (update !is WaitingForAppSelection) {
+                appsAreWaitingForSelection = false
+            }
             when (update) {
                 is WaitingForAppSelection -> {
                     appsAreWaitingForSelection = true
@@ -55,6 +55,9 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
         } }
         state.addSource(sessionState) { it?.let { update ->
             // Update stateful variables before handling the update so they can be used during it
+            if (update !is WaitingForSessionSelection) {
+                sessionsAreWaitingForSelection = false
+            }
             when (update) {
                 is WaitingForSessionSelection -> {
                     sessionsAreWaitingForSelection = true
@@ -81,7 +84,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
     fun permissionsHaveBeenGranted() {
         when {
             lastSelectedApp != unselectedApp && lastSelectedSession != unselectedSession -> {
-
+                state.postValue(IllegalState("Both a session and an app have been selected when permissions are granted"))
             }
             lastSelectedApp == unselectedApp && lastSelectedSession == unselectedSession -> {
                 state.postValue(IllegalState("Neither a session nor app have been selected when permissions are granted."))
@@ -187,7 +190,9 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
         }
         // Return when statement for compile-time exhaustiveness check
         return when (newState) {
-            is IncorrectSessionTransition -> {}
+            is IncorrectSessionTransition -> {
+                state.postValue(IllegalState("Bad state transition: $newState"))
+            }
             is WaitingForSessionSelection -> {}
             is SingleSessionSupported -> {
                 state.postValue(CanOnlyStartSingleSession)
