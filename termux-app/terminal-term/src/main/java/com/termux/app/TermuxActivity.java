@@ -302,7 +302,13 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
             throw new RuntimeException("TermuxActivity dataString from Intent does not have any data");
         }
 
-        serviceIntent.putExtra("intentData", intentData);
+        parseUserlandIntent(intentData);
+
+        serviceIntent.putExtra("username", username);
+        serviceIntent.putExtra("hostname", hostname);
+        serviceIntent.putExtra("port", port);
+        serviceIntent.putExtra("sessionName", sessionName);
+
         serviceIntent.setAction(TermuxService.ACTION_EXECUTE);
 
         // Start the service and make it run regardless of who is bound to it:
@@ -313,6 +319,33 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
         checkForFontAndColors();
 
         mBellSoundId = mBellSoundPool.load(this, R.raw.bell, 1);
+    }
+
+    /** Parse intent for connection parameters **/
+    private String username = "";
+    private String hostname = "";
+    private String port = "";
+    private String sessionName = "";
+
+    private void parseUserlandIntent(String intentData) {
+        String regexPattern = "ssh://([\\w\\W]+)@([\\w\\W]+):([\\d]+)/#([\\w\\W]+)";
+        Pattern pattern = Pattern.compile(regexPattern);
+
+        try {
+            Matcher matcher = pattern.matcher(intentData);
+            if (matcher.groupCount() < 4) {
+                return;
+            }
+
+            if (matcher.find()) {
+                username = matcher.group(1);
+                hostname = matcher.group(2);
+                port = matcher.group(3);
+                sessionName = matcher.group(4);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error occurred while parsing intent data with regex: " + e);
+        }
     }
 
     void toggleShowExtraKeys() {

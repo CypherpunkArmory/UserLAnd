@@ -70,6 +70,11 @@ public final class TermuxService extends Service implements SessionChangedCallba
 
     private final Handler mHandler = new Handler();
 
+    String username = "";
+    String hostname = "";
+    String port = "";
+    String sessionName = "";
+
     /**
      * The terminal sessions which this service manages.
      * <p/>
@@ -89,29 +94,6 @@ public final class TermuxService extends Service implements SessionChangedCallba
 
     /** If the user has executed the {@link #ACTION_STOP_SERVICE} intent. */
     boolean mWantsToStop = false;
-
-    /** Parse intent for connection parameters **/
-    private String username = "";
-    private String hostname = "";
-    private String port = "";
-    private String sessionName = "";
-
-    private void parseUserlandIntent(String intentData) {
-        String regexPattern = "ssh://([\\w\\W]+)@([\\w\\W]+):([\\d]+)/#([\\w\\W]+)";
-        Pattern pattern = Pattern.compile(regexPattern);
-
-        try {
-            Matcher matcher = pattern.matcher(intentData);
-            if (matcher.find()) {
-                username = matcher.group(1);
-                hostname = matcher.group(2);
-                port = matcher.group(3);
-                sessionName = matcher.group(4);
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Regex could not be used to parse the intent String" + e);
-        }
-    }
 
     @SuppressLint("Wakelock")
     @Override
@@ -146,11 +128,17 @@ public final class TermuxService extends Service implements SessionChangedCallba
                 updateNotification();
             }
         } else if (ACTION_EXECUTE.equals(action)) {
-            String executablePath = intent.getStringExtra("intentData");
-            parseUserlandIntent(executablePath);
+            String username = intent.getStringExtra("username");
+            String hostname = intent.getStringExtra("hostname");
+            String port = intent.getStringExtra("port");
+            String sessionName = intent.getStringExtra("sessionName");
 
-            // Launch the main Termux app, which will now show the current session:
-            startActivity(new Intent(this, TermuxActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            if (username.isEmpty() || hostname.isEmpty() || port.isEmpty() || sessionName.isEmpty()) {
+                Log.e(EmulatorDebug.LOG_TAG, "Currently only intents from UserLAnd are supported");
+            } else {
+                // Launch the main Termux app, which will now show the current session:
+                startActivity(new Intent(this, TermuxActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            }
         } else if (action != null) {
             Log.e(EmulatorDebug.LOG_TAG, "Unknown TermuxService action: '" + action + "'");
         }
