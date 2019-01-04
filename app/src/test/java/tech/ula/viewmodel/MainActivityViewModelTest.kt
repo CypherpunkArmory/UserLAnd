@@ -3,7 +3,7 @@ package tech.ula.viewmodel
 import android.arch.core.executor.testing.InstantTaskExecutorRule
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Observer
-import com.nhaarman.mockitokotlin2.*
+import com.nhaarman.mockitokotlin2.* // ktlint-disable no-wildcard-imports
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -16,7 +16,7 @@ import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.model.state.*
+import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.SshTypePreference
 
 @RunWith(MockitoJUnitRunner::class)
@@ -28,7 +28,7 @@ class MainActivityViewModelTest {
 
     @Mock lateinit var mockSessionStartupFsm: SessionStartupFsm
 
-    @Mock lateinit var  mockStateObserver: Observer<State>
+    @Mock lateinit var mockStateObserver: Observer<State>
 
     // Test variables
     private val selectedApp = App(name = "app")
