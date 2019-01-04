@@ -30,12 +30,7 @@ class MainActivityViewModelTest {
 
     @Mock lateinit var  mockStateObserver: Observer<State>
 
-    private lateinit var appsStartupStateLiveData: MutableLiveData<AppsStartupState>
-
-    private lateinit var sessionStartupStateLiveData: MutableLiveData<SessionStartupState>
-
-    private lateinit var mainActivityViewModel: MainActivityViewModel
-
+    // Test variables
     private val selectedApp = App(name = "app")
     private val selectedSession = Session(id = 0, filesystemId = 0)
     private val selectedFilesystem = Filesystem(0)
@@ -43,6 +38,14 @@ class MainActivityViewModelTest {
     private val unselectedApp = App(name = "UNSELECTED")
     private val unselectedSession = Session(id = -1, name = "UNSELECTED", filesystemId = -1)
     private val unselectedFilesystem = Filesystem(id = -1, name = "UNSELECTED")
+
+    private val asset = Asset(name = "asset", architectureType = "arch", distributionType = "dist", remoteTimestamp = 0)
+
+    private lateinit var appsStartupStateLiveData: MutableLiveData<AppsStartupState>
+
+    private lateinit var sessionStartupStateLiveData: MutableLiveData<SessionStartupState>
+
+    private lateinit var mainActivityViewModel: MainActivityViewModel
 
     private fun makeAppSelections() {
         mainActivityViewModel.lastSelectedApp = selectedApp
@@ -222,7 +225,7 @@ class MainActivityViewModelTest {
 
     @Test
     fun `Submits DownloadAssets event`() {
-        val downloads = listOf(Asset(name = "asset", architectureType = "arch", distributionType = "dist", remoteTimestamp = 0))
+        val downloads = listOf(asset)
 
         mainActivityViewModel.startAssetDownloads(downloads)
 
@@ -361,5 +364,259 @@ class MainActivityViewModelTest {
         runBlocking {
             verify(mockSessionStartupFsm).submitEvent(SessionSelected(updatedSession))
         }
+    }
+
+    @Test
+    fun `Posts IllegalState if session preparation event is observed that is not WaitingForSelection and prep reqs have not been met`() {
+        sessionStartupStateLiveData.postValue(SingleSessionSupported)
+
+        verify(mockStateObserver).onChanged(IllegalState("Trying to handle session preparation before one has been selected."))
+    }
+
+    @Test
+    fun `Posts IllegalState if observes incorrect session transition`() {
+        makeSessionSelections()
+
+        val event = SessionSelected(selectedSession)
+        val state = SingleSessionSupported
+        val badTransition = IncorrectSessionTransition(event, state)
+        sessionStartupStateLiveData.postValue(badTransition)
+
+        verify(mockStateObserver).onChanged(IllegalState("Bad state transition: $badTransition"))
+    }
+
+    @Test
+    fun `Posts CanOnlyStartSingleSession if equivalent event observed`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(SingleSessionSupported)
+
+        verify(mockStateObserver).onChanged(CanOnlyStartSingleSession)
+    }
+
+    @Test
+    fun `Posts SessionIsRestartable when equivalent event observed`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(SessionIsRestartable(selectedSession))
+
+        verify(mockStateObserver).onChanged(SessionCanBeRestarted(selectedSession))
+    }
+
+    @Test
+    fun `Updates selected session and filesystem, posts StartingSetup, and submits RetrieveAssetLists when session is ready for prep is observed`() {
+        sessionStartupStateLiveData.postValue(SessionIsReadyForPreparation(selectedSession, selectedFilesystem))
+
+        assertEquals(selectedSession, mainActivityViewModel.lastSelectedSession)
+        assertEquals(selectedFilesystem, mainActivityViewModel.lastSelectedFilesystem)
+
+        verify(mockStateObserver).onChanged(StartingSetup)
+        runBlocking {
+            verify(mockSessionStartupFsm).submitEvent(RetrieveAssetLists(selectedFilesystem))
+        }
+    }
+
+    @Test
+    fun `Posts FetchingAssetLists when equivalent state is observed`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(RetrievingAssetLists)
+
+        verify(mockStateObserver).onChanged(FetchingAssetLists)
+    }
+
+    @Test
+    fun `Submits GenerateDownload event if asset list retrieval success observed`() {
+        makeSessionSelections()
+
+        val assetLists = listOf(listOf(asset))
+        sessionStartupStateLiveData.postValue(AssetListsRetrievalSucceeded(assetLists))
+
+        runBlocking {
+            verify(mockSessionStartupFsm).submitEvent(GenerateDownloads(selectedFilesystem, assetLists))
+        }
+    }
+
+    @Test
+    fun `Posts IllegalState if asset list retrieval failure observed`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(AssetListsRetrievalFailed)
+
+        verify(mockStateObserver).onChanged(IllegalState("Failed to retrieve asset lists."))
+    }
+
+    @Test
+    fun `Posts CheckingForAssetsUpdates when generating download requirements is observed`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(GeneratingDownloadRequirements)
+
+        verify(mockStateObserver).onChanged(CheckingForAssetsUpdates)
+    }
+
+    @Test
+    fun `Posts LargeDownloadRequired if downloads are required and include a large one`() {
+        makeSessionSelections()
+
+        val downloads = listOf(asset)
+        sessionStartupStateLiveData.postValue(DownloadsRequired(downloads, largeDownloadRequired = true))
+
+        verify(mockStateObserver).onChanged(LargeDownloadRequired(downloads))
+    }
+
+    @Test
+    fun `Submits DownloadAssets event if downloads are required but do not include a large one`() {
+        makeSessionSelections()
+
+        val downloads = listOf(asset)
+        sessionStartupStateLiveData.postValue(DownloadsRequired(downloads, largeDownloadRequired = false))
+
+        runBlocking {
+            verify(mockSessionStartupFsm).submitEvent(DownloadAssets(downloads))
+        }
+    }
+
+    @Test
+    fun `Submits extract filesystem event if no downloads are required`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(NoDownloadsRequired)
+
+        runBlocking {
+            verify(mockSessionStartupFsm).submitEvent(ExtractFilesystem(selectedFilesystem))
+        }
+    }
+
+    @Test
+    fun `Posts DownloadProgress as it observes requirements downloading`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(DownloadingRequirements(0, 0))
+
+        verify(mockStateObserver).onChanged(DownloadProgress(0, 0))
+    }
+
+    @Test
+    fun `Submits CopyDownloadsToLocalStorage event when observing download success`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(DownloadsHaveSucceeded)
+
+        runBlocking {
+            verify(mockSessionStartupFsm).submitEvent(CopyDownloadsToLocalStorage)
+        }
+    }
+
+    @Test
+    fun `Posts IllegalState if downloads fail`() {
+        makeSessionSelections()
+
+        val reason = "cause"
+        sessionStartupStateLiveData.postValue(DownloadsHaveFailed(reason))
+
+        verify(mockStateObserver).onChanged(IllegalState("Downloads have failed: $reason"))
+    }
+
+    @Test
+    fun `Posts CopyingDownloads when equivalent state is observed`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(CopyingFilesToRequiredDirectories)
+
+        verify(mockStateObserver).onChanged(CopyingDownloads)
+    }
+
+    @Test
+    fun `Submits ExtractFilesystem event when copying success is observed`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(CopyingSucceeded)
+
+        runBlocking {
+            verify(mockSessionStartupFsm).submitEvent(ExtractFilesystem(selectedFilesystem))
+        }
+    }
+
+    @Test
+    fun `Posts IllegalState when copying failure is observed`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(CopyingFailed)
+
+        verify(mockStateObserver).onChanged(IllegalState("Failed to copy assets to local storage."))
+    }
+
+    @Test
+    fun `Posts IllegalState if distribution copying failure is observed`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(DistributionCopyFailed)
+
+        verify(mockStateObserver).onChanged(IllegalState("Failed to copy assets to filesystem."))
+    }
+
+    @Test
+    fun `Posts FilesystemExtraction when observing filesystem extraction`() {
+        makeSessionSelections()
+
+        val target = "bullseye"
+        sessionStartupStateLiveData.postValue(ExtractingFilesystem(target))
+
+        verify(mockStateObserver).onChanged(FilesystemExtraction(target))
+    }
+
+    @Test
+    fun `Submits VerifyFilesystemAssets when extraction success is observed`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(ExtractionSucceeded)
+
+        runBlocking {
+            verify(mockSessionStartupFsm).submitEvent(VerifyFilesystemAssets(selectedFilesystem))
+        }
+    }
+
+    @Test
+    fun `Posts IllegalState when extraction failure is observed`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(ExtractionFailed)
+
+        verify(mockStateObserver).onChanged(IllegalState("Failed to extract filesystem."))
+    }
+
+    @Test
+    fun `Posts VerifyingFilesystem while observing filesystem verification`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(VerifyingFilesystemAssets)
+
+        verify(mockStateObserver).onChanged(VerifyingFilesystem)
+    }
+
+    @Test
+    fun `Posts SessionCanBeStarted and resets state when observing that filesystem has all required assets`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(FilesystemHasRequiredAssets)
+
+        verify(mockStateObserver).onChanged(SessionCanBeStarted(selectedSession))
+        assertEquals(unselectedApp, mainActivityViewModel.lastSelectedApp)
+        assertEquals(unselectedSession, mainActivityViewModel.lastSelectedSession)
+        assertEquals(unselectedFilesystem, mainActivityViewModel.lastSelectedFilesystem)
+        runBlocking {
+            verify(mockSessionStartupFsm).submitEvent(ResetSessionState)
+            verify(mockAppsStartupFsm).submitEvent(ResetAppState)
+        }
+    }
+
+    @Test
+    fun `Posts IllegalState when observing filesystem is missing assets`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(FilesystemIsMissingRequiredAssets)
+
+        verify(mockStateObserver).onChanged(IllegalState("Filesystem is missing assets."))
     }
 }
