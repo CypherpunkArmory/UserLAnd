@@ -20,13 +20,13 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
     private var sessionsAreWaitingForSelection = false
 
     private val unselectedApp = App(name = "UNSELECTED")
-    private var lastSelectedApp = unselectedApp
+    var lastSelectedApp = unselectedApp
 
     private val unselectedSession = Session(id = -1, name = "UNSELECTED", filesystemId = -1)
-    private var lastSelectedSession = unselectedSession
+    var lastSelectedSession = unselectedSession
 
     private val unselectedFilesystem = Filesystem(id = -1, name = "UNSELECTED")
-    private var lastSelectedFilesystem = unselectedFilesystem
+    var lastSelectedFilesystem = unselectedFilesystem
 
     private val appsState = appsStartupFsm.getState()
 
@@ -37,6 +37,9 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
     init {
         state.addSource(appsState) { it?.let { update ->
             // Update stateful variables before handling the update so they can be used during it
+            if (update !is WaitingForAppSelection) {
+                appsAreWaitingForSelection = false
+            }
             when (update) {
                 is WaitingForAppSelection -> {
                     appsAreWaitingForSelection = true
@@ -55,6 +58,9 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
         } }
         state.addSource(sessionState) { it?.let { update ->
             // Update stateful variables before handling the update so they can be used during it
+            if (update !is WaitingForSessionSelection) {
+                sessionsAreWaitingForSelection = false
+            }
             when (update) {
                 is WaitingForSessionSelection -> {
                     sessionsAreWaitingForSelection = true
@@ -79,14 +85,19 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
     }
 
     fun permissionsHaveBeenGranted() {
-        if (lastSelectedApp != unselectedApp && lastSelectedSession != unselectedSession) {
-            state.postValue(IllegalState("An app and session have been selected when permissions are granted."))
-            return
-        }
-        if (lastSelectedApp != unselectedApp) {
-            submitAppsStartupEvent(AppSelected(lastSelectedApp))
-        } else {
-            submitSessionStartupEvent(SessionSelected(lastSelectedSession))
+        when {
+            lastSelectedApp != unselectedApp && lastSelectedSession != unselectedSession -> {
+                state.postValue(IllegalState("Both a session and an app have been selected when permissions are granted"))
+            }
+            lastSelectedApp == unselectedApp && lastSelectedSession == unselectedSession -> {
+                state.postValue(IllegalState("Neither a session nor app have been selected when permissions are granted."))
+            }
+            lastSelectedApp != unselectedApp -> {
+                submitAppsStartupEvent(AppSelected(lastSelectedApp))
+            }
+            lastSelectedSession != unselectedSession -> {
+                submitSessionStartupEvent(SessionSelected(lastSelectedSession))
+            }
         }
     }
 
@@ -132,7 +143,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
     }
 
     private fun handleAppsPreparationState(newState: AppsStartupState) {
-        if (!appsPreparationRequirementsHaveBeenSelected() && newState !is WaitingForAppSelection) {
+        if (!appsPreparationRequirementsHaveBeenSelected() && newState !is WaitingForAppSelection && newState !is FetchingDatabaseEntries) {
             state.postValue(IllegalState("Trying to handle app preparation before it has been selected."))
             return
         }
@@ -141,7 +152,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
             is IncorrectAppTransition -> {
                 state.postValue(IllegalState("Bad state transition: $newState"))
             }
-            is WaitingForAppSelection -> {}
+            is WaitingForAppSelection -> { }
             is FetchingDatabaseEntries -> {}
             is DatabaseEntriesFetched -> {
                 submitAppsStartupEvent(CheckAppsFilesystemCredentials(lastSelectedFilesystem))
@@ -182,7 +193,9 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
         }
         // Return when statement for compile-time exhaustiveness check
         return when (newState) {
-            is IncorrectSessionTransition -> {}
+            is IncorrectSessionTransition -> {
+                state.postValue(IllegalState("Bad state transition: $newState"))
+            }
             is WaitingForSessionSelection -> {}
             is SingleSessionSupported -> {
                 state.postValue(CanOnlyStartSingleSession)
@@ -225,7 +238,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
                 submitSessionStartupEvent(CopyDownloadsToLocalStorage)
             }
             is DownloadsHaveFailed -> {
-                state.postValue(IllegalState(newState.reason))
+                state.postValue(IllegalState("Downloads have failed: ${newState.reason}"))
             }
             is CopyingFilesToRequiredDirectories -> {
                 state.postValue(CopyingDownloads)
@@ -273,9 +286,8 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
         return appsAreWaitingForSelection && sessionsAreWaitingForSelection
     }
 
-    // TODO this should probably check that session and filesystem selections are for an app
     private fun appsPreparationRequirementsHaveBeenSelected(): Boolean {
-        return lastSelectedApp != unselectedApp
+        return lastSelectedApp != unselectedApp && sessionPreparationRequirementsHaveBeenSelected()
     }
 
     private fun sessionPreparationRequirementsHaveBeenSelected(): Boolean {

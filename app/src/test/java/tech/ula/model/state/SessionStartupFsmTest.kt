@@ -31,8 +31,6 @@ class SessionStartupFsmTest {
 
     // Mocks
 
-    @Mock lateinit var activeSessionLiveData: MutableLiveData<List<Session>>
-
     @Mock lateinit var mockUlaDatabase: UlaDatabase
 
     @Mock lateinit var mockSessionDao: SessionDao
@@ -46,6 +44,8 @@ class SessionStartupFsmTest {
     @Mock lateinit var mockFilesystemUtility: FilesystemUtility
 
     @Mock lateinit var mockStateObserver: Observer<SessionStartupState>
+
+    lateinit var activeSessionLiveData: MutableLiveData<List<Session>>
 
     lateinit var sessionFsm: SessionStartupFsm
 

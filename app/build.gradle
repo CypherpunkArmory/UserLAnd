@@ -142,7 +142,6 @@ dependencies {
     testImplementation "org.mockito:mockito-inline:$mockito_version"
     testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:$mockito_kotlin_version"
     testImplementation "android.arch.core:core-testing:$core_testing_version"
-    androidTestImplementation "org.mockito:mockito-android:$mockito_version"
     androidTestImplementation "android.arch.core:core-testing:$core_testing_version"
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation "com.android.support.test.espresso:espresso-core:$espresso_version"
