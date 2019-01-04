@@ -11,6 +11,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -27,6 +28,7 @@ import android.os.IBinder;
 import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.StringRes;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
@@ -70,9 +72,6 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static android.content.ContentValues.TAG;
-import static java.sql.DriverManager.println;
-
 /**
  * A terminal emulator activity.
  * <p/>
@@ -97,8 +96,6 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
     private static final int REQUESTCODE_PERMISSION_STORAGE = 1234;
 
     private static final String RELOAD_STYLE_ACTION = "com.termux.app.reload_style";
-
-    protected Uri intentData;
 
     /** The main view of the activity showing the terminal. Initialized in onCreate(). */
     @SuppressWarnings("NullableProblems")
@@ -299,8 +296,19 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
         registerForContextMenu(mTerminalView);
 
         Intent serviceIntent = new Intent(this, TermuxService.class);
-        intentData = getIntent().getData();
-        serviceIntent.setData(intentData);
+        String intentData = getIntent().getDataString();
+        if (intentData == null || intentData.isEmpty()) {
+            showErrorAndGoBackToUserland(R.string.error_empty_intent_data, "");
+            return;
+        }
+
+        parseUserlandIntent(intentData);
+
+        serviceIntent.putExtra("username", username);
+        serviceIntent.putExtra("hostname", hostname);
+        serviceIntent.putExtra("port", port);
+        serviceIntent.putExtra("sessionName", sessionName);
+
         serviceIntent.setAction(TermuxService.ACTION_EXECUTE);
 
         // Start the service and make it run regardless of who is bound to it:
@@ -311,6 +319,51 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
         checkForFontAndColors();
 
         mBellSoundId = mBellSoundPool.load(this, R.raw.bell, 1);
+    }
+
+    /** Parse intent for connection parameters **/
+    private String username = "";
+    private String hostname = "";
+    private String port = "";
+    private String sessionName = "";
+
+    private void parseUserlandIntent(String intentData) {
+        String regexPattern = "ssh://([\\w\\W]+)@([\\w\\W]+):([\\d]+)/#([\\w\\W]+)";
+        Pattern pattern = Pattern.compile(regexPattern);
+
+        try {
+            Matcher matcher = pattern.matcher(intentData);
+            if (matcher.groupCount() < 4) {
+                return;
+            }
+
+            if (matcher.find()) {
+                username = matcher.group(1);
+                hostname = matcher.group(2);
+                port = matcher.group(3);
+                sessionName = matcher.group(4);
+            }
+        } catch (Exception e) {
+            showErrorAndGoBackToUserland(R.string.error_regex_parsing, e.getMessage());
+        }
+    }
+
+    void showErrorAndGoBackToUserland(@StringRes int resId, String extraInfo) {
+        Context appContext = getApplicationContext();
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        String errorMessage = appContext.getString(resId);
+
+        alertDialogBuilder.setTitle(R.string.dialog_error_title)
+                .setMessage(errorMessage + ", " + extraInfo)
+                .setCancelable(true)
+                .setPositiveButton(R.string.button_exit, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // if this button is clicked, close current activity
+                        TermuxActivity.this.finish();
+                    }
+                });
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
     }
 
     void toggleShowExtraKeys() {

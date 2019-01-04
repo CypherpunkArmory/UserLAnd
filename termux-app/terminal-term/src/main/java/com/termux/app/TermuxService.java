@@ -61,11 +61,6 @@ public final class TermuxService extends Service implements SessionChangedCallba
     /** Intent action to launch a new terminal session. Executed from TermuxWidgetProvider. */
     public static final String ACTION_EXECUTE = "android.intent.action.EXECUTE";
 
-    public static final String EXTRA_ARGUMENTS = "com.termux.execute.arguments";
-
-    public static final String EXTRA_CURRENT_WORKING_DIRECTORY = "com.termux.execute.cwd";
-    private static final String EXTRA_EXECUTE_IN_BACKGROUND = "com.termux.execute.background";
-
     /** This service is only bound from inside the same process and never uses IPC. */
     class LocalBinder extends Binder {
         public final TermuxService service = TermuxService.this;
@@ -74,6 +69,11 @@ public final class TermuxService extends Service implements SessionChangedCallba
     private final IBinder mBinder = new LocalBinder();
 
     private final Handler mHandler = new Handler();
+
+    String username = "";
+    String hostname = "";
+    String port = "";
+    String sessionName = "";
 
     /**
      * The terminal sessions which this service manages.
@@ -94,27 +94,6 @@ public final class TermuxService extends Service implements SessionChangedCallba
 
     /** If the user has executed the {@link #ACTION_STOP_SERVICE} intent. */
     boolean mWantsToStop = false;
-
-    /** Parse intent for connection parameters **/
-    private String username = "";
-    private String hostname = "";
-    private String port = "";
-    private String sessionName = "";
-
-    private void parseUserlandIntent(String intentData) {
-        String regexPattern = "ssh:\\/\\/([\\w\\W]+)@([\\w\\W]+):([\\d]+)\\/#([\\w\\W]+)";
-        Pattern pattern = Pattern.compile(regexPattern);
-
-        Matcher matcher = pattern.matcher(intentData);
-        if (matcher.find()) {
-            username = matcher.group(1);
-            hostname = matcher.group(2);
-            port = matcher.group(3);
-            sessionName = matcher.group(4);
-        } else {
-            // TODO: handle intent mismatch
-        }
-    }
 
     @SuppressLint("Wakelock")
     @Override
@@ -149,19 +128,13 @@ public final class TermuxService extends Service implements SessionChangedCallba
                 updateNotification();
             }
         } else if (ACTION_EXECUTE.equals(action)) {
+            username = intent.getStringExtra("username");
+            hostname = intent.getStringExtra("hostname");
+            port = intent.getStringExtra("port");
+            sessionName = intent.getStringExtra("sessionName");
 
-            Uri executableUri = intent.getData();
-            String executablePath = (executableUri == null ? null : executableUri.toString());
-
-            parseUserlandIntent(executablePath);
-            String[] arguments = {"-p", port, username + "@" + hostname};
-
-            String cwd = intent.getStringExtra(EXTRA_CURRENT_WORKING_DIRECTORY);
-
-            if (intent.getBooleanExtra(EXTRA_EXECUTE_IN_BACKGROUND, false)) {
-                BackgroundJob task = new BackgroundJob(cwd, executablePath, arguments, this);
-                mBackgroundTasks.add(task);
-                updateNotification();
+            if (username.isEmpty() || hostname.isEmpty() || port.isEmpty() || sessionName.isEmpty()) {
+                Log.e(EmulatorDebug.LOG_TAG, "Currently only intents from UserLAnd are supported");
             } else {
                 // Launch the main Termux app, which will now show the current session:
                 startActivity(new Intent(this, TermuxActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
