@@ -18,7 +18,7 @@
 
     <!-- Menus -->
     <string name="app_info">Info appli</string>
-    <string name="stop_app">Arrêter l'appli</string>
+    <string name="stop_app">Arrêter l\'appli</string>
     <string name="kill_service">Tuer le service</string>
     <string name="edit">Modifier</string>
     <string name="delete">Supprimer</string>
@@ -29,14 +29,14 @@
     <!-- Hints -->
     <string name="hint_filesystem_name">Nom du système de fichiers</string>
     <string name="hint_session_name">Nom de la session</string>
-    <string name="hint_username">Nom d'utilisateur</string>
+    <string name="hint_username">Nom d\'utilisateur</string>
     <string name="hint_password">Mot de passe</string>
     <string name="hint_vnc_password">Mot de passe pour VNC</string>
 
     <!-- Errors -->
     <string name="error_session_name">Vous devez fournir un nom de session</string>
     <string name="error_filesystem_name">Vous devez fournir un nom de système de fichiers</string>
-    <string name="error_username">Vous devez fournir un nom d'utilisateur</string>
+    <string name="error_username">Vous devez fournir un nom d\'utilisateur</string>
     <string name="error_empty_field">Chaque champ doit être rempli !</string>
     <string name="error_app_description_not_found">Descriptif de l’appli introuvable. Essayez d’actualiser.</string>
     <string name="error_vnc_password_length_incorrect">Le mot de passe pour VNC doit contenir entre 6 et 8 caractères !</string>
@@ -58,22 +58,18 @@
     <string name="service_notification_description">UserLAnd exécute un service en arrière-plan.</string>
 
     <!-- Progress bar messages -->
-    <string name="progress_bar_start_step">Préparatifs&#8230;</string>
     <string name="progress_basic_app_setup">Configuration des infos de la base de données de l’appli&#8230;</string>
     <string name="progress_fetching_asset_lists">Récupération des listes de contenus&#8230;</string>
     <string name="progress_checking_for_required_updates">Vérification des mises à jour obligatoires&#8230;</string>
     <string name="progress_downloading">Téléchargement des contenus nécessaires&#8230;</string>
-    <string name="progress_downloading_check_updates">Recherche de mises à jour.</string>
     <string name="progress_downloading_out_of">%1$d sur %2$d terminé</string>
     <string name="progress_copying_downloads">Copie des fichiers téléchargés vers le stockage local&#8230;</string>
-    <string name="progress_setting_up">Configuration du système de fichiers&#8230;</string>
-    <string name="progress_setting_up_extract_text">Extraction : %1$s</string>
     <string name="progress_starting">Démarrage du service&#8230;</string>
     <string name="progress_connecting">Connexion au service&#8230;</string>
 
     <!-- Preferences -->
     <string name="pref_app_category">Préférences appli</string>
-    <string name="pref_default_landing_page_title">Page d'accueil par défaut</string>
+    <string name="pref_default_landing_page_title">Page d\'accueil par défaut</string>
     <string name="pref_default_landing_page_message">Sélectionnez la page avec laquelle vous voudrez ouvrir l’appli.</string>
     <string name="pref_proot_category">Préférences PRoot</string>
     <string name="pref_proot_debugging_enabled_title">Activation des journaux de débogage de Proot</string>
@@ -124,7 +120,7 @@
     <!-- Network unavailable alert -->
     <string name="alert_network_unavailable_title">Aucun réseau disponible</string>
     <string name="alert_network_unavailable_message">UserLAnd doit pouvoir se connecter à Internet pour pouvoir télécharger les contenus nécessaires. </string>
-    <string name="alert_network_required_for_refresh">Actualiser des applis nécessite la disponibiilité d'une connexion plus puissante.</string>
+    <string name="alert_network_required_for_refresh">Actualiser des applis nécessite la disponibiilité d\'une connexion plus puissante.</string>
     <string name="alert_network_strength_too_low_for_downloads">La puissance de votre connexion est trop faible pour télécharger les contenus nécessaires. Veuillez ré-essayer avec une très bonne connexion.</string>
 
     <!-- Asset list failure alert -->
@@ -148,14 +144,14 @@
 
     <!-- Toasts -->
     <string name="filesystem_delete_failure">Échec de la suppression !</string>
-    <string name="session_unique_name_required">Les Sessions ont besoin d'un nom unique !</string>
-    <string name="filesystem_unique_name_required">Les Systèmes de fichiers ont besoin d'un nom unique !</string>
-    <string name="download_client_app">Veuillez télécharger l'appli client associée et ré-essayez.</string>
+    <string name="session_unique_name_required">Les Sessions ont besoin d\'un nom unique !</string>
+    <string name="filesystem_unique_name_required">Les Systèmes de fichiers ont besoin d\'un nom unique !</string>
+    <string name="download_client_app">Veuillez télécharger l\'appli client associée et ré-essayez.</string>
     <!-- TODO remove this once multisession support is implemented -->
     <string name="single_session_supported">Actuellement UserLAnd ne prend en charge qu’une seule session active !</string>
     <string name="no_supported_architecture">L’architecture de votre dispositif n’est pas actuellement prise en charge par UserLAnd.</string>
     <string name="debug_log_deleted">Le journal de débogage a été supprimé ou n’existe pas !</string>
-    <string name="filesystem_extraction_failed">Impossible d'extraire le système de fichiers !</string>
+    <string name="filesystem_extraction_failed">Impossible d\'extraire le système de fichiers !</string>
     <string name="no_assets_need_updating">Aucun contenu n’a besoin d’être mis à jour !</string>
     <string name="client_not_found">La gestion du type de client que cette session essaie de démarrer nous semble impossible !</string>
     <string name="error_apps_renamed">Les applis ne peuvent pas s’exécuter après le renommage de leur session ou système de fichiers.</string>
@@ -168,6 +164,6 @@
     <string name="free_annotation">(Gratuit)</string>
     <string name="paid_annotation">(Payant)</string>
     <string name="custom_sessions">Sessions personnalisées</string>
-    <string name="apps_sessions">Sessions d'applis</string>
+    <string name="apps_sessions">Sessions d\'applis</string>
 
 </resources>

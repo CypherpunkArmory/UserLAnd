@@ -14,8 +14,8 @@ android {
         applicationId "tech.ula"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 35
-        versionName "2.0.0"
+        versionCode 36
+        versionName "2.1.0"
         
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -51,6 +51,7 @@ android {
     // Enable this and run lintVitalRelease task to check missing translations.
     lintOptions {
         disable 'MissingTranslation'
+        disable 'ParcelCreator'
     }
     testOptions {
         unitTests {

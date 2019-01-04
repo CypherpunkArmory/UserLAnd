@@ -43,16 +43,12 @@
         <string name="services_notification_channel_description">永久服務</string>
         <string name="service_notification_title">Userland</string>
         <string name="service_notification_description">Userland正在後台運行.</string>
-        <string name="progress_bar_start_step">正在為您準備中…</string>
         <string name="progress_basic_app_setup">正在準備數據庫信息…</string>
         <string name="progress_fetching_asset_lists">正在取得素材列表…</string>
         <string name="progress_checking_for_required_updates">正在檢查更新信息…</string>
         <string name="progress_downloading">正在下載需要的素材…</string>
-        <string name="progress_downloading_check_updates">正在尋找更新…</string>
         <string name="progress_downloading_out_of">%1$d/%2$d已完成</string>
         <string name="progress_copying_downloads">正在將已下載文件複製到本地儲存…</string>
-        <string name="progress_setting_up">正在設置文件系統…</string>
-        <string name="progress_setting_up_extract_text">正在提取：%1$s</string>
         <string name="progress_starting">開始服務…</string>
         <string name="progress_connecting">正在連接服務…</string>
         <string name="pref_app_category">應用偏好…</string>

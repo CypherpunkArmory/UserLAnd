@@ -58,16 +58,12 @@
     <string name="service_notification_description">UserLAndはバックグラウンドでサービスを実行しています</string>
 
     <!-- Progress bar messages -->
-    <string name="progress_bar_start_step">準備が完了しました&#8230;</string>
     <string name="progress_basic_app_setup">アプリのデータベース情報を更新中です&#8230;</string>
     <string name="progress_fetching_asset_lists">データ(assets)のリストを取得中です&#8230;</string>
     <string name="progress_checking_for_required_updates">アップデートが必要か確認しています&#8230;</string>
     <string name="progress_downloading">必要なデータ(assets)をダウンロードしています&#8230;</string>
-    <string name="progress_downloading_check_updates">アップデート箇所を探しています</string>
     <string name="progress_downloading_out_of">%2$d 個のうち %1$d 個のアップデートが完了</string>
     <string name="progress_copying_downloads">ダウンロードしたファイルをローカルなストレージにコピーしています&#8230;</string>
-    <string name="progress_setting_up">ファイルシステムを構成中&#8230;</string>
-    <string name="progress_setting_up_extract_text">解凍中: %1$s</string>
     <string name="progress_starting">サービスを開始&#8230;</string>
     <string name="progress_connecting">サービスに接続中&#8230;</string>
 
