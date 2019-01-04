@@ -36,4 +36,10 @@
   <string name="file_received_edit_button">Edit</string>
   <string name="file_received_open_folder_button">Open folder</string>
 
+  <string name="error_empty_intent_data">Intent data is empty.  Only UserLAnd intents are supported</string>
+  <string name="error_regex_parsing">Error occurred while parsing intent data with regex</string>
+
+  <string name="button_exit">Exit</string>
+  <string name="dialog_error_title">An error has occurred</string>
+
 </resources>

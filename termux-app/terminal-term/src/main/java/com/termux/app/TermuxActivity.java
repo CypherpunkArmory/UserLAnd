@@ -28,6 +28,7 @@ import android.os.IBinder;
 import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.StringRes;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
@@ -70,9 +71,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static android.content.ContentValues.TAG;
-import static java.sql.DriverManager.println;
 
 /**
  * A terminal emulator activity.
@@ -300,7 +298,7 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
         Intent serviceIntent = new Intent(this, TermuxService.class);
         String intentData = getIntent().getDataString();
         if (intentData == null || intentData.isEmpty()) {
-            showErrorAndGoBackToUserland("Intent data is empty.  Only UserLAnd intents are supported");
+            showErrorAndGoBackToUserland(R.string.error_empty_intent_data, "");
             return;
         }
 
@@ -346,20 +344,22 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
                 sessionName = matcher.group(4);
             }
         } catch (Exception e) {
-            showErrorAndGoBackToUserland("Error occurred while parsing intent data with regex: " + e);
+            showErrorAndGoBackToUserland(R.string.error_regex_parsing, e.getMessage());
         }
     }
 
-    public void showErrorAndGoBackToUserland(String errorMessage) {
+    void showErrorAndGoBackToUserland(@StringRes int resId, String extraInfo) {
+        Context appContext = getApplicationContext();
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        String errorMessage = appContext.getString(resId);
 
-        alertDialogBuilder.setTitle("An error has occurred")
-                .setMessage(errorMessage)
+        alertDialogBuilder.setTitle(R.string.dialog_error_title)
+                .setMessage(errorMessage + ", " + extraInfo)
                 .setCancelable(true)
-                .setPositiveButton("Exit",new DialogInterface.OnClickListener() {
+                .setPositiveButton(R.string.button_exit, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         // if this button is clicked, close current activity
-                        finish();
+                        TermuxActivity.this.finish();
                     }
                 });
         AlertDialog alertDialog = alertDialogBuilder.create();
