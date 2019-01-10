@@ -72,11 +72,6 @@ configurations {
     ktlint
 }
 
-dependencies {
-    ktlint "com.github.shyiko:ktlint:0.29.0"
-    implementation project(':terminal-term')
-}
-
 tasks.withType(Test) {
     jacoco.includeNoLocationClasses = true
 }
@@ -121,6 +116,7 @@ task jacocoUnitTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest', '
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(':terminal-term')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     implementation "org.jetbrains.anko:anko-commons:$anko_version"
     implementation "org.jetbrains.anko:anko-sqlite:$anko_version"
@@ -136,6 +132,7 @@ dependencies {
     implementation "com.android.support:design:$support_library_version"
     implementation "com.android.support:preference-v7:$support_library_version"
 
+    ktlint "com.github.shyiko:ktlint:0.29.0"
     testImplementation 'junit:junit:4.12'
     testImplementation "org.mockito:mockito-core:$mockito_version"
     testImplementation "org.mockito:mockito-inline:$mockito_version"
