@@ -106,6 +106,10 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
 
     TermuxPreferences mSettings;
 
+    // Don't attempt to unbind from the service unless the client has received some
+    // information about the service's state.
+    private boolean shouldUnbind;
+
     /**
      * The connection to the {@link TermuxService}. Requested in {@link #onCreate(Bundle)} with a call to
      * {@link #bindService(Intent, ServiceConnection, int)}, and obtained and stored in
@@ -297,12 +301,9 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
 
         Intent serviceIntent = new Intent(this, TermuxService.class);
         String intentData = getIntent().getDataString();
-        if (intentData == null || intentData.isEmpty()) {
-            showErrorAndGoBackToUserland(R.string.error_empty_intent_data, "");
-            return;
+        if (intentData != null) {
+            parseUserlandIntent(intentData);
         }
-
-        parseUserlandIntent(intentData);
 
         serviceIntent.putExtra("username", username);
         serviceIntent.putExtra("hostname", hostname);
@@ -313,8 +314,7 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
 
         // Start the service and make it run regardless of who is bound to it:
         startService(serviceIntent);
-        if (!bindService(serviceIntent, this, 0))
-            throw new RuntimeException("bindService() failed");
+        doBindService(serviceIntent);
 
         checkForFontAndColors();
 
@@ -492,7 +492,7 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
                 if (sessionRunning) {
                     firstLineView.setPaintFlags(firstLineView.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
                 } else {
-                    firstLineView.setPaintFlags(firstLineView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+                    removeFinishedSession(sessionAtRow);
                 }
                 int color = sessionRunning || sessionAtRow.getExitStatus() == 0 ? Color.BLACK : Color.RED;
                 firstLineView.setTextColor(color);
@@ -594,7 +594,23 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
             mTermService.mSessionChangeCallback = null;
             mTermService = null;
         }
-        unbindService(this);
+
+        doUnbindService();
+    }
+
+    private void doBindService(Intent serviceIntent) {
+        if (!bindService(serviceIntent, this, 0)) {
+            throw new RuntimeException("bindService() failed");
+        } else {
+            shouldUnbind = true;
+        }
+    }
+
+    void doUnbindService() {
+        if (shouldUnbind) {
+            unbindService(this);
+            shouldUnbind = false;
+        }
     }
 
     DrawerLayout getDrawer() {
