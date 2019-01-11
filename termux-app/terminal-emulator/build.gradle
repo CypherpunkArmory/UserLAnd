@@ -1,12 +1,5 @@
 apply plugin: 'com.android.library'
 
-ext {
-    libraryDescription = 'The terminal emulator used in Termux'
-    siteUrl = 'https://github.com/termux/termux'
-    gitUrl = 'https://github.com/termux/termux.git'
-    libraryVersion = '0.52'
-}
-
 android {
     compileSdkVersion 28
 
