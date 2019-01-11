@@ -171,8 +171,9 @@ public final class TermuxService extends Service implements SessionChangedCallba
 
     private Notification buildNotification() {
         Intent notifyIntent = new Intent(this, TermuxActivity.class);
-        
-        notifyIntent.addFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
+        // PendingIntent#getActivity(): "Note that the activity will be started outside of the context of an existing
+        // activity, so you must use the Intent.FLAG_ACTIVITY_NEW_TASK launch flag in the Intent":
+        notifyIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notifyIntent, 0);
 
         int sessionCount = mTerminalSessions.size();
