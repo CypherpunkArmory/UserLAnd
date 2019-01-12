@@ -108,7 +108,7 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
 
     // Don't attempt to unbind from the service unless the client has received some
     // information about the service's state.
-    private boolean shouldUnbind;
+    private boolean shouldUnbind = false;
 
     /**
      * The connection to the {@link TermuxService}. Requested in {@link #onCreate(Bundle)} with a call to
