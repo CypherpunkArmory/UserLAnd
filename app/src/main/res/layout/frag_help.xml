@@ -29,11 +29,11 @@
         app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
     <TextView
-        android:id="@+id/beta_message"
+        android:id="@+id/github_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:text="@string/beta_message"
+        android:text="@string/github_message"
         app:layout_constraintTop_toBottomOf="@id/welcome_text"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -43,7 +43,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="@string/supported_services"
-        app:layout_constraintTop_toBottomOf="@id/beta_message"
+        app:layout_constraintTop_toBottomOf="@id/github_message"
         app:layout_constraintStart_toStartOf="parent" />
 
 
