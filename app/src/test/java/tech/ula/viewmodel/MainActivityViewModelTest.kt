@@ -103,7 +103,7 @@ class MainActivityViewModelTest {
         mainActivityViewModel.waitForPermissions(selectedApp, selectedSession)
         mainActivityViewModel.permissionsHaveBeenGranted()
 
-        verify(mockStateObserver).onChanged(IllegalState("Both a session and an app have been selected when permissions are granted"))
+        verify(mockStateObserver).onChanged(TooManySelectionsMadeWhenPermissionsGranted)
     }
 
     @Test
@@ -111,7 +111,7 @@ class MainActivityViewModelTest {
         mainActivityViewModel.waitForPermissions()
         mainActivityViewModel.permissionsHaveBeenGranted()
 
-        verify(mockStateObserver).onChanged(IllegalState("Neither a session nor app have been selected when permissions are granted."))
+        verify(mockStateObserver).onChanged(NoSelectionsMadeWhenPermissionsGranted)
     }
 
     @Test
@@ -178,7 +178,7 @@ class MainActivityViewModelTest {
     fun `Posts IllegalState if filesystem credentials are submitted while no filesystem is selected`() {
         mainActivityViewModel.submitFilesystemCredentials("", "", "")
 
-        verify(mockStateObserver).onChanged(IllegalState("Submitting credentials for an unselected filesystem"))
+        verify(mockStateObserver).onChanged(NoFilesystemSelectedWhenCredentialsSubmitted)
     }
 
     @Test
@@ -200,7 +200,7 @@ class MainActivityViewModelTest {
     fun `Posts IllegalState if service preference submitted while no app is selected`() {
         mainActivityViewModel.submitAppServicePreference(SshTypePreference)
 
-        verify(mockStateObserver).onChanged(IllegalState("Submitting a preference for an unselected app"))
+        verify(mockStateObserver).onChanged(NoAppSelectedWhenPreferenceSubmitted)
     }
 
     @Test
@@ -250,21 +250,21 @@ class MainActivityViewModelTest {
     fun `Does not post IllegalState if app, session, and filesystem have not been selected and observed event is WaitingForAppSelection`() {
         appsStartupStateLiveData.postValue(WaitingForAppSelection)
 
-        verify(mockStateObserver, never()).onChanged(IllegalState("Trying to handle app preparation before it has been selected."))
+        verify(mockStateObserver, never()).onChanged(NoAppSelectedWhenPreparationStarted)
     }
 
     @Test
     fun `Does not post IllegalState if app, session, and filesystem have not been selected and observed event is FetchingDatabaseEntries`() {
         appsStartupStateLiveData.postValue(FetchingDatabaseEntries)
 
-        verify(mockStateObserver, never()).onChanged(IllegalState("Trying to handle app preparation before it has been selected."))
+        verify(mockStateObserver, never()).onChanged(NoAppSelectedWhenPreparationStarted)
     }
 
     @Test
     fun `Posts IllegalState if app, session, and filesystem have not been selected and an app state event is observed that is not the above`() {
         appsStartupStateLiveData.postValue(DatabaseEntriesFetchFailed)
 
-        verify(mockStateObserver).onChanged(IllegalState("Trying to handle app preparation before it has been selected."))
+        verify(mockStateObserver).onChanged(NoAppSelectedWhenPreparationStarted)
     }
 
     @Test
@@ -276,7 +276,7 @@ class MainActivityViewModelTest {
         val badTransition = IncorrectAppTransition(event, state)
         appsStartupStateLiveData.postValue(IncorrectAppTransition(event, state))
 
-        verify(mockStateObserver).onChanged(IllegalState("Bad state transition: $badTransition"))
+        verify(mockStateObserver).onChanged(IllegalStateTransition("$badTransition"))
     }
 
     @Test
@@ -300,7 +300,7 @@ class MainActivityViewModelTest {
 
         appsStartupStateLiveData.postValue(DatabaseEntriesFetchFailed)
 
-        verify(mockStateObserver).onChanged(IllegalState("Couldn't fetch apps database entries."))
+        verify(mockStateObserver).onChanged(ErrorFetchingAppDatabaseEntries)
     }
 
     @Test
@@ -363,7 +363,7 @@ class MainActivityViewModelTest {
 
         appsStartupStateLiveData.postValue(AppScriptCopyFailed)
 
-        verify(mockStateObserver).onChanged(IllegalState("Couldn't copy app script."))
+        verify(mockStateObserver).onChanged(ErrorCopyingAppScript)
     }
 
     @Test
@@ -387,7 +387,7 @@ class MainActivityViewModelTest {
     fun `Posts IllegalState if session preparation event is observed that is not WaitingForSelection and prep reqs have not been met`() {
         sessionStartupStateLiveData.postValue(SingleSessionSupported)
 
-        verify(mockStateObserver).onChanged(IllegalState("Trying to handle session preparation before one has been selected."))
+        verify(mockStateObserver).onChanged(NoSessionSelectedWhenPreparationStarted)
     }
 
     @Test
@@ -399,7 +399,7 @@ class MainActivityViewModelTest {
         val badTransition = IncorrectSessionTransition(event, state)
         sessionStartupStateLiveData.postValue(badTransition)
 
-        verify(mockStateObserver).onChanged(IllegalState("Bad state transition: $badTransition"))
+        verify(mockStateObserver).onChanged(IllegalStateTransition("$badTransition"))
     }
 
     @Test
@@ -462,7 +462,7 @@ class MainActivityViewModelTest {
 
         sessionStartupStateLiveData.postValue(AssetListsRetrievalFailed)
 
-        verify(mockStateObserver).onChanged(IllegalState("Failed to retrieve asset lists."))
+        verify(mockStateObserver).onChanged(ErrorFetchingAssetLists)
     }
 
     @Test
@@ -537,7 +537,7 @@ class MainActivityViewModelTest {
         val reason = "cause"
         sessionStartupStateLiveData.postValue(DownloadsHaveFailed(reason))
 
-        verify(mockStateObserver).onChanged(IllegalState("Downloads have failed: $reason"))
+        verify(mockStateObserver).onChanged(DownloadsDidNotCompleteSuccessfully(reason))
     }
 
     @Test
@@ -567,7 +567,7 @@ class MainActivityViewModelTest {
 
         sessionStartupStateLiveData.postValue(CopyingFailed)
 
-        verify(mockStateObserver).onChanged(IllegalState("Failed to copy assets to local storage."))
+        verify(mockStateObserver).onChanged(FailedToCopyAssetsToLocalStorage)
     }
 
     @Test
@@ -576,7 +576,7 @@ class MainActivityViewModelTest {
 
         sessionStartupStateLiveData.postValue(DistributionCopyFailed)
 
-        verify(mockStateObserver).onChanged(IllegalState("Failed to copy assets to filesystem."))
+        verify(mockStateObserver).onChanged(FailedToCopyAssetsToFilesystem)
     }
 
     @Test
@@ -607,7 +607,7 @@ class MainActivityViewModelTest {
 
         sessionStartupStateLiveData.postValue(ExtractionFailed)
 
-        verify(mockStateObserver).onChanged(IllegalState("Failed to extract filesystem."))
+        verify(mockStateObserver).onChanged(FailedToExtractFilesystem)
     }
 
     @Test
@@ -642,6 +642,6 @@ class MainActivityViewModelTest {
 
         sessionStartupStateLiveData.postValue(FilesystemIsMissingRequiredAssets)
 
-        verify(mockStateObserver).onChanged(IllegalState("Filesystem is missing assets."))
+        verify(mockStateObserver).onChanged(FilesystemIsMissingAssets)
     }
 }
