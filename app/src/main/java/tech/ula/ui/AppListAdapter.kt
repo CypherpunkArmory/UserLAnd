@@ -227,13 +227,16 @@ class AppsListDiffCallBack(
                 return true
             }
         } else if (oldApp is AppItem && newApp is AppItem) {
+            val oldAppIsActive = oldActiveApps.contains(oldApp.app)
+            val newAppIsActive = newActiveApps.contains(newApp.app)
             if (oldApp.app.category == newApp.app.category &&
                     oldApp.app.name == newApp.app.name &&
                     oldApp.app.version == newApp.app.version &&
                     oldApp.app.filesystemRequired == newApp.app.filesystemRequired &&
                     oldApp.app.isPaidApp == newApp.app.isPaidApp &&
                     oldApp.app.supportsCli == newApp.app.supportsCli &&
-                    oldApp.app.supportsGui == newApp.app.supportsGui) {
+                    oldApp.app.supportsGui == newApp.app.supportsGui &&
+                    oldAppIsActive == newAppIsActive) {
                 return true
             }
         }
