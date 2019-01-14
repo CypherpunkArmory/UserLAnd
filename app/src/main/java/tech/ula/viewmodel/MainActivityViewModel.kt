@@ -87,10 +87,10 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
     fun permissionsHaveBeenGranted() {
         when {
             lastSelectedApp != unselectedApp && lastSelectedSession != unselectedSession -> {
-                state.postValue(IllegalState("Both a session and an app have been selected when permissions are granted"))
+                state.postValue(TooManySelectionsMadeWhenPermissionsGranted)
             }
             lastSelectedApp == unselectedApp && lastSelectedSession == unselectedSession -> {
-                state.postValue(IllegalState("Neither a session nor app have been selected when permissions are granted."))
+                state.postValue(NoSelectionsMadeWhenPermissionsGranted)
             }
             lastSelectedApp != unselectedApp -> {
                 submitAppsStartupEvent(AppSelected(lastSelectedApp))
@@ -119,7 +119,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
 
     fun submitFilesystemCredentials(username: String, password: String, vncPassword: String) {
         if (lastSelectedFilesystem == unselectedFilesystem) {
-            state.postValue(IllegalState("Submitting credentials for an unselected filesystem"))
+            state.postValue(NoFilesystemSelectedWhenCredentialsSubmitted)
             return
         }
         submitAppsStartupEvent(SubmitAppsFilesystemCredentials(lastSelectedFilesystem, username, password, vncPassword))
@@ -127,7 +127,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
 
     fun submitAppServicePreference(preference: AppServiceTypePreference) {
         if (lastSelectedApp == unselectedApp) {
-            state.postValue(IllegalState("Submitting a preference for an unselected app"))
+            state.postValue(NoAppSelectedWhenPreferenceSubmitted)
             return
         }
         submitAppsStartupEvent(SubmitAppServicePreference(lastSelectedApp, preference))
@@ -144,13 +144,13 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
 
     private fun handleAppsPreparationState(newState: AppsStartupState) {
         if (!appsPreparationRequirementsHaveBeenSelected() && newState !is WaitingForAppSelection && newState !is FetchingDatabaseEntries) {
-            state.postValue(IllegalState("Trying to handle app preparation before it has been selected."))
+            state.postValue(NoAppSelectedWhenPreparationStarted)
             return
         }
         // Return when statement for compile-time exhaustiveness check
         return when (newState) {
             is IncorrectAppTransition -> {
-                state.postValue(IllegalState("Bad state transition: $newState"))
+                state.postValue(IllegalStateTransition("$newState"))
             }
             is WaitingForAppSelection -> { }
             is FetchingDatabaseEntries -> {}
@@ -158,7 +158,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
                 submitAppsStartupEvent(CheckAppsFilesystemCredentials(lastSelectedFilesystem))
             }
             is DatabaseEntriesFetchFailed -> {
-                state.postValue(IllegalState("Couldn't fetch apps database entries."))
+                state.postValue(ErrorFetchingAppDatabaseEntries)
             }
             is AppsFilesystemHasCredentials -> {
                 submitAppsStartupEvent(CheckAppServicePreference(lastSelectedApp))
@@ -177,7 +177,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
                 submitAppsStartupEvent(SyncDatabaseEntries(lastSelectedApp, lastSelectedSession, lastSelectedFilesystem))
             }
             is AppScriptCopyFailed -> {
-                state.postValue(IllegalState("Couldn't copy app script."))
+                state.postValue(ErrorCopyingAppScript)
             }
             is SyncingDatabaseEntries -> {}
             is AppDatabaseEntriesSynced -> {
@@ -188,13 +188,13 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
 
     private fun handleSessionPreparationState(newState: SessionStartupState) {
         if (!sessionPreparationRequirementsHaveBeenSelected() && newState !is WaitingForSessionSelection) {
-            state.postValue(IllegalState("Trying to handle session preparation before one has been selected."))
+            state.postValue(NoSessionSelectedWhenPreparationStarted)
             return
         }
         // Return when statement for compile-time exhaustiveness check
         return when (newState) {
             is IncorrectSessionTransition -> {
-                state.postValue(IllegalState("Bad state transition: $newState"))
+                state.postValue(IllegalStateTransition("$newState"))
             }
             is WaitingForSessionSelection -> {}
             is SingleSessionSupported -> {
@@ -216,7 +216,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
                 submitSessionStartupEvent(GenerateDownloads(lastSelectedFilesystem, newState.assetLists))
             }
             is AssetListsRetrievalFailed -> {
-                state.postValue(IllegalState("Failed to retrieve asset lists."))
+                state.postValue(ErrorFetchingAssetLists)
             }
             is GeneratingDownloadRequirements -> {
                 state.postValue(CheckingForAssetsUpdates)
@@ -238,7 +238,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
                 submitSessionStartupEvent(CopyDownloadsToLocalStorage)
             }
             is DownloadsHaveFailed -> {
-                state.postValue(IllegalState("Downloads have failed: ${newState.reason}"))
+                state.postValue(DownloadsDidNotCompleteSuccessfully(newState.reason))
             }
             is CopyingFilesToRequiredDirectories -> {
                 state.postValue(CopyingDownloads)
@@ -247,10 +247,10 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
                 submitSessionStartupEvent(ExtractFilesystem(lastSelectedFilesystem))
             }
             is CopyingFailed -> {
-                state.postValue(IllegalState("Failed to copy assets to local storage."))
+                state.postValue(FailedToCopyAssetsToLocalStorage)
             }
             is DistributionCopyFailed -> {
-                state.postValue(IllegalState("Failed to copy assets to filesystem."))
+                state.postValue(FailedToCopyAssetsToFilesystem)
             }
             is ExtractingFilesystem -> {
                 state.postValue(FilesystemExtraction(newState.extractionTarget))
@@ -259,7 +259,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
                 submitSessionStartupEvent(VerifyFilesystemAssets(lastSelectedFilesystem))
             }
             is ExtractionFailed -> {
-                state.postValue(IllegalState("Failed to extract filesystem."))
+                state.postValue(FailedToExtractFilesystem)
             }
             is VerifyingFilesystemAssets -> {
                 state.postValue(VerifyingFilesystem)
@@ -269,7 +269,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
                 resetStartupState()
             }
             is FilesystemIsMissingRequiredAssets -> {
-                state.postValue(IllegalState("Filesystem is missing assets."))
+                state.postValue(FilesystemIsMissingAssets)
             }
         }
     }
@@ -309,7 +309,23 @@ sealed class State
 object CanOnlyStartSingleSession : State()
 data class SessionCanBeStarted(val session: Session) : State()
 data class SessionCanBeRestarted(val session: Session) : State()
-data class IllegalState(val reason: String) : State()
+
+sealed class IllegalState : State()
+data class IllegalStateTransition(val transition: String) : State()
+object TooManySelectionsMadeWhenPermissionsGranted : IllegalState()
+object NoSelectionsMadeWhenPermissionsGranted : IllegalState()
+object NoFilesystemSelectedWhenCredentialsSubmitted : IllegalState()
+object NoAppSelectedWhenPreferenceSubmitted : IllegalState()
+object NoAppSelectedWhenPreparationStarted : IllegalState()
+object ErrorFetchingAppDatabaseEntries : IllegalState()
+object ErrorCopyingAppScript : IllegalState()
+object NoSessionSelectedWhenPreparationStarted : IllegalState()
+object ErrorFetchingAssetLists : IllegalState()
+data class DownloadsDidNotCompleteSuccessfully(val reason: String) : IllegalState()
+object FailedToCopyAssetsToLocalStorage : IllegalState()
+object FailedToCopyAssetsToFilesystem : IllegalState()
+object FailedToExtractFilesystem : IllegalState()
+object FilesystemIsMissingAssets : IllegalState()
 
 sealed class UserInputRequiredState : State()
 object FilesystemCredentialsRequired : UserInputRequiredState()

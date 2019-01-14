@@ -44,6 +44,27 @@
     <string name="error_password_invalid">Password has invalid characters</string>
     <string name="error_vnc_password_invalid">VNC Password has invalid characters</string>
 
+    <!-- Illegal State Messages -->
+    <string name="illegal_state_transition">Bad state transition: %1$s</string>
+
+    <string name="illegal_state_too_many_selections_when_permissions_granted">Both a session and an app have been selected when permissions are granted.</string>
+    <string name="illegal_state_no_selections_when_permissions_granted">Neither a session nor app have been selected when permissions are granted.</string>
+
+    <string name="illegal_state_no_filesystem_selected_when_credentials_selected">Credentials have been submitted for a filesystem, but one has not been selected.</string>
+    <string name="illegal_state_no_app_selected_when_preference_submitted">App preference submitted, but one has not been selected.</string>
+    <string name="illegal_state_no_app_selected_when_preparation_started">Trying to start app preparation, but no app has been selected.</string>
+    <string name="illegal_state_error_fetching_app_database_entries">Could not fetch apps database entries.</string>
+    <string name="illegal_state_error_copying_app_script">Could not copy app script.</string>
+
+    <string name="illegal_state_no_session_selected_when_preparation_started">Trying to handle session preparation before one has been selected.</string>
+    <string name="illegal_state_error_fetching_asset_lists">Failed to retrieve asset lists.</string>
+    <string name="illegal_state_downloads_did_not_complete_successfully">Downloads have failed due to: %1$s.</string>
+    <string name="illegal_state_failed_to_copy_assets_to_local">Failed to copy assets to local storage.</string>
+    <string name="illegal_state_failed_to_copy_assets_to_filesystem">Failed to copy assets to filesystem.</string>
+    <string name="illegal_state_failed_to_extract_filesystem">Failed to extract filesystem.</string>
+    <string name="illegal_state_filesystem_is_missing_assets">Filesystem is missing assets.</string>
+
+
     <!-- Prompts -->
     <string name="prompt_filesystem">Filesystem:</string>
     <string name="prompt_service_type">Service Type:</string>
