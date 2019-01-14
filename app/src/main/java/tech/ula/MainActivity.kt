@@ -215,9 +215,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             is CanOnlyStartSingleSession -> { showToast(R.string.single_session_supported) }
             is SessionCanBeStarted -> { startSession(newState.session) }
             is SessionCanBeRestarted -> { restartRunningSession(newState.session) }
-            is IllegalState -> {
-                displayIllegalStateDialog(newState.reason)
-            }
+            is IllegalState -> { handleIllegalState(newState) }
             is UserInputRequiredState -> { handleUserInputState(newState) }
             is ProgressBarUpdateState -> { handleProgressBarUpdateState(newState) }
         }
@@ -268,6 +266,57 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         }
     }
 
+    private fun handleIllegalState(state: IllegalState) {
+        val reason: String = when (state) {
+            is IllegalStateTransition -> {
+                getString(R.string.illegal_state_transition, state.transition)
+            }
+            is TooManySelectionsMadeWhenPermissionsGranted -> {
+                getString(R.string.illegal_state_too_many_selections_when_permissions_granted)
+            }
+            is NoSelectionsMadeWhenPermissionsGranted -> {
+                getString(R.string.illegal_state_no_selections_when_permissions_granted)
+            }
+            is NoFilesystemSelectedWhenCredentialsSubmitted -> {
+                getString(R.string.illegal_state_no_filesystem_selected_when_credentials_selected)
+            }
+            is NoAppSelectedWhenPreferenceSubmitted -> {
+                getString(R.string.illegal_state_no_app_selected_when_preference_submitted)
+            }
+            is NoAppSelectedWhenPreparationStarted -> {
+                getString(R.string.illegal_state_no_app_selected_when_preparation_started)
+            }
+            is ErrorFetchingAppDatabaseEntries -> {
+                getString(R.string.illegal_state_error_fetching_app_database_entries)
+            }
+            is ErrorCopyingAppScript -> {
+                getString(R.string.illegal_state_error_copying_app_script)
+            }
+            is NoSessionSelectedWhenPreparationStarted -> {
+                getString(R.string.illegal_state_no_session_selected_when_preparation_started)
+            }
+            is ErrorFetchingAssetLists -> {
+                getString(R.string.illegal_state_error_fetching_asset_lists)
+            }
+            is DownloadsDidNotCompleteSuccessfully -> {
+                getString(R.string.illegal_state_downloads_did_not_complete_successfully, state.reason)
+            }
+            is FailedToCopyAssetsToLocalStorage -> {
+                getString(R.string.illegal_state_failed_to_copy_assets_to_local)
+            }
+            is FailedToCopyAssetsToFilesystem -> {
+                getString(R.string.illegal_state_failed_to_copy_assets_to_filesystem)
+            }
+            is FailedToExtractFilesystem -> {
+                getString(R.string.illegal_state_failed_to_extract_filesystem)
+            }
+            is FilesystemIsMissingAssets -> {
+                getString(R.string.illegal_state_filesystem_is_missing_assets)
+            }
+        }
+        displayIllegalStateDialog(reason)
+    }
+
     // TODO sealed classes?
     private fun showDialog(dialogType: String) {
         when (dialogType) {
@@ -289,12 +338,11 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         }
     }
 
-    // These need sealed classes and resource defined strings
     private fun displayIllegalStateDialog(reason: String) {
+        val message = getString(R.string.illegal_state_message, reason)
         AlertDialog.Builder(this)
-                .setMessage("$reason\n" +
-                        "Please restart the app and contact a developer.")
-                .setTitle("Illegal state!")
+                .setMessage(message)
+                .setTitle(R.string.illegal_state_title)
                 .setPositiveButton(R.string.button_ok) {
                     dialog, _ ->
                     dialog.dismiss()

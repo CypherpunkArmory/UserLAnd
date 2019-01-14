@@ -311,7 +311,7 @@ data class SessionCanBeStarted(val session: Session) : State()
 data class SessionCanBeRestarted(val session: Session) : State()
 
 sealed class IllegalState : State()
-data class IllegalStateTransition(val transition: String) : State()
+data class IllegalStateTransition(val transition: String) : IllegalState()
 object TooManySelectionsMadeWhenPermissionsGranted : IllegalState()
 object NoSelectionsMadeWhenPermissionsGranted : IllegalState()
 object NoFilesystemSelectedWhenCredentialsSubmitted : IllegalState()
