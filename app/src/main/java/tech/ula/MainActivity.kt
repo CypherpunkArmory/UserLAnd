@@ -77,11 +77,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             intent.getStringExtra("type")?.let { intentType ->
                 when (intentType) {
                     "sessionActivated" -> handleSessionHasBeenActivated()
-                    "toast" -> {
-                        val resId = intent.getIntExtra("id", -1)
-                        if (resId == -1) return
-                        showToast(resId)
-                    }
                     "dialog" -> {
                         val type = intent.getStringExtra("dialogType") ?: ""
                         showDialog(type)
@@ -320,21 +315,13 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     // TODO sealed classes?
     private fun showDialog(dialogType: String) {
         when (dialogType) {
-            "errorFetchingAssetLists" ->
-                displayGenericErrorDialog(this, R.string.alert_network_unavailable_title,
-                        R.string.alert_network_unavailable_message)
-            "extractionFailed" ->
-                displayGenericErrorDialog(this, R.string.alert_extraction_failure_title,
-                        R.string.alert_extraction_failure_message)
-            "filesystemIsMissingRequiredAssets" ->
-                displayGenericErrorDialog(this, R.string.alert_filesystem_missing_requirements_title,
-                    R.string.alert_filesystem_missing_requirements_message)
+            "unhandledSessionServiceType" -> {
+                displayGenericErrorDialog(this, R.string.general_error_title,
+                        R.string.illegal_state_unhandled_session_service_type)
+            }
             "playStoreMissingForClient" ->
                 displayGenericErrorDialog(this, R.string.alert_need_client_app_title,
                     R.string.alert_need_client_app_message)
-            "networkTooWeakForDownloads" ->
-                displayGenericErrorDialog(this, R.string.general_error_title,
-                        R.string.alert_network_strength_too_low_for_downloads)
         }
     }
 

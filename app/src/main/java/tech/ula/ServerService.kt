@@ -139,7 +139,7 @@ class ServerService : Service() {
         when (session.serviceType) {
             "ssh" -> startSshClient(session, "org.connectbot")
             "vnc" -> startVncClient(session, "com.iiordanov.freebVNC")
-            else -> sendToastBroadcast(R.string.client_not_found)
+            else -> sendDialogBroadcast("unhandledSessionServiceType")
         }
         sendSessionActivatedBroadcast()
     }
@@ -175,11 +175,10 @@ class ServerService : Service() {
     private fun getClient(packageName: String) {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        sendToastBroadcast(R.string.download_client_app)
         try {
             this.startActivity(intent)
         } catch (err: ActivityNotFoundException) {
-            dialogBroadcaster("playStoreMissingForClient")
+            sendDialogBroadcast("playStoreMissingForClient")
         }
     }
 
@@ -201,15 +200,7 @@ class ServerService : Service() {
         broadcaster.sendBroadcast(intent)
     }
 
-    private fun sendToastBroadcast(id: Int) {
-        val intent = Intent(SERVER_SERVICE_RESULT)
-                .putExtra("type", "toast")
-                .putExtra("id", id)
-        broadcaster.sendBroadcast(intent)
-    }
-
-    private val dialogBroadcaster: (String) -> Unit = {
-        type: String ->
+    private fun sendDialogBroadcast(type: String) {
         val intent = Intent(SERVER_SERVICE_RESULT)
                 .putExtra("type", "dialog")
                 .putExtra("dialogType", type)
