@@ -77,11 +77,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             intent.getStringExtra("type")?.let { intentType ->
                 when (intentType) {
                     "sessionActivated" -> handleSessionHasBeenActivated()
-                    "toast" -> {
-                        val resId = intent.getIntExtra("id", -1)
-                        if (resId == -1) return
-                        showToast(resId)
-                    }
                     "dialog" -> {
                         val type = intent.getStringExtra("dialogType") ?: ""
                         showDialog(type)
@@ -215,9 +210,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             is CanOnlyStartSingleSession -> { showToast(R.string.single_session_supported) }
             is SessionCanBeStarted -> { startSession(newState.session) }
             is SessionCanBeRestarted -> { restartRunningSession(newState.session) }
-            is IllegalState -> {
-                displayIllegalStateDialog(newState.reason)
-            }
+            is IllegalState -> { handleIllegalState(newState) }
             is UserInputRequiredState -> { handleUserInputState(newState) }
             is ProgressBarUpdateState -> { handleProgressBarUpdateState(newState) }
         }
@@ -268,33 +261,75 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         }
     }
 
+    private fun handleIllegalState(state: IllegalState) {
+        val reason: String = when (state) {
+            is IllegalStateTransition -> {
+                getString(R.string.illegal_state_transition, state.transition)
+            }
+            is TooManySelectionsMadeWhenPermissionsGranted -> {
+                getString(R.string.illegal_state_too_many_selections_when_permissions_granted)
+            }
+            is NoSelectionsMadeWhenPermissionsGranted -> {
+                getString(R.string.illegal_state_no_selections_when_permissions_granted)
+            }
+            is NoFilesystemSelectedWhenCredentialsSubmitted -> {
+                getString(R.string.illegal_state_no_filesystem_selected_when_credentials_selected)
+            }
+            is NoAppSelectedWhenPreferenceSubmitted -> {
+                getString(R.string.illegal_state_no_app_selected_when_preference_submitted)
+            }
+            is NoAppSelectedWhenPreparationStarted -> {
+                getString(R.string.illegal_state_no_app_selected_when_preparation_started)
+            }
+            is ErrorFetchingAppDatabaseEntries -> {
+                getString(R.string.illegal_state_error_fetching_app_database_entries)
+            }
+            is ErrorCopyingAppScript -> {
+                getString(R.string.illegal_state_error_copying_app_script)
+            }
+            is NoSessionSelectedWhenPreparationStarted -> {
+                getString(R.string.illegal_state_no_session_selected_when_preparation_started)
+            }
+            is ErrorFetchingAssetLists -> {
+                getString(R.string.illegal_state_error_fetching_asset_lists)
+            }
+            is DownloadsDidNotCompleteSuccessfully -> {
+                getString(R.string.illegal_state_downloads_did_not_complete_successfully, state.reason)
+            }
+            is FailedToCopyAssetsToLocalStorage -> {
+                getString(R.string.illegal_state_failed_to_copy_assets_to_local)
+            }
+            is FailedToCopyAssetsToFilesystem -> {
+                getString(R.string.illegal_state_failed_to_copy_assets_to_filesystem)
+            }
+            is FailedToExtractFilesystem -> {
+                getString(R.string.illegal_state_failed_to_extract_filesystem)
+            }
+            is FilesystemIsMissingAssets -> {
+                getString(R.string.illegal_state_filesystem_is_missing_assets)
+            }
+        }
+        displayIllegalStateDialog(reason)
+    }
+
     // TODO sealed classes?
     private fun showDialog(dialogType: String) {
         when (dialogType) {
-            "errorFetchingAssetLists" ->
-                displayGenericErrorDialog(this, R.string.alert_network_unavailable_title,
-                        R.string.alert_network_unavailable_message)
-            "extractionFailed" ->
-                displayGenericErrorDialog(this, R.string.alert_extraction_failure_title,
-                        R.string.alert_extraction_failure_message)
-            "filesystemIsMissingRequiredAssets" ->
-                displayGenericErrorDialog(this, R.string.alert_filesystem_missing_requirements_title,
-                    R.string.alert_filesystem_missing_requirements_message)
+            "unhandledSessionServiceType" -> {
+                displayGenericErrorDialog(this, R.string.general_error_title,
+                        R.string.illegal_state_unhandled_session_service_type)
+            }
             "playStoreMissingForClient" ->
                 displayGenericErrorDialog(this, R.string.alert_need_client_app_title,
                     R.string.alert_need_client_app_message)
-            "networkTooWeakForDownloads" ->
-                displayGenericErrorDialog(this, R.string.general_error_title,
-                        R.string.alert_network_strength_too_low_for_downloads)
         }
     }
 
-    // These need sealed classes and resource defined strings
     private fun displayIllegalStateDialog(reason: String) {
+        val message = getString(R.string.illegal_state_message, reason)
         AlertDialog.Builder(this)
-                .setMessage("$reason\n" +
-                        "Please restart the app and contact a developer.")
-                .setTitle("Illegal state!")
+                .setMessage(message)
+                .setTitle(R.string.illegal_state_title)
                 .setPositiveButton(R.string.button_ok) {
                     dialog, _ ->
                     dialog.dismiss()
