@@ -70,6 +70,7 @@
     <string name="client_ssh">SSH</string>
     <string name="client_vnc">VNC</string>
     <string name="button_ok">好的！</string>
+    <string name="prompt_app_connection_type_preference">请选择连接方式：</string>
     <string name="general_error_title">好像哪里出错了！</string>
     <string name="filesystem_credentials_reasoning">我们正在为您的程序创建一个文件系统，请输入相关信息，我们将为您设置成此文件系统的默认信息</string>
     <string name="alert_need_client_app_title">无法找到客户端应用！</string>

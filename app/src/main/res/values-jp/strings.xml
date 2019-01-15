@@ -48,6 +48,7 @@
     <string name="prompt_filesystem">ファイルシステム:</string>
     <string name="prompt_service_type">サービスの種類:</string>
     <string name="prompt_client_type">クライエントの種類:</string>
+    <string name="prompt_app_connection_type_preference">接続方法を選択してください:</string>
 
     <!-- Notification strings -->
     <string name="services_notification_channel_id">UserLAndサービス</string>

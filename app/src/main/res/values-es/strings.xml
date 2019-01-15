@@ -24,6 +24,7 @@
     <string name="hint_password">Contraseña</string>
     <string name="hint_vnc_password">Contraseña de VNC</string>
     <string name="client_ssh">SSH</string>
+    <string name="prompt_app_connection_type_preference">Por favor, seleccione el tipo de conexión:</string>
     <string name="client_vnc">VNC</string>
     <string name="support_dropbear">SSH - Dropbear</string>
     <string name="support_tightvnc">VNC - TightVNC</string>

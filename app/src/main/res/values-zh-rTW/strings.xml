@@ -16,6 +16,7 @@
         <string name="edit">編輯</string>
         <string name="delete">刪除</string>
         <string name="save">儲存</string>
+        <string name="prompt_app_connection_type_preference">請選擇連接方式：</string>
         <string name="add">加</string>
         <string name="refresh">刷新</string>
         <string name="hint_filesystem_name">文件系統名</string>

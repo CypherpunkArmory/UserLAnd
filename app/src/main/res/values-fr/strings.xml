@@ -48,6 +48,7 @@
     <string name="prompt_filesystem">Système de fichiers :</string>
     <string name="prompt_service_type">Type de service :</string>
     <string name="prompt_client_type">Type de client :</string>
+    <string name="prompt_app_connection_type_preference">Veuillez choisir un type de connexion :</string>
 
     <!-- Notification strings -->
     <string name="services_notification_channel_id">UserLAndServices</string>
