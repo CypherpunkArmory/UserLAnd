@@ -1,6 +1,9 @@
 package tech.ula.ui
 
 import android.app.Activity
+import android.content.Context
+import android.os.BaseBundle
+import android.os.Bundle
 import android.support.v7.util.DiffUtil
 import android.support.v7.widget.RecyclerView
 import android.view.ContextMenu
@@ -75,7 +78,6 @@ class AppListAdapter(
     }
 
     fun updateApps(newApps: List<App>) {
-
         val newAppsListItems = createAppsItemListWithSeparators(newApps)
 
         val diffCallback = AppsListDiffCallBack(appsAndSeparators, newAppsListItems)
@@ -106,6 +108,14 @@ class AppListAdapter(
     }
 
     override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
+        handleBindViewHolder(viewHolder, position, null)
+    }
+
+    override fun onBindViewHolder(viewHolder: ViewHolder, position: Int, payloads: MutableList<Any>) {
+        handleBindViewHolder(viewHolder, position, payloads)
+    }
+
+    private fun handleBindViewHolder(viewHolder: ViewHolder, position: Int, changes: MutableList<Any>?) {
         val item = appsAndSeparators[position]
 
         bindOnClick(viewHolder, item, onAppsItemClicked, position)
@@ -128,21 +138,45 @@ class AppListAdapter(
                 val localFileLocator = LocalFileLocator(activity.filesDir.path, activity.resources)
                 viewHolder.imageView?.setImageURI(localFileLocator.findIconUri(app.name))
                 viewHolder.appName?.text = app.name.capitalize()
-                setAnimation(viewHolder.itemView, position)
+
+                handleFirstAnimationRun(viewHolder, position)
+
+                if (changes != null && changes.isNotEmpty()) {
+                    val bundle = changes.first() as BaseBundle
+                    if (bundle.getInt("changedItemPosition") == position) {
+                        setAnimation(viewHolder.itemView, position)
+                    }
+                }
             }
         }
     }
 
-    private fun setAnimation(viewToAnimate: View, position: Int) {
-        val animationDelay = 150L
-        val animation = AnimationUtils.loadAnimation(activity, R.anim.item_animation_from_right)
-        viewToAnimate.startAnimation(animation)
-        animation.startOffset = position * animationDelay
+    private fun handleFirstAnimationRun(viewHolder: ViewHolder, position: Int) {
+        val prefs = activity.getSharedPreferences("apps", Context.MODE_PRIVATE)
+        val firstRun = prefs.getBoolean("firstRun", true)
+        val savedAppsCount = prefs.getInt("savedAppsCount", 2)
+
+        if (firstRun || savedAppsCount <= appsAndSeparators.count()) {
+            prefs.edit().putInt("savedAppsCount", savedAppsCount + 1).apply()
+            setAnimation(viewHolder.itemView, position, delayEffect = true)
+            if (savedAppsCount == appsAndSeparators.count()) {
+                prefs.edit().putBoolean("firstRun", false).apply()
+            }
+        }
     }
 
     private fun bindOnClick(viewHolder: ViewHolder, selectedListItem: AppsListItem, onAppsItemClicked: OnAppsItemClicked, position: Int) {
         viewHolder.itemView.setOnClickListener {
             onAppsItemClicked.onAppsItemClicked(selectedListItem)
+        }
+    }
+
+    private fun setAnimation(viewToAnimate: View, position: Int, delayEffect: Boolean = false) {
+        val animation = AnimationUtils.loadAnimation(activity, R.anim.item_animation_from_right)
+        viewToAnimate.startAnimation(animation)
+        if (delayEffect) {
+            val animationDelay = 100L
+            animation.startOffset = position * animationDelay
         }
     }
 
@@ -210,7 +244,7 @@ class AppsListDiffCallBack(
         if (oldApp is AppSeparatorItem && newApp is AppSeparatorItem) {
             if (oldApp.category == newApp.category) return true
         } else if (oldApp is AppItem && newApp is AppItem) {
-            if (oldApp.app.name == newApp.app.name && oldActiveApps == newActiveApps) {
+            if (oldApp.app.name == newApp.app.name) {
                 return true
             }
         }
@@ -219,27 +253,39 @@ class AppsListDiffCallBack(
     }
 
     override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-        val oldApp = oldAppsItemList[oldItemPosition]
-        val newApp = newAppsItemList[newItemPosition]
+        return areAppListItemsSame(oldItemPosition, newItemPosition)
+    }
 
-        if (oldApp is AppSeparatorItem && newApp is AppSeparatorItem) {
-            if (oldApp.category == newApp.category) {
+    private fun areAppListItemsSame(oldAppsItemPosition: Int, newAppsItemPosition: Int): Boolean {
+        val oldAppsItem = oldAppsItemList[oldAppsItemPosition]
+        val newAppsItem = newAppsItemList[newAppsItemPosition]
+        if (oldAppsItem is AppSeparatorItem && newAppsItem is AppSeparatorItem) {
+            if (oldAppsItem.category == newAppsItem.category) {
                 return true
             }
-        } else if (oldApp is AppItem && newApp is AppItem) {
-            val oldAppIsActive = oldActiveApps.contains(oldApp.app)
-            val newAppIsActive = newActiveApps.contains(newApp.app)
-            if (oldApp.app.category == newApp.app.category &&
-                    oldApp.app.name == newApp.app.name &&
-                    oldApp.app.version == newApp.app.version &&
-                    oldApp.app.filesystemRequired == newApp.app.filesystemRequired &&
-                    oldApp.app.isPaidApp == newApp.app.isPaidApp &&
-                    oldApp.app.supportsCli == newApp.app.supportsCli &&
-                    oldApp.app.supportsGui == newApp.app.supportsGui &&
+        } else if (oldAppsItem is AppItem && newAppsItem is AppItem) {
+            val oldAppIsActive = oldActiveApps.contains(oldAppsItem.app)
+            val newAppIsActive = newActiveApps.contains(newAppsItem.app)
+            if (oldAppsItem.app.category == newAppsItem.app.category &&
+                    oldAppsItem.app.name == newAppsItem.app.name &&
+                    oldAppsItem.app.version == newAppsItem.app.version &&
+                    oldAppsItem.app.filesystemRequired == newAppsItem.app.filesystemRequired &&
+                    oldAppsItem.app.isPaidApp == newAppsItem.app.isPaidApp &&
+                    oldAppsItem.app.supportsCli == newAppsItem.app.supportsCli &&
+                    oldAppsItem.app.supportsGui == newAppsItem.app.supportsGui &&
                     oldAppIsActive == newAppIsActive) {
                 return true
             }
         }
         return false
+    }
+
+    override fun getChangePayload(oldItemPosition: Int, newItemPosition: Int): Any? {
+        val diffBundle = Bundle()
+
+        if (areAppListItemsSame(oldItemPosition, newItemPosition)) {
+            diffBundle.putInt("changedItemPosition", newItemPosition)
+        }
+        return diffBundle
     }
 }
