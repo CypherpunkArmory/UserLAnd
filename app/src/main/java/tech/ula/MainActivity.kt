@@ -175,6 +175,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             val intent = Intent("android.intent.action.VIEW", Uri.parse("https://userland.tech/eula"))
             startActivity(intent)
         }
+        if (item.itemId == R.id.clear_support_files) {
+            displayClearSupportFilesDialog()
+        }
         return NavigationUI.onNavDestinationSelected(item,
                 Navigation.findNavController(this, R.id.nav_host_fragment)) ||
                 super.onOptionsItemSelected(item)
@@ -332,6 +335,19 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 .setTitle(R.string.illegal_state_title)
                 .setPositiveButton(R.string.button_ok) {
                     dialog, _ ->
+                    dialog.dismiss()
+                }
+                .create().show()
+    }
+
+    private fun displayClearSupportFilesDialog() {
+        AlertDialog.Builder(this)
+                .setMessage(R.string.alert_clear_support_files_message)
+                .setTitle(R.string.alert_clear_support_files_title)
+                .setPositiveButton(R.string.alert_clear_support_files_clear_button) { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .setNeutralButton(R.string.button_cancel) { dialog, _ ->
                     dialog.dismiss()
                 }
                 .create().show()
