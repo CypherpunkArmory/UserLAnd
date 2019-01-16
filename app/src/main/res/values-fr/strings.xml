@@ -58,14 +58,12 @@
     <string name="service_notification_description">UserLAnd exécute un service en arrière-plan.</string>
 
     <!-- Progress bar messages -->
-    <string name="progress_basic_app_setup">Configuration des infos de la base de données de l’appli&#8230;</string>
     <string name="progress_fetching_asset_lists">Récupération des listes de contenus&#8230;</string>
     <string name="progress_checking_for_required_updates">Vérification des mises à jour obligatoires&#8230;</string>
     <string name="progress_downloading">Téléchargement des contenus nécessaires&#8230;</string>
     <string name="progress_downloading_out_of">%1$d sur %2$d terminé</string>
     <string name="progress_copying_downloads">Copie des fichiers téléchargés vers le stockage local&#8230;</string>
     <string name="progress_starting">Démarrage du service&#8230;</string>
-    <string name="progress_connecting">Connexion au service&#8230;</string>
 
     <!-- Preferences -->
     <string name="pref_app_category">Préférences appli</string>
@@ -77,12 +75,10 @@
     <string name="pref_proot_debugging_level_title">Débogage du niveau de verbosité</string>
     <string name="pref_proot_debugging_level_summary">Plus le chiffre est élevé, plus la verbosité est grande.</string>
     <string name="pref_proot_debugging_level_default">-1</string>
-    <string name="pref_proot_local_file_enabled_title">Journal vers fichier local</string>
-    <string name="pref_proot_local_file_enabled_summary">Stocker le fichier (qui peut être grand ) dans /mnt/sdcard/Proot_Debug_Log</string>
     <string name="pref_proot_delete_debug_file_title">Supprimer le fichier de débogage</string>
 
     <!-- Help Activity -->
-    <string name="beta_message">Vous rencontrez des problèmes ou voulez demander une fonctionnalité ? Le meilleur endroit où recevoir une réponse rapidement est notre page GitHub.</string>
+    <string name="github_message">Vous rencontrez des problèmes ou voulez demander une fonctionnalité ? Le meilleur endroit où recevoir une réponse rapidement est notre page GitHub.</string>
     <string name="supported_services">Services actuellement pris en charge :</string>
     <string name="terminology">Terminologie:</string>
     <string name="desc_apps_title">Applis:</string>
@@ -106,9 +102,6 @@
     <string name="filesystem_credentials_reasoning">Nous créons un système de fichiers pour vos applis. Veuillez fournir les informations pertinentes demandées ; nous les utiliserons par défaut pour ce système de fichiers.</string>
 
     <!-- Play service error alerts -->
-    <string name="alert_play_service_error_message">Nous avons du mal à accéder aux services Google Play pour pouvoir terminer la démarche. Veuillez ré-essayer plus tard et, si le problème persiste, informer un développeur.</string>
-    <string name="alert_play_store_required">Les applis payantes nécessitent l’accès au Google Play Store pour la vérification du paiement. Veuillez l’installer pour continuer.</string>
-    <string name="alert_subscriptions_unsupported_message">Votre version de Google Play semble trop ancienne pour prendre en charge les abonnements. Veuillez la mettre à jour pour continuer.</string>
     <string name="alert_need_client_app_title">Aucune appli client n’est trouvable !</string>
     <string name="alert_need_client_app_message">ous aurez besoin d’un client SSH ou VNC pour terminer, mais Google Play n’est sans doute pas installé sur votre mobile. Veuillez installer une application client SSH ou VNC pour poursuivre.</string>
 
@@ -118,22 +111,7 @@
     <string name="alert_permissions_necessary_cancel_button">Annuler</string>
 
     <!-- Network unavailable alert -->
-    <string name="alert_network_unavailable_title">Aucun réseau disponible</string>
-    <string name="alert_network_unavailable_message">UserLAnd doit pouvoir se connecter à Internet pour pouvoir télécharger les contenus nécessaires. </string>
     <string name="alert_network_required_for_refresh">Actualiser des applis nécessite la disponibiilité d\'une connexion plus puissante.</string>
-    <string name="alert_network_strength_too_low_for_downloads">La puissance de votre connexion est trop faible pour télécharger les contenus nécessaires. Veuillez ré-essayer avec une très bonne connexion.</string>
-
-    <!-- Asset list failure alert -->
-    <string name="alert_asset_list_failure_title">Impossible de récupérer les listes des contenus.</string>
-    <string name="alert_asset_list_failure_message">Soit la récupération des listes des contenus n’est pas possible, soit elles ne sont pas gardées en cache localement. Veuillez ré-essayer un peu plus tard.</string>
-
-    <!-- Extraction failure alert -->
-    <string name="alert_extraction_failure_title">Impossible d’extraire le système de fichiers.</string>
-    <string name="alert_extraction_failure_message">Quelque chose s’est mal passé. Essayez de supprimer le système de fichiers, puis ré-essayer.</string>
-
-    <!-- Filesystem missing assets alert -->
-    <string name="alert_filesystem_missing_requirements_title">Des contenus requis manquent à ce système de fichiers !</string>
-    <string name="alert_filesystem_missing_requirements_message">Veuillez essayer de redémarrer le système et signaler ce problème à un développeur !</string>
 
     <!-- Wifi alert -->
     <string name="alert_wifi_disabled_title">Pas de WiFi !</string>
@@ -143,26 +121,17 @@
     <string name="alert_wifi_disabled_cancel_button">Annuler</string>
 
     <!-- Toasts -->
-    <string name="filesystem_delete_failure">Échec de la suppression !</string>
     <string name="session_unique_name_required">Les Sessions ont besoin d\'un nom unique !</string>
     <string name="filesystem_unique_name_required">Les Systèmes de fichiers ont besoin d\'un nom unique !</string>
-    <string name="download_client_app">Veuillez télécharger l\'appli client associée et ré-essayez.</string>
-    <!-- TODO remove this once multisession support is implemented -->
     <string name="single_session_supported">Actuellement UserLAnd ne prend en charge qu’une seule session active !</string>
     <string name="no_supported_architecture">L’architecture de votre dispositif n’est pas actuellement prise en charge par UserLAnd.</string>
     <string name="debug_log_deleted">Le journal de débogage a été supprimé ou n’existe pas !</string>
-    <string name="filesystem_extraction_failed">Impossible d\'extraire le système de fichiers !</string>
-    <string name="no_assets_need_updating">Aucun contenu n’a besoin d’être mis à jour !</string>
-    <string name="client_not_found">La gestion du type de client que cette session essaie de démarrer nous semble impossible !</string>
-    <string name="error_apps_renamed">Les applis ne peuvent pas s’exécuter après le renommage de leur session ou système de fichiers.</string>
 
     <!-- Content descriptions -->
     <string name="desc_arrow">Image : Flèche indiquant la connexion entre la session et le système de fichiers.</string>
     <string name="desc_filesystem_type">Image : Logo de la distribution</string>
 
     <!-- Misc -->
-    <string name="free_annotation">(Gratuit)</string>
-    <string name="paid_annotation">(Payant)</string>
     <string name="custom_sessions">Sessions personnalisées</string>
     <string name="apps_sessions">Sessions d\'applis</string>
 
