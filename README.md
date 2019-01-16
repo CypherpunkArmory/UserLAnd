@@ -1,4 +1,4 @@
-![UserLAnd Feature Graphic](https://raw.githubusercontent.com/CypherpunkArmory/UserLAnd/staging/fastlane/metadata/android/en-US/images/featureGraphic.png)
+![UserLAnd Feature Graphic](https://raw.githubusercontent.com/CypherpunkArmory/UserLAnd/master/fastlane/metadata/android/en-US/images/featureGraphic.png)
 
 # Welcome to UserLAnd
 
@@ -20,7 +20,7 @@ You can see our templates by visiting our [issue center](https://github.com/Cyph
 
 You can also chat with us on [slack](https://communityinviter.com/apps/userlandtech/userland)
 ## Want to contribute?
-See our [CONTRIBUTING](https://github.com/CypherpunkArmory/UserLAnd/blob/staging/CONTRIBUTING.md) document.
+See our [CONTRIBUTING](https://github.com/CypherpunkArmory/UserLAnd/blob/master/CONTRIBUTING.md) document.
 
 ## How to get started using UserLAnd:
 
