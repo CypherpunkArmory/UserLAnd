@@ -3,13 +3,13 @@ package tech.ula.model.repositories
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.util.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import tech.ula.model.daos.AppsDao
 import tech.ula.model.entities.App
 import tech.ula.model.remote.RemoteAppsSource
 import tech.ula.utils.AppsPreferences
 import tech.ula.utils.ConnectionUtility
-
-import tech.ula.utils.asyncAwait
 
 class AppsRepository(
     private val appsDao: AppsDao,
@@ -22,43 +22,36 @@ class AppsRepository(
         return appsDao.getAllApps()
     }
 
-    fun getAppServiceTypePreference(app: App): String {
-        return appsPreferences.getAppServiceTypePreference(app.name)
+    fun getActiveApps(): LiveData<List<App>> {
+        return appsDao.getActiveApps()
     }
 
-    fun setAppServiceTypePreference(app: App, preferredServiceType: String) {
-        appsPreferences.setAppServiceTypePreference(app.name, preferredServiceType)
-    }
-
-    suspend fun refreshData() {
+    suspend fun refreshData() = withContext(Dispatchers.IO) {
         val appsList = mutableSetOf<String>()
         val distributionsList = mutableSetOf<String>()
         if (!ConnectionUtility().httpsHostIsReachable("github.com")) {
             refreshStatus.postValue(RefreshStatus.FAILED)
-            return
+            return@withContext
         }
-        asyncAwait {
-            refreshStatus.postValue(RefreshStatus.ACTIVE)
-            try {
-                remoteAppsSource.fetchAppsList().forEach {
-                    app ->
-                    appsList.add(app.name)
-                    if (app.category.toLowerCase() == "distribution") distributionsList.add(app.name)
-                    remoteAppsSource.fetchAppIcon(app)
-                    remoteAppsSource.fetchAppDescription(app)
-                    remoteAppsSource.fetchAppScript(app)
-                    appsDao.insertApp(app) // Insert the db element last to force observer refresh
-                }
-            } catch (err: Exception) {
-                refreshStatus.postValue(RefreshStatus.FAILED)
-                Log.e("refresh", err.message)
-                return@asyncAwait
+        refreshStatus.postValue(RefreshStatus.ACTIVE)
+        try {
+            remoteAppsSource.fetchAppsList().forEach {
+                app ->
+                appsList.add(app.name)
+                if (app.category.toLowerCase() == "distribution") distributionsList.add(app.name)
+                remoteAppsSource.fetchAppIcon(app)
+                remoteAppsSource.fetchAppDescription(app)
+                remoteAppsSource.fetchAppScript(app)
+                appsDao.insertApp(app) // Insert the db element last to force observer refresh
             }
-            refreshStatus.postValue(RefreshStatus.FINISHED)
+        } catch (err: Exception) {
+            refreshStatus.postValue(RefreshStatus.FAILED)
+            Log.e("refresh", err.message)
+            return@withContext
         }
-        appsPreferences.setAppsList(appsList)
+        refreshStatus.postValue(RefreshStatus.FINISHED)
         appsPreferences.setDistributionsList(distributionsList)
-    }
+}
 
     fun getRefreshStatus(): LiveData<RefreshStatus> {
         return refreshStatus

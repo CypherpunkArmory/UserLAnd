@@ -1,4 +1,4 @@
-![UserLAnd Feature Graphic](https://github.com/CypherpunkArmory/UserLAnd/raw/master/play_store/featureGraphic.png)
+![UserLAnd Feature Graphic](https://raw.githubusercontent.com/CypherpunkArmory/UserLAnd/staging/fastlane/metadata/android/en-US/images/featureGraphic.png)
 
 # Welcome to UserLAnd
 
@@ -14,8 +14,14 @@ Features:
 [<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png"
      alt="Get it on Google Play"
      height="80">](https://play.google.com/store/apps/details?id=tech.ula)
+     
+## Have a bug report or a feature request?
+You can see our templates by visiting our [issue center](https://github.com/CypherpunkArmory/UserLAnd/issues).
 
-## How to get started:
+## Want to contribute?
+See our [CONTRIBUTING](https://github.com/CypherpunkArmory/UserLAnd/blob/staging/CONTRIBUTING.md) document.
+
+## How to get started using UserLAnd:
 
 There are two ways to use UserLAnd: single-click apps and user-defined custom sessions.
 
@@ -29,33 +35,59 @@ There are two ways to use UserLAnd: single-click apps and user-defined custom se
 2. Define a filesystem - This describes what distribution of Linux you want to install.
 3. Once defined, just tap on the session to start up. This will download necessary assets, setup the filesystem, start the server, and connect to it.  This will take several minutes for the first start up, but will be quicker afterwards.
 
-### Managing Packages
+### Managing Packages 
 
--> Update: sudo apt-get update && sudo apt-get dist-upgrade
+**Debian, Ubuntu, And Kali**:
 
--> Install Packages: sudo apt-get install (package name)
+-> Update: `sudo apt-get update && sudo apt-get dist-upgrade`
 
--> Remove Packages: sudo apt-get remove (package name)
+-> Install Packages: `sudo apt-get install <package name>`
+
+-> Remove Packages: `sudo apt-get remove <package name>`
+
+**Archlinux**:
+
+-> Update: `sudo pacman -Syu`
+
+-> Install Packages: `sudo pacman -S <package name>`
+
+-> Remove Packages: `sudo pacman -R <package name>`
 
 ### Installing A Desktop
 
--> Install Lxde: sudo apt-get install lxde (default desktop)
+**Debian, Ubuntu, And Kali**:
 
--> Install X Server Client: https://play.google.com/store/apps/details?id=x.org.server&hl=en
+-> Install Lxde: `sudo apt-get install lxde` (default desktop)
+
+-> Install X Server Client: [Download on the Play store](https://play.google.com/store/apps/details?id=x.org.server&hl=en)
 
 -> Launch XSDL
 
--> In UserLAnd Type: export DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:(PORT NUMBER)
+-> In UserLAnd Type: `export DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:<PORT NUMBER>`
 
--> Then Type: start lxde
+-> Then Type: `startlxde`
 
 -> Then Go Back To XSDL And The Desktop Will Show Up
 
+**ArchLinux**:
 
+-> Install Lxde: `sudo pacman -S lxde`
 
+-> Install X Server Client: [Download on the Play store](https://play.google.com/store/apps/details?id=x.org.server&hl=en)
+
+-> Launch XSDL
+
+-> In UserLAnd Type: export `DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:<PORT NUMBER>`
+
+-> Then Type: `startlxde`
+
+-> Then Go Back To XSDL And The Desktop Will Show Up
+
+<br/>
+<br/>
 But you can do so much more than that. Your phone isn't just a play thing any more!
 
-This app is fully open source.  You can find our code and file issues [here](https://github.com/CypherpunkArmory/UserLAnd/).
+This app is fully open source.  You can find our code [here](https://github.com/CypherpunkArmory/UserLAnd/).
 
 The assets that UserLAnd depends on and the scripts that build them are contained in other repositories.  
 

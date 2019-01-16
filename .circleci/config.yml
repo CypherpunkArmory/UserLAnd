@@ -47,12 +47,12 @@ reference:
   android_config: &android_config
     working_directory: *workspace
     docker:
-      - image: circleci/android:api-28-alpha
+      - image: circleci/android:api-28-ndk
     environment:
       TERM: dumb
       # Limit JVM heap size to prevent exceeding container memory
-      _JAVA_OPTIONS: "-Xmx2048m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
-      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m"'
+      _JAVA_OPTIONS: "-Xmx1536m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1"
+      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m" -Dorg.gradle.parallel=true'
 
   export_gcloud_key: &export_gcloud_key
     run:
@@ -79,7 +79,7 @@ jobs:
           command: ./gradlew ktlint
       - run:
           name: Gradle build (debug)
-          command: ./gradlew -PciBuild=true ktlint :app:assembleDebug :app:assembleAndroidTest
+          command: ./gradlew -PciBuild=true :app:assembleDebug :app:assembleAndroidTest
       - *persist_debug_workspace
       - store_artifacts:
           path: app/build/outputs/apk/

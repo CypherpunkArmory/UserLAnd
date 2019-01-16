@@ -18,12 +18,13 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_edit.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.utils.AppsPreferences
 import tech.ula.utils.BuildWrapper
 import tech.ula.utils.ValidationUtility
-import tech.ula.utils.launchAsync
 import tech.ula.viewmodel.FilesystemEditViewModel
 
 class FilesystemEditFragment : Fragment() {
@@ -167,7 +168,7 @@ class FilesystemEditFragment : Fragment() {
                 Toast.makeText(activityContext, R.string.no_supported_architecture, Toast.LENGTH_LONG).show()
                 return true
             }
-            launchAsync {
+            GlobalScope.launch {
                 when (filesystemEditViewModel.insertFilesystem(filesystem)) {
                     true -> navController.popBackStack()
                     false -> Toast.makeText(activityContext, R.string.filesystem_unique_name_required, Toast.LENGTH_LONG).show()

@@ -14,13 +14,11 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.times
 import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.entities.Asset
+import tech.ula.model.entities.Filesystem
 import tech.ula.utils.AssetPreferences
 import tech.ula.utils.ConnectionUtility
 import tech.ula.utils.TimestampPreferences
-import java.io.ByteArrayInputStream
 import java.io.File
-import java.io.InputStream
-import javax.net.ssl.SSLHandshakeException
 
 @RunWith(MockitoJUnitRunner::class)
 class AssetRepositoryTest {
@@ -53,13 +51,20 @@ class AssetRepositoryTest {
     @Before
     fun setup() {
         applicationFilesDirPath = tempFolder.root.path
-        assetRepository = AssetRepository(archType, distType, applicationFilesDirPath,
-                timestampPreferences, assetPreferences, connectionUtility)
+        assetRepository = AssetRepository(applicationFilesDirPath, timestampPreferences,
+                assetPreferences, connectionUtility)
+    }
+
+    @Test
+    fun `Retrieves cached assets if remote are unavailable`() {
+        // TODO
     }
 
     @Test
     fun allTypesOfCachedAssetListsAreRetrieved() {
-        assetRepository.getCachedAssetLists()
+        whenever(connectionUtility.httpsHostIsReachable("github.com")).thenReturn(false)
+
+        assetRepository.getAllAssetLists(distType, archType)
         verify(assetPreferences).getAssetLists(allAssetListTypes)
     }
 
@@ -74,31 +79,11 @@ class AssetRepositoryTest {
         val assetListWithRootfsFile = listOf(listOf(asset1, asset2))
         `when`(assetPreferences.getAssetLists(distTypeAssetLists)).thenReturn(assetListWithRootfsFile)
 
-        val returnedAssetList = assetRepository.getDistributionAssetsList(distType)
+        val filesystem = Filesystem(-1, distributionType = distType, archType = archType)
+        val returnedAssetList = assetRepository.getDistributionAssetsForExistingFilesystem(filesystem)
 
         assertTrue(returnedAssetList.size == 1)
         assertFalse(returnedAssetList.any { it.name == "rootfs.tar.gz" })
-    }
-
-    @Test
-    fun usesHttpIfHttpsIsInaccessible() {
-        val allUrlsWithoutProtocols = allAssetListTypes.map { (dist, arch) ->
-            "://github.com/CypherpunkArmory/UserLAnd-Assets-" +
-                    "$dist/raw/master/assets/$arch/assets.txt"
-        }
-        val inputStream = ByteArrayInputStream("asset 0".toByteArray()) as InputStream
-
-        allUrlsWithoutProtocols.forEach {
-            `when`(connectionUtility.getUrlInputStream("https$it")).thenThrow(SSLHandshakeException::class.java)
-            `when`(connectionUtility.httpsHostIsReachable("github.com")).thenReturn(true)
-            `when`(connectionUtility.getUrlInputStream("http$it")).thenReturn(inputStream)
-        }
-
-        assetRepository.retrieveAllRemoteAssetLists()
-
-        allUrlsWithoutProtocols.forEach {
-            verify(connectionUtility).getUrlInputStream("http$it")
-        }
     }
 
     @Test

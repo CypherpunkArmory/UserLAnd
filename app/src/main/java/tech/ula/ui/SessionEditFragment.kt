@@ -16,11 +16,12 @@ import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_session_edit.* // ktlint-disable no-wildcard-imports
 import kotlinx.android.synthetic.main.preference_list_fragment.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.jetbrains.anko.bundleOf
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.utils.launchAsync
 import tech.ula.viewmodel.SessionEditViewModel
 
 class SessionEditFragment : Fragment() {
@@ -172,7 +173,7 @@ class SessionEditFragment : Fragment() {
                 sessionEditViewModel.updateSession(session)
                 navController.popBackStack()
             } else {
-                launchAsync {
+                GlobalScope.launch {
                     when (sessionEditViewModel.insertSession(session)) {
                         true -> navController.popBackStack()
                         false -> Toast.makeText(activityContext, R.string.session_unique_name_required, Toast.LENGTH_LONG).show()
