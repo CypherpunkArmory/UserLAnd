@@ -5,6 +5,9 @@ These are intended as just that: guidelines, so use your best judgement when sub
 
 All contributions must follow the UserLAnd [Code of Conduct](https://github.com/CypherpunkArmory/UserLAnd/blob/master/CODE_OF_CONDUCT.md).
 
+## Connect with us
+If you have any questions please join us on our [slack](https://communityinviter.com/apps/userlandtech/userland) #contributors channel
+ 
 ## Architecture
 We follow the MVVM-C architecture in UserLAnd. UI updates should exist exclusively within XML and be inflated exclusively from
 view-controllers like activies and fragments. Business logic should be decoupled from the Android framework as extensively 
@@ -14,12 +17,12 @@ viewmodel as much as possible.
 ## Steps to Follow
 
 1. Submit an issue describing the problem you will be solving with your contribution if one doesn't exist. Assign yourself to the ticket.
-2. Fork from staging.
+2. Fork from master.
 3. Write your code.
 4. Write tests your code.
 5. Run the test suite to ensure `./gradlew testAll`.
 6. Ensure that your code follows our styling by running `./gradlew ktlint` at the root of the project.
-7. Submit a pull request to staging!
+7. Submit a pull request to master!
 
 ## Style Guides
 **Commit Messages**
