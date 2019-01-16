@@ -18,7 +18,7 @@ Features:
 ## Have a bug report or a feature request?
 You can see our templates by visiting our [issue center](https://github.com/CypherpunkArmory/UserLAnd/issues).
 
-You can also chat with us on [slack](https://join.slack.com/t/userlandtech/shared_invite/enQtNTIyNzM4OTgwNjU3LWNhOWEzNmZiZTFiMGU1Zjg1MThhNTY0M2IwODY2OWQ5N2U1YzA2ZGUwMDVkOGVlZjBhNDYzMjgzYWZlZTBmZGU)
+You can also chat with us on [slack](https://communityinviter.com/apps/userlandtech/userland)
 ## Want to contribute?
 See our [CONTRIBUTING](https://github.com/CypherpunkArmory/UserLAnd/blob/staging/CONTRIBUTING.md) document.
 
