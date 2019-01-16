@@ -143,6 +143,7 @@ class AppListAdapter(
 
                 if (changes != null && changes.isNotEmpty()) {
                     val bundle = changes.first() as BaseBundle
+                    if (bundle.get("activeStateChange") as Boolean) return
                     if (bundle.getInt("changedItemPosition") == position) {
                         setAnimation(viewHolder.itemView, position)
                     }
@@ -218,7 +219,6 @@ sealed class AppsListItem
 data class AppItem(val app: App) : AppsListItem()
 data class AppSeparatorItem(val category: String) : AppsListItem()
 
-// TODO we should really find a way to just redraw a single app item when its activity changes
 /**
  * Default parameters allow updates in terms of changes to both the list and app activity.
  * When changing one, the other will simply default to using the same thing for comparison.
@@ -229,6 +229,9 @@ class AppsListDiffCallBack(
     private val oldActiveApps: List<App> = listOf(),
     private val newActiveApps: List<App> = oldActiveApps
 ) : DiffUtil.Callback() {
+
+    var activeStateChange = false
+
     override fun getOldListSize(): Int {
         return oldAppsItemList.size
     }
@@ -266,6 +269,11 @@ class AppsListDiffCallBack(
         } else if (oldAppsItem is AppItem && newAppsItem is AppItem) {
             val oldAppIsActive = oldActiveApps.contains(oldAppsItem.app)
             val newAppIsActive = newActiveApps.contains(newAppsItem.app)
+
+            if (oldAppIsActive != newAppIsActive) {
+                activeStateChange = true
+            }
+
             if (oldAppsItem.app.category == newAppsItem.app.category &&
                     oldAppsItem.app.name == newAppsItem.app.name &&
                     oldAppsItem.app.version == newAppsItem.app.version &&
@@ -286,6 +294,7 @@ class AppsListDiffCallBack(
         if (areAppListItemsSame(oldItemPosition, newItemPosition)) {
             diffBundle.putInt("changedItemPosition", newItemPosition)
         }
+        if (activeStateChange) diffBundle.putBoolean("activeStateChange", activeStateChange)
         return diffBundle
     }
 }
