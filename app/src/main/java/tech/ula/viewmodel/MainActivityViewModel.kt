@@ -7,14 +7,18 @@ import android.arch.lifecycle.ViewModelProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.AppServiceTypePreference
+import tech.ula.utils.SupportFileClearer
+import java.lang.Exception
 
-class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private val sessionStartupFsm: SessionStartupFsm) : ViewModel() {
+class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm,
+                            private val sessionStartupFsm: SessionStartupFsm) : ViewModel() {
 
     private var appsAreWaitingForSelection = false
     private var sessionsAreWaitingForSelection = false
@@ -142,6 +146,16 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
         submitSessionStartupEvent(DownloadAssets(requiredDownloads))
     }
 
+    suspend fun handleClearSupportFiles(supportFileClearer: SupportFileClearer) = withContext(Dispatchers.IO) {
+        state.postValue(ClearingSupportFiles)
+        try {
+            state.postValue(ProgressBarOperationComplete)
+            supportFileClearer.clearAllSupportAssets()
+        } catch (err: Exception) {
+            state.postValue(FailedToClearSupportFiles)
+        }
+    }
+
     private fun handleAppsPreparationState(newState: AppsStartupState) {
         if (!appsPreparationRequirementsHaveBeenSelected() && newState !is WaitingForAppSelection && newState !is FetchingDatabaseEntries) {
             state.postValue(NoAppSelectedWhenPreparationStarted)
@@ -235,7 +249,7 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm, private 
                 state.postValue(DownloadProgress(newState.numCompleted, newState.numTotal))
             }
             is DownloadsHaveSucceeded -> {
-                submitSessionStartupEvent(CopyDownloadsToLocalStorage)
+                submitSessionStartupEvent(CopyDownloadsToLocalStorage(lastSelectedFilesystem))
             }
             is DownloadsHaveFailed -> {
                 state.postValue(DownloadsDidNotCompleteSuccessfully(newState.reason))
@@ -326,6 +340,7 @@ object FailedToCopyAssetsToLocalStorage : IllegalState()
 object FailedToCopyAssetsToFilesystem : IllegalState()
 object FailedToExtractFilesystem : IllegalState()
 object FilesystemIsMissingAssets : IllegalState()
+object FailedToClearSupportFiles : IllegalState()
 
 sealed class UserInputRequiredState : State()
 object FilesystemCredentialsRequired : UserInputRequiredState()
@@ -340,6 +355,8 @@ data class DownloadProgress(val numComplete: Int, val numTotal: Int) : ProgressB
 object CopyingDownloads : ProgressBarUpdateState()
 data class FilesystemExtraction(val extractionTarget: String) : ProgressBarUpdateState()
 object VerifyingFilesystem : ProgressBarUpdateState()
+object ClearingSupportFiles : ProgressBarUpdateState()
+object ProgressBarOperationComplete : ProgressBarUpdateState()
 
 class MainActivityViewModelFactory(private val appsStartupFsm: AppsStartupFsm, private val sessionStartupFsm: SessionStartupFsm) : ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {

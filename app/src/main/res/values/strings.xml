@@ -66,7 +66,8 @@
     <string name="illegal_state_failed_to_copy_assets_to_local">Failed to copy assets to local storage.</string>
     <string name="illegal_state_failed_to_copy_assets_to_filesystem">Failed to copy assets to filesystem.</string>
     <string name="illegal_state_failed_to_extract_filesystem">Failed to extract filesystem.</string>
-    <string name="illegal_state_filesystem_is_missing_assets">Filesystem is missing assets.</string>
+    <string name="illegal_state_filesystem_is_missing_assets">Filesystem is missing assets. Try clearing support files.</string>
+    <string name="illegal_state_failed_to_clear_support_files">Failed to clear support files.</string>
 
     <!-- Misc illegal state -->
     <string name="illegal_state_unhandled_session_service_type">Trying to start a session with an unknown service type.</string>
@@ -95,6 +96,7 @@
     <string name="progress_extraction_details">Extracting: %1$s</string>
     <string name="progress_verifying_assets">Verifying assets&#8230;</string>
     <string name="progress_starting">Starting service&#8230;</string>
+    <string name="progress_clearing_support_files">Clearing all support files&#8230;</string>
 
     <!-- Preferences -->
     <string name="pref_app_category">App Preferences</string>

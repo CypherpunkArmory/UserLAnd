@@ -34,6 +34,10 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.NavigationUI.setupWithNavController
 import kotlinx.android.synthetic.main.activity_main.* // ktlint-disable no-wildcard-imports
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.find
 import tech.ula.model.entities.App
@@ -311,6 +315,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             is FilesystemIsMissingAssets -> {
                 getString(R.string.illegal_state_filesystem_is_missing_assets)
             }
+            is FailedToClearSupportFiles -> {
+                getString(R.string.illegal_state_failed_to_clear_support_files)
+            }
         }
         displayIllegalStateDialog(reason)
     }
@@ -356,14 +363,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     private fun handleClearSupportFiles() {
         val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
-        val distributionsList = appsPreferences.getDistributionsList().plus("support")
-        distributionsList.plus("support")
-        for (file in filesDir.listFiles()) {
-            if (!file.isDirectory) continue
-            if (distributionsList.contains(file.name)) {
-                file.deleteRecursively()
-            }
-        }
+        val assetDirectoryNames = appsPreferences.getDistributionsList().plus("support")
+        val supportFileClearer = SupportFileClearer(this.filesDir, assetDirectoryNames)
+        CoroutineScope(Dispatchers.Main).launch { viewModel.handleClearSupportFiles(supportFileClearer) }
     }
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -434,6 +436,13 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             is VerifyingFilesystem -> {
                 val step = getString(R.string.progress_verifying_assets)
                 updateProgressBar(step, "")
+            }
+            is ClearingSupportFiles -> {
+                val step = getString(R.string.progress_clearing_support_files)
+                updateProgressBar(step, "")
+            }
+            is ProgressBarOperationComplete -> {
+                killProgressBar()
             }
         }
     }
