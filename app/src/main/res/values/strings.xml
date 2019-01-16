@@ -137,7 +137,7 @@
     <string name="alert_clear_support_files_title">Clear all support files?</string>
     <string name="alert_clear_support_files_message">
         This will delete all support files. This will not affect anything you have created on your
-        filesystems. It will cause assets tobe downloaded again the next time a session or app is run.
+        filesystems. It will cause assets to be downloaded again the next time a session or app is run.
     </string>
     <string name="alert_clear_support_files_clear_button">Clear</string>
 

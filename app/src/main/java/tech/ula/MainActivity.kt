@@ -345,12 +345,25 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 .setMessage(R.string.alert_clear_support_files_message)
                 .setTitle(R.string.alert_clear_support_files_title)
                 .setPositiveButton(R.string.alert_clear_support_files_clear_button) { dialog, _ ->
+                    handleClearSupportFiles()
                     dialog.dismiss()
                 }
                 .setNeutralButton(R.string.button_cancel) { dialog, _ ->
                     dialog.dismiss()
                 }
                 .create().show()
+    }
+
+    private fun handleClearSupportFiles() {
+        val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
+        val distributionsList = appsPreferences.getDistributionsList().plus("support")
+        distributionsList.plus("support")
+        for (file in filesDir.listFiles()) {
+            if (!file.isDirectory) continue
+            if (distributionsList.contains(file.name)) {
+                file.deleteRecursively()
+            }
+        }
     }
 
     @TargetApi(Build.VERSION_CODES.M)
