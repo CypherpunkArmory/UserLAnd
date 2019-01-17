@@ -252,13 +252,13 @@ class MainActivityViewModelTest {
     }
 
     @Test
-    fun `Posts DisableActiveSessionsState if handling clear support files with active session`() = runBlocking {
+    fun `Posts ActiveSessionsMustBeDeactivatedState if handling clear support files with active session`() = runBlocking {
         whenever(mockSessionStartupFsm.sessionsAreActive())
                 .thenReturn(true)
 
         mainActivityViewModel.handleClearSupportFiles(mockAssetFileClearer)
 
-        verify(mockStateObserver).onChanged(DisableActiveSessions)
+        verify(mockStateObserver).onChanged(ActiveSessionsMustBeDeactivated)
     }
 
     @Test

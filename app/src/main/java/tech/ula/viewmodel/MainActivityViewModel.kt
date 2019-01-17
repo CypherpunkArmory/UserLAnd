@@ -150,7 +150,7 @@ class MainActivityViewModel(
 
     suspend fun handleClearSupportFiles(assetFileClearer: AssetFileClearer) = withContext(Dispatchers.IO) {
         if (sessionStartupFsm.sessionsAreActive()) {
-            state.postValue(DisableActiveSessions)
+            state.postValue(ActiveSessionsMustBeDeactivated)
             return@withContext
         }
         state.postValue(ClearingSupportFiles)
@@ -352,7 +352,7 @@ sealed class UserInputRequiredState : State()
 object FilesystemCredentialsRequired : UserInputRequiredState()
 object AppServiceTypePreferenceRequired : UserInputRequiredState()
 data class LargeDownloadRequired(val requiredDownloads: List<Asset>) : UserInputRequiredState()
-object DisableActiveSessions : UserInputRequiredState()
+object ActiveSessionsMustBeDeactivated : UserInputRequiredState()
 
 sealed class ProgressBarUpdateState : State()
 object StartingSetup : ProgressBarUpdateState()
