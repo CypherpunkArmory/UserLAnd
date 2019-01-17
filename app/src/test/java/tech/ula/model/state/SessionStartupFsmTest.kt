@@ -70,7 +70,7 @@ class SessionStartupFsmTest {
             GenerateDownloads(filesystem, assetLists),
             DownloadAssets(singleAssetList),
             AssetDownloadComplete(0),
-            CopyDownloadsToLocalStorage,
+            CopyDownloadsToLocalStorage(filesystem),
             ExtractFilesystem(filesystem),
             VerifyFilesystemAssets(filesystem)
     )
@@ -362,7 +362,8 @@ class SessionStartupFsmTest {
         sessionFsm.setState(DownloadsHaveSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        runBlocking { sessionFsm.submitEvent(CopyDownloadsToLocalStorage) }
+        // TODO update test
+        runBlocking { sessionFsm.submitEvent(CopyDownloadsToLocalStorage(filesystem)) }
 
         verify(mockStateObserver).onChanged(CopyingFilesToRequiredDirectories)
         verify(mockStateObserver).onChanged(CopyingSucceeded)
@@ -377,7 +378,8 @@ class SessionStartupFsmTest {
         whenever(mockDownloadUtility.moveAssetsToCorrectLocalDirectory())
                 .thenThrow(Exception())
 
-        runBlocking { sessionFsm.submitEvent(CopyDownloadsToLocalStorage) }
+        // TODO update test
+        runBlocking { sessionFsm.submitEvent(CopyDownloadsToLocalStorage(filesystem)) }
 
         verify(mockStateObserver).onChanged(CopyingFilesToRequiredDirectories)
         verify(mockStateObserver).onChanged(CopyingFailed)
