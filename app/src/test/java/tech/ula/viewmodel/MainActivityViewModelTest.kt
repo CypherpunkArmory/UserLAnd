@@ -50,6 +50,8 @@ class MainActivityViewModelTest {
     private lateinit var sessionStartupStateLiveData: MutableLiveData<SessionStartupState>
 
     private lateinit var mainActivityViewModel: MainActivityViewModel
+    
+    private val delayForCoroutineLaunch = 2L
 
     private fun makeAppSelections() {
         mainActivityViewModel.lastSelectedApp = selectedApp
@@ -86,7 +88,7 @@ class MainActivityViewModelTest {
         mainActivityViewModel.waitForPermissions(appToContinue = selectedApp)
         mainActivityViewModel.permissionsHaveBeenGranted()
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockAppsStartupFsm).submitEvent(AppSelected(selectedApp))
         }
     }
@@ -96,7 +98,7 @@ class MainActivityViewModelTest {
         mainActivityViewModel.waitForPermissions(sessionToContinue = selectedSession)
         mainActivityViewModel.permissionsHaveBeenGranted()
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockSessionStartupFsm).submitEvent(SessionSelected(selectedSession))
         }
     }
@@ -125,7 +127,7 @@ class MainActivityViewModelTest {
         mainActivityViewModel.submitSessionSelection(selectedSession)
 
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockAppsStartupFsm, never()).submitEvent(AppSelected(selectedApp))
             verify(mockSessionStartupFsm, never()).submitEvent(SessionSelected(selectedSession))
         }
@@ -139,7 +141,7 @@ class MainActivityViewModelTest {
         mainActivityViewModel.submitSessionSelection(selectedSession)
 
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockAppsStartupFsm, never()).submitEvent(AppSelected(selectedApp))
             verify(mockSessionStartupFsm, never()).submitEvent(SessionSelected(selectedSession))
         }
@@ -151,7 +153,7 @@ class MainActivityViewModelTest {
         mainActivityViewModel.submitAppSelection(selectedApp)
 
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockAppsStartupFsm).submitEvent(AppSelected(selectedApp))
         }
     }
@@ -162,7 +164,7 @@ class MainActivityViewModelTest {
         mainActivityViewModel.submitSessionSelection(selectedSession)
 
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockSessionStartupFsm).submitEvent(SessionSelected(selectedSession))
         }
     }
@@ -172,7 +174,7 @@ class MainActivityViewModelTest {
         mainActivityViewModel.submitCompletedDownloadId(1)
 
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockSessionStartupFsm).submitEvent(AssetDownloadComplete(1))
         }
     }
@@ -194,7 +196,7 @@ class MainActivityViewModelTest {
         mainActivityViewModel.submitFilesystemCredentials(username, password, vncPassword)
 
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockAppsStartupFsm).submitEvent(SubmitAppsFilesystemCredentials(selectedFilesystem, username, password, vncPassword))
         }
     }
@@ -213,7 +215,7 @@ class MainActivityViewModelTest {
         mainActivityViewModel.submitAppServicePreference(SshTypePreference)
 
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockAppsStartupFsm).submitEvent(SubmitAppServicePreference(selectedApp, SshTypePreference))
         }
     }
@@ -231,7 +233,7 @@ class MainActivityViewModelTest {
         assertEquals(mainActivityViewModel.lastSelectedFilesystem, unselectedFilesystem)
 
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockAppsStartupFsm).submitEvent(ResetAppState)
             verify(mockSessionStartupFsm).submitEvent(ResetSessionState)
         }
@@ -244,7 +246,7 @@ class MainActivityViewModelTest {
         mainActivityViewModel.startAssetDownloads(downloads)
 
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockSessionStartupFsm).submitEvent(DownloadAssets(downloads))
         }
     }
@@ -330,7 +332,7 @@ class MainActivityViewModelTest {
         assertEquals(selectedSession, mainActivityViewModel.lastSelectedSession)
 
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockAppsStartupFsm).submitEvent(CheckAppsFilesystemCredentials(selectedFilesystem))
         }
     }
@@ -351,7 +353,7 @@ class MainActivityViewModelTest {
         appsStartupStateLiveData.postValue(AppsFilesystemHasCredentials)
 
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockAppsStartupFsm).submitEvent(CheckAppServicePreference(selectedApp))
         }
     }
@@ -372,7 +374,7 @@ class MainActivityViewModelTest {
         appsStartupStateLiveData.postValue(AppHasServiceTypePreferenceSet)
 
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockAppsStartupFsm).submitEvent(CopyAppScriptToFilesystem(selectedApp, selectedFilesystem))
         }
     }
@@ -393,7 +395,7 @@ class MainActivityViewModelTest {
         appsStartupStateLiveData.postValue(AppScriptCopySucceeded)
 
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockAppsStartupFsm).submitEvent(SyncDatabaseEntries(selectedApp, selectedSession, selectedFilesystem))
         }
     }
@@ -419,7 +421,7 @@ class MainActivityViewModelTest {
         assertEquals(updatedFilesystem, mainActivityViewModel.lastSelectedFilesystem)
 
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockSessionStartupFsm).submitEvent(SessionSelected(updatedSession))
         }
     }
@@ -470,7 +472,7 @@ class MainActivityViewModelTest {
 
         verify(mockStateObserver).onChanged(StartingSetup)
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockSessionStartupFsm).submitEvent(RetrieveAssetLists(selectedFilesystem))
         }
     }
@@ -492,7 +494,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(AssetListsRetrievalSucceeded(assetLists))
 
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockSessionStartupFsm).submitEvent(GenerateDownloads(selectedFilesystem, assetLists))
         }
     }
@@ -533,7 +535,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(DownloadsRequired(downloads, largeDownloadRequired = false))
 
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockSessionStartupFsm).submitEvent(DownloadAssets(downloads))
         }
     }
@@ -545,7 +547,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(NoDownloadsRequired)
 
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockSessionStartupFsm).submitEvent(ExtractFilesystem(selectedFilesystem))
         }
     }
@@ -566,7 +568,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(DownloadsHaveSucceeded)
 
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockSessionStartupFsm).submitEvent(CopyDownloadsToLocalStorage(selectedFilesystem))
         }
     }
@@ -597,7 +599,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(CopyingSucceeded)
 
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockSessionStartupFsm).submitEvent(ExtractFilesystem(selectedFilesystem))
         }
     }
@@ -637,7 +639,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(ExtractionSucceeded)
 
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockSessionStartupFsm).submitEvent(VerifyFilesystemAssets(selectedFilesystem))
         }
     }
@@ -671,7 +673,7 @@ class MainActivityViewModelTest {
         assertEquals(unselectedSession, mainActivityViewModel.lastSelectedSession)
         assertEquals(unselectedFilesystem, mainActivityViewModel.lastSelectedFilesystem)
         runBlocking {
-            delay(2)
+            delay(delayForCoroutineLaunch)
             verify(mockSessionStartupFsm).submitEvent(ResetSessionState)
             verify(mockAppsStartupFsm).submitEvent(ResetAppState)
         }
