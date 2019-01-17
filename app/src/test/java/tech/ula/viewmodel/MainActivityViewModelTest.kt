@@ -19,6 +19,7 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.SshTypePreference
+import tech.ula.utils.SupportFileClearer
 
 @RunWith(MockitoJUnitRunner::class)
 class MainActivityViewModelTest {
@@ -28,6 +29,8 @@ class MainActivityViewModelTest {
     @Mock lateinit var mockAppsStartupFsm: AppsStartupFsm
 
     @Mock lateinit var mockSessionStartupFsm: SessionStartupFsm
+
+    @Mock lateinit var mockSupportFileClearer: SupportFileClearer
 
     @Mock lateinit var mockStateObserver: Observer<State>
 
@@ -245,6 +248,44 @@ class MainActivityViewModelTest {
             verify(mockSessionStartupFsm).submitEvent(DownloadAssets(downloads))
         }
     }
+
+    @Test
+    fun `Posts DisableActiveSessionsState if handling clear support files with active session`() = runBlocking {
+        whenever(mockSessionStartupFsm.sessionsAreActive())
+                .thenReturn(true)
+
+        mainActivityViewModel.handleClearSupportFiles(mockSupportFileClearer)
+
+        verify(mockStateObserver).onChanged(DisableActiveSessions)
+    }
+
+    @Test
+    fun `Posts ClearingSupportFiles and ProgressBarOperationComplete if clearing succeeds`() = runBlocking {
+        whenever(mockSessionStartupFsm.sessionsAreActive())
+                .thenReturn(false)
+
+        mainActivityViewModel.handleClearSupportFiles(mockSupportFileClearer)
+
+        verify(mockSupportFileClearer).clearAllSupportAssets()
+        verify(mockStateObserver).onChanged(ClearingSupportFiles)
+        verify(mockStateObserver).onChanged(ProgressBarOperationComplete)
+    }
+
+    @Test
+    fun `Posts ClearingSupportFiles and FailedToClearSupportFiles if clearing fails`() = runBlocking {
+        whenever(mockSessionStartupFsm.sessionsAreActive())
+                .thenReturn(false)
+        whenever(mockSupportFileClearer.clearAllSupportAssets())
+                .thenThrow(Exception())
+
+        mainActivityViewModel.handleClearSupportFiles(mockSupportFileClearer)
+
+        verify(mockSupportFileClearer).clearAllSupportAssets()
+        verify(mockStateObserver).onChanged(ClearingSupportFiles)
+        verify(mockStateObserver).onChanged(FailedToClearSupportFiles)
+    }
+
+    // Private function tests.
 
     @Test
     fun `Does not post IllegalState if app, session, and filesystem have not been selected and observed event is WaitingForAppSelection`() {

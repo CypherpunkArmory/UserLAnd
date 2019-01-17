@@ -153,8 +153,8 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm,
         }
         state.postValue(ClearingSupportFiles)
         try {
-            state.postValue(ProgressBarOperationComplete)
             supportFileClearer.clearAllSupportAssets()
+            state.postValue(ProgressBarOperationComplete)
         } catch (err: Exception) {
             state.postValue(FailedToClearSupportFiles)
         }
