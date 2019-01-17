@@ -11,12 +11,14 @@ import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.DownloadUtility
 import tech.ula.utils.FilesystemUtility
+import tech.ula.utils.TimeUtility
 
 class SessionStartupFsm(
     ulaDatabase: UlaDatabase,
     private val assetRepository: AssetRepository,
     private val filesystemUtility: FilesystemUtility,
-    private val downloadUtility: DownloadUtility
+    private val downloadUtility: DownloadUtility,
+    private val timeUtility: TimeUtility = TimeUtility()
 ) {
 
     private val state = MutableLiveData<SessionStartupState>().apply { postValue(WaitingForSessionSelection) }
@@ -222,7 +224,7 @@ class SessionStartupFsm(
     private suspend fun copyDistributionAssetsToFilesystem(filesystem: Filesystem): Boolean = withContext(Dispatchers.IO) {
         return@withContext try {
             filesystemUtility.copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType)
-            filesystem.lastUpdated = System.currentTimeMillis()
+            filesystem.lastUpdated = timeUtility.getCurrentTimeMillis()
             filesystemDao.updateFilesystem(filesystem)
             true
         } catch (err: Exception) {

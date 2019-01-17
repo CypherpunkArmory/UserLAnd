@@ -320,3 +320,9 @@ class LocalFileLocator(private val applicationFilesDir: String, private val reso
         return appDescriptionFile.readText()
     }
 }
+
+class TimeUtility {
+    fun getCurrentTimeMillis(): Long {
+        return System.currentTimeMillis()
+    }
+}
