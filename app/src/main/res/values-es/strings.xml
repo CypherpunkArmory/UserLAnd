@@ -60,12 +60,9 @@
     <string name="progress_fetching_asset_lists">Obteniendo lista de archivos necesarios…</string>
     <string name="progress_checking_for_required_updates">Comprobando actualizaciones…</string>
     <string name="progress_downloading">Descargando archivos necesarios…</string>
-    <string name="progress_downloading_check_updates">Comprobando actualizaciones.</string>
     <string name="progress_starting">Iniciando el servicio…</string>
     <string name="progress_downloading_out_of">%1$d de %2$d descargados</string>
     <string name="progress_copying_downloads">Copiando los archivos descargados al almacenamiento local…</string>
-    <string name="progress_setting_up">Preparando sistema de archivos...</string>
-    <string name="progress_setting_up_extract_text">Extrayendo: %1$s</string>
     <string name="pref_app_category">Ajustes de Aplicación</string>
     <string name="pref_default_landing_page_title">Página de Inicio predeterminada</string>
     <string name="pref_proot_category">Ajustes de PRoot</string>
