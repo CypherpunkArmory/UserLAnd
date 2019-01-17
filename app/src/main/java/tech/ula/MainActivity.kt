@@ -265,6 +265,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 }
                 displayNetworkChoicesDialog(state.requiredDownloads)
             }
+            is DisableActiveSessions -> {
+                displayGenericErrorDialog(this, R.string.general_error_title, R.string.deactivate_sessions)
+            }
         }
     }
 

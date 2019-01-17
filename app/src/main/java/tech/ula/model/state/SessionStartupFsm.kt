@@ -60,6 +60,10 @@ class SessionStartupFsm(
         state.postValue(newState)
     }
 
+    fun sessionsAreActive(): Boolean {
+        return activeSessions.size > 0
+    }
+
     fun transitionIsAcceptable(event: SessionStartupEvent): Boolean {
         val currentState = state.value!!
         return when (event) {

@@ -147,6 +147,10 @@ class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm,
     }
 
     suspend fun handleClearSupportFiles(supportFileClearer: SupportFileClearer) = withContext(Dispatchers.IO) {
+        if (sessionStartupFsm.sessionsAreActive()) {
+            state.postValue(DisableActiveSessions)
+            return@withContext
+        }
         state.postValue(ClearingSupportFiles)
         try {
             state.postValue(ProgressBarOperationComplete)
@@ -346,6 +350,7 @@ sealed class UserInputRequiredState : State()
 object FilesystemCredentialsRequired : UserInputRequiredState()
 object AppServiceTypePreferenceRequired : UserInputRequiredState()
 data class LargeDownloadRequired(val requiredDownloads: List<Asset>) : UserInputRequiredState()
+object DisableActiveSessions : UserInputRequiredState()
 
 sealed class ProgressBarUpdateState : State()
 object StartingSetup : ProgressBarUpdateState()
