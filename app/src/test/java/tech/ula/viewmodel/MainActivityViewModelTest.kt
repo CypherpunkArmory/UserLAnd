@@ -50,7 +50,7 @@ class MainActivityViewModelTest {
     private lateinit var sessionStartupStateLiveData: MutableLiveData<SessionStartupState>
 
     private lateinit var mainActivityViewModel: MainActivityViewModel
-    
+
     private val delayForCoroutineLaunch = 2L
 
     private fun makeAppSelections() {
