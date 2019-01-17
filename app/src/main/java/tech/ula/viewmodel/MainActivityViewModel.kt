@@ -14,7 +14,7 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.AppServiceTypePreference
-import tech.ula.utils.SupportFileClearer
+import tech.ula.utils.AssetFileClearer
 import java.lang.Exception
 
 class MainActivityViewModel(
@@ -148,14 +148,14 @@ class MainActivityViewModel(
         submitSessionStartupEvent(DownloadAssets(requiredDownloads))
     }
 
-    suspend fun handleClearSupportFiles(supportFileClearer: SupportFileClearer) = withContext(Dispatchers.IO) {
+    suspend fun handleClearSupportFiles(assetFileClearer: AssetFileClearer) = withContext(Dispatchers.IO) {
         if (sessionStartupFsm.sessionsAreActive()) {
             state.postValue(DisableActiveSessions)
             return@withContext
         }
         state.postValue(ClearingSupportFiles)
         try {
-            supportFileClearer.clearAllSupportAssets()
+            assetFileClearer.clearAllSupportAssets()
             state.postValue(ProgressBarOperationComplete)
         } catch (err: Exception) {
             state.postValue(FailedToClearSupportFiles)

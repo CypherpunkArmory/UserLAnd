@@ -19,7 +19,7 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.SshTypePreference
-import tech.ula.utils.SupportFileClearer
+import tech.ula.utils.AssetFileClearer
 
 @RunWith(MockitoJUnitRunner::class)
 class MainActivityViewModelTest {
@@ -30,7 +30,7 @@ class MainActivityViewModelTest {
 
     @Mock lateinit var mockSessionStartupFsm: SessionStartupFsm
 
-    @Mock lateinit var mockSupportFileClearer: SupportFileClearer
+    @Mock lateinit var mockAssetFileClearer: AssetFileClearer
 
     @Mock lateinit var mockStateObserver: Observer<State>
 
@@ -254,7 +254,7 @@ class MainActivityViewModelTest {
         whenever(mockSessionStartupFsm.sessionsAreActive())
                 .thenReturn(true)
 
-        mainActivityViewModel.handleClearSupportFiles(mockSupportFileClearer)
+        mainActivityViewModel.handleClearSupportFiles(mockAssetFileClearer)
 
         verify(mockStateObserver).onChanged(DisableActiveSessions)
     }
@@ -264,9 +264,9 @@ class MainActivityViewModelTest {
         whenever(mockSessionStartupFsm.sessionsAreActive())
                 .thenReturn(false)
 
-        mainActivityViewModel.handleClearSupportFiles(mockSupportFileClearer)
+        mainActivityViewModel.handleClearSupportFiles(mockAssetFileClearer)
 
-        verify(mockSupportFileClearer).clearAllSupportAssets()
+        verify(mockAssetFileClearer).clearAllSupportAssets()
         verify(mockStateObserver).onChanged(ClearingSupportFiles)
         verify(mockStateObserver).onChanged(ProgressBarOperationComplete)
     }
@@ -275,12 +275,12 @@ class MainActivityViewModelTest {
     fun `Posts ClearingSupportFiles and FailedToClearSupportFiles if clearing fails`() = runBlocking {
         whenever(mockSessionStartupFsm.sessionsAreActive())
                 .thenReturn(false)
-        whenever(mockSupportFileClearer.clearAllSupportAssets())
+        whenever(mockAssetFileClearer.clearAllSupportAssets())
                 .thenThrow(Exception())
 
-        mainActivityViewModel.handleClearSupportFiles(mockSupportFileClearer)
+        mainActivityViewModel.handleClearSupportFiles(mockAssetFileClearer)
 
-        verify(mockSupportFileClearer).clearAllSupportAssets()
+        verify(mockAssetFileClearer).clearAllSupportAssets()
         verify(mockStateObserver).onChanged(ClearingSupportFiles)
         verify(mockStateObserver).onChanged(FailedToClearSupportFiles)
     }

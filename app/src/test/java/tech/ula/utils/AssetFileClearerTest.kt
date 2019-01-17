@@ -12,7 +12,7 @@ import java.io.File
 import java.io.FileNotFoundException
 
 @RunWith(MockitoJUnitRunner::class)
-class SupportFileClearerTest {
+class AssetFileClearerTest {
 
     @get:Rule
     val tempFolder = TemporaryFolder()
@@ -38,13 +38,13 @@ class SupportFileClearerTest {
     val assetName = "asset"
     val hiddenFileName = ".hidden_file"
 
-    lateinit var supportFileClearer: SupportFileClearer
+    lateinit var assetFileClearer: AssetFileClearer
 
     @Before
     fun setup() {
         createTestFiles()
 
-        supportFileClearer = SupportFileClearer(filesDir, assetDirectoryNames)
+        assetFileClearer = AssetFileClearer(filesDir, assetDirectoryNames)
     }
 
     fun createTestFiles() {
@@ -72,12 +72,12 @@ class SupportFileClearerTest {
     fun `Throws FileNotFoundException if files directory does not exist`() {
         filesDir.deleteRecursively()
 
-        supportFileClearer.clearAllSupportAssets()
+        assetFileClearer.clearAllSupportAssets()
     }
 
     @Test
     fun `Clears all assets and leaves filesystem structure intact`() {
-        supportFileClearer.clearAllSupportAssets()
+        assetFileClearer.clearAllSupportAssets()
 
         assertTrue(filesDir.exists())
         assertTrue(randomTopLevelFile.exists())

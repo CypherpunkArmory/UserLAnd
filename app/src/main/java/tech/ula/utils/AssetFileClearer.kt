@@ -5,7 +5,7 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import java.lang.Exception
 
-class SupportFileClearer(private val filesDir: File, private val assetDirectoryNames: Set<String>) {
+class AssetFileClearer(private val filesDir: File, private val assetDirectoryNames: Set<String>) {
     @Throws(Exception::class)
     fun clearAllSupportAssets() {
         if (!filesDir.exists()) throw FileNotFoundException()
