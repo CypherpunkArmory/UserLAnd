@@ -36,7 +36,6 @@ import androidx.navigation.ui.NavigationUI.setupWithNavController
 import kotlinx.android.synthetic.main.activity_main.* // ktlint-disable no-wildcard-imports
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.find

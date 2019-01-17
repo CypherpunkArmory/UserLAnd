@@ -17,8 +17,10 @@ import tech.ula.utils.AppServiceTypePreference
 import tech.ula.utils.SupportFileClearer
 import java.lang.Exception
 
-class MainActivityViewModel(private val appsStartupFsm: AppsStartupFsm,
-                            private val sessionStartupFsm: SessionStartupFsm) : ViewModel() {
+class MainActivityViewModel(
+    private val appsStartupFsm: AppsStartupFsm,
+    private val sessionStartupFsm: SessionStartupFsm
+) : ViewModel() {
 
     private var appsAreWaitingForSelection = false
     private var sessionsAreWaitingForSelection = false
