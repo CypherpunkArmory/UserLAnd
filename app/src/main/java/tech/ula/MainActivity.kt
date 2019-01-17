@@ -34,6 +34,9 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.NavigationUI.setupWithNavController
 import kotlinx.android.synthetic.main.activity_main.* // ktlint-disable no-wildcard-imports
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.find
 import tech.ula.model.entities.App
@@ -175,6 +178,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             val intent = Intent("android.intent.action.VIEW", Uri.parse("https://userland.tech/eula"))
             startActivity(intent)
         }
+        if (item.itemId == R.id.clear_support_files) {
+            displayClearSupportFilesDialog()
+        }
         return NavigationUI.onNavDestinationSelected(item,
                 Navigation.findNavController(this, R.id.nav_host_fragment)) ||
                 super.onOptionsItemSelected(item)
@@ -258,6 +264,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 }
                 displayNetworkChoicesDialog(state.requiredDownloads)
             }
+            is ActiveSessionsMustBeDeactivated -> {
+                displayGenericErrorDialog(this, R.string.general_error_title, R.string.deactivate_sessions)
+            }
         }
     }
 
@@ -308,6 +317,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             is FilesystemIsMissingAssets -> {
                 getString(R.string.illegal_state_filesystem_is_missing_assets)
             }
+            is FailedToClearSupportFiles -> {
+                getString(R.string.illegal_state_failed_to_clear_support_files)
+            }
         }
         displayIllegalStateDialog(reason)
     }
@@ -335,6 +347,27 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                     dialog.dismiss()
                 }
                 .create().show()
+    }
+
+    private fun displayClearSupportFilesDialog() {
+        AlertDialog.Builder(this)
+                .setMessage(R.string.alert_clear_support_files_message)
+                .setTitle(R.string.alert_clear_support_files_title)
+                .setPositiveButton(R.string.alert_clear_support_files_clear_button) { dialog, _ ->
+                    handleClearSupportFiles()
+                    dialog.dismiss()
+                }
+                .setNeutralButton(R.string.button_cancel) { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .create().show()
+    }
+
+    private fun handleClearSupportFiles() {
+        val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
+        val assetDirectoryNames = appsPreferences.getDistributionsList().plus("support")
+        val assetFileClearer = AssetFileClearer(this.filesDir, assetDirectoryNames)
+        CoroutineScope(Dispatchers.Main).launch { viewModel.handleClearSupportFiles(assetFileClearer) }
     }
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -405,6 +438,13 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             is VerifyingFilesystem -> {
                 val step = getString(R.string.progress_verifying_assets)
                 updateProgressBar(step, "")
+            }
+            is ClearingSupportFiles -> {
+                val step = getString(R.string.progress_clearing_support_files)
+                updateProgressBar(step, "")
+            }
+            is ProgressBarOperationComplete -> {
+                killProgressBar()
             }
         }
     }

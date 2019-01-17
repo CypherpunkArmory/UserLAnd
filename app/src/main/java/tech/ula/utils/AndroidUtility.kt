@@ -226,11 +226,6 @@ class ConnectionUtility {
     }
 
     @Throws(Exception::class)
-    fun getUrlConnection(url: String): HttpURLConnection {
-        return URL(url).openConnection() as HttpURLConnection
-    }
-
-    @Throws(Exception::class)
     fun getUrlInputStream(url: String): InputStream {
         val conn = URL(url).openConnection() as HttpURLConnection
         conn.requestMethod = "GET"
@@ -254,13 +249,13 @@ class DownloadManagerWrapper(private val downloadManager: DownloadManager) {
         return downloadManager.enqueue(request)
     }
 
-    fun generateQuery(id: Long): DownloadManager.Query {
+    private fun generateQuery(id: Long): DownloadManager.Query {
         val query = DownloadManager.Query()
         query.setFilterById(id)
         return query
     }
 
-    fun generateCursor(query: DownloadManager.Query): Cursor {
+    private fun generateCursor(query: DownloadManager.Query): Cursor {
         return downloadManager.query(query)
     }
 
@@ -283,7 +278,6 @@ class DownloadManagerWrapper(private val downloadManager: DownloadManager) {
         return false
     }
 
-    // TODO this should be wrapped somehow to use string resources
     fun getDownloadFailureReason(id: Long): String {
         val query = generateQuery(id)
         val cursor = generateCursor(query)
@@ -324,5 +318,11 @@ class LocalFileLocator(private val applicationFilesDir: String, private val reso
             return resources.getString(R.string.error_app_description_not_found)
         }
         return appDescriptionFile.readText()
+    }
+}
+
+class TimeUtility {
+    fun getCurrentTimeMillis(): Long {
+        return System.currentTimeMillis()
     }
 }
