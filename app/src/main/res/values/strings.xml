@@ -25,6 +25,7 @@
     <string name="save">Save</string>
     <string name="add">Add</string>
     <string name="refresh">Refresh</string>
+    <string name="clear_support_files">Clear All Support Files</string>
 
     <!-- Hints -->
     <string name="hint_filesystem_name">Filesystem name</string>
@@ -65,7 +66,8 @@
     <string name="illegal_state_failed_to_copy_assets_to_local">Failed to copy assets to local storage.</string>
     <string name="illegal_state_failed_to_copy_assets_to_filesystem">Failed to copy assets to filesystem.</string>
     <string name="illegal_state_failed_to_extract_filesystem">Failed to extract filesystem.</string>
-    <string name="illegal_state_filesystem_is_missing_assets">Filesystem is missing assets.</string>
+    <string name="illegal_state_filesystem_is_missing_assets">Filesystem is missing assets. Try clearing support files.</string>
+    <string name="illegal_state_failed_to_clear_support_files">Failed to clear support files.</string>
 
     <!-- Misc illegal state -->
     <string name="illegal_state_unhandled_session_service_type">Trying to start a session with an unknown service type.</string>
@@ -94,6 +96,7 @@
     <string name="progress_extraction_details">Extracting: %1$s</string>
     <string name="progress_verifying_assets">Verifying assets&#8230;</string>
     <string name="progress_starting">Starting service&#8230;</string>
+    <string name="progress_clearing_support_files">Clearing all support files&#8230;</string>
 
     <!-- Preferences -->
     <string name="pref_app_category">App Preferences</string>
@@ -128,8 +131,18 @@
 
     <!-- Alerts -->
     <string name="button_ok">OK!</string>
+    <string name="button_cancel">Cancel</string>
     <string name="general_error_title">Something unexpected happened!</string>
-    <string name="filesystem_credentials_reasoning">We\'re creating a filesystem for your apps. Please enter the relevant required information for us to use as defaults for this filesystem.</string>
+    <string name="filesystem_credentials_reasoning">We\'re creating a filesystem for your apps.Please enter the relevant required information for us to use as defaults for this filesystem.</string>
+    <string name="deactivate_sessions">All sessions need to be deactivated to continue this action.</string>
+
+    <!-- Clear support files alert -->
+    <string name="alert_clear_support_files_title">Clear all support files?</string>
+    <string name="alert_clear_support_files_message">
+        This will delete all support files. This will not affect anything you have created on your
+        filesystems. It will cause assets to be downloaded again the next time a session or app is run.
+    </string>
+    <string name="alert_clear_support_files_clear_button">Clear</string>
 
     <!-- Play service error alerts -->
     <string name="alert_need_client_app_title">Can\'t find a client app!</string>
