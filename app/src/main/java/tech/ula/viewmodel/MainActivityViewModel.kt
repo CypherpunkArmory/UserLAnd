@@ -75,6 +75,14 @@ class MainActivityViewModel(
                     lastSelectedSession = update.session
                     lastSelectedFilesystem = update.filesystem
                 }
+                is SessionIsRestartable -> {
+                    state.postValue(SessionCanBeRestarted(update.session))
+                    resetStartupState()
+                }
+                is SingleSessionSupported -> {
+                    state.postValue(CanOnlyStartSingleSession)
+                    resetStartupState()
+                }
             }
             handleSessionPreparationState(update)
         } }
@@ -163,7 +171,11 @@ class MainActivityViewModel(
     }
 
     private fun handleAppsPreparationState(newState: AppsStartupState) {
-        if (!appsPreparationRequirementsHaveBeenSelected() && newState !is WaitingForAppSelection && newState !is FetchingDatabaseEntries) {
+        // Exit early if we aren't expecting preparation requirements to have been met
+        if (newState is WaitingForAppSelection || newState is FetchingDatabaseEntries) {
+            return
+        }
+        if (!appsPreparationRequirementsHaveBeenSelected()) {
             state.postValue(NoAppSelectedWhenPreparationStarted)
             return
         }
@@ -172,7 +184,7 @@ class MainActivityViewModel(
             is IncorrectAppTransition -> {
                 state.postValue(IllegalStateTransition("$newState"))
             }
-            is WaitingForAppSelection -> { }
+            is WaitingForAppSelection -> {}
             is FetchingDatabaseEntries -> {}
             is DatabaseEntriesFetched -> {
                 submitAppsStartupEvent(CheckAppsFilesystemCredentials(lastSelectedFilesystem))
@@ -207,7 +219,12 @@ class MainActivityViewModel(
     }
 
     private fun handleSessionPreparationState(newState: SessionStartupState) {
-        if (!sessionPreparationRequirementsHaveBeenSelected() && newState !is WaitingForSessionSelection) {
+        // Exit early if we aren't expecting preparation requirements to have been met
+        if (newState is WaitingForSessionSelection || newState is SingleSessionSupported ||
+                newState is SessionIsRestartable) {
+            return
+        }
+        if (!sessionPreparationRequirementsHaveBeenSelected()) {
             state.postValue(NoSessionSelectedWhenPreparationStarted)
             return
         }
@@ -217,14 +234,8 @@ class MainActivityViewModel(
                 state.postValue(IllegalStateTransition("$newState"))
             }
             is WaitingForSessionSelection -> {}
-            is SingleSessionSupported -> {
-                state.postValue(CanOnlyStartSingleSession)
-                resetStartupState()
-            }
-            is SessionIsRestartable -> {
-                state.postValue(SessionCanBeRestarted(newState.session))
-                resetStartupState()
-            }
+            is SingleSessionSupported -> {}
+            is SessionIsRestartable -> {}
             is SessionIsReadyForPreparation -> {
                 state.postValue(StartingSetup)
                 submitSessionStartupEvent(RetrieveAssetLists(lastSelectedFilesystem))

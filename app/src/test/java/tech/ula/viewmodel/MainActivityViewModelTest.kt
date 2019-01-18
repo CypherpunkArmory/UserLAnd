@@ -428,7 +428,7 @@ class MainActivityViewModelTest {
 
     @Test
     fun `Posts IllegalState if session preparation event is observed that is not WaitingForSelection and prep reqs have not been met`() {
-        sessionStartupStateLiveData.postValue(SingleSessionSupported)
+        sessionStartupStateLiveData.postValue(NoDownloadsRequired)
 
         verify(mockStateObserver).onChanged(NoSessionSelectedWhenPreparationStarted)
     }
