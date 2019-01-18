@@ -11,8 +11,9 @@ class DownloadUtility(
 
     private val downloadDirectory = downloadManagerWrapper.getDownloadsDirectory()
 
-    fun downloadRequirements(assetList: List<Asset>): List<Pair<Asset, Long>> {
-        return assetList.map { it to download(it) }
+    fun downloadRequirements(assetList: List<Asset>): List<Long> {
+        clearPreviousDownloadsFromDownloadsDirectory()
+        return assetList.map { download(it) }
     }
 
     fun downloadedSuccessfully(id: Long): Boolean {
@@ -32,17 +33,21 @@ class DownloadUtility(
                 "${asset.architectureType}/${asset.name}"
         val destination = asset.concatenatedName
         val request = downloadManagerWrapper.generateDownloadRequest(url, destination)
-        deletePreviousDownload(asset)
-
+        deletePreviousDownloadFromLocalDirectory(asset)
         return downloadManagerWrapper.enqueue(request)
     }
 
-    private fun deletePreviousDownload(asset: Asset) {
-        val downloadsDirectoryFile = File(downloadDirectory, asset.concatenatedName)
+    private fun clearPreviousDownloadsFromDownloadsDirectory() {
+        for (file in downloadDirectory.listFiles()) {
+            if (file.name.toLowerCase().contains("userland")) {
+                file.delete()
+            }
+        }
+    }
+
+    private fun deletePreviousDownloadFromLocalDirectory(asset: Asset) {
         val localFile = File(applicationFilesDir, asset.pathName)
 
-        if (downloadsDirectoryFile.exists())
-            downloadsDirectoryFile.delete()
         if (localFile.exists())
             localFile.delete()
     }

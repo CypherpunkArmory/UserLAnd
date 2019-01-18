@@ -46,7 +46,7 @@
     <string name="error_vnc_password_invalid">VNC Password has invalid characters</string>
 
     <!-- Illegal State Dialog -->
-    <string name="illegal_state_message">%1$s \nPlease restart the app and contact a developer.</string>
+    <string name="illegal_state_message">%1$s \nThe app will now crash so that we can receive an error log. Feel free to also let us know on Github! We are working to resolve these issues.</string>
     <string name="illegal_state_title">UserLAnd has entered an illegal state!</string>
 
     <string name="illegal_state_transition">Bad state transition: %1$s</string>
