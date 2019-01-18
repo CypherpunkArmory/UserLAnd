@@ -31,7 +31,7 @@ class SessionStartupFsm(
     private val filesystemsLiveData = filesystemDao.getAllFilesystems()
     private val filesystems = mutableListOf<Filesystem>()
 
-    private val downloadingAssets = mutableListOf<Pair<Asset, Long>>()
+    private val downloadingIds = mutableListOf<Long>()
     private val downloadedIds = mutableListOf<Long>()
 
     private val extractionLogger: (String) -> Unit = { line ->
@@ -158,14 +158,14 @@ class SessionStartupFsm(
     }
 
     private fun handleDownloadAssets(assetsToDownload: List<Asset>) {
-        downloadingAssets.clear()
+        downloadingIds.clear()
         downloadedIds.clear()
 
         // If the state isn't updated first, AssetDownloadComplete events will be submitted before
         // the transition is acceptable.
         state.postValue(DownloadingRequirements(0, assetsToDownload.size))
         val newDownloads = downloadUtility.downloadRequirements(assetsToDownload)
-        downloadingAssets.addAll(newDownloads)
+        downloadingIds.addAll(newDownloads)
     }
 
     private fun handleAssetsDownloadComplete(downloadId: Long) {
@@ -177,8 +177,10 @@ class SessionStartupFsm(
 
         downloadedIds.add(downloadId)
         downloadUtility.setTimestampForDownloadedFile(downloadId)
-        if (downloadingAssets.size != downloadedIds.size) {
-            state.postValue(DownloadingRequirements(downloadedIds.size, downloadingAssets.size))
+        downloadedIds.sort()
+        downloadingIds.sort()
+        if (downloadingIds != downloadedIds) {
+            state.postValue(DownloadingRequirements(downloadedIds.size, downloadingIds.size))
             return
         }
 

@@ -49,6 +49,7 @@ import tech.ula.ui.AppListFragment
 import tech.ula.ui.SessionListFragment
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
+import java.lang.IllegalStateException
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection {
 
@@ -345,6 +346,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 .setPositiveButton(R.string.button_ok) {
                     dialog, _ ->
                     dialog.dismiss()
+                    throw IllegalStateException(reason)
                 }
                 .create().show()
     }

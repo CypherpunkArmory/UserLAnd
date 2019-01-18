@@ -313,7 +313,7 @@ class SessionStartupFsmTest {
         sessionFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockDownloadUtility.downloadRequirements(downloadList))
-                .thenReturn(listOf(Pair(asset, 0L), Pair(largeAsset, 1L)))
+                .thenReturn(listOf(0L, 1L))
         whenever(mockDownloadUtility.downloadedSuccessfully(0))
                 .thenReturn(true)
         whenever(mockDownloadUtility.downloadedSuccessfully(1))
@@ -339,7 +339,7 @@ class SessionStartupFsmTest {
         sessionFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockDownloadUtility.downloadRequirements(downloadList))
-                .thenReturn(listOf(Pair(asset, 0L), Pair(largeAsset, 1L)))
+                .thenReturn(listOf(0L, 1L))
         whenever(mockDownloadUtility.downloadedSuccessfully(0))
                 .thenReturn(true)
         whenever(mockDownloadUtility.downloadedSuccessfully(1))

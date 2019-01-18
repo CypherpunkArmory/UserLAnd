@@ -71,6 +71,21 @@ class DownloadUtilityTest {
     }
 
     @Test
+    fun `Clears download directory of userland files`() {
+        val asset1DownloadsFile = File("${downloadDirectory.path}/${asset1.concatenatedName}")
+        val asset2DownloadsFile = File("${downloadDirectory.path}/${asset2.concatenatedName}")
+        asset1DownloadsFile.createNewFile()
+        asset2DownloadsFile.createNewFile()
+        assertTrue(asset1DownloadsFile.exists())
+        assertTrue(asset2DownloadsFile.exists())
+
+        downloadUtility.downloadRequirements(assetList)
+
+        assertFalse(asset1DownloadsFile.exists())
+        assertFalse(asset2DownloadsFile.exists())
+    }
+
+    @Test
     fun deletesPreviousDownloads() {
         tempFolder.newFolder("distType1")
         tempFolder.newFolder("distType2")
