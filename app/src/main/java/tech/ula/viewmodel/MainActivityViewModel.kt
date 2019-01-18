@@ -207,7 +207,7 @@ class MainActivityViewModel(
     }
 
     private fun handleSessionPreparationState(newState: SessionStartupState) {
-        if (!sessionPreparationRequirementsHaveBeenSelected() && newState !is WaitingForSessionSelection) {
+        if (!sessionPreparationRequirementsHaveBeenSelected() && newState !is WaitingForSessionSelection && newState !is SessionIsRestartable) {
             state.postValue(NoSessionSelectedWhenPreparationStarted)
             return
         }
