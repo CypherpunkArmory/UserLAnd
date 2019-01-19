@@ -46,6 +46,8 @@ There are two ways to use UserLAnd: single-click apps and user-defined custom se
 
 -> Remove Packages: `sudo apt-get remove <package name>`
 
+Want to know more?: [Apt-Get Guide](https://help.ubuntu.com/community/AptGet/Howto)
+
 **Archlinux**:
 
 -> Update: `sudo pacman -Syu`
@@ -53,6 +55,18 @@ There are two ways to use UserLAnd: single-click apps and user-defined custom se
 -> Install Packages: `sudo pacman -S <package name>`
 
 -> Remove Packages: `sudo pacman -R <package name>`
+
+Want to know more?: [Pacman 
+
+**Alpine Linux**:
+
+-> Update: `sudo apk update && sudo apk upgrade`
+
+-> Install Packages: `sudo apk add <package name>`
+
+-> Remove Packages: `sudo apk del <package name>`
+
+Want to know more?: 
 
 ### Installing A Desktop
 
