@@ -56,7 +56,7 @@ Want to know more?: [Apt-Get Guide](https://help.ubuntu.com/community/AptGet/How
 
 -> Remove Packages: `sudo pacman -R <package name>`
 
-Want to know more?: [Pacman 
+Want to know more?: [Pacman Guide](https://wiki.archlinux.org/index.php/pacman)
 
 **Alpine Linux**:
 
@@ -66,7 +66,7 @@ Want to know more?: [Pacman
 
 -> Remove Packages: `sudo apk del <package name>`
 
-Want to know more?: 
+Want to know more?: [Apk Guide](https://wiki.alpinelinux.org/wiki/Alpine_Linux_package_management)
 
 ### Installing A Desktop
 
@@ -98,6 +98,19 @@ Want to know more?:
 
 -> Then Go Back To XSDL And The Desktop Will Show Up
 
+**Alpine Linux**:
+
+-> Install Xfce (Default For Alpine) `sudo apk add xfce4`
+
+-> Install X Server Client: [Download on the Play store](https://play.google.com/store/apps/details?id=x.org.server&hl=en)
+
+-> Launch XSDL
+
+-> In UserLAnd Type: export `DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:<PORT NUMBER>`
+
+-> Then Type: `startlxde`
+
+-> Then Go Back To XSDL And The Desktop Will Show Up
 <br/>
 <br/>
 But you can do so much more than that. Your phone isn't just a play thing any more!
