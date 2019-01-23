@@ -18,12 +18,12 @@ Features:
 ## Have a bug report or a feature request?
 You can see our templates by visiting our [issue center](https://github.com/CypherpunkArmory/UserLAnd/issues).
 
-You can also chat with us on [slack](https://communityinviter.com/apps/userlandtech/userland)
+You can also chat with us on [slack](https://communityinviter.com/apps/userlandtech/userland).
 ## Want to contribute?
 See our [CONTRIBUTING](https://github.com/CypherpunkArmory/UserLAnd/blob/master/CONTRIBUTING.md) document.
 
 ## Start using UserLAnd
-See our [Getting Started](https://github.com/CypherpunkArmory/UserLAnd/wiki/Getting-Started) page
+See our [Getting Started](https://github.com/CypherpunkArmory/UserLAnd/wiki/Getting-Started) page.
 
 ## UserLAnd assets
 The assets that UserLAnd depends on and the scripts that build them are contained in other repositories.  
