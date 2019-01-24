@@ -3,10 +3,7 @@ package tech.ula.model.state
 import android.arch.core.executor.testing.InstantTaskExecutorRule
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Observer
-import android.content.Context
-import com.crashlytics.android.Crashlytics
 import com.nhaarman.mockitokotlin2.* // ktlint-disable no-wildcard-imports
-import io.fabric.sdk.android.Fabric
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports

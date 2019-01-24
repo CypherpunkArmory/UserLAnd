@@ -2,7 +2,6 @@ package tech.ula.model.state
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
-import com.crashlytics.android.Crashlytics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import tech.ula.model.entities.Asset
