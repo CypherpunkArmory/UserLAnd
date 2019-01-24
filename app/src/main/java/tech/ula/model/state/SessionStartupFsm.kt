@@ -10,6 +10,7 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.UlaDatabase
+import tech.ula.utils.CrashlyticsWrapper
 import tech.ula.utils.DownloadUtility
 import tech.ula.utils.FilesystemUtility
 import tech.ula.utils.TimeUtility
@@ -19,7 +20,8 @@ class SessionStartupFsm(
     private val assetRepository: AssetRepository,
     private val filesystemUtility: FilesystemUtility,
     private val downloadUtility: DownloadUtility,
-    private val timeUtility: TimeUtility = TimeUtility()
+    private val timeUtility: TimeUtility = TimeUtility(),
+    private val crashlyticsWrapper: CrashlyticsWrapper = CrashlyticsWrapper()
 ) {
 
     private val state = MutableLiveData<SessionStartupState>().apply { postValue(WaitingForSessionSelection) }
@@ -83,8 +85,8 @@ class SessionStartupFsm(
     }
 
     suspend fun submitEvent(event: SessionStartupEvent) {
-        Crashlytics.setString("Last submitted session fsm event", "$event")
-        Crashlytics.setString("State during session fsm event submission", "${state.value}")
+        crashlyticsWrapper.setString("Last submitted session fsm event", "$event")
+        crashlyticsWrapper.setString("State during session fsm event submission", "${state.value}")
         if (!transitionIsAcceptable(event)) {
             state.postValue(IncorrectSessionTransition(event, state.value!!))
             return

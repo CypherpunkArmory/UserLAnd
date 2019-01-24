@@ -20,6 +20,7 @@ import tech.ula.model.entities.Session
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.SshTypePreference
 import tech.ula.utils.AssetFileClearer
+import tech.ula.utils.CrashlyticsWrapper
 
 @RunWith(MockitoJUnitRunner::class)
 class MainActivityViewModelTest {
@@ -31,6 +32,8 @@ class MainActivityViewModelTest {
     @Mock lateinit var mockSessionStartupFsm: SessionStartupFsm
 
     @Mock lateinit var mockAssetFileClearer: AssetFileClearer
+
+    @Mock lateinit var mockCrashlyticsWrapper: CrashlyticsWrapper
 
     @Mock lateinit var mockStateObserver: Observer<State>
 
@@ -74,7 +77,7 @@ class MainActivityViewModelTest {
         whenever(mockSessionStartupFsm.getState()).thenReturn(sessionStartupStateLiveData)
         sessionStartupStateLiveData.postValue(WaitingForSessionSelection)
 
-        mainActivityViewModel = MainActivityViewModel(mockAppsStartupFsm, mockSessionStartupFsm)
+        mainActivityViewModel = MainActivityViewModel(mockAppsStartupFsm, mockSessionStartupFsm, mockCrashlyticsWrapper)
         mainActivityViewModel.getState().observeForever(mockStateObserver)
     }
 

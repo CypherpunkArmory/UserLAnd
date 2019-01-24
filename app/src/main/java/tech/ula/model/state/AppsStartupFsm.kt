@@ -2,7 +2,6 @@ package tech.ula.model.state
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
-import com.crashlytics.android.Crashlytics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import tech.ula.model.entities.App
@@ -15,7 +14,8 @@ class AppsStartupFsm(
     ulaDatabase: UlaDatabase,
     private val appsPreferences: AppsPreferences,
     private val filesystemUtility: FilesystemUtility,
-    private val buildWrapper: BuildWrapper = BuildWrapper()
+    private val buildWrapper: BuildWrapper = BuildWrapper(),
+    private val crashlyticsWrapper: CrashlyticsWrapper = CrashlyticsWrapper()
 ) {
 
     private val sessionDao = ulaDatabase.sessionDao()
@@ -46,8 +46,8 @@ class AppsStartupFsm(
     }
 
     suspend fun submitEvent(event: AppsStartupEvent) {
-        Crashlytics.setString("Last submitted apps fsm event", "$event")
-        Crashlytics.setString("State during apps fsm event submission", "${state.value}")
+        crashlyticsWrapper.setString("Last submitted apps fsm event", "$event")
+        crashlyticsWrapper.setString("State during apps fsm event submission", "${state.value}")
         if (!transitionIsAcceptable(event)) {
             state.postValue(IncorrectAppTransition(event, state.value!!))
             return

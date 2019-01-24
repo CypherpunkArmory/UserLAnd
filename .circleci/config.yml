@@ -125,6 +125,8 @@ jobs:
     steps:
       - checkout
       - *restore_cache
+      - *export_fabric_api_key
+      - *export_fabric_api_secret
       - run:
           name: Download dependencies
           command: ./gradlew androidDependencies

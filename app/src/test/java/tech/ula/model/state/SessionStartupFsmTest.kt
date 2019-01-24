@@ -3,7 +3,10 @@ package tech.ula.model.state
 import android.arch.core.executor.testing.InstantTaskExecutorRule
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Observer
+import android.content.Context
+import com.crashlytics.android.Crashlytics
 import com.nhaarman.mockitokotlin2.* // ktlint-disable no-wildcard-imports
+import io.fabric.sdk.android.Fabric
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
@@ -20,6 +23,7 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.UlaDatabase
+import tech.ula.utils.CrashlyticsWrapper
 import tech.ula.utils.DownloadUtility
 import tech.ula.utils.FilesystemUtility
 import tech.ula.utils.TimeUtility
@@ -47,6 +51,8 @@ class SessionStartupFsmTest {
     @Mock lateinit var mockTimeUtility: TimeUtility
 
     @Mock lateinit var mockStateObserver: Observer<SessionStartupState>
+
+    @Mock lateinit var mockCrashlyticsWrapper: CrashlyticsWrapper
 
     lateinit var activeSessionLiveData: MutableLiveData<List<Session>>
 
@@ -113,7 +119,7 @@ class SessionStartupFsmTest {
         whenever(mockUlaDatabase.filesystemDao()).thenReturn(mockFilesystemDao)
         whenever(mockFilesystemDao.getAllFilesystems()).thenReturn(filesystemLiveData)
 
-        sessionFsm = SessionStartupFsm(mockUlaDatabase, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility, mockTimeUtility)
+        sessionFsm = SessionStartupFsm(mockUlaDatabase, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility, mockTimeUtility, mockCrashlyticsWrapper)
     }
 
     @After

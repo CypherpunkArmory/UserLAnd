@@ -447,7 +447,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 updateProgressBar(step, details)
             }
             is VerifyingFilesystem -> {
-                throw RuntimeException()
                 val step = getString(R.string.progress_verifying_assets)
                 updateProgressBar(step, "")
             }
