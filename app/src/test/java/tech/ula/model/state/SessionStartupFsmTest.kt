@@ -364,6 +364,32 @@ class SessionStartupFsmTest {
     }
 
     @Test
+    fun `State is DownloadsHaveFailed with reason that we registered an non-enqueued download`() {
+        val downloadList = listOf(asset, largeAsset)
+        sessionFsm.setState(DownloadsRequired(downloadList, true))
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockDownloadUtility.downloadRequirements(downloadList))
+                .thenReturn(listOf(0L, 1L))
+        whenever(mockDownloadUtility.downloadedSuccessfully(0))
+                .thenReturn(true)
+        whenever(mockDownloadUtility.downloadedSuccessfully(2))
+                .thenReturn(true)
+
+        runBlocking {
+            sessionFsm.submitEvent(DownloadAssets(downloadList))
+            sessionFsm.submitEvent(AssetDownloadComplete(0))
+            sessionFsm.submitEvent(AssetDownloadComplete(2))
+        }
+
+        verify(mockDownloadUtility).setTimestampForDownloadedFile(0)
+        verify(mockDownloadUtility, never()).setTimestampForDownloadedFile(1)
+        verify(mockStateObserver).onChanged(DownloadingRequirements(0, 2))
+        verify(mockStateObserver).onChanged(DownloadingRequirements(1, 2))
+        verify(mockStateObserver).onChanged(DownloadsHaveFailed("Downloads completed with non-enqueued downloads"))
+    }
+
+    @Test
     fun `State is CopyingSucceeded if files are moved to correct subdirectories`() {
         sessionFsm.setState(DownloadsHaveSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
