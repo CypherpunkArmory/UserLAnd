@@ -50,6 +50,8 @@ import tech.ula.ui.SessionListFragment
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import java.lang.IllegalStateException
+import com.crashlytics.android.Crashlytics
+import io.fabric.sdk.android.Fabric
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection {
 
@@ -79,6 +81,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private val serverServiceBroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             intent.getStringExtra("type")?.let { intentType ->
+                Crashlytics.setString("Last service broadcast received", intentType)
                 when (intentType) {
                     "sessionActivated" -> handleSessionHasBeenActivated()
                     "dialog" -> {
@@ -120,6 +123,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Fabric.with(this, Crashlytics())
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
         notificationManager.createServiceNotificationChannel() // Android O requirement
@@ -213,6 +217,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleStateUpdate(newState: State) {
+        Crashlytics.setString("Last observed state from viewmodel", "$newState")
         return when (newState) {
             is CanOnlyStartSingleSession -> { showToast(R.string.single_session_supported) }
             is SessionCanBeStarted -> { startSession(newState.session) }
@@ -251,6 +256,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleUserInputState(state: UserInputRequiredState) {
+        Crashlytics.setString("Last handled user input state", "$state")
         return when (state) {
             is FilesystemCredentialsRequired -> {
                 getCredentials()
@@ -272,6 +278,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleIllegalState(state: IllegalState) {
+        Crashlytics.setString("Last handled illegal state", "$state")
         val reason: String = when (state) {
             is IllegalStateTransition -> {
                 getString(R.string.illegal_state_transition, state.transition)
@@ -346,6 +353,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 .setPositiveButton(R.string.button_ok) {
                     dialog, _ ->
                     dialog.dismiss()
+                    Crashlytics.setString("Illegal State Crash Reason", reason)
                     throw IllegalStateException(reason)
                 }
                 .create().show()
@@ -410,6 +418,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleProgressBarUpdateState(state: ProgressBarUpdateState) {
+        Crashlytics.setString("Last handled progress bar update state", "$state")
         return when (state) {
             is StartingSetup -> {
                 val step = getString(R.string.progress_start_step)

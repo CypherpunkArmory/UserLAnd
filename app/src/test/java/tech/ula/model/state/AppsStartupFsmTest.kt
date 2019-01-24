@@ -41,6 +41,8 @@ class AppsStartupFsmTest {
 
     @Mock lateinit var mockBuildWrapper: BuildWrapper
 
+    @Mock lateinit var mockCrashlyticsWrapper: CrashlyticsWrapper
+
     @Mock lateinit var mockStateObserver: Observer<AppsStartupState>
 
     lateinit var appsFsm: AppsStartupFsm
@@ -92,7 +94,7 @@ class AppsStartupFsmTest {
         whenever(mockUlaDatabase.filesystemDao()).thenReturn(mockFilesystemDao)
         whenever(mockUlaDatabase.sessionDao()).thenReturn(mockSessionDao)
 
-        appsFsm = AppsStartupFsm(mockUlaDatabase, mockAppsPreferences, mockFilesystemUtility, mockBuildWrapper)
+        appsFsm = AppsStartupFsm(mockUlaDatabase, mockAppsPreferences, mockFilesystemUtility, mockBuildWrapper, mockCrashlyticsWrapper)
     }
 
     @Test

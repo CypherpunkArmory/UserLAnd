@@ -14,6 +14,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.support.v4.content.ContextCompat
+import com.crashlytics.android.Crashlytics
 import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
@@ -324,5 +325,11 @@ class LocalFileLocator(private val applicationFilesDir: String, private val reso
 class TimeUtility {
     fun getCurrentTimeMillis(): Long {
         return System.currentTimeMillis()
+    }
+}
+
+class CrashlyticsWrapper {
+    fun setString(key: String, value: String) {
+        Crashlytics.setString(key, value)
     }
 }

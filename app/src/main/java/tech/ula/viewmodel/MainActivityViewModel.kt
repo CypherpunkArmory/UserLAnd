@@ -15,11 +15,13 @@ import tech.ula.model.entities.Session
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.AppServiceTypePreference
 import tech.ula.utils.AssetFileClearer
+import tech.ula.utils.CrashlyticsWrapper
 import java.lang.Exception
 
 class MainActivityViewModel(
     private val appsStartupFsm: AppsStartupFsm,
-    private val sessionStartupFsm: SessionStartupFsm
+    private val sessionStartupFsm: SessionStartupFsm,
+    private val crashlyticsWrapper: CrashlyticsWrapper = CrashlyticsWrapper()
 ) : ViewModel() {
 
     private var appsAreWaitingForSelection = false
@@ -42,6 +44,7 @@ class MainActivityViewModel(
 
     init {
         state.addSource(appsState) { it?.let { update ->
+            crashlyticsWrapper.setString("Last observed app state from viewmodel", "$update")
             // Update stateful variables before handling the update so they can be used during it
             if (update !is WaitingForAppSelection) {
                 appsAreWaitingForSelection = false
@@ -63,6 +66,7 @@ class MainActivityViewModel(
             handleAppsPreparationState(update)
         } }
         state.addSource(sessionState) { it?.let { update ->
+            crashlyticsWrapper.setString("Last observed session state from viewmodel", "$update")
             // Update stateful variables before handling the update so they can be used during it
             if (update !is WaitingForSessionSelection) {
                 sessionsAreWaitingForSelection = false
@@ -326,11 +330,13 @@ class MainActivityViewModel(
     }
 
     private fun submitAppsStartupEvent(event: AppsStartupEvent) {
+        crashlyticsWrapper.setString("Last viewmodel apps event submission", "$event")
         val coroutineScope = CoroutineScope(Dispatchers.Default)
         coroutineScope.launch { appsStartupFsm.submitEvent(event) }
     }
 
     private fun submitSessionStartupEvent(event: SessionStartupEvent) {
+        crashlyticsWrapper.setString("Last viewmodel session event submission", "$event")
         val coroutineScope = CoroutineScope(Dispatchers.Default)
         coroutineScope.launch { sessionStartupFsm.submitEvent(event) }
     }
