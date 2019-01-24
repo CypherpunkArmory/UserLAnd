@@ -2,6 +2,7 @@ package tech.ula.model.state
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
+import com.crashlytics.android.Crashlytics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import tech.ula.model.entities.Asset
@@ -82,6 +83,8 @@ class SessionStartupFsm(
     }
 
     suspend fun submitEvent(event: SessionStartupEvent) {
+        Crashlytics.setString("Last submitted session fsm event", "$event")
+        Crashlytics.setString("State during session fsm event submission", "${state.value}")
         if (!transitionIsAcceptable(event)) {
             state.postValue(IncorrectSessionTransition(event, state.value!!))
             return
@@ -177,10 +180,15 @@ class SessionStartupFsm(
 
         downloadedIds.add(downloadId)
         downloadUtility.setTimestampForDownloadedFile(downloadId)
+        if (downloadingIds.size != downloadedIds.size) {
+            state.postValue(DownloadingRequirements(downloadedIds.size, downloadingIds.size))
+            return
+        }
+
         downloadedIds.sort()
         downloadingIds.sort()
-        if (downloadingIds != downloadedIds) {
-            state.postValue(DownloadingRequirements(downloadedIds.size, downloadingIds.size))
+        if (downloadedIds != downloadingIds) {
+            state.postValue(DownloadsHaveFailed("Downloads completed with non-enqueued downloads"))
             return
         }
 

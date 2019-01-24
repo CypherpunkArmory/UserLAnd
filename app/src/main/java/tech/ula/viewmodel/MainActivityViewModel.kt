@@ -4,6 +4,7 @@ import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MediatorLiveData
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
+import com.crashlytics.android.Crashlytics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -42,6 +43,7 @@ class MainActivityViewModel(
 
     init {
         state.addSource(appsState) { it?.let { update ->
+            Crashlytics.setString("Last observed app state from viewmodel", "$update")
             // Update stateful variables before handling the update so they can be used during it
             if (update !is WaitingForAppSelection) {
                 appsAreWaitingForSelection = false
@@ -63,6 +65,7 @@ class MainActivityViewModel(
             handleAppsPreparationState(update)
         } }
         state.addSource(sessionState) { it?.let { update ->
+            Crashlytics.setString("Last observed session state from viewmodel", "$update")
             // Update stateful variables before handling the update so they can be used during it
             if (update !is WaitingForSessionSelection) {
                 sessionsAreWaitingForSelection = false
@@ -326,11 +329,13 @@ class MainActivityViewModel(
     }
 
     private fun submitAppsStartupEvent(event: AppsStartupEvent) {
+        Crashlytics.setString("Last viewmodel apps event submission", "$event")
         val coroutineScope = CoroutineScope(Dispatchers.Default)
         coroutineScope.launch { appsStartupFsm.submitEvent(event) }
     }
 
     private fun submitSessionStartupEvent(event: SessionStartupEvent) {
+        Crashlytics.setString("Last viewmodel session event submission", "$event")
         val coroutineScope = CoroutineScope(Dispatchers.Default)
         coroutineScope.launch { sessionStartupFsm.submitEvent(event) }
     }

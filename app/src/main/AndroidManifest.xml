@@ -32,7 +32,6 @@
 
 
             <nav-graph android:value="@navigation/nav_graph"/>
-
         </activity>
 
         <service

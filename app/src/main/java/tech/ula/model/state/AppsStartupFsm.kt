@@ -2,6 +2,7 @@ package tech.ula.model.state
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
+import com.crashlytics.android.Crashlytics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import tech.ula.model.entities.App
@@ -45,6 +46,8 @@ class AppsStartupFsm(
     }
 
     suspend fun submitEvent(event: AppsStartupEvent) {
+        Crashlytics.setString("Last submitted apps fsm event", "$event")
+        Crashlytics.setString("State during apps fsm event submission", "${state.value}")
         if (!transitionIsAcceptable(event)) {
             state.postValue(IncorrectAppTransition(event, state.value!!))
             return
