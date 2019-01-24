@@ -63,6 +63,16 @@ reference:
       name: Decode Google Cloud credentials
       command: echo $GCLOUD_SERVICE_ACCOUNT_KEY | base64 -di > ${HOME}/client-secret.json
 
+  export_fabric_api_key: &export_fabric_api_key
+    run:
+      name: Export fabric apiKey environment variable
+      command: echo 'export FABRIC_API_KEY' >> app/fabric.properties
+
+  export_fabric_api_secret: &export_fabric_api_secret
+    run:
+      name: Export fabric apiSecret environment variable
+      command: echo 'export FABRIC_API_SECRET' >> app/fabric.properties
+
 jobs:
   build_debug:
     <<: *android_config
@@ -74,6 +84,8 @@ jobs:
           name: Download dependencies
           command: ./gradlew androidDependencies
       - *save_cache
+      - *export_fabric_api_key
+      - *export_fabric_api_secret
       - run:
           name: Run ktlint
           command: ./gradlew ktlint
