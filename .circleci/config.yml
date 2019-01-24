@@ -52,8 +52,8 @@ reference:
     environment:
       TERM: dumb
       # Limit JVM heap size to prevent exceeding container memory
-      _JAVA_OPTIONS: "-Xmx1536m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1"
-      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m" -Dorg.gradle.parallel=true'
+      _JAVA_OPTIONS: "-Xmx2048m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1"
+      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m"'
 
   export_gcloud_key: &export_gcloud_key
     run:
@@ -79,7 +79,6 @@ jobs:
     <<: *android_config
     steps:
       - checkout
-      - run: echo 'build_debug'
       - *restore_cache
       - run:
           name: Download dependencies
@@ -102,7 +101,6 @@ jobs:
 #    <<: *android_config
 #    steps:
 #      - checkout
-#      - run: echo 'build_release'
 #      - *restore_cache
 #      - run:
 #          name: Download dependencies
@@ -125,7 +123,12 @@ jobs:
   test_unit:
     <<: *android_config
     steps:
-      - *attach_debug_workspace
+      - checkout
+      - *restore_cache
+      - run:
+          name: Download dependencies
+          command: ./gradlew androidDependencies
+      - *save_cache
       - run:
           name: Run unit tests
           command: ./gradlew -PciBuild=true :app:testDebugUnitTest
