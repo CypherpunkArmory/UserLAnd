@@ -20,6 +20,7 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.UlaDatabase
+import tech.ula.utils.CrashlyticsWrapper
 import tech.ula.utils.DownloadUtility
 import tech.ula.utils.FilesystemUtility
 import tech.ula.utils.TimeUtility
@@ -47,6 +48,8 @@ class SessionStartupFsmTest {
     @Mock lateinit var mockTimeUtility: TimeUtility
 
     @Mock lateinit var mockStateObserver: Observer<SessionStartupState>
+
+    @Mock lateinit var mockCrashlyticsWrapper: CrashlyticsWrapper
 
     lateinit var activeSessionLiveData: MutableLiveData<List<Session>>
 
@@ -113,7 +116,7 @@ class SessionStartupFsmTest {
         whenever(mockUlaDatabase.filesystemDao()).thenReturn(mockFilesystemDao)
         whenever(mockFilesystemDao.getAllFilesystems()).thenReturn(filesystemLiveData)
 
-        sessionFsm = SessionStartupFsm(mockUlaDatabase, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility, mockTimeUtility)
+        sessionFsm = SessionStartupFsm(mockUlaDatabase, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility, mockTimeUtility, mockCrashlyticsWrapper)
     }
 
     @After
@@ -313,7 +316,7 @@ class SessionStartupFsmTest {
         sessionFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockDownloadUtility.downloadRequirements(downloadList))
-                .thenReturn(listOf(Pair(asset, 0L), Pair(largeAsset, 1L)))
+                .thenReturn(listOf(0L, 1L))
         whenever(mockDownloadUtility.downloadedSuccessfully(0))
                 .thenReturn(true)
         whenever(mockDownloadUtility.downloadedSuccessfully(1))
@@ -339,7 +342,7 @@ class SessionStartupFsmTest {
         sessionFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockDownloadUtility.downloadRequirements(downloadList))
-                .thenReturn(listOf(Pair(asset, 0L), Pair(largeAsset, 1L)))
+                .thenReturn(listOf(0L, 1L))
         whenever(mockDownloadUtility.downloadedSuccessfully(0))
                 .thenReturn(true)
         whenever(mockDownloadUtility.downloadedSuccessfully(1))
@@ -358,6 +361,32 @@ class SessionStartupFsmTest {
         verify(mockStateObserver).onChanged(DownloadingRequirements(0, 2))
         verify(mockStateObserver).onChanged(DownloadingRequirements(1, 2))
         verify(mockStateObserver).onChanged(DownloadsHaveFailed("fail"))
+    }
+
+    @Test
+    fun `State is DownloadsHaveFailed with reason that we registered an non-enqueued download`() {
+        val downloadList = listOf(asset, largeAsset)
+        sessionFsm.setState(DownloadsRequired(downloadList, true))
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockDownloadUtility.downloadRequirements(downloadList))
+                .thenReturn(listOf(0L, 1L))
+        whenever(mockDownloadUtility.downloadedSuccessfully(0))
+                .thenReturn(true)
+        whenever(mockDownloadUtility.downloadedSuccessfully(2))
+                .thenReturn(true)
+
+        runBlocking {
+            sessionFsm.submitEvent(DownloadAssets(downloadList))
+            sessionFsm.submitEvent(AssetDownloadComplete(0))
+            sessionFsm.submitEvent(AssetDownloadComplete(2))
+        }
+
+        verify(mockDownloadUtility).setTimestampForDownloadedFile(0)
+        verify(mockDownloadUtility, never()).setTimestampForDownloadedFile(1)
+        verify(mockStateObserver).onChanged(DownloadingRequirements(0, 2))
+        verify(mockStateObserver).onChanged(DownloadingRequirements(1, 2))
+        verify(mockStateObserver).onChanged(DownloadsHaveFailed("Downloads completed with non-enqueued downloads"))
     }
 
     @Test
