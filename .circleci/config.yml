@@ -24,6 +24,7 @@ reference:
         - app/build/outputs/apk
         - app/build/outputs/code-coverage
         - app/build/test-results
+        - app/fabric.properties
   attach_debug_workspace: &attach_debug_workspace
     attach_workspace:
       at: *workspace
@@ -124,13 +125,7 @@ jobs:
   test_unit:
     <<: *android_config
     steps:
-      - checkout
-      - run: echo "test_unit"
-      - *restore_cache
-      - run:
-          name: Download dependencies
-          command: ./gradlew androidDependencies
-      - *save_cache
+      - *attach_debug_workspace
       - run:
           name: Run unit tests
           command: ./gradlew -PciBuild=true :app:testDebugUnitTest
