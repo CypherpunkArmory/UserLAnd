@@ -66,12 +66,12 @@ reference:
   export_fabric_api_key: &export_fabric_api_key
     run:
       name: Export fabric apiKey environment variable
-      command: echo 'apiKey="$FABRIC_API_KEY"' >> app/fabric.properties
+      command: echo "apiKey=$FABRIC_API_KEY" >> app/fabric.properties
 
   export_fabric_api_secret: &export_fabric_api_secret
     run:
       name: Export fabric apiSecret environment variable
-      command: echo 'apiSecret="$FABRIC_API_SECRET"' >> app/fabric.properties
+      command: echo "apiSecret=$FABRIC_API_SECRET" >> app/fabric.properties
 
 jobs:
   build_debug:
