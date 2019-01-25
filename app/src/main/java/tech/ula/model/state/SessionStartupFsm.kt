@@ -2,7 +2,9 @@ package tech.ula.model.state
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
@@ -83,12 +85,12 @@ class SessionStartupFsm(
         }
     }
 
-    suspend fun submitEvent(event: SessionStartupEvent) {
+    fun submitEvent(event: SessionStartupEvent, coroutineScope: CoroutineScope) = coroutineScope.launch {
         crashlyticsWrapper.setString("Last submitted session fsm event", "$event")
         crashlyticsWrapper.setString("State during session fsm event submission", "${state.value}")
         if (!transitionIsAcceptable(event)) {
             state.postValue(IncorrectSessionTransition(event, state.value!!))
-            return
+            return@launch
         }
         when (event) {
             is SessionSelected -> { handleSessionSelected(event.session) }
