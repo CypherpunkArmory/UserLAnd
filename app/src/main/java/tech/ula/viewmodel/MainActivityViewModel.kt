@@ -6,7 +6,7 @@ import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
@@ -17,12 +17,13 @@ import tech.ula.utils.AppServiceTypePreference
 import tech.ula.utils.AssetFileClearer
 import tech.ula.utils.CrashlyticsWrapper
 import java.lang.Exception
+import kotlin.coroutines.CoroutineContext
 
 class MainActivityViewModel(
     private val appsStartupFsm: AppsStartupFsm,
     private val sessionStartupFsm: SessionStartupFsm,
     private val crashlyticsWrapper: CrashlyticsWrapper = CrashlyticsWrapper()
-) : ViewModel() {
+) : ViewModel(), CoroutineScope {
 
     private var appsAreWaitingForSelection = false
     private var sessionsAreWaitingForSelection = false
@@ -41,6 +42,15 @@ class MainActivityViewModel(
     private val sessionState = sessionStartupFsm.getState()
 
     private val state = MediatorLiveData<State>()
+
+    private val job = Job()
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
+
+    override fun onCleared() {
+        super.onCleared()
+        job.cancel()
+    }
 
     init {
         state.addSource(appsState) { it?.let { update ->
@@ -331,14 +341,12 @@ class MainActivityViewModel(
 
     private fun submitAppsStartupEvent(event: AppsStartupEvent) {
         crashlyticsWrapper.setString("Last viewmodel apps event submission", "$event")
-        val coroutineScope = CoroutineScope(Dispatchers.Default)
-        coroutineScope.launch { appsStartupFsm.submitEvent(event) }
+        appsStartupFsm.submitEvent(event, this)
     }
 
     private fun submitSessionStartupEvent(event: SessionStartupEvent) {
         crashlyticsWrapper.setString("Last viewmodel session event submission", "$event")
-        val coroutineScope = CoroutineScope(Dispatchers.Default)
-        coroutineScope.launch { sessionStartupFsm.submitEvent(event) }
+        sessionStartupFsm.submitEvent(event, this)
     }
 }
 

@@ -2,7 +2,9 @@ package tech.ula.model.state
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Filesystem
@@ -45,14 +47,14 @@ class AppsStartupFsm(
         }
     }
 
-    suspend fun submitEvent(event: AppsStartupEvent) {
+    fun submitEvent(event: AppsStartupEvent, coroutineScope: CoroutineScope) = coroutineScope.launch {
         crashlyticsWrapper.setString("Last submitted apps fsm event", "$event")
         crashlyticsWrapper.setString("State during apps fsm event submission", "${state.value}")
         if (!transitionIsAcceptable(event)) {
             state.postValue(IncorrectAppTransition(event, state.value!!))
-            return
+            return@launch
         }
-        return when (event) {
+        return@launch when (event) {
             is AppSelected -> fetchDatabaseEntries(event.app)
             is CheckAppsFilesystemCredentials -> checkAppsFilesystemCredentials(event.appsFilesystem)
             is SubmitAppsFilesystemCredentials -> {

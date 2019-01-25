@@ -155,7 +155,7 @@ class SessionStartupFsmTest {
         sessionFsm.getState().observeForever(mockStateObserver)
 
         val event = RetrieveAssetLists(filesystem)
-        runBlocking { sessionFsm.submitEvent(event) }
+        runBlocking { sessionFsm.submitEvent(event, this) }
 
         verify(mockStateObserver, times(1)).onChanged(IncorrectSessionTransition(event, state))
         verify(mockStateObserver, times(2)).onChanged(any()) // Observes when registered and again on state emission
@@ -174,7 +174,7 @@ class SessionStartupFsmTest {
 
         for (state in possibleStates) {
             sessionFsm.setState(state)
-            runBlocking { sessionFsm.submitEvent(ResetSessionState) }
+            runBlocking { sessionFsm.submitEvent(ResetSessionState, this) }
         }
 
         val numberOfStates = possibleStates.size
@@ -190,7 +190,7 @@ class SessionStartupFsmTest {
 
         val differentSession = Session(id = 0, name = "inactive", filesystemId = -1, active = false)
 
-        runBlocking { sessionFsm.submitEvent(SessionSelected(differentSession)) }
+        runBlocking { sessionFsm.submitEvent(SessionSelected(differentSession), this) }
 
         verify(mockStateObserver).onChanged(SingleSessionSupported)
     }
@@ -201,7 +201,7 @@ class SessionStartupFsmTest {
         sessionFsm.getState().observeForever(mockStateObserver)
         activeSessionLiveData.postValue(listOf(activeSession))
 
-        runBlocking { sessionFsm.submitEvent(SessionSelected(activeSession)) }
+        runBlocking { sessionFsm.submitEvent(SessionSelected(activeSession), this) }
 
         verify(mockStateObserver).onChanged(SessionIsRestartable(activeSession))
     }
@@ -212,7 +212,7 @@ class SessionStartupFsmTest {
         sessionFsm.getState().observeForever(mockStateObserver)
         activeSessionLiveData.postValue(listOf())
 
-        runBlocking { sessionFsm.submitEvent(SessionSelected(inactiveSession)) }
+        runBlocking { sessionFsm.submitEvent(SessionSelected(inactiveSession), this) }
 
         verify(mockStateObserver).onChanged(SessionIsReadyForPreparation(inactiveSession, filesystem))
     }
@@ -225,7 +225,7 @@ class SessionStartupFsmTest {
         whenever(mockAssetRepository.getAllAssetLists(filesystem.distributionType, filesystem.archType))
                 .thenReturn(assetLists)
 
-        runBlocking { sessionFsm.submitEvent(RetrieveAssetLists(filesystem)) }
+        runBlocking { sessionFsm.submitEvent(RetrieveAssetLists(filesystem), this) }
 
         verify(mockStateObserver).onChanged(RetrievingAssetLists)
         verify(mockStateObserver).onChanged(AssetListsRetrievalSucceeded(assetLists))
@@ -239,7 +239,7 @@ class SessionStartupFsmTest {
         whenever(mockAssetRepository.getAllAssetLists(filesystem.distributionType, filesystem.archType))
                 .thenReturn(emptyAssetLists)
 
-        runBlocking { sessionFsm.submitEvent(RetrieveAssetLists(filesystem)) }
+        runBlocking { sessionFsm.submitEvent(RetrieveAssetLists(filesystem), this) }
 
         verify(mockStateObserver).onChanged(RetrievingAssetLists)
         verify(mockStateObserver).onChanged(AssetListsRetrievalFailed)
@@ -257,7 +257,7 @@ class SessionStartupFsmTest {
         whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
                 .thenReturn(false)
 
-        runBlocking { sessionFsm.submitEvent(GenerateDownloads(filesystem, assetListsWithLargeAsset)) }
+        runBlocking { sessionFsm.submitEvent(GenerateDownloads(filesystem, assetListsWithLargeAsset), this) }
 
         verify(mockStateObserver).onChanged(GeneratingDownloadRequirements)
         verify(mockStateObserver).onChanged(DownloadsRequired(assetListsWithLargeAsset.flatten(), largeDownloadRequired = true))
@@ -275,7 +275,7 @@ class SessionStartupFsmTest {
         whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
                 .thenReturn(true)
 
-        runBlocking { sessionFsm.submitEvent(GenerateDownloads(filesystem, assetListsWithLargeAsset)) }
+        runBlocking { sessionFsm.submitEvent(GenerateDownloads(filesystem, assetListsWithLargeAsset), this) }
 
         verify(mockStateObserver).onChanged(GeneratingDownloadRequirements)
         verify(mockStateObserver).onChanged(DownloadsRequired(singleAssetList, largeDownloadRequired = false))
@@ -289,7 +289,7 @@ class SessionStartupFsmTest {
         whenever(mockAssetRepository.doesAssetNeedToUpdated(asset))
                 .thenReturn(true)
 
-        runBlocking { sessionFsm.submitEvent(GenerateDownloads(filesystem, assetLists)) }
+        runBlocking { sessionFsm.submitEvent(GenerateDownloads(filesystem, assetLists), this) }
 
         verify(mockStateObserver).onChanged(GeneratingDownloadRequirements)
         verify(mockStateObserver).onChanged(DownloadsRequired(assetLists.flatten(), largeDownloadRequired = false))
@@ -303,7 +303,7 @@ class SessionStartupFsmTest {
         whenever(mockAssetRepository.doesAssetNeedToUpdated(asset))
                 .thenReturn(false)
 
-        runBlocking { sessionFsm.submitEvent(GenerateDownloads(filesystem, assetLists)) }
+        runBlocking { sessionFsm.submitEvent(GenerateDownloads(filesystem, assetLists), this) }
 
         verify(mockStateObserver).onChanged(GeneratingDownloadRequirements)
         verify(mockStateObserver).onChanged(NoDownloadsRequired)
@@ -323,9 +323,9 @@ class SessionStartupFsmTest {
                 .thenReturn(true)
 
         runBlocking {
-            sessionFsm.submitEvent(DownloadAssets(downloadList))
-            sessionFsm.submitEvent(AssetDownloadComplete(0))
-            sessionFsm.submitEvent(AssetDownloadComplete(1))
+            sessionFsm.submitEvent(DownloadAssets(downloadList), this)
+            sessionFsm.submitEvent(AssetDownloadComplete(0), this)
+            sessionFsm.submitEvent(AssetDownloadComplete(1), this)
         }
 
         verify(mockDownloadUtility).setTimestampForDownloadedFile(0)
@@ -351,9 +351,9 @@ class SessionStartupFsmTest {
                 .thenReturn("fail")
 
         runBlocking {
-            sessionFsm.submitEvent(DownloadAssets(downloadList))
-            sessionFsm.submitEvent(AssetDownloadComplete(0))
-            sessionFsm.submitEvent(AssetDownloadComplete(1))
+            sessionFsm.submitEvent(DownloadAssets(downloadList), this)
+            sessionFsm.submitEvent(AssetDownloadComplete(0), this)
+            sessionFsm.submitEvent(AssetDownloadComplete(1), this)
         }
 
         verify(mockDownloadUtility).setTimestampForDownloadedFile(0)
@@ -377,9 +377,9 @@ class SessionStartupFsmTest {
                 .thenReturn(true)
 
         runBlocking {
-            sessionFsm.submitEvent(DownloadAssets(downloadList))
-            sessionFsm.submitEvent(AssetDownloadComplete(0))
-            sessionFsm.submitEvent(AssetDownloadComplete(2))
+            sessionFsm.submitEvent(DownloadAssets(downloadList), this)
+            sessionFsm.submitEvent(AssetDownloadComplete(0), this)
+            sessionFsm.submitEvent(AssetDownloadComplete(2), this)
         }
 
         verify(mockDownloadUtility).setTimestampForDownloadedFile(0)
@@ -398,7 +398,7 @@ class SessionStartupFsmTest {
         whenever(mockTimeUtility.getCurrentTimeMillis())
                 .thenReturn(filesystemUpdateTime)
 
-        runBlocking { sessionFsm.submitEvent(CopyDownloadsToLocalStorage(filesystem)) }
+        runBlocking { sessionFsm.submitEvent(CopyDownloadsToLocalStorage(filesystem), this) }
 
         val updatedFilesystem = filesystem
         updatedFilesystem.lastUpdated = filesystemUpdateTime
@@ -417,7 +417,7 @@ class SessionStartupFsmTest {
         whenever(mockFilesystemUtility.copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType))
                 .thenThrow(Exception())
 
-        runBlocking { sessionFsm.submitEvent(CopyDownloadsToLocalStorage(filesystem)) }
+        runBlocking { sessionFsm.submitEvent(CopyDownloadsToLocalStorage(filesystem), this) }
 
         verify(mockDownloadUtility).moveAssetsToCorrectLocalDirectory()
         verify(mockFilesystemUtility).copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType)
@@ -435,7 +435,7 @@ class SessionStartupFsmTest {
                 .thenThrow(Exception())
 
         // TODO update test
-        runBlocking { sessionFsm.submitEvent(CopyDownloadsToLocalStorage(filesystem)) }
+        runBlocking { sessionFsm.submitEvent(CopyDownloadsToLocalStorage(filesystem), this) }
 
         verify(mockStateObserver).onChanged(CopyingFilesToRequiredDirectories)
         verify(mockStateObserver).onChanged(CopyingFailed)
@@ -449,7 +449,7 @@ class SessionStartupFsmTest {
         whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
                 .thenReturn(true)
 
-        runBlocking { sessionFsm.submitEvent(ExtractFilesystem(filesystem)) }
+        runBlocking { sessionFsm.submitEvent(ExtractFilesystem(filesystem), this) }
 
         verify(mockFilesystemUtility, times(1)).hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")
         verify(mockStateObserver).onChanged(ExtractionSucceeded)
@@ -464,7 +464,7 @@ class SessionStartupFsmTest {
                 .thenReturn(false)
                 .thenReturn(true)
 
-        runBlocking { sessionFsm.submitEvent(ExtractFilesystem(filesystem)) }
+        runBlocking { sessionFsm.submitEvent(ExtractFilesystem(filesystem), this) }
 
         // TODO is there some way to verify extraction steps?
         verify(mockStateObserver).onChanged(ExtractionSucceeded)
@@ -479,7 +479,7 @@ class SessionStartupFsmTest {
                 .thenReturn(false)
                 .thenReturn(false)
 
-        runBlocking { sessionFsm.submitEvent(ExtractFilesystem(filesystem)) }
+        runBlocking { sessionFsm.submitEvent(ExtractFilesystem(filesystem), this) }
 
         verify(mockStateObserver).onChanged(ExtractionFailed)
     }
@@ -496,7 +496,7 @@ class SessionStartupFsmTest {
         whenever(mockAssetRepository.getLastDistributionUpdate(filesystem.distributionType))
                 .thenReturn(filesystem.lastUpdated)
 
-        runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem)) }
+        runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem), this) }
 
         verify(mockStateObserver).onChanged(VerifyingFilesystemAssets)
         verify(mockStateObserver).onChanged(FilesystemHasRequiredAssets)
@@ -518,7 +518,7 @@ class SessionStartupFsmTest {
         whenever(mockAssetRepository.getLastDistributionUpdate(filesystem.distributionType))
                 .thenReturn(updateTimeIsGreaterThanLastFilesystemUpdate)
 
-        runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem)) }
+        runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem), this) }
 
         val updatedFilesystem = filesystem
         updatedFilesystem.lastUpdated = filesystemUpdateTime
@@ -545,7 +545,7 @@ class SessionStartupFsmTest {
         whenever(mockFilesystemUtility.copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType))
                 .thenThrow(Exception::class.java)
 
-        runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem)) }
+        runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem), this) }
 
         verify(mockStateObserver).onChanged(VerifyingFilesystemAssets)
         verify(mockStateObserver).onChanged(DistributionCopyFailed)
@@ -561,7 +561,7 @@ class SessionStartupFsmTest {
         whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", singleAssetList))
                 .thenReturn(false)
 
-        runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem)) }
+        runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem), this) }
 
         verify(mockStateObserver).onChanged(VerifyingFilesystemAssets)
         verify(mockStateObserver).onChanged(FilesystemIsMissingRequiredAssets)
