@@ -140,12 +140,19 @@ object VncTypePreference : AppServiceTypePreference() {
     }
 }
 
+object XsdlTypePreference : AppServiceTypePreference() {
+    override fun toString(): String {
+        return "xsdl"
+    }
+}
+
 class AppsPreferences(private val prefs: SharedPreferences) {
 
     fun setAppServiceTypePreference(appName: String, serviceType: AppServiceTypePreference) {
         val prefAsString = when (serviceType) {
             is SshTypePreference -> "ssh"
             is VncTypePreference -> "vnc"
+            is XsdlTypePreference -> "xsdl"
             else -> "unselected"
         }
         with(prefs.edit()) {
@@ -160,6 +167,7 @@ class AppsPreferences(private val prefs: SharedPreferences) {
         return when {
             pref.toLowerCase() == "ssh" || (app.supportsCli && !app.supportsGui) -> SshTypePreference
             pref.toLowerCase() == "vnc" || (!app.supportsCli && app.supportsGui) -> VncTypePreference
+            pref.toLowerCase() == "xsdl" || (!app.supportsCli && app.supportsGui) -> XsdlTypePreference
             else -> PreferenceHasNotBeenSelected
         }
     }

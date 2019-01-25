@@ -72,6 +72,15 @@
                 android:text="@string/client_vnc"
                 android:padding="10dp" />
 
+            <RadioButton
+                android:id="@+id/apps_xsdl_preference"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableEnd="@drawable/ic_desktop_windows_black_24dp"
+                android:drawablePadding="8dp"
+                android:text="@string/client_xsdl"
+                android:padding="10dp" />
+
         </RadioGroup>
 
     </android.support.constraint.ConstraintLayout>
