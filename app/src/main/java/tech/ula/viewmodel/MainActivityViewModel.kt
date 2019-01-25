@@ -332,8 +332,7 @@ class MainActivityViewModel(
 
     private fun submitAppsStartupEvent(event: AppsStartupEvent) {
         crashlyticsWrapper.setString("Last viewmodel apps event submission", "$event")
-        val coroutineScope = CoroutineScope(Dispatchers.Default)
-        coroutineScope.launch { appsStartupFsm.submitEvent(event) }
+        appsStartupFsm.submitEvent(event, this)
     }
 
     private fun submitSessionStartupEvent(event: SessionStartupEvent) {
