@@ -45,6 +45,14 @@ class AssetRepository(
         assetPreferences.setLastDistributionUpdate(distributionType)
     }
 
+    fun assetsArePresentInSupportDirectories(assets: List<Asset>): Boolean {
+        for (asset in assets) {
+            val assetFile = File("$applicationFilesDirPath/${asset.pathName}")
+            if (!assetFile.exists()) return false
+        }
+        return true
+    }
+
     fun getAllAssetLists(distributionType: String, deviceArchitecture: String): List<List<Asset>> {
         val allAssetListTypes = listOf(
                 "support" to "all",

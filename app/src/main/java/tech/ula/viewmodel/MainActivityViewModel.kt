@@ -274,7 +274,7 @@ class MainActivityViewModel(
                 }
             }
             is NoDownloadsRequired -> {
-                submitSessionStartupEvent(ExtractFilesystem(lastSelectedFilesystem))
+                submitSessionStartupEvent(VerifyFilesystemAssets(lastSelectedFilesystem))
             }
             is DownloadingRequirements -> {
                 state.postValue(DownloadProgress(newState.numCompleted, newState.numTotal))
@@ -289,19 +289,20 @@ class MainActivityViewModel(
                 state.postValue(CopyingDownloads)
             }
             is CopyingSucceeded -> {
-                submitSessionStartupEvent(ExtractFilesystem(lastSelectedFilesystem))
+//                submitSessionStartupEvent(ExtractFilesystem(lastSelectedFilesystem))
+                submitSessionStartupEvent(VerifyFilesystemAssets(lastSelectedFilesystem))
             }
             is CopyingFailed -> {
                 state.postValue(FailedToCopyAssetsToLocalStorage)
             }
-            is DistributionCopyFailed -> {
-                state.postValue(FailedToCopyAssetsToFilesystem)
-            }
+//            is DistributionCopyFailed -> {
+//                state.postValue(FailedToCopyAssetsToFilesystem)
+//            }
             is ExtractingFilesystem -> {
                 state.postValue(FilesystemExtraction(newState.extractionTarget))
             }
-            is ExtractionSucceeded -> {
-                submitSessionStartupEvent(VerifyFilesystemAssets(lastSelectedFilesystem))
+            is ExtractionHasCompletedSuccessfully -> {
+                state.postValue(SessionCanBeStarted(lastSelectedSession))
             }
             is ExtractionFailed -> {
                 state.postValue(FailedToExtractFilesystem)
