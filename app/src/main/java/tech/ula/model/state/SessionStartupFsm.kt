@@ -79,7 +79,7 @@ class SessionStartupFsm(
             is DownloadAssets -> currentState is DownloadsRequired
             is AssetDownloadComplete -> currentState is DownloadingRequirements
             is CopyDownloadsToLocalStorage -> currentState is DownloadsHaveSucceeded
-            is VerifyFilesystemAssets -> currentState is NoDownloadsRequired || currentState is CopyingFilesToLocalDirectories
+            is VerifyFilesystemAssets -> currentState is NoDownloadsRequired || currentState is LocalDirectoryCopySucceeded
             is ExtractFilesystem -> currentState is FilesystemAssetVerificationSucceeded
             is ResetSessionState -> true
         }
@@ -99,8 +99,8 @@ class SessionStartupFsm(
             is DownloadAssets -> { handleDownloadAssets(event.assetsToDownload) }
             is AssetDownloadComplete -> { handleAssetsDownloadComplete(event.downloadAssetId) }
             is CopyDownloadsToLocalStorage -> { handleCopyDownloadsToLocalDirectories(event.filesystem) }
-            is ExtractFilesystem -> { handleExtractFilesystem(event.filesystem) }
             is VerifyFilesystemAssets -> { handleVerifyFilesystemAssets(event.filesystem) }
+            is ExtractFilesystem -> { handleExtractFilesystem(event.filesystem) }
             is ResetSessionState -> { state.postValue(WaitingForSessionSelection) }
         }
     }
@@ -202,6 +202,7 @@ class SessionStartupFsm(
         state.postValue(CopyingFilesToLocalDirectories)
         try {
             downloadUtility.moveAssetsToCorrectLocalDirectory()
+            assetRepository.setLastDistributionUpdate(filesystem.distributionType)
         } catch (err: Exception) {
             state.postValue(LocalDirectoryCopyFailed)
             return@withContext
@@ -217,33 +218,24 @@ class SessionStartupFsm(
         val allAssetsArePresentOnFilesystem = filesystemUtility.areAllRequiredAssetsPresent(filesystemDirectoryName, requiredAssets)
         val filesystemAssetsNeedUpdating = filesystem.lastUpdated < assetRepository.getLastDistributionUpdate(filesystem.distributionType)
 
-        when {
-            allAssetsArePresentOnFilesystem && !filesystemAssetsNeedUpdating -> {
+        if (!allAssetsArePresentOnFilesystem || filesystemAssetsNeedUpdating) {
+            if (!assetRepository.assetsArePresentInSupportDirectories(requiredAssets)) {
+                state.postValue(AssetsAreMissingFromSupportDirectories)
+                return@withContext
+            }
+
+            try {
+                filesystemUtility.copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType)
+                filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
+                filesystem.lastUpdated = timeUtility.getCurrentTimeMillis()
+                filesystemDao.updateFilesystem(filesystem)
                 state.postValue(FilesystemAssetVerificationSucceeded)
-            }
-
-            filesystemAssetsNeedUpdating -> {
-                if (!assetRepository.assetsArePresentInSupportDirectories(requiredAssets)) {
-                    state.postValue(AssetsAreMissingFromSupportDirectories)
-                    return@withContext
-                }
-
-                try {
-                    filesystemUtility.copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType)
-                    filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
-                    filesystem.lastUpdated = timeUtility.getCurrentTimeMillis()
-                    filesystemDao.updateFilesystem(filesystem)
-                    state.postValue(FilesystemAssetVerificationSucceeded)
-                    return@withContext
-                } catch (err: Exception) {
-                    state.postValue(FilesystemAssetCopyFailed)
-                }
-            }
-
-            else -> {
-                state.postValue(FilesystemAssetVerificationFailed)
+            } catch (err: Exception) {
+                state.postValue(FilesystemAssetCopyFailed)
             }
         }
+
+        state.postValue(FilesystemAssetVerificationSucceeded)
     }
 
     private suspend fun handleExtractFilesystem(filesystem: Filesystem) = withContext(Dispatchers.IO) {
@@ -288,7 +280,6 @@ object VerifyingFilesystemAssets : SessionStartupState()
 object FilesystemAssetVerificationSucceeded : SessionStartupState()
 object AssetsAreMissingFromSupportDirectories : SessionStartupState()
 object FilesystemAssetCopyFailed : SessionStartupState()
-object FilesystemAssetVerificationFailed : SessionStartupState()
 data class ExtractingFilesystem(val extractionTarget: String) : SessionStartupState()
 object ExtractionHasCompletedSuccessfully : SessionStartupState()
 object ExtractionFailed : SessionStartupState()
