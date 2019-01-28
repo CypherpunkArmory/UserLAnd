@@ -1,8 +1,5 @@
 package tech.ula.utils
 
-import android.content.Intent
-import android.support.v4.content.LocalBroadcastManager
-import tech.ula.ServerService
 import tech.ula.model.entities.Session
 import java.io.File
 
