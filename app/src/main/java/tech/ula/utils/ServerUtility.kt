@@ -1,5 +1,8 @@
 package tech.ula.utils
 
+import android.content.Intent
+import android.support.v4.content.LocalBroadcastManager
+import tech.ula.ServerService
 import tech.ula.model.entities.Session
 import java.io.File
 
@@ -17,7 +20,7 @@ class ServerUtility(
         return when (this.serviceType) {
             "ssh" -> "/run/dropbear.pid"
             "vnc" -> "/home/${this.username}/.vnc/localhost:${this.port}.pid"
-            "xsdl" -> "error" // TODO
+            "xsdl" -> "/tmp/xsdl.pidfile"
             else -> "error"
         }
     }
@@ -40,7 +43,7 @@ class ServerUtility(
         return when (session.serviceType) {
             "ssh" -> startSSHServer(session)
             "vnc" -> startVNCServer(session)
-            "xsdl" -> 0 // TODO
+            "xsdl" -> startXSDLServer(session)
             else -> 0
         }
     }
@@ -79,6 +82,22 @@ class ServerUtility(
         }
     }
 
+    private fun startXSDLServer(session: Session): Long {
+        val targetDirectoryName = session.filesystemId.toString()
+        deletePidFile(session)
+        val command = "../support/execInProot.sh /bin/bash -c '/support/startXSDLServer.sh'"
+        return try {
+            val env = HashMap<String, String>()
+            env["DISPLAY"] = ":4721"
+            env["PULSE_SERVER"] = "127.0.0.1:4721"
+            val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, doWait = false, environmentVars = env)
+            process.pid()
+        } catch (err: Exception) {
+            logger.logRuntimeErrorForCommand(functionName = "startXSDLServer", command = command, err = err)
+            -1
+        }
+    }
+
     fun stopService(session: Session) {
         val targetDirectoryName = session.filesystemId.toString()
 
@@ -94,6 +113,8 @@ class ServerUtility(
         val targetDirectoryName = session.filesystemId.toString()
         val command = "../support/isServerInProcTree.sh ${session.pid()}"
         try {
+            if (session.serviceType == "xsdl")
+                return true
             val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command)
             if (process.exitValue() != 0) // isServerInProcTree returns a 1 if it didn't find a server
                 return false
