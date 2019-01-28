@@ -37,6 +37,7 @@ import kotlinx.android.synthetic.main.activity_main.* // ktlint-disable no-wildc
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.selects.select
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.find
 import tech.ula.model.entities.App
@@ -565,8 +566,12 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 customDialog.dismiss()
                 val sshTypePreference = customDialog.find<RadioButton>(R.id.ssh_radio_button)
-                val selectedPreference =
-                        if (sshTypePreference.isChecked) SshTypePreference else VncTypePreference
+                val vncTypePreference = customDialog.find<RadioButton>(R.id.vnc_radio_button)
+                val selectedPreference = when {
+                    sshTypePreference.isChecked -> SshTypePreference
+                    vncTypePreference.isChecked -> VncTypePreference
+                    else -> XsdlTypePreference
+                }
                 viewModel.submitAppServicePreference(selectedPreference)
             }
         }
