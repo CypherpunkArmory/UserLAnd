@@ -87,6 +87,54 @@ class TimestampPreferences(private val prefs: SharedPreferences) {
 }
 
 class AssetPreferences(private val prefs: SharedPreferences) {
+    private fun String.addTimestampPrefix(): String {
+        return "timestamp-" + this
+    }
+
+    fun getLastUpdatedTimestampForAsset(asset: Asset): Long {
+        return prefs.getLong(asset.concatenatedName.addTimestampPrefix(), -1)
+    }
+
+    fun setLastUpdatedTimestampForAsset(asset: Asset, currentTimeMillis: Long) {
+        with(prefs.edit()) {
+            putLong(asset.concatenatedName.addTimestampPrefix(), currentTimeMillis)
+            apply()
+        }
+    }
+
+    private val downloadsAreInProgressKey = "downloadsAreInProgress"
+    fun getDownloadsAreInProgress(): Boolean {
+        return prefs.getBoolean(downloadsAreInProgressKey, false)
+    }
+
+    fun setDownloadsAreInProgress(inProgress: Boolean) {
+        with(prefs.edit()) {
+            putBoolean(downloadsAreInProgressKey, true)
+            apply()
+        }
+    }
+
+    private val enqueuedDownloadsKey = "currentlyEnqueuedDownloads"
+    fun getEnqueuedDownloads(): List<Long> {
+        val enqueuedDownloadsAsStrings = prefs.getStringSet(enqueuedDownloadsKey, setOf()) ?: setOf<String>()
+        return enqueuedDownloadsAsStrings.map { it.toLong() }.toList()
+    }
+
+    fun setEnqueuedDownloads(downloads: List<Long>) {
+        val enqueuedDownloadsAsStrings = downloads.map { it.toString() }.toSet()
+        with(prefs.edit()) {
+            putStringSet(enqueuedDownloadsKey, enqueuedDownloadsAsStrings)
+            apply()
+        }
+    }
+
+    fun clearEnqueuedDownloadsCache() {
+        with(prefs.edit()) {
+            putStringSet(enqueuedDownloadsKey, setOf())
+            apply()
+        }
+    }
+
     fun getAssetLists(allAssetListTypes: List<Pair<String, String>>): List<List<Asset>> {
         val assetLists = ArrayList<List<Asset>>()
         allAssetListTypes.forEach {
