@@ -10,10 +10,20 @@ class DownloadUtility(
 ) {
 
     private val downloadDirectory = downloadManagerWrapper.getDownloadsDirectory()
+    private val userlandDownloadPrefix = "UserLAnd-"
+
+    private fun String.containsUserland(): Boolean {
+        return this.toLowerCase().contains(userlandDownloadPrefix.toLowerCase())
+    }
 
     fun downloadRequirements(assetList: List<Asset>): List<Long> {
         clearPreviousDownloadsFromDownloadsDirectory()
         return assetList.map { download(it) }
+    }
+
+    fun downloadIsForUserland(id: Long): Boolean {
+        val downloadTitle = downloadManagerWrapper.getDownloadTitle(id)
+        return downloadTitle.containsUserland()
     }
 
     fun downloadedSuccessfully(id: Long): Boolean {
@@ -39,7 +49,7 @@ class DownloadUtility(
 
     private fun clearPreviousDownloadsFromDownloadsDirectory() {
         for (file in downloadDirectory.listFiles()) {
-            if (file.name.toLowerCase().contains("userland")) {
+            if (file.name.containsUserland()) {
                 file.delete()
             }
         }
@@ -54,7 +64,7 @@ class DownloadUtility(
 
     fun setTimestampForDownloadedFile(id: Long) {
         val titleName = downloadManagerWrapper.getDownloadTitle(id)
-        if (titleName == "" || !titleName.contains("UserLAnd")) return
+        if (!titleName.containsUserland()) return
         // Title should be asset.concatenatedName
         timestampPreferences.setSavedTimestampForFileToNow(titleName)
     }
@@ -62,7 +72,7 @@ class DownloadUtility(
     @Throws(Exception::class)
     fun moveAssetsToCorrectLocalDirectory() {
         downloadDirectory.walkBottomUp()
-                .filter { it.name.contains("UserLAnd-") }
+                .filter { it.name.containsUserland() }
                 .forEach {
                     val delimitedContents = it.name.split("-", limit = 3)
                     if (delimitedContents.size != 3) return@forEach

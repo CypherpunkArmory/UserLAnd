@@ -175,6 +175,8 @@ class SessionStartupFsm(
     }
 
     private fun handleAssetsDownloadComplete(downloadId: Long) {
+        if(!downloadUtility.downloadIsForUserland(downloadId)) return
+
         if (!downloadUtility.downloadedSuccessfully(downloadId)) {
             val reason = downloadUtility.getReasonForDownloadFailure(downloadId)
             state.postValue(DownloadsHaveFailed(reason))
