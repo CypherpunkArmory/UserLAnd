@@ -483,14 +483,16 @@ class SessionStartupFsmTest {
         sessionFsm.setState(LocalDirectoryCopySucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        val filesystemUpdateTime = 5L
         whenever(mockAssetRepository.getDistributionAssetsForExistingFilesystem(filesystem))
                 .thenReturn(singleAssetList)
         whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", singleAssetList))
                 .thenReturn(false)
-        whenever(mockTimeUtility.getCurrentTimeMillis()).thenReturn(filesystemUpdateTime)
+        whenever(mockAssetRepository.assetsArePresentInSupportDirectories(singleAssetList))
+                .thenReturn(true)
 
+        val filesystemUpdateTime = 5L
         val updateTimeIsGreaterThanLastFilesystemUpdate = filesystem.lastUpdated + 1
+        whenever(mockTimeUtility.getCurrentTimeMillis()).thenReturn(filesystemUpdateTime)
         whenever(mockAssetRepository.getLastDistributionUpdate(filesystem.distributionType))
                 .thenReturn(updateTimeIsGreaterThanLastFilesystemUpdate)
 
@@ -514,6 +516,8 @@ class SessionStartupFsmTest {
                 .thenReturn(singleAssetList)
         whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", singleAssetList))
                 .thenReturn(false)
+        whenever(mockAssetRepository.assetsArePresentInSupportDirectories(singleAssetList))
+                .thenReturn(true)
 
         whenever(mockFilesystemUtility.copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType))
                 .thenThrow(Exception::class.java)

@@ -601,13 +601,13 @@ class MainActivityViewModelTest {
     }
 
     @Test
-    fun `Submits ExtractFilesystem when observing asset verification success`() {
+    fun `Submits ExtractFilesystem when observing FilesystemAssetVerificationSucceeded`() {
         makeSessionSelections()
 
         sessionStartupStateLiveData.postValue(FilesystemAssetVerificationSucceeded)
 
         runBlocking {
-            verify(mockSessionStartupFsm).submitEvent(ExtractFilesystem(selectedFilesystem), this)
+            verify(mockSessionStartupFsm).submitEvent(ExtractFilesystem(selectedFilesystem), mainActivityViewModel)
         }
     }
 
@@ -643,7 +643,7 @@ class MainActivityViewModelTest {
     fun `Posts SessionCanBeStarted and resets state when observing ExtractionHasCompletedSuccessfully`() {
         makeSessionSelections()
 
-        sessionStartupStateLiveData.postValue(FilesystemAssetVerificationSucceeded)
+        sessionStartupStateLiveData.postValue(ExtractionHasCompletedSuccessfully)
 
         verify(mockStateObserver).onChanged(SessionCanBeStarted(selectedSession))
         assertEquals(unselectedApp, mainActivityViewModel.lastSelectedApp)

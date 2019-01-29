@@ -229,7 +229,6 @@ class SessionStartupFsm(
                 filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
                 filesystem.lastUpdated = timeUtility.getCurrentTimeMillis()
                 filesystemDao.updateFilesystem(filesystem)
-                state.postValue(FilesystemAssetVerificationSucceeded)
             } catch (err: Exception) {
                 state.postValue(FilesystemAssetCopyFailed)
             }
