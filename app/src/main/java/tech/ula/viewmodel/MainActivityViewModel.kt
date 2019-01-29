@@ -274,7 +274,7 @@ class MainActivityViewModel(
                 }
             }
             is NoDownloadsRequired -> {
-                submitSessionStartupEvent(ExtractFilesystem(lastSelectedFilesystem))
+                submitSessionStartupEvent(VerifyFilesystemAssets(lastSelectedFilesystem))
             }
             is DownloadingRequirements -> {
                 state.postValue(DownloadProgress(newState.numCompleted, newState.numTotal))
@@ -285,36 +285,36 @@ class MainActivityViewModel(
             is DownloadsHaveFailed -> {
                 state.postValue(DownloadsDidNotCompleteSuccessfully(newState.reason))
             }
-            is CopyingFilesToRequiredDirectories -> {
+            is CopyingFilesToLocalDirectories -> {
                 state.postValue(CopyingDownloads)
             }
-            is CopyingSucceeded -> {
-                submitSessionStartupEvent(ExtractFilesystem(lastSelectedFilesystem))
+            is LocalDirectoryCopySucceeded -> {
+                submitSessionStartupEvent(VerifyFilesystemAssets(lastSelectedFilesystem))
             }
-            is CopyingFailed -> {
+            is LocalDirectoryCopyFailed -> {
                 state.postValue(FailedToCopyAssetsToLocalStorage)
             }
-            is DistributionCopyFailed -> {
+            is VerifyingFilesystemAssets -> {
+                state.postValue(VerifyingFilesystem)
+            }
+            is FilesystemAssetVerificationSucceeded -> {
+                submitSessionStartupEvent(ExtractFilesystem(lastSelectedFilesystem))
+            }
+            is AssetsAreMissingFromSupportDirectories -> {
+                state.postValue(AssetsHaveNotBeenDownloaded)
+            }
+            is FilesystemAssetCopyFailed -> {
                 state.postValue(FailedToCopyAssetsToFilesystem)
             }
             is ExtractingFilesystem -> {
                 state.postValue(FilesystemExtraction(newState.extractionTarget))
             }
-            is ExtractionSucceeded -> {
-                submitSessionStartupEvent(VerifyFilesystemAssets(lastSelectedFilesystem))
-            }
-            is ExtractionFailed -> {
-                state.postValue(FailedToExtractFilesystem)
-            }
-            is VerifyingFilesystemAssets -> {
-                state.postValue(VerifyingFilesystem)
-            }
-            is FilesystemHasRequiredAssets -> {
+            is ExtractionHasCompletedSuccessfully -> {
                 state.postValue(SessionCanBeStarted(lastSelectedSession))
                 resetStartupState()
             }
-            is FilesystemIsMissingRequiredAssets -> {
-                state.postValue(FilesystemIsMissingAssets)
+            is ExtractionFailed -> {
+                state.postValue(FailedToExtractFilesystem)
             }
         }
     }
@@ -368,9 +368,9 @@ object NoSessionSelectedWhenPreparationStarted : IllegalState()
 object ErrorFetchingAssetLists : IllegalState()
 data class DownloadsDidNotCompleteSuccessfully(val reason: String) : IllegalState()
 object FailedToCopyAssetsToLocalStorage : IllegalState()
+object AssetsHaveNotBeenDownloaded : IllegalState()
 object FailedToCopyAssetsToFilesystem : IllegalState()
 object FailedToExtractFilesystem : IllegalState()
-object FilesystemIsMissingAssets : IllegalState()
 object FailedToClearSupportFiles : IllegalState()
 
 sealed class UserInputRequiredState : State()

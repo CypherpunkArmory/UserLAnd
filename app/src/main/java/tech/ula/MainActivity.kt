@@ -316,14 +316,14 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             is FailedToCopyAssetsToLocalStorage -> {
                 getString(R.string.illegal_state_failed_to_copy_assets_to_local)
             }
+            is AssetsHaveNotBeenDownloaded -> {
+                getString(R.string.illegal_state_assets_have_not_been_downloaded)
+            }
             is FailedToCopyAssetsToFilesystem -> {
                 getString(R.string.illegal_state_failed_to_copy_assets_to_filesystem)
             }
             is FailedToExtractFilesystem -> {
                 getString(R.string.illegal_state_failed_to_extract_filesystem)
-            }
-            is FilesystemIsMissingAssets -> {
-                getString(R.string.illegal_state_filesystem_is_missing_assets)
             }
             is FailedToClearSupportFiles -> {
                 getString(R.string.illegal_state_failed_to_clear_support_files)

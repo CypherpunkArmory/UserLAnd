@@ -95,15 +95,16 @@ class SessionStartupFsmTest {
             DownloadingRequirements(0, 0),
             DownloadsHaveSucceeded,
             DownloadsHaveFailed(""),
-            CopyingFilesToRequiredDirectories,
-            CopyingSucceeded,
-            CopyingFailed,
-            ExtractingFilesystem("test"),
-            ExtractionSucceeded,
-            ExtractionFailed,
+            CopyingFilesToLocalDirectories,
+            LocalDirectoryCopySucceeded,
+            LocalDirectoryCopyFailed,
             VerifyingFilesystemAssets,
-            FilesystemHasRequiredAssets,
-            FilesystemIsMissingRequiredAssets
+            FilesystemAssetVerificationSucceeded,
+            AssetsAreMissingFromSupportDirectories,
+            FilesystemAssetCopyFailed,
+            ExtractingFilesystem("test"),
+            ExtractionHasCompletedSuccessfully,
+            ExtractionFailed
     )
 
     @Before
@@ -139,8 +140,8 @@ class SessionStartupFsmTest {
                     event is DownloadAssets && state is DownloadsRequired -> assertTrue(result)
                     event is AssetDownloadComplete && state is DownloadingRequirements -> assertTrue(result)
                     event is CopyDownloadsToLocalStorage && state is DownloadsHaveSucceeded -> assertTrue(result)
-                    event is ExtractFilesystem && (state is NoDownloadsRequired || state is CopyingSucceeded) -> assertTrue(result)
-                    event is VerifyFilesystemAssets && state is ExtractionSucceeded -> assertTrue(result)
+                    event is VerifyFilesystemAssets && (state is NoDownloadsRequired || state is LocalDirectoryCopySucceeded) -> assertTrue(result)
+                    event is ExtractFilesystem && state is FilesystemAssetVerificationSucceeded -> assertTrue(result)
                     event is ResetSessionState -> assertTrue(result)
                     else -> assertFalse(result)
                 }
@@ -390,60 +391,179 @@ class SessionStartupFsmTest {
     }
 
     @Test
-    fun `State is CopyingSucceeded if files are moved to correct subdirectories`() {
+    fun `State is LocalDirectoryCopySucceeded if files are moved to correct subdirectories`() {
         sessionFsm.setState(DownloadsHaveSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
-
-        val filesystemUpdateTime = 5L
-        whenever(mockTimeUtility.getCurrentTimeMillis())
-                .thenReturn(filesystemUpdateTime)
-
-        runBlocking { sessionFsm.submitEvent(CopyDownloadsToLocalStorage(filesystem), this) }
-
-        val updatedFilesystem = filesystem
-        updatedFilesystem.lastUpdated = filesystemUpdateTime
-        verify(mockDownloadUtility).moveAssetsToCorrectLocalDirectory()
-        verify(mockFilesystemUtility).copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType)
-        verify(mockFilesystemDao).updateFilesystem(updatedFilesystem)
-        verify(mockStateObserver).onChanged(CopyingFilesToRequiredDirectories)
-        verify(mockStateObserver).onChanged(CopyingSucceeded)
-    }
-
-    @Test
-    fun `State is DistributionCopyFailed if distribution assets are not copied to filesystem`() {
-        sessionFsm.setState(DownloadsHaveSucceeded)
-        sessionFsm.getState().observeForever(mockStateObserver)
-
-        whenever(mockFilesystemUtility.copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType))
-                .thenThrow(Exception())
 
         runBlocking { sessionFsm.submitEvent(CopyDownloadsToLocalStorage(filesystem), this) }
 
         verify(mockDownloadUtility).moveAssetsToCorrectLocalDirectory()
-        verify(mockFilesystemUtility).copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType)
-        verify(mockFilesystemDao, never()).updateFilesystem(any())
-        verify(mockStateObserver).onChanged(CopyingFilesToRequiredDirectories)
-        verify(mockStateObserver).onChanged(DistributionCopyFailed)
+        verify(mockAssetRepository).setLastDistributionUpdate(filesystem.distributionType)
+        verify(mockStateObserver).onChanged(CopyingFilesToLocalDirectories)
+        verify(mockStateObserver).onChanged(LocalDirectoryCopySucceeded)
     }
 
     @Test
-    fun `State is CopyingFailed if a problem arises`() {
+    fun `State is LocalDirectoryCopyFailed if a problem arises`() {
         sessionFsm.setState(DownloadsHaveSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockDownloadUtility.moveAssetsToCorrectLocalDirectory())
                 .thenThrow(Exception())
 
-        // TODO update test
         runBlocking { sessionFsm.submitEvent(CopyDownloadsToLocalStorage(filesystem), this) }
 
-        verify(mockStateObserver).onChanged(CopyingFilesToRequiredDirectories)
-        verify(mockStateObserver).onChanged(CopyingFailed)
+        verify(mockStateObserver).onChanged(CopyingFilesToLocalDirectories)
+        verify(mockStateObserver).onChanged(LocalDirectoryCopyFailed)
+    }
+
+    @Test
+    fun `State is FilesystemAssetVerificationSucceeded if all assets are present and filesystem does not need updating`() {
+        sessionFsm.setState(LocalDirectoryCopySucceeded)
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        val timeBeforeToLastFilesystemUpdate = filesystem.lastUpdated - 1
+        whenever(mockAssetRepository.getDistributionAssetsForExistingFilesystem(filesystem))
+                .thenReturn(singleAssetList)
+        whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", singleAssetList))
+                .thenReturn(true)
+        whenever(mockAssetRepository.getLastDistributionUpdate(filesystem.distributionType))
+                .thenReturn(timeBeforeToLastFilesystemUpdate)
+
+        runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem), this) }
+
+        verify(mockStateObserver).onChanged(VerifyingFilesystemAssets)
+        verify(mockStateObserver).onChanged(FilesystemAssetVerificationSucceeded)
+    }
+
+    @Test
+    fun `State is AssetsAreMissingFromSupportDirectories if the assets are not present on a filesystem and are missing from local directories`() {
+        sessionFsm.setState(LocalDirectoryCopySucceeded)
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        val timeBeforeLastFilesystemUpdate = filesystem.lastUpdated - 1
+        whenever(mockAssetRepository.getDistributionAssetsForExistingFilesystem(filesystem))
+                .thenReturn(singleAssetList)
+        whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", singleAssetList))
+                .thenReturn(false)
+        whenever(mockAssetRepository.getLastDistributionUpdate(filesystem.distributionType))
+                .thenReturn(timeBeforeLastFilesystemUpdate)
+        whenever(mockAssetRepository.assetsArePresentInSupportDirectories(singleAssetList))
+                .thenReturn(false)
+
+        runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem), this) }
+
+        verify(mockStateObserver).onChanged(VerifyingFilesystemAssets)
+        verify(mockStateObserver).onChanged(AssetsAreMissingFromSupportDirectories)
+    }
+
+    @Test
+    fun `State is AssetsAreMissingFromSupportDirectories if filesystem needs updating and assets are missing from local directories`() {
+        sessionFsm.setState(LocalDirectoryCopySucceeded)
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        val timeAfterLastFilesystemUpdate = filesystem.lastUpdated + 1
+        whenever(mockAssetRepository.getDistributionAssetsForExistingFilesystem(filesystem))
+                .thenReturn(singleAssetList)
+        whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", singleAssetList))
+                .thenReturn(true)
+        whenever(mockAssetRepository.getLastDistributionUpdate(filesystem.distributionType))
+                .thenReturn(timeAfterLastFilesystemUpdate)
+        whenever(mockAssetRepository.assetsArePresentInSupportDirectories(singleAssetList))
+                .thenReturn(false)
+
+        runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem), this) }
+
+        verify(mockStateObserver).onChanged(VerifyingFilesystemAssets)
+        verify(mockStateObserver).onChanged(AssetsAreMissingFromSupportDirectories)
+    }
+
+    @Test
+    fun `State is FilesystemAssetVerificationSucceeded if it needs to copy filesystem assets and succeeds`() {
+        sessionFsm.setState(LocalDirectoryCopySucceeded)
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockAssetRepository.getDistributionAssetsForExistingFilesystem(filesystem))
+                .thenReturn(singleAssetList)
+        whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", singleAssetList))
+                .thenReturn(false)
+        whenever(mockAssetRepository.assetsArePresentInSupportDirectories(singleAssetList))
+                .thenReturn(true)
+        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
+                .thenReturn(false)
+
+        val filesystemUpdateTime = 5L
+        val updateTimeIsGreaterThanLastFilesystemUpdate = filesystem.lastUpdated + 1
+        whenever(mockTimeUtility.getCurrentTimeMillis()).thenReturn(filesystemUpdateTime)
+        whenever(mockAssetRepository.getLastDistributionUpdate(filesystem.distributionType))
+                .thenReturn(updateTimeIsGreaterThanLastFilesystemUpdate)
+
+        runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem), this) }
+
+        val updatedFilesystem = filesystem
+        updatedFilesystem.lastUpdated = filesystemUpdateTime
+        verify(mockFilesystemUtility).copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType)
+        verify(mockFilesystemDao).updateFilesystem(updatedFilesystem)
+        verify(mockFilesystemUtility, never()).removeRootfsFilesFromFilesystem("${filesystem.id}")
+        verify(mockStateObserver).onChanged(VerifyingFilesystemAssets)
+        verify(mockStateObserver).onChanged(FilesystemAssetVerificationSucceeded)
+    }
+
+    @Test
+    fun `Removes rootfs files if the filesystem has already been extracted when updating assets`() {
+        sessionFsm.setState(LocalDirectoryCopySucceeded)
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockAssetRepository.getDistributionAssetsForExistingFilesystem(filesystem))
+                .thenReturn(singleAssetList)
+        whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", singleAssetList))
+                .thenReturn(false)
+        whenever(mockAssetRepository.assetsArePresentInSupportDirectories(singleAssetList))
+                .thenReturn(true)
+        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
+                .thenReturn(true)
+
+        val filesystemUpdateTime = 5L
+        val updateTimeIsGreaterThanLastFilesystemUpdate = filesystem.lastUpdated + 1
+        whenever(mockTimeUtility.getCurrentTimeMillis()).thenReturn(filesystemUpdateTime)
+        whenever(mockAssetRepository.getLastDistributionUpdate(filesystem.distributionType))
+                .thenReturn(updateTimeIsGreaterThanLastFilesystemUpdate)
+
+        runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem), this) }
+
+        val updatedFilesystem = filesystem
+        updatedFilesystem.lastUpdated = filesystemUpdateTime
+        verify(mockFilesystemUtility).copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType)
+        verify(mockFilesystemDao).updateFilesystem(updatedFilesystem)
+        verify(mockFilesystemUtility).removeRootfsFilesFromFilesystem("${filesystem.id}")
+        verify(mockStateObserver).onChanged(VerifyingFilesystemAssets)
+        verify(mockStateObserver).onChanged(FilesystemAssetVerificationSucceeded)
+    }
+
+    @Test
+    fun `State is FilesystemAssetCopyFailed if filesystem assets need to be copied and that operation fails`() {
+        sessionFsm.setState(LocalDirectoryCopySucceeded)
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockAssetRepository.getDistributionAssetsForExistingFilesystem(filesystem))
+                .thenReturn(singleAssetList)
+        whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", singleAssetList))
+                .thenReturn(false)
+        whenever(mockAssetRepository.assetsArePresentInSupportDirectories(singleAssetList))
+                .thenReturn(true)
+
+        whenever(mockFilesystemUtility.copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType))
+                .thenThrow(Exception::class.java)
+
+        runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem), this) }
+
+        verify(mockStateObserver).onChanged(VerifyingFilesystemAssets)
+        verify(mockStateObserver).onChanged(FilesystemAssetCopyFailed)
     }
 
     @Test
     fun `Exits early if filesystem is already extracted`() {
-        sessionFsm.setState(CopyingSucceeded)
+        sessionFsm.setState(FilesystemAssetVerificationSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
@@ -452,12 +572,12 @@ class SessionStartupFsmTest {
         runBlocking { sessionFsm.submitEvent(ExtractFilesystem(filesystem), this) }
 
         verify(mockFilesystemUtility, times(1)).hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")
-        verify(mockStateObserver).onChanged(ExtractionSucceeded)
+        verify(mockStateObserver).onChanged(ExtractionHasCompletedSuccessfully)
     }
 
     @Test
     fun `State is ExtractionSucceeded if extraction succeeds`() {
-        sessionFsm.setState(CopyingSucceeded)
+        sessionFsm.setState(FilesystemAssetVerificationSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
@@ -467,12 +587,12 @@ class SessionStartupFsmTest {
         runBlocking { sessionFsm.submitEvent(ExtractFilesystem(filesystem), this) }
 
         // TODO is there some way to verify extraction steps?
-        verify(mockStateObserver).onChanged(ExtractionSucceeded)
+        verify(mockStateObserver).onChanged(ExtractionHasCompletedSuccessfully)
     }
 
     @Test
     fun `State is ExtractionFailed if extraction fails`() {
-        sessionFsm.setState(CopyingSucceeded)
+        sessionFsm.setState(FilesystemAssetVerificationSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
@@ -482,88 +602,5 @@ class SessionStartupFsmTest {
         runBlocking { sessionFsm.submitEvent(ExtractFilesystem(filesystem), this) }
 
         verify(mockStateObserver).onChanged(ExtractionFailed)
-    }
-
-    @Test
-    fun `State is FilesystemHasRequiredAssets if all assets are present`() {
-        sessionFsm.setState(ExtractionSucceeded)
-        sessionFsm.getState().observeForever(mockStateObserver)
-
-        whenever(mockAssetRepository.getDistributionAssetsForExistingFilesystem(filesystem))
-                .thenReturn(singleAssetList)
-        whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", singleAssetList))
-                .thenReturn(true)
-        whenever(mockAssetRepository.getLastDistributionUpdate(filesystem.distributionType))
-                .thenReturn(filesystem.lastUpdated)
-
-        runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem), this) }
-
-        verify(mockStateObserver).onChanged(VerifyingFilesystemAssets)
-        verify(mockStateObserver).onChanged(FilesystemHasRequiredAssets)
-    }
-
-    @Test
-    fun `State is FilesystemHasRequiredAssets if it needs to copy filesystem assets and succeeds`() {
-        sessionFsm.setState(ExtractionSucceeded)
-        sessionFsm.getState().observeForever(mockStateObserver)
-
-        val filesystemUpdateTime = 5L
-        whenever(mockAssetRepository.getDistributionAssetsForExistingFilesystem(filesystem))
-                .thenReturn(singleAssetList)
-        whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", singleAssetList))
-                .thenReturn(true)
-        whenever(mockTimeUtility.getCurrentTimeMillis()).thenReturn(filesystemUpdateTime)
-
-        val updateTimeIsGreaterThanLastFilesystemUpdate = filesystem.lastUpdated + 1
-        whenever(mockAssetRepository.getLastDistributionUpdate(filesystem.distributionType))
-                .thenReturn(updateTimeIsGreaterThanLastFilesystemUpdate)
-
-        runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem), this) }
-
-        val updatedFilesystem = filesystem
-        updatedFilesystem.lastUpdated = filesystemUpdateTime
-        verify(mockFilesystemUtility).removeRootfsFilesFromFilesystem("${filesystem.id}")
-        verify(mockFilesystemUtility).copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType)
-        verify(mockFilesystemDao).updateFilesystem(filesystem)
-        verify(mockStateObserver).onChanged(VerifyingFilesystemAssets)
-        verify(mockStateObserver).onChanged(FilesystemHasRequiredAssets)
-    }
-
-    @Test
-    fun `State is DistributionCopyFailed if filesystem assets are not up to date and copying fails`() {
-        sessionFsm.setState(ExtractionSucceeded)
-        sessionFsm.getState().observeForever(mockStateObserver)
-
-        whenever(mockAssetRepository.getDistributionAssetsForExistingFilesystem(filesystem))
-                .thenReturn(singleAssetList)
-        whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", singleAssetList))
-                .thenReturn(true)
-
-        val updateTimeIsGreaterThanLastFilesystemUpdate = filesystem.lastUpdated + 1
-        whenever(mockAssetRepository.getLastDistributionUpdate(filesystem.distributionType))
-                .thenReturn(updateTimeIsGreaterThanLastFilesystemUpdate)
-        whenever(mockFilesystemUtility.copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType))
-                .thenThrow(Exception::class.java)
-
-        runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem), this) }
-
-        verify(mockStateObserver).onChanged(VerifyingFilesystemAssets)
-        verify(mockStateObserver).onChanged(DistributionCopyFailed)
-    }
-
-    @Test
-    fun `State is FilesystemIsMissingRequiredAssets if any assets are missing`() {
-        sessionFsm.setState(ExtractionSucceeded)
-        sessionFsm.getState().observeForever(mockStateObserver)
-
-        whenever(mockAssetRepository.getDistributionAssetsForExistingFilesystem(filesystem))
-                .thenReturn(singleAssetList)
-        whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", singleAssetList))
-                .thenReturn(false)
-
-        runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem), this) }
-
-        verify(mockStateObserver).onChanged(VerifyingFilesystemAssets)
-        verify(mockStateObserver).onChanged(FilesystemIsMissingRequiredAssets)
     }
 }

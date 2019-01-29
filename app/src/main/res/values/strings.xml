@@ -63,10 +63,10 @@
     <string name="illegal_state_no_session_selected_when_preparation_started">Trying to handle session preparation before one has been selected.</string>
     <string name="illegal_state_error_fetching_asset_lists">Failed to retrieve asset lists.</string>
     <string name="illegal_state_downloads_did_not_complete_successfully">Downloads have failed due to: %1$s.</string>
-    <string name="illegal_state_failed_to_copy_assets_to_local">Failed to copy assets to local storage.</string>
-    <string name="illegal_state_failed_to_copy_assets_to_filesystem">Failed to copy assets to filesystem.</string>
-    <string name="illegal_state_failed_to_extract_filesystem">Failed to extract filesystem.</string>
-    <string name="illegal_state_filesystem_is_missing_assets">Filesystem is missing assets. Try clearing support files.</string>
+    <string name="illegal_state_failed_to_copy_assets_to_local">Failed to copy assets to local storage. Try clearing support files.</string>
+    <string name="illegal_state_assets_have_not_been_downloaded">Assets need to be copied to your filesystem, but it looks like they have not been downloaded. Try clearing support files.</string>
+    <string name="illegal_state_failed_to_copy_assets_to_filesystem">Failed to copy assets to filesystem. Try clearing support files.</string>
+    <string name="illegal_state_failed_to_extract_filesystem">Failed to extract filesystem. Try clearing support files.</string>
     <string name="illegal_state_failed_to_clear_support_files">Failed to clear support files.</string>
 
     <!-- Misc illegal state -->
