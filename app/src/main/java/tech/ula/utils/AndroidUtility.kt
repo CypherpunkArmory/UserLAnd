@@ -73,19 +73,6 @@ class DefaultPreferences(private val prefs: SharedPreferences) {
     }
 }
 
-class TimestampPreferences(private val prefs: SharedPreferences) {
-    fun getSavedTimestampForFile(assetConcatenatedName: String): Long {
-        return prefs.getLong(assetConcatenatedName, 0)
-    }
-
-    fun setSavedTimestampForFileToNow(assetConcatenatedName: String) {
-        with(prefs.edit()) {
-            putLong(assetConcatenatedName, currentTimeSeconds())
-            apply()
-        }
-    }
-}
-
 class AssetPreferences(private val prefs: SharedPreferences) {
     private fun String.addTimestampPrefix(): String {
         return "timestamp-" + this
@@ -95,9 +82,9 @@ class AssetPreferences(private val prefs: SharedPreferences) {
         return prefs.getLong(asset.concatenatedName.addTimestampPrefix(), -1)
     }
 
-    fun setLastUpdatedTimestampForAsset(asset: Asset, currentTimeMillis: Long) {
+    fun setLastUpdatedTimestampForAssetUsingConcatenatedName(assetConcatenatedName: String, currentTimeSeconds: Long) {
         with(prefs.edit()) {
-            putLong(asset.concatenatedName.addTimestampPrefix(), currentTimeMillis)
+            putLong(assetConcatenatedName.addTimestampPrefix(), currentTimeSeconds)
             apply()
         }
     }
@@ -381,6 +368,10 @@ class LocalFileLocator(private val applicationFilesDir: String, private val reso
 class TimeUtility {
     fun getCurrentTimeMillis(): Long {
         return System.currentTimeMillis()
+    }
+
+    fun getCurrentTimeSeconds(): Long {
+        return currentTimeSeconds()
     }
 }
 

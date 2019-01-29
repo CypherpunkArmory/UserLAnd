@@ -4,9 +4,10 @@ import tech.ula.model.entities.Asset
 import java.io.File
 
 class DownloadUtility(
-    private val timestampPreferences: TimestampPreferences,
+    private val assetPreferences: AssetPreferences,
     private val downloadManagerWrapper: DownloadManagerWrapper,
-    private val applicationFilesDir: File
+    private val applicationFilesDir: File,
+    private val timeUtility: TimeUtility = TimeUtility()
 ) {
 
     private val downloadDirectory = downloadManagerWrapper.getDownloadsDirectory()
@@ -66,7 +67,8 @@ class DownloadUtility(
         val titleName = downloadManagerWrapper.getDownloadTitle(id)
         if (!titleName.containsUserland()) return
         // Title should be asset.concatenatedName
-        timestampPreferences.setSavedTimestampForFileToNow(titleName)
+        val currentTimeSeconds = timeUtility.getCurrentTimeSeconds() // TODO test
+        assetPreferences.setLastUpdatedTimestampForAssetUsingConcatenatedName(titleName, currentTimeSeconds)
     }
 
     @Throws(Exception::class)
