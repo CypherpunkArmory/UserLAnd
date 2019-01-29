@@ -232,7 +232,6 @@ class SessionStartupFsm(
                 state.postValue(FilesystemAssetCopyFailed)
             }
 
-            val filesystemDirectoryName = "${filesystem.id}"
             if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
                 filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
             }
