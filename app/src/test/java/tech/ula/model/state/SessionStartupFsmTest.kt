@@ -489,6 +489,8 @@ class SessionStartupFsmTest {
                 .thenReturn(false)
         whenever(mockAssetRepository.assetsArePresentInSupportDirectories(singleAssetList))
                 .thenReturn(true)
+        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
+                .thenReturn(false)
 
         val filesystemUpdateTime = 5L
         val updateTimeIsGreaterThanLastFilesystemUpdate = filesystem.lastUpdated + 1
@@ -501,8 +503,39 @@ class SessionStartupFsmTest {
         val updatedFilesystem = filesystem
         updatedFilesystem.lastUpdated = filesystemUpdateTime
         verify(mockFilesystemUtility).copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType)
-        verify(mockFilesystemUtility).removeRootfsFilesFromFilesystem("${filesystem.id}")
         verify(mockFilesystemDao).updateFilesystem(updatedFilesystem)
+        verify(mockFilesystemUtility, never()).removeRootfsFilesFromFilesystem("${filesystem.id}")
+        verify(mockStateObserver).onChanged(VerifyingFilesystemAssets)
+        verify(mockStateObserver).onChanged(FilesystemAssetVerificationSucceeded)
+    }
+
+    @Test
+    fun `Removes rootfs files if the filesystem has already been extracted when updating assets`() {
+        sessionFsm.setState(LocalDirectoryCopySucceeded)
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockAssetRepository.getDistributionAssetsForExistingFilesystem(filesystem))
+                .thenReturn(singleAssetList)
+        whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", singleAssetList))
+                .thenReturn(false)
+        whenever(mockAssetRepository.assetsArePresentInSupportDirectories(singleAssetList))
+                .thenReturn(true)
+        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
+                .thenReturn(true)
+
+        val filesystemUpdateTime = 5L
+        val updateTimeIsGreaterThanLastFilesystemUpdate = filesystem.lastUpdated + 1
+        whenever(mockTimeUtility.getCurrentTimeMillis()).thenReturn(filesystemUpdateTime)
+        whenever(mockAssetRepository.getLastDistributionUpdate(filesystem.distributionType))
+                .thenReturn(updateTimeIsGreaterThanLastFilesystemUpdate)
+
+        runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem), this) }
+
+        val updatedFilesystem = filesystem
+        updatedFilesystem.lastUpdated = filesystemUpdateTime
+        verify(mockFilesystemUtility).copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType)
+        verify(mockFilesystemDao).updateFilesystem(updatedFilesystem)
+        verify(mockFilesystemUtility).removeRootfsFilesFromFilesystem("${filesystem.id}")
         verify(mockStateObserver).onChanged(VerifyingFilesystemAssets)
         verify(mockStateObserver).onChanged(FilesystemAssetVerificationSucceeded)
     }

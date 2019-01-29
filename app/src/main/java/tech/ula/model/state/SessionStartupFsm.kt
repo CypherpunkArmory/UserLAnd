@@ -226,11 +226,15 @@ class SessionStartupFsm(
 
             try {
                 filesystemUtility.copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType)
-                filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
                 filesystem.lastUpdated = timeUtility.getCurrentTimeMillis()
                 filesystemDao.updateFilesystem(filesystem)
             } catch (err: Exception) {
                 state.postValue(FilesystemAssetCopyFailed)
+            }
+
+            val filesystemDirectoryName = "${filesystem.id}"
+            if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
+                filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
             }
         }
 
