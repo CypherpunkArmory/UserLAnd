@@ -306,9 +306,6 @@ class MainActivityViewModel(
             is FilesystemAssetCopyFailed -> {
                 state.postValue(FailedToCopyAssetsToFilesystem)
             }
-            is FilesystemAssetVerificationFailed -> {
-                state.postValue(FilesystemIsMissingAssets)
-            }
             is ExtractingFilesystem -> {
                 state.postValue(FilesystemExtraction(newState.extractionTarget))
             }
@@ -374,7 +371,6 @@ object FailedToCopyAssetsToLocalStorage : IllegalState()
 object AssetsHaveNotBeenDownloaded : IllegalState()
 object FailedToCopyAssetsToFilesystem : IllegalState()
 object FailedToExtractFilesystem : IllegalState()
-object FilesystemIsMissingAssets : IllegalState()
 object FailedToClearSupportFiles : IllegalState()
 
 sealed class UserInputRequiredState : State()
