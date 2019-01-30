@@ -1,7 +1,15 @@
 package tech.ula.utils
 
 import tech.ula.model.entities.Asset
+import tech.ula.model.state.DownloadingRequirements
+import tech.ula.model.state.DownloadsHaveFailed
 import java.io.File
+
+sealed class AssetDownloadResult
+object NonUserlandDownload : AssetDownloadResult()
+object AllDownloadsCompletedSuccessfully : AssetDownloadResult()
+data class DownloadCompletedSuccessfully(val numCompleted: Int, val numTotal: Int) : AssetDownloadResult()
+data class AssetDownloadFailure(val reason: String) : AssetDownloadResult()
 
 class DownloadUtility(
     private val assetPreferences: AssetPreferences,
@@ -13,16 +21,56 @@ class DownloadUtility(
     private val downloadDirectory = downloadManagerWrapper.getDownloadsDirectory()
     private val userlandDownloadPrefix = "UserLAnd-"
 
+    private val enqueuedDownloadIds = mutableListOf<Long>()
+    private val completedDownloadIds = mutableListOf<Long>()
+
     private fun String.containsUserland(): Boolean {
         return this.toLowerCase().contains(userlandDownloadPrefix.toLowerCase())
     }
 
-    fun downloadRequirements(assetList: List<Asset>): List<Long> {
-        clearPreviousDownloadsFromDownloadsDirectory()
-        return assetList.map { download(it) }
+    fun checkCachedState() {
+        if (assetPreferences.getDownloadsAreInProgress()) {
+            enqueuedDownloadIds.addAll(assetPreferences.getEnqueuedDownloads())
+            completedDownloadIds.addAll(findCompletedDownloadsInDownloadsDirectory())
+        }
     }
 
-    fun downloadIsForUserland(id: Long): Boolean {
+    fun downloadRequirements(assetList: List<Asset>) {
+        clearPreviousDownloadsFromDownloadsDirectory()
+        assetPreferences.clearEnqueuedDownloadsCache()
+
+        // TODO test
+        enqueuedDownloadIds.addAll(assetList.map { download(it) })
+        assetPreferences.setDownloadsAreInProgress(inProgress = true)
+        assetPreferences.setEnqueuedDownloads(enqueuedDownloadIds)
+    }
+
+    fun handleDownloadComplete(downloadId: Long): AssetDownloadResult {
+        if(!downloadIsForUserland(downloadId)) return NonUserlandDownload
+
+        if (!downloadedSuccessfully(downloadId)) {
+            val reason = getReasonForDownloadFailure(downloadId)
+            return AssetDownloadFailure(reason)
+        }
+
+        completedDownloadIds.add(downloadId)
+        setTimestampForDownloadedFile(downloadId)
+        if (completedDownloadIds.size != enqueuedDownloadIds.size) {
+            return DownloadCompletedSuccessfully(completedDownloadIds.size, enqueuedDownloadIds.size)
+        }
+
+        enqueuedDownloadIds.sort()
+        completedDownloadIds.sort()
+        if (enqueuedDownloadIds != completedDownloadIds) {
+            return AssetDownloadFailure("Tried to finish download process with items we did not enqueue.")
+        }
+
+        assetPreferences.setDownloadsAreInProgress(inProgress = false)
+        assetPreferences.clearEnqueuedDownloadsCache()
+        return AllDownloadsCompletedSuccessfully
+    }
+
+    private fun downloadIsForUserland(id: Long): Boolean {
         val downloadTitle = downloadManagerWrapper.getDownloadTitle(id)
         return downloadTitle.containsUserland()
     }
@@ -33,6 +81,11 @@ class DownloadUtility(
 
     fun getReasonForDownloadFailure(id: Long): String {
         return downloadManagerWrapper.getDownloadFailureReason(id)
+    }
+
+    private fun findCompletedDownloadsInDownloadsDirectory(): List<Long> {
+        // TODO use enqueued downloads to find titles and determine if they've finished successfully, adding those to completed downloads
+        // TODO think about what happens if downloads are in progress, or complete while this setup is happening
     }
 
     private fun download(asset: Asset): Long {
@@ -49,9 +102,12 @@ class DownloadUtility(
     }
 
     private fun clearPreviousDownloadsFromDownloadsDirectory() {
-        for (file in downloadDirectory.listFiles()) {
-            if (file.name.containsUserland()) {
-                file.delete()
+        val downloadDirectoryFiles = downloadDirectory.listFiles()
+        downloadDirectoryFiles?.let {
+            for (file in downloadDirectoryFiles) {
+                if (file.name.containsUserland()) {
+                    file.delete()
+                }
             }
         }
     }

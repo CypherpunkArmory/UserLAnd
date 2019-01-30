@@ -11,10 +11,7 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.utils.CrashlyticsWrapper
-import tech.ula.utils.DownloadUtility
-import tech.ula.utils.FilesystemUtility
-import tech.ula.utils.TimeUtility
+import tech.ula.utils.*
 
 class SessionStartupFsm(
     ulaDatabase: UlaDatabase,
@@ -35,14 +32,12 @@ class SessionStartupFsm(
     private val filesystemsLiveData = filesystemDao.getAllFilesystems()
     private val filesystems = mutableListOf<Filesystem>()
 
-    private val downloadingIds = mutableListOf<Long>()
-    private val downloadedIds = mutableListOf<Long>()
-
     private val extractionLogger: (String) -> Unit = { line ->
         state.postValue(ExtractingFilesystem(line))
     }
 
     init {
+        downloadUtility.checkCachedState()
         activeSessionsLiveData.observeForever {
             it?.let { list ->
                 activeSessions.clear()
@@ -77,7 +72,7 @@ class SessionStartupFsm(
             is RetrieveAssetLists -> currentState is SessionIsReadyForPreparation
             is GenerateDownloads -> currentState is AssetListsRetrievalSucceeded
             is DownloadAssets -> currentState is DownloadsRequired
-            is AssetDownloadComplete -> currentState is DownloadingRequirements
+            is AssetDownloadComplete -> true // Assets could come in at any time due to app destruction
             is CopyDownloadsToLocalStorage -> currentState is DownloadsHaveSucceeded
             is VerifyFilesystemAssets -> currentState is NoDownloadsRequired || currentState is LocalDirectoryCopySucceeded
             is ExtractFilesystem -> currentState is FilesystemAssetVerificationSucceeded
@@ -164,40 +159,22 @@ class SessionStartupFsm(
     }
 
     private fun handleDownloadAssets(assetsToDownload: List<Asset>) {
-        downloadingIds.clear()
-        downloadedIds.clear()
-
         // If the state isn't updated first, AssetDownloadComplete events will be submitted before
         // the transition is acceptable.
         state.postValue(DownloadingRequirements(0, assetsToDownload.size))
-        val newDownloads = downloadUtility.downloadRequirements(assetsToDownload)
-        downloadingIds.addAll(newDownloads)
+        downloadUtility.downloadRequirements(assetsToDownload)
     }
 
     private fun handleAssetsDownloadComplete(downloadId: Long) {
-        if(!downloadUtility.downloadIsForUserland(downloadId)) return
-
-        if (!downloadUtility.downloadedSuccessfully(downloadId)) {
-            val reason = downloadUtility.getReasonForDownloadFailure(downloadId)
-            state.postValue(DownloadsHaveFailed(reason))
-            return
+        val result = downloadUtility.handleDownloadComplete(downloadId)
+        return when (result) {
+            is NonUserlandDownload -> {}
+            is AllDownloadsCompletedSuccessfully -> { state.postValue(DownloadsHaveSucceeded) }
+            is DownloadCompletedSuccessfully -> {
+                state.postValue(DownloadingRequirements(result.numCompleted, result.numTotal))
+            }
+            is AssetDownloadFailure -> { state.postValue(DownloadsHaveFailed(result.reason)) }
         }
-
-        downloadedIds.add(downloadId)
-        downloadUtility.setTimestampForDownloadedFile(downloadId)
-        if (downloadingIds.size != downloadedIds.size) {
-            state.postValue(DownloadingRequirements(downloadedIds.size, downloadingIds.size))
-            return
-        }
-
-        downloadedIds.sort()
-        downloadingIds.sort()
-        if (downloadedIds != downloadingIds) {
-            state.postValue(DownloadsHaveFailed("Downloads completed with non-enqueued downloads"))
-            return
-        }
-
-        state.postValue(DownloadsHaveSucceeded)
     }
 
     private suspend fun handleCopyDownloadsToLocalDirectories(filesystem: Filesystem) = withContext(Dispatchers.IO) {
