@@ -85,6 +85,7 @@ class ServerUtility(
         val command = "../support/execInProot.sh /bin/bash -c '/support/startXSDLServer.sh'"
         return try {
             val env = HashMap<String, String>()
+            env["INITIAL_USERNAME"] = session.username
             env["DISPLAY"] = ":4721"
             env["PULSE_SERVER"] = "127.0.0.1:4721"
             val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, doWait = false, environmentVars = env)
