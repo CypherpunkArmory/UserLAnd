@@ -40,7 +40,7 @@ class ServerUtility(
         return when (session.serviceType) {
             "ssh" -> startSSHServer(session)
             "vnc" -> startVNCServer(session)
-            "xsdl" -> startXSDLServer(session)
+            "xsdl" -> setDisplayNumberAndStartTwm(session)
             else -> 0
         }
     }
@@ -79,7 +79,7 @@ class ServerUtility(
         }
     }
 
-    private fun startXSDLServer(session: Session): Long {
+    private fun setDisplayNumberAndStartTwm(session: Session): Long {
         val targetDirectoryName = session.filesystemId.toString()
         deletePidFile(session)
         val command = "../support/execInProot.sh /bin/bash -c '/support/startXSDLServer.sh'"
