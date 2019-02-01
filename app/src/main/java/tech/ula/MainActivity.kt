@@ -235,7 +235,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val details = ""
         updateProgressBar(step, details)
 
-        if (session.serviceType == "xsdl" && Build.VERSION.SDK_INT < 27) {
+        if (session.serviceType == "xsdl" && Build.VERSION.SDK_INT >= 27) {
             session.serviceType = "vnc"
             startSession(session)
         } else if (session.serviceType == "xsdl") {
