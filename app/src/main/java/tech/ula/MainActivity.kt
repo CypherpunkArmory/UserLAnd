@@ -52,6 +52,7 @@ import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import java.lang.IllegalStateException
 import com.crashlytics.android.Crashlytics
 import io.fabric.sdk.android.Fabric
+import kotlinx.android.synthetic.main.dia_app_select_client.*
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection {
 
@@ -220,7 +221,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         Crashlytics.setString("Last observed state from viewmodel", "$newState")
         return when (newState) {
             is CanOnlyStartSingleSession -> { showToast(R.string.single_session_supported) }
-            is SessionCanBeStarted -> { startSession(newState.session) }
+            is SessionCanBeStarted -> { prepareSessionForStart(newState.session) }
             is SessionCanBeRestarted -> { restartRunningSession(newState.session) }
             is IllegalState -> { handleIllegalState(newState) }
             is UserInputRequiredState -> { handleUserInputState(newState) }
@@ -228,15 +229,49 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         }
     }
 
-    private fun startSession(session: Session) {
+    private fun prepareSessionForStart(session: Session) {
         val step = getString(R.string.progress_starting)
         val details = ""
         updateProgressBar(step, details)
 
+        if (session.serviceType == "xsdl") {
+            viewModel.lastSelectedSession = session
+            setXsdlDisplay()
+        } else {
+            startSession(session)
+        }
+    }
+
+    private fun startSession(session: Session) {
         val serviceIntent = Intent(this, ServerService::class.java)
                 .putExtra("type", "start")
                 .putExtra("session", session)
         startService(serviceIntent)
+    }
+
+    private fun setXsdlDisplay() {
+        try {
+            val i = Intent(Intent.ACTION_MAIN, Uri.parse("x11://give.me.display:4721"))
+            startActivityForResult(i, 1)
+        } catch (e: Exception) {
+            val appPackageName = "x.org.server"
+            try {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName")))
+            } catch (error: android.content.ActivityNotFoundException) {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$appPackageName")))
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (data != null) {
+            val session = viewModel.lastSelectedSession
+            val result = data.getStringExtra("run")
+            if (session.serviceType == "xsdl" && result.isNotEmpty()) {
+                startSession(session)
+            }
+        }
     }
 
     private fun restartRunningSession(session: Session) {
