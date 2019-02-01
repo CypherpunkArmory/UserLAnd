@@ -166,7 +166,7 @@ class MainActivityViewModel(
             return
         }
         if (!appsPreparationRequirementsHaveBeenSelected()) {
-            state.postValue(NoAppSelectedWhenPreparationStarted)
+            state.postValue(NoAppSelectedWhenTransitionNecessary)
             return
         }
         // Return when statement for compile-time exhaustiveness check
@@ -208,6 +208,7 @@ class MainActivityViewModel(
         }
     }
 
+    // Post state values and delegate responsibility appropriately
     private fun handleSessionPreparationState(newState: SessionStartupState) {
         // Update stateful variables before handling the update so they can be used during it
         if (newState !is WaitingForSessionSelection) {
@@ -215,7 +216,9 @@ class MainActivityViewModel(
         }
         // Return for compile-time exhaustiveness check
         return when (newState) {
-            is IncorrectSessionTransition -> TODO()
+            is IncorrectSessionTransition -> {
+                state.postValue(IllegalStateTransition("$newState"))
+            }
             is WaitingForSessionSelection -> {
                 sessionsAreWaitingForSelection = true
             }
@@ -230,51 +233,46 @@ class MainActivityViewModel(
             is SessionIsReadyForPreparation -> {
                 lastSelectedSession = newState.session
                 lastSelectedFilesystem = newState.filesystem
+                state.postValue(StartingSetup)
+                doTransitionIfRequirementsAreSelected {
+                    submitSessionStartupEvent(RetrieveAssetLists(lastSelectedFilesystem))
+                }
             }
-            is AssetRetrievalState -> TODO()
-            is DownloadRequirementsGenerationState -> TODO()
-            is DownloadingAssetsState -> TODO()
-            is CopyingFilesLocallyState -> TODO()
-            is AssetVerificationState -> TODO()
-            is ExtractionState -> TODO()
+            is AssetRetrievalState -> {
+                handleAssetRetrievalState(newState)
+            }
+            is DownloadRequirementsGenerationState -> {
+                handleDownloadRequirementsGenerationState(newState)
+            }
+            is DownloadingAssetsState -> {
+                handleDownloadingAssetsState(newState)
+            }
+            is CopyingFilesLocallyState -> {
+                handleCopyingFilesLocallyState(newState)
+            }
+            is AssetVerificationState -> {
+                handleAssetVerificationState(newState)
+            }
+            is ExtractionState -> {
+                handleExtractionState(newState)
+            }
 
         }
     }
 
-    private fun handleSessionPreparationStateThatRequiresSelections(newState: SessionStartupState) {
-        // Exit early if we aren't expecting preparation requirements to have been met
-        if (newState is WaitingForSessionSelection || newState is SingleSessionSupported ||
-                newState is SessionIsRestartable) {
-            return
-        }
-        if (!sessionPreparationRequirementsHaveBeenSelected()) {
-            state.postValue(NoSessionSelectedWhenPreparationStarted)
-            return
-        }
-        // Return when statement for compile-time exhaustiveness check
+    private fun handleAssetRetrievalState(newState: AssetRetrievalState) {
         return when (newState) {
-            is IncorrectSessionTransition -> {
-                state.postValue(IllegalStateTransition("$newState"))
-            }
-            is WaitingForSessionSelection -> {}
-            is SingleSessionSupported -> {}
-            is SessionIsRestartable -> {}
-            is SessionIsReadyForPreparation -> {
-                state.postValue(StartingSetup)
-                submitSessionStartupEvent(RetrieveAssetLists(lastSelectedFilesystem))
-            }
-            is RetrievingAssetLists -> {
-                state.postValue(FetchingAssetLists)
-            }
-            is AssetListsRetrievalSucceeded -> {
-                submitSessionStartupEvent(GenerateDownloads(lastSelectedFilesystem, newState.assetLists))
-            }
-            is AssetListsRetrievalFailed -> {
-                state.postValue(ErrorFetchingAssetLists)
-            }
-            is GeneratingDownloadRequirements -> {
-                state.postValue(CheckingForAssetsUpdates)
-            }
+            is RetrievingAssetLists -> state.postValue(FetchingAssetLists)
+            is AssetListsRetrievalSucceeded -> { doTransitionIfRequirementsAreSelected {
+                    submitSessionStartupEvent(GenerateDownloads(lastSelectedFilesystem, newState.assetLists))
+            } }
+            is AssetListsRetrievalFailed -> state.postValue(ErrorFetchingAssetLists)
+        }
+    }
+
+    private fun handleDownloadRequirementsGenerationState(newState: DownloadRequirementsGenerationState) {
+        return when (newState) {
+            is GeneratingDownloadRequirements -> state.postValue(CheckingForAssetsUpdates)
             is DownloadsRequired -> {
                 if (newState.largeDownloadRequired) {
                     state.postValue(LargeDownloadRequired(newState.requiredDownloads))
@@ -282,49 +280,57 @@ class MainActivityViewModel(
                     startAssetDownloads(newState.requiredDownloads)
                 }
             }
-            is NoDownloadsRequired -> {
-                submitSessionStartupEvent(VerifyFilesystemAssets(lastSelectedFilesystem))
-            }
-            is DownloadingRequirements -> {
-                state.postValue(DownloadProgress(newState.numCompleted, newState.numTotal))
-            }
+            is NoDownloadsRequired -> { doTransitionIfRequirementsAreSelected {
+                    submitSessionStartupEvent(VerifyFilesystemAssets(lastSelectedFilesystem))
+            } }
+        }
+    }
+
+    private fun handleDownloadingAssetsState(newState: DownloadingAssetsState) {
+        return when (newState) {
+            is DownloadingAssets -> state.postValue(DownloadProgress(newState.numCompleted, newState.numTotal))
             is DownloadsHaveSucceeded -> {
-                submitSessionStartupEvent(CopyDownloadsToLocalStorage(lastSelectedFilesystem))
+                if (sessionPreparationRequirementsHaveBeenSelected()) {
+                    submitSessionStartupEvent(CopyDownloadsToLocalStorage(lastSelectedFilesystem))
+                }
+                else {
+                    resetStartupState()
+                }
             }
-            is DownloadsHaveFailed -> {
-                state.postValue(DownloadsDidNotCompleteSuccessfully(newState.reason))
-            }
-            is CopyingFilesToLocalDirectories -> {
-                state.postValue(CopyingDownloads)
-            }
-            is LocalDirectoryCopySucceeded -> {
+            is DownloadsHaveFailed -> state.postValue(DownloadsDidNotCompleteSuccessfully(newState.reason))
+        }
+    }
+
+    private fun handleCopyingFilesLocallyState(newState: CopyingFilesLocallyState) {
+        return when (newState) {
+            is CopyingFilesToLocalDirectories -> state.postValue(CopyingDownloads)
+            is LocalDirectoryCopySucceeded -> { doTransitionIfRequirementsAreSelected {
                 submitSessionStartupEvent(VerifyFilesystemAssets(lastSelectedFilesystem))
-            }
-            is LocalDirectoryCopyFailed -> {
-                state.postValue(FailedToCopyAssetsToLocalStorage)
-            }
-            is VerifyingFilesystemAssets -> {
-                state.postValue(VerifyingFilesystem)
-            }
-            is FilesystemAssetVerificationSucceeded -> {
-                submitSessionStartupEvent(ExtractFilesystem(lastSelectedFilesystem))
-            }
-            is AssetsAreMissingFromSupportDirectories -> {
-                state.postValue(AssetsHaveNotBeenDownloaded)
-            }
-            is FilesystemAssetCopyFailed -> {
-                state.postValue(FailedToCopyAssetsToFilesystem)
-            }
-            is ExtractingFilesystem -> {
-                state.postValue(FilesystemExtraction(newState.extractionTarget))
-            }
-            is ExtractionHasCompletedSuccessfully -> {
+            } }
+            is LocalDirectoryCopyFailed -> state.postValue(FailedToCopyAssetsToLocalStorage)
+        }
+    }
+
+    private fun handleAssetVerificationState(newState: AssetVerificationState) {
+        return when (newState) {
+            is VerifyingFilesystemAssets -> state.postValue(VerifyingFilesystem)
+            is FilesystemAssetVerificationSucceeded -> { doTransitionIfRequirementsAreSelected {
+                    submitSessionStartupEvent(ExtractFilesystem(lastSelectedFilesystem))
+
+            } }
+            is AssetsAreMissingFromSupportDirectories -> state.postValue(AssetsHaveNotBeenDownloaded)
+            is FilesystemAssetCopyFailed -> state.postValue(FailedToCopyAssetsToFilesystem)
+        }
+    }
+
+    private fun handleExtractionState(newState: ExtractionState) {
+        return when (newState) {
+            is ExtractingFilesystem -> state.postValue(FilesystemExtractionStep(newState.extractionTarget))
+            is ExtractionHasCompletedSuccessfully -> { doTransitionIfRequirementsAreSelected {
                 state.postValue(SessionCanBeStarted(lastSelectedSession))
                 resetStartupState()
-            }
-            is ExtractionFailed -> {
-                state.postValue(FailedToExtractFilesystem)
-            }
+            } }
+            is ExtractionFailed -> state.postValue(FailedToExtractFilesystem)
         }
     }
 
@@ -342,6 +348,14 @@ class MainActivityViewModel(
 
     private fun appsPreparationRequirementsHaveBeenSelected(): Boolean {
         return lastSelectedApp != unselectedApp && sessionPreparationRequirementsHaveBeenSelected()
+    }
+
+    private fun doTransitionIfRequirementsAreSelected(transition: () -> Unit) {
+        if (!sessionPreparationRequirementsHaveBeenSelected()) {
+            state.postValue(NoSessionSelectedWhenTransitionNecessary)
+            return
+        }
+        transition()
     }
 
     private fun sessionPreparationRequirementsHaveBeenSelected(): Boolean {
@@ -370,10 +384,10 @@ object TooManySelectionsMadeWhenPermissionsGranted : IllegalState()
 object NoSelectionsMadeWhenPermissionsGranted : IllegalState()
 object NoFilesystemSelectedWhenCredentialsSubmitted : IllegalState()
 object NoAppSelectedWhenPreferenceSubmitted : IllegalState()
-object NoAppSelectedWhenPreparationStarted : IllegalState()
+object NoAppSelectedWhenTransitionNecessary : IllegalState()
 object ErrorFetchingAppDatabaseEntries : IllegalState()
 object ErrorCopyingAppScript : IllegalState()
-object NoSessionSelectedWhenPreparationStarted : IllegalState()
+object NoSessionSelectedWhenTransitionNecessary : IllegalState()
 object ErrorFetchingAssetLists : IllegalState()
 data class DownloadsDidNotCompleteSuccessfully(val reason: String) : IllegalState()
 object FailedToCopyAssetsToLocalStorage : IllegalState()
@@ -394,8 +408,8 @@ object FetchingAssetLists : ProgressBarUpdateState()
 object CheckingForAssetsUpdates : ProgressBarUpdateState()
 data class DownloadProgress(val numComplete: Int, val numTotal: Int) : ProgressBarUpdateState()
 object CopyingDownloads : ProgressBarUpdateState()
-data class FilesystemExtraction(val extractionTarget: String) : ProgressBarUpdateState()
 object VerifyingFilesystem : ProgressBarUpdateState()
+data class FilesystemExtractionStep(val extractionTarget: String) : ProgressBarUpdateState()
 object ClearingSupportFiles : ProgressBarUpdateState()
 object ProgressBarOperationComplete : ProgressBarUpdateState()
 
