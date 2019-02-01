@@ -83,5 +83,18 @@
 
         </RadioGroup>
 
+        <TextView
+            android:id="@+id/text_xsdl_version_supported_description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/info_xsdl_support"
+            android:visibility="invisible"
+            android:textAlignment="center"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="32dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/apps_service_type_preferences" />
+
     </android.support.constraint.ConstraintLayout>
 </ScrollView>

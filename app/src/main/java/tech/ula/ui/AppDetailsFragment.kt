@@ -2,12 +2,16 @@ package tech.ula.ui
 
 import android.app.Activity
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.RadioButton
+import android.widget.TextView
 import kotlinx.android.synthetic.main.frag_app_details.*
+import org.jetbrains.anko.find
 import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.utils.AppsPreferences
@@ -51,6 +55,15 @@ class AppDetailsFragment : Fragment() {
             apps_vnc_preference.isEnabled = false
             apps_ssh_preference.isEnabled = false
             return
+        }
+
+        val xsdlPreferenceButton = view.find<RadioButton>(R.id.apps_xsdl_preference)
+        if (Build.VERSION.SDK_INT >= 27) {
+            xsdlPreferenceButton.isEnabled = false
+            xsdlPreferenceButton.alpha = 0.5f
+
+            val xsdlSupportedText = view.find<TextView>(R.id.text_xsdl_version_supported_description)
+            xsdlSupportedText.visibility = View.VISIBLE
         }
     }
 
