@@ -111,6 +111,8 @@ class ServerUtility(
         val targetDirectoryName = session.filesystemId.toString()
         val command = "../support/isServerInProcTree.sh ${session.pid()}"
         try {
+            if (session.serviceType == "xsdl")
+                return true
             val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command)
             if (process.exitValue() != 0) // isServerInProcTree returns a 1 if it didn't find a server
                 return false
