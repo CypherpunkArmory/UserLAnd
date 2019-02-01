@@ -26,6 +26,7 @@ import android.view.View
 import android.view.animation.AlphaAnimation
 import android.widget.EditText
 import android.widget.RadioButton
+import android.widget.TextView
 import android.widget.Toast
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
@@ -597,11 +598,20 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val customDialog = dialog.create()
 
         customDialog.setOnShowListener {
+            val sshTypePreference = customDialog.find<RadioButton>(R.id.ssh_radio_button)
+            val vncTypePreference = customDialog.find<RadioButton>(R.id.vnc_radio_button)
+            val xsdlTypePreference = customDialog.find<RadioButton>(R.id.xsdl_radio_button)
+
+            if (Build.VERSION.SDK_INT >= 27) {
+                xsdlTypePreference.isEnabled = false
+                xsdlTypePreference.alpha = 0.5f
+
+                val xsdlSupportedText = customDialog.findViewById<TextView>(R.id.text_xsdl_version_supported_description)
+                xsdlSupportedText.visibility = View.VISIBLE
+            }
+
             customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 customDialog.dismiss()
-                val sshTypePreference = customDialog.find<RadioButton>(R.id.ssh_radio_button)
-                val vncTypePreference = customDialog.find<RadioButton>(R.id.vnc_radio_button)
-                val xsdlTypePreference = customDialog.find<RadioButton>(R.id.xsdl_radio_button)
                 val selectedPreference = when {
                     sshTypePreference.isChecked -> SshTypePreference
                     vncTypePreference.isChecked -> VncTypePreference
