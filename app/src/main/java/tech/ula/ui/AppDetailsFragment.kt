@@ -51,11 +51,11 @@ class AppDetailsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        if (!(app.supportsGui && app.supportsCli)) {
+        if (!app.supportsGui) {
             apps_vnc_preference.isEnabled = false
+            apps_xsdl_preference.isEnabled = false
+        } else if (!app.supportsCli && app.supportsGui)
             apps_ssh_preference.isEnabled = false
-            return
-        }
 
         val xsdlPreferenceButton = view.find<RadioButton>(R.id.apps_xsdl_preference)
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
