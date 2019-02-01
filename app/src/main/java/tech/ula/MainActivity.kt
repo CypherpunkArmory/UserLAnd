@@ -104,16 +104,15 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private val viewModel: MainActivityViewModel by lazy {
         val ulaDatabase = UlaDatabase.getInstance(this)
 
-        val timestampPreferences = TimestampPreferences(this.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE))
         val assetPreferences = AssetPreferences(this.getSharedPreferences("assetLists", Context.MODE_PRIVATE))
-        val assetRepository = AssetRepository(filesDir.path, timestampPreferences, assetPreferences)
+        val assetRepository = AssetRepository(filesDir.path, assetPreferences)
 
         val execUtility = ExecUtility(filesDir.path, Environment.getExternalStorageDirectory().absolutePath, DefaultPreferences(defaultSharedPreferences))
         val filesystemUtility = FilesystemUtility(filesDir.path, execUtility)
 
         val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val downloadManagerWrapper = DownloadManagerWrapper(downloadManager)
-        val downloadUtility = DownloadUtility(timestampPreferences, downloadManagerWrapper, filesDir)
+        val downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, filesDir)
 
         val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
 

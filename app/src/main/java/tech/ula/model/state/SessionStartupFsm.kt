@@ -37,7 +37,10 @@ class SessionStartupFsm(
     }
 
     init {
-        downloadUtility.checkCachedState()
+        if (downloadUtility.downloadStateHasBeenCached()) {
+            state.postValue(DownloadingRequirements(0, 0)) // Reset state so events can be submitted
+            handleAssetDownloadState(downloadUtility.syncStateWithCache())
+        }
         activeSessionsLiveData.observeForever {
             it?.let { list ->
                 activeSessions.clear()
@@ -72,7 +75,7 @@ class SessionStartupFsm(
             is RetrieveAssetLists -> currentState is SessionIsReadyForPreparation
             is GenerateDownloads -> currentState is AssetListsRetrievalSucceeded
             is DownloadAssets -> currentState is DownloadsRequired
-            is AssetDownloadComplete -> true // Assets could come in at any time due to app destruction
+            is AssetDownloadComplete -> currentState is DownloadingRequirements
             is CopyDownloadsToLocalStorage -> currentState is DownloadsHaveSucceeded
             is VerifyFilesystemAssets -> currentState is NoDownloadsRequired || currentState is LocalDirectoryCopySucceeded
             is ExtractFilesystem -> currentState is FilesystemAssetVerificationSucceeded
@@ -167,13 +170,17 @@ class SessionStartupFsm(
 
     private fun handleAssetsDownloadComplete(downloadId: Long) {
         val result = downloadUtility.handleDownloadComplete(downloadId)
-        return when (result) {
-            is NonUserlandDownload -> {}
+        handleAssetDownloadState(result)
+    }
+
+    private fun handleAssetDownloadState(assetDownloadState: AssetDownloadState) {
+        return when (assetDownloadState) {
+            is NonUserlandDownloadFound -> {}
             is AllDownloadsCompletedSuccessfully -> { state.postValue(DownloadsHaveSucceeded) }
-            is DownloadCompletedSuccessfully -> {
-                state.postValue(DownloadingRequirements(result.numCompleted, result.numTotal))
+            is CompletedDownloadsUpdate -> {
+                state.postValue(DownloadingRequirements(assetDownloadState.numCompleted, assetDownloadState.numTotal))
             }
-            is AssetDownloadFailure -> { state.postValue(DownloadsHaveFailed(result.reason)) }
+            is AssetDownloadFailure -> { state.postValue(DownloadsHaveFailed(assetDownloadState.reason)) }
         }
     }
 

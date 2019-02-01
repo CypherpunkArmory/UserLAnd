@@ -1,15 +1,13 @@
 package tech.ula.utils
 
 import tech.ula.model.entities.Asset
-import tech.ula.model.state.DownloadingRequirements
-import tech.ula.model.state.DownloadsHaveFailed
 import java.io.File
 
-sealed class AssetDownloadResult
-object NonUserlandDownload : AssetDownloadResult()
-object AllDownloadsCompletedSuccessfully : AssetDownloadResult()
-data class DownloadCompletedSuccessfully(val numCompleted: Int, val numTotal: Int) : AssetDownloadResult()
-data class AssetDownloadFailure(val reason: String) : AssetDownloadResult()
+sealed class AssetDownloadState
+object NonUserlandDownloadFound : AssetDownloadState()
+object AllDownloadsCompletedSuccessfully : AssetDownloadState()
+data class CompletedDownloadsUpdate(val numCompleted: Int, val numTotal: Int) : AssetDownloadState()
+data class AssetDownloadFailure(val reason: String) : AssetDownloadState()
 
 class DownloadUtility(
     private val assetPreferences: AssetPreferences,
@@ -17,22 +15,38 @@ class DownloadUtility(
     private val applicationFilesDir: File,
     private val timeUtility: TimeUtility = TimeUtility()
 ) {
-
     private val downloadDirectory = downloadManagerWrapper.getDownloadsDirectory()
+
     private val userlandDownloadPrefix = "UserLAnd-"
 
-    private val enqueuedDownloadIds = mutableListOf<Long>()
-    private val completedDownloadIds = mutableListOf<Long>()
+    private val enqueuedDownloadIds = mutableSetOf<Long>()
+    private val completedDownloadIds = mutableSetOf<Long>()
 
     private fun String.containsUserland(): Boolean {
         return this.toLowerCase().contains(userlandDownloadPrefix.toLowerCase())
     }
+    
+    fun downloadStateHasBeenCached(): Boolean {
+        return assetPreferences.getDownloadsAreInProgress()
+    }
+    
+    fun syncStateWithCache(): AssetDownloadState {
+        // TODO think about what happens if downloads are in progress, or complete while this sync is in progress
+        // TODO maybe move downloadutil into mainvm and track download state from there? easier to avoid
+        // TODO continuing session startup process if process has been killed
+        enqueuedDownloadIds.addAll(assetPreferences.getEnqueuedDownloads())
 
-    fun checkCachedState() {
-        if (assetPreferences.getDownloadsAreInProgress()) {
-            enqueuedDownloadIds.addAll(assetPreferences.getEnqueuedDownloads())
-            completedDownloadIds.addAll(findCompletedDownloadsInDownloadsDirectory())
+        for (id in enqueuedDownloadIds) {
+            if (downloadManagerWrapper.downloadHasFailed(id)) {
+                val failureReason = downloadManagerWrapper.getDownloadFailureReason(id)
+                return AssetDownloadFailure(failureReason)
+            }
+            if (downloadManagerWrapper.downloadHasSucceeded(id)) {
+                val state = handleDownloadComplete(id)
+                if (state is AllDownloadsCompletedSuccessfully) return state
+            }
         }
+        return CompletedDownloadsUpdate(completedDownloadIds.size, enqueuedDownloadIds.size)
     }
 
     fun downloadRequirements(assetList: List<Asset>) {
@@ -45,10 +59,10 @@ class DownloadUtility(
         assetPreferences.setEnqueuedDownloads(enqueuedDownloadIds)
     }
 
-    fun handleDownloadComplete(downloadId: Long): AssetDownloadResult {
-        if(!downloadIsForUserland(downloadId)) return NonUserlandDownload
+    fun handleDownloadComplete(downloadId: Long): AssetDownloadState {
+        if(!downloadIsForUserland(downloadId)) return NonUserlandDownloadFound
 
-        if (!downloadedSuccessfully(downloadId)) {
+        if (downloadManagerWrapper.downloadHasFailed(downloadId)) {
             val reason = getReasonForDownloadFailure(downloadId)
             return AssetDownloadFailure(reason)
         }
@@ -56,12 +70,10 @@ class DownloadUtility(
         completedDownloadIds.add(downloadId)
         setTimestampForDownloadedFile(downloadId)
         if (completedDownloadIds.size != enqueuedDownloadIds.size) {
-            return DownloadCompletedSuccessfully(completedDownloadIds.size, enqueuedDownloadIds.size)
+            return CompletedDownloadsUpdate(completedDownloadIds.size, enqueuedDownloadIds.size)
         }
 
-        enqueuedDownloadIds.sort()
-        completedDownloadIds.sort()
-        if (enqueuedDownloadIds != completedDownloadIds) {
+        if (!enqueuedDownloadIds.containsAll(completedDownloadIds)) {
             return AssetDownloadFailure("Tried to finish download process with items we did not enqueue.")
         }
 
@@ -71,21 +83,11 @@ class DownloadUtility(
     }
 
     private fun downloadIsForUserland(id: Long): Boolean {
-        val downloadTitle = downloadManagerWrapper.getDownloadTitle(id)
-        return downloadTitle.containsUserland()
-    }
-
-    fun downloadedSuccessfully(id: Long): Boolean {
-        return downloadManagerWrapper.downloadHasNotFailed(id)
+        return enqueuedDownloadIds.contains(id)
     }
 
     fun getReasonForDownloadFailure(id: Long): String {
         return downloadManagerWrapper.getDownloadFailureReason(id)
-    }
-
-    private fun findCompletedDownloadsInDownloadsDirectory(): List<Long> {
-        // TODO use enqueued downloads to find titles and determine if they've finished successfully, adding those to completed downloads
-        // TODO think about what happens if downloads are in progress, or complete while this setup is happening
     }
 
     private fun download(asset: Asset): Long {

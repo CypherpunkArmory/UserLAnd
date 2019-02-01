@@ -83,7 +83,7 @@ class AssetPreferences(private val prefs: SharedPreferences) {
     }
 
     fun setLastUpdatedTimestampForAssetUsingConcatenatedName(assetConcatenatedName: String, currentTimeSeconds: Long) {
-        with(prefs.edit()) {
+        with (prefs.edit()) {
             putLong(assetConcatenatedName.addTimestampPrefix(), currentTimeSeconds)
             apply()
         }
@@ -95,28 +95,28 @@ class AssetPreferences(private val prefs: SharedPreferences) {
     }
 
     fun setDownloadsAreInProgress(inProgress: Boolean) {
-        with(prefs.edit()) {
-            putBoolean(downloadsAreInProgressKey, true)
+        with (prefs.edit()) {
+            putBoolean(downloadsAreInProgressKey, inProgress)
             apply()
         }
     }
 
     private val enqueuedDownloadsKey = "currentlyEnqueuedDownloads"
-    fun getEnqueuedDownloads(): List<Long> {
+    fun getEnqueuedDownloads(): Set<Long> {
         val enqueuedDownloadsAsStrings = prefs.getStringSet(enqueuedDownloadsKey, setOf()) ?: setOf<String>()
-        return enqueuedDownloadsAsStrings.map { it.toLong() }.toList()
+        return enqueuedDownloadsAsStrings.map { it.toLong() }.toSet()
     }
 
-    fun setEnqueuedDownloads(downloads: List<Long>) {
+    fun setEnqueuedDownloads(downloads: Set<Long>) {
         val enqueuedDownloadsAsStrings = downloads.map { it.toString() }.toSet()
-        with(prefs.edit()) {
+        with (prefs.edit()) {
             putStringSet(enqueuedDownloadsKey, enqueuedDownloadsAsStrings)
             apply()
         }
     }
 
     fun clearEnqueuedDownloadsCache() {
-        with(prefs.edit()) {
+        with (prefs.edit()) {
             putStringSet(enqueuedDownloadsKey, setOf())
             apply()
         }
@@ -140,7 +140,7 @@ class AssetPreferences(private val prefs: SharedPreferences) {
         val entries = assetList.map {
             "${it.name}-${it.remoteTimestamp}"
         }.toSet()
-        with(prefs.edit()) {
+        with (prefs.edit()) {
             putStringSet("$assetType-$architectureType", entries)
             apply()
         }
@@ -151,7 +151,7 @@ class AssetPreferences(private val prefs: SharedPreferences) {
     }
 
     fun setLastDistributionUpdate(distributionType: String) {
-        with(prefs.edit()) {
+        with (prefs.edit()) {
             putLong("$distributionType-lastUpdate", System.currentTimeMillis())
             apply()
         }
@@ -312,12 +312,22 @@ class DownloadManagerWrapper(private val downloadManager: DownloadManager) {
         return ""
     }
 
-    fun downloadHasNotFailed(id: Long): Boolean {
+    fun downloadHasSucceeded(id: Long): Boolean {
         val query = generateQuery(id)
         val cursor = generateCursor(query)
         if (cursor.moveToFirst()) {
             val status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
-            return status != DownloadManager.STATUS_FAILED
+            return status == DownloadManager.STATUS_SUCCESSFUL
+        }
+        return false
+    }
+
+    fun downloadHasFailed(id: Long): Boolean {
+        val query = generateQuery(id)
+        val cursor = generateCursor(query)
+        if (cursor.moveToFirst()) {
+            val status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
+            return status == DownloadManager.STATUS_FAILED
         }
         return false
     }
@@ -366,12 +376,12 @@ class LocalFileLocator(private val applicationFilesDir: String, private val reso
 }
 
 class TimeUtility {
-    fun getCurrentTimeMillis(): Long {
-        return System.currentTimeMillis()
+    fun getCurrentTimeSeconds(): Long {
+        return getCurrentTimeSeconds()
     }
 
-    fun getCurrentTimeSeconds(): Long {
-        return currentTimeSeconds()
+    fun getCurrentTimeMillis(): Long {
+        return System.currentTimeMillis()
     }
 }
 
