@@ -139,7 +139,7 @@ class ServerService : Service() {
         when (session.serviceType) {
             "ssh" -> startSshClient(session, "org.connectbot")
             "vnc" -> startVncClient(session, "com.iiordanov.freebVNC")
-            "xsdl" -> startXsdlClient(session, "x.org.server")
+            "xsdl" -> startXsdlClient("x.org.server")
             else -> sendDialogBroadcast("unhandledSessionServiceType")
         }
         sendSessionActivatedBroadcast()
@@ -168,8 +168,9 @@ class ServerService : Service() {
         }
     }
 
-    private fun startXsdlClient(session: Session, packageName: String) {
-        val xsdlIntent = Intent(Intent.ACTION_VIEW)
+    private fun startXsdlClient(packageName: String) {
+        val xsdlIntent = Intent()
+        xsdlIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
         xsdlIntent.data = Uri.parse("x11://give.me.display:4721")
 
         if (clientIsPresent(xsdlIntent)) {
