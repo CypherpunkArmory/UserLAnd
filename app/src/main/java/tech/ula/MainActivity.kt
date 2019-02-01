@@ -566,10 +566,12 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 customDialog.dismiss()
                 val sshTypePreference = customDialog.find<RadioButton>(R.id.ssh_radio_button)
                 val vncTypePreference = customDialog.find<RadioButton>(R.id.vnc_radio_button)
+                val xsdlTypePreference = customDialog.find<RadioButton>(R.id.xsdl_radio_button)
                 val selectedPreference = when {
                     sshTypePreference.isChecked -> SshTypePreference
                     vncTypePreference.isChecked -> VncTypePreference
-                    else -> XsdlTypePreference
+                    xsdlTypePreference.isChecked -> XsdlTypePreference
+                    else -> PreferenceHasNotBeenSelected
                 }
                 viewModel.submitAppServicePreference(selectedPreference)
             }
