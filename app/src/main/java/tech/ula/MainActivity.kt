@@ -276,7 +276,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (data != null) {
+        data?.let {
             val session = viewModel.lastSelectedSession
             val result = data.getStringExtra("run")
             if (session.serviceType == "xsdl" && result.isNotEmpty()) {
