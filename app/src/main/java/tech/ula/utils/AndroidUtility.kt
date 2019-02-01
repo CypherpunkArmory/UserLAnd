@@ -117,7 +117,7 @@ class AssetPreferences(private val prefs: SharedPreferences) {
 
     fun clearEnqueuedDownloadsCache() {
         with (prefs.edit()) {
-            putStringSet(enqueuedDownloadsKey, setOf())
+            remove(enqueuedDownloadsKey)
             apply()
         }
     }
@@ -377,7 +377,7 @@ class LocalFileLocator(private val applicationFilesDir: String, private val reso
 
 class TimeUtility {
     fun getCurrentTimeSeconds(): Long {
-        return getCurrentTimeSeconds()
+        return currentTimeSeconds()
     }
 
     fun getCurrentTimeMillis(): Long {

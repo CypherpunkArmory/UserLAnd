@@ -294,6 +294,7 @@ class MainActivityViewModel(
                     submitSessionStartupEvent(CopyDownloadsToLocalStorage(lastSelectedFilesystem))
                 }
                 else {
+                    state.postValue(ProgressBarOperationComplete)
                     resetStartupState()
                 }
             }

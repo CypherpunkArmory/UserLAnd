@@ -341,7 +341,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             is NoAppSelectedWhenPreferenceSubmitted -> {
                 getString(R.string.illegal_state_no_app_selected_when_preference_submitted)
             }
-            is NoAppSelectedWhenPreparationStarted -> {
+            is NoAppSelectedWhenTransitionNecessary -> {
                 getString(R.string.illegal_state_no_app_selected_when_preparation_started)
             }
             is ErrorFetchingAppDatabaseEntries -> {
@@ -350,7 +350,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             is ErrorCopyingAppScript -> {
                 getString(R.string.illegal_state_error_copying_app_script)
             }
-            is NoSessionSelectedWhenPreparationStarted -> {
+            is NoSessionSelectedWhenTransitionNecessary -> {
                 getString(R.string.illegal_state_no_session_selected_when_preparation_started)
             }
             is ErrorFetchingAssetLists -> {
@@ -487,7 +487,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 val step = getString(R.string.progress_copying_downloads)
                 updateProgressBar(step, "")
             }
-            is FilesystemExtraction -> {
+            is FilesystemExtractionStep -> {
                 val step = getString(R.string.progress_setting_up_filesystem)
                 val details = getString(R.string.progress_extraction_details, state.extractionTarget)
                 updateProgressBar(step, details)

@@ -32,8 +32,6 @@ class DownloadUtility(
     
     fun syncStateWithCache(): AssetDownloadState {
         // TODO think about what happens if downloads are in progress, or complete while this sync is in progress
-        // TODO maybe move downloadutil into mainvm and track download state from there? easier to avoid
-        // TODO continuing session startup process if process has been killed
         enqueuedDownloadIds.addAll(assetPreferences.getEnqueuedDownloads())
 
         for (id in enqueuedDownloadIds) {
@@ -77,6 +75,8 @@ class DownloadUtility(
             return AssetDownloadFailure("Tried to finish download process with items we did not enqueue.")
         }
 
+        enqueuedDownloadIds.clear()
+        completedDownloadIds.clear()
         assetPreferences.setDownloadsAreInProgress(inProgress = false)
         assetPreferences.clearEnqueuedDownloadsCache()
         return AllDownloadsCompletedSuccessfully
