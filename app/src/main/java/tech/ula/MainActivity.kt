@@ -241,7 +241,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             startSession(session)
         } else if (session.serviceType == "xsdl") {
             viewModel.lastSelectedSession = session
-            setXsdlDisplay()
+            sendXsdlIntentToSetDisplayNumberAndExpectResult()
         } else {
             startSession(session)
         }
@@ -260,10 +260,11 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         that it has an xserver listening.  We set the initial display number as an environment variable
         then start a twm process to connect to XSDL's xserver.
     */
-    private fun setXsdlDisplay() {
+    private fun sendXsdlIntentToSetDisplayNumberAndExpectResult() {
         try {
-            val i = Intent(Intent.ACTION_MAIN, Uri.parse("x11://give.me.display:4721"))
-            startActivityForResult(i, 1)
+            val xsdlIntent = Intent(Intent.ACTION_MAIN, Uri.parse("x11://give.me.display:4721"))
+            val setDisplayRequestCode = 1
+            startActivityForResult(xsdlIntent, setDisplayRequestCode)
         } catch (e: Exception) {
             val appPackageName = "x.org.server"
             try {
