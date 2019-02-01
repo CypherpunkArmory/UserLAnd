@@ -253,6 +253,12 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         startService(serviceIntent)
     }
 
+    /*
+    XSDL has a different flow than starting SSH/VNC session.  It sends an intent to XSDL with
+        with a display value.  Then XSDL sends an intent to open UserLAnd signalling
+        that it has an xserver listening.  We set the initial display number as an environment variable
+        then start a twm process to connect to XSDL's xserver.
+    */
     private fun setXsdlDisplay() {
         try {
             val i = Intent(Intent.ACTION_MAIN, Uri.parse("x11://give.me.display:4721"))
