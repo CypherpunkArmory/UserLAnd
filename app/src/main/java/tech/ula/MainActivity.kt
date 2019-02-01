@@ -235,7 +235,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val details = ""
         updateProgressBar(step, details)
 
-        if (session.serviceType == "xsdl" && Build.VERSION.SDK_INT >= 27) {
+        // TODO: Alert user when defaulting to VNC
+        if (session.serviceType == "xsdl" && Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
             session.serviceType = "vnc"
             startSession(session)
         } else if (session.serviceType == "xsdl") {
@@ -611,7 +612,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             val vncTypePreference = customDialog.find<RadioButton>(R.id.vnc_radio_button)
             val xsdlTypePreference = customDialog.find<RadioButton>(R.id.xsdl_radio_button)
 
-            if (Build.VERSION.SDK_INT >= 27) {
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
                 xsdlTypePreference.isEnabled = false
                 xsdlTypePreference.alpha = 0.5f
 

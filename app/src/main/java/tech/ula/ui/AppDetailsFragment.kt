@@ -58,7 +58,7 @@ class AppDetailsFragment : Fragment() {
         }
 
         val xsdlPreferenceButton = view.find<RadioButton>(R.id.apps_xsdl_preference)
-        if (Build.VERSION.SDK_INT >= 27) {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
             xsdlPreferenceButton.isEnabled = false
             xsdlPreferenceButton.alpha = 0.5f
 
