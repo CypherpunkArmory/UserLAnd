@@ -74,27 +74,6 @@ class MainActivityViewModel(
         } }
         state.addSource(sessionState) { it?.let { update ->
             crashlyticsWrapper.setString("Last observed session state from viewmodel", "$update")
-            // Update stateful variables before handling the update so they can be used during it
-            if (update !is WaitingForSessionSelection) {
-                sessionsAreWaitingForSelection = false
-            }
-            when (update) {
-                is WaitingForSessionSelection -> {
-                    sessionsAreWaitingForSelection = true
-                }
-                is SessionIsReadyForPreparation -> {
-                    lastSelectedSession = update.session
-                    lastSelectedFilesystem = update.filesystem
-                }
-                is SessionIsRestartable -> {
-                    state.postValue(SessionCanBeRestarted(update.session))
-                    resetStartupState()
-                }
-                is SingleSessionSupported -> {
-                    state.postValue(CanOnlyStartSingleSession)
-                    resetStartupState()
-                }
-            }
             handleSessionPreparationState(update)
         } }
     }
@@ -230,6 +209,39 @@ class MainActivityViewModel(
     }
 
     private fun handleSessionPreparationState(newState: SessionStartupState) {
+        // Update stateful variables before handling the update so they can be used during it
+        if (newState !is WaitingForSessionSelection) {
+            sessionsAreWaitingForSelection = false
+        }
+        // Return for compile-time exhaustiveness check
+        return when (newState) {
+            is IncorrectSessionTransition -> TODO()
+            is WaitingForSessionSelection -> {
+                sessionsAreWaitingForSelection = true
+            }
+            is SingleSessionSupported -> {
+                state.postValue(CanOnlyStartSingleSession)
+                resetStartupState()
+            }
+            is SessionIsRestartable -> {
+                state.postValue(SessionCanBeRestarted(newState.session))
+                resetStartupState()
+            }
+            is SessionIsReadyForPreparation -> {
+                lastSelectedSession = newState.session
+                lastSelectedFilesystem = newState.filesystem
+            }
+            is AssetRetrievalState -> TODO()
+            is DownloadRequirementsGenerationState -> TODO()
+            is DownloadingAssetsState -> TODO()
+            is CopyingFilesLocallyState -> TODO()
+            is AssetVerificationState -> TODO()
+            is ExtractionState -> TODO()
+
+        }
+    }
+
+    private fun handleSessionPreparationStateThatRequiresSelections(newState: SessionStartupState) {
         // Exit early if we aren't expecting preparation requirements to have been met
         if (newState is WaitingForSessionSelection || newState is SingleSessionSupported ||
                 newState is SessionIsRestartable) {
