@@ -147,7 +147,7 @@
 
     <!-- Play service error alerts -->
     <string name="alert_need_client_app_title">Can\'t find a client app!</string>
-    <string name="alert_need_client_app_message">You\'ll need an SSH or VNC client to complete this action, but it looks like you don\'t have the play store installed. Please install an SSH or VNC client application to continue.</string>
+    <string name="alert_need_client_app_message">You\'ll need an SSH or VNC or XSDL client to complete this action, but it looks like you don\'t have the play store installed. \n\nPlease install the client application (SSH/VNC/XSDL) associated with the session\'s client type to continue.</string>
 
     <!-- Permissions necessary alert -->
     <string name="alert_permissions_necessary_title">UserLAnd requires permissions!</string>
