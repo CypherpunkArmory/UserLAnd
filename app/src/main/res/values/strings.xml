@@ -178,5 +178,6 @@
     <!-- Misc -->
     <string name="custom_sessions">Custom Sessions</string>
     <string name="apps_sessions">Apps Sessions</string>
+    <string name="info_xsdl_support">XSDL is not fully supported on \nAndroid 9.0 and above yet</string>
 
 </resources>
