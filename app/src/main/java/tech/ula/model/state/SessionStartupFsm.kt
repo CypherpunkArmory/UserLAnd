@@ -11,7 +11,7 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.utils.*
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 
 class SessionStartupFsm(
     ulaDatabase: UlaDatabase,
@@ -175,6 +175,7 @@ class SessionStartupFsm(
 
     private fun handleAssetDownloadState(assetDownloadState: AssetDownloadState) {
         return when (assetDownloadState) {
+            // We don't care if we've something else has downloaded something.
             is NonUserlandDownloadFound -> {}
             is AllDownloadsCompletedSuccessfully -> { state.postValue(DownloadsHaveSucceeded) }
             is CompletedDownloadsUpdate -> {

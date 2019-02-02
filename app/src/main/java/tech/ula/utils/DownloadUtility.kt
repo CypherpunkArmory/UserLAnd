@@ -25,11 +25,11 @@ class DownloadUtility(
     private fun String.containsUserland(): Boolean {
         return this.toLowerCase().contains(userlandDownloadPrefix.toLowerCase())
     }
-    
+
     fun downloadStateHasBeenCached(): Boolean {
         return assetPreferences.getDownloadsAreInProgress()
     }
-    
+
     fun syncStateWithCache(): AssetDownloadState {
         // TODO think about what happens if downloads are in progress, or complete while this sync is in progress
         enqueuedDownloadIds.addAll(assetPreferences.getEnqueuedDownloads())
@@ -58,7 +58,7 @@ class DownloadUtility(
     }
 
     fun handleDownloadComplete(downloadId: Long): AssetDownloadState {
-        if(!downloadIsForUserland(downloadId)) return NonUserlandDownloadFound
+        if (!downloadIsForUserland(downloadId)) return NonUserlandDownloadFound
 
         if (downloadManagerWrapper.downloadHasFailed(downloadId)) {
             val reason = getReasonForDownloadFailure(downloadId)

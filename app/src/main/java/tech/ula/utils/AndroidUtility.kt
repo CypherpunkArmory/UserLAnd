@@ -83,7 +83,7 @@ class AssetPreferences(private val prefs: SharedPreferences) {
     }
 
     fun setLastUpdatedTimestampForAssetUsingConcatenatedName(assetConcatenatedName: String, currentTimeSeconds: Long) {
-        with (prefs.edit()) {
+        with(prefs.edit()) {
             putLong(assetConcatenatedName.addTimestampPrefix(), currentTimeSeconds)
             apply()
         }
@@ -95,7 +95,7 @@ class AssetPreferences(private val prefs: SharedPreferences) {
     }
 
     fun setDownloadsAreInProgress(inProgress: Boolean) {
-        with (prefs.edit()) {
+        with(prefs.edit()) {
             putBoolean(downloadsAreInProgressKey, inProgress)
             apply()
         }
@@ -109,14 +109,14 @@ class AssetPreferences(private val prefs: SharedPreferences) {
 
     fun setEnqueuedDownloads(downloads: Set<Long>) {
         val enqueuedDownloadsAsStrings = downloads.map { it.toString() }.toSet()
-        with (prefs.edit()) {
+        with(prefs.edit()) {
             putStringSet(enqueuedDownloadsKey, enqueuedDownloadsAsStrings)
             apply()
         }
     }
 
     fun clearEnqueuedDownloadsCache() {
-        with (prefs.edit()) {
+        with(prefs.edit()) {
             remove(enqueuedDownloadsKey)
             apply()
         }
@@ -140,7 +140,7 @@ class AssetPreferences(private val prefs: SharedPreferences) {
         val entries = assetList.map {
             "${it.name}-${it.remoteTimestamp}"
         }.toSet()
-        with (prefs.edit()) {
+        with(prefs.edit()) {
             putStringSet("$assetType-$architectureType", entries)
             apply()
         }
@@ -151,7 +151,7 @@ class AssetPreferences(private val prefs: SharedPreferences) {
     }
 
     fun setLastDistributionUpdate(distributionType: String) {
-        with (prefs.edit()) {
+        with(prefs.edit()) {
             putLong("$distributionType-lastUpdate", System.currentTimeMillis())
             apply()
         }

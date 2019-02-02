@@ -282,21 +282,21 @@ class MainActivityViewModelTest {
     fun `Does not post IllegalState if app, session, and filesystem have not been selected and observed event is WaitingForAppSelection`() {
         appsStartupStateLiveData.postValue(WaitingForAppSelection)
 
-        verify(mockStateObserver, never()).onChanged(NoAppSelectedWhenPreparationStarted)
+        verify(mockStateObserver, never()).onChanged(NoAppSelectedWhenTransitionNecessary)
     }
 
     @Test
     fun `Does not post IllegalState if app, session, and filesystem have not been selected and observed event is FetchingDatabaseEntries`() {
         appsStartupStateLiveData.postValue(FetchingDatabaseEntries)
 
-        verify(mockStateObserver, never()).onChanged(NoAppSelectedWhenPreparationStarted)
+        verify(mockStateObserver, never()).onChanged(NoAppSelectedWhenTransitionNecessary)
     }
 
     @Test
     fun `Posts IllegalState if app, session, and filesystem have not been selected and an app state event is observed that is not the above`() {
         appsStartupStateLiveData.postValue(DatabaseEntriesFetchFailed)
 
-        verify(mockStateObserver).onChanged(NoAppSelectedWhenPreparationStarted)
+        verify(mockStateObserver).onChanged(NoAppSelectedWhenTransitionNecessary)
     }
 
     @Test
@@ -414,7 +414,7 @@ class MainActivityViewModelTest {
     fun `Posts IllegalState if session preparation event is observed that is not WaitingForSelection and prep reqs have not been met`() {
         sessionStartupStateLiveData.postValue(NoDownloadsRequired)
 
-        verify(mockStateObserver).onChanged(NoSessionSelectedWhenPreparationStarted)
+        verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
     }
 
     @Test
@@ -536,7 +536,7 @@ class MainActivityViewModelTest {
     fun `Posts DownloadProgress as it observes requirements downloading`() {
         makeSessionSelections()
 
-        sessionStartupStateLiveData.postValue(DownloadingRequirements(0, 0))
+        sessionStartupStateLiveData.postValue(DownloadingAssets(0, 0))
 
         verify(mockStateObserver).onChanged(DownloadProgress(0, 0))
     }
@@ -636,7 +636,7 @@ class MainActivityViewModelTest {
         val target = "bullseye"
         sessionStartupStateLiveData.postValue(ExtractingFilesystem(target))
 
-        verify(mockStateObserver).onChanged(FilesystemExtraction(target))
+        verify(mockStateObserver).onChanged(FilesystemExtractionStep(target))
     }
 
     @Test
