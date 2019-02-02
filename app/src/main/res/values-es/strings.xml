@@ -4,7 +4,7 @@
     <string name="permission_request_code">1000</string>
 
     <!-- Labels -->
-    <string name="apps">Aplicaciones</string>
+    <string name="apps">Apps</string>
     <string name="sessions">Sesiones</string>
     <string name="edit_session">Editar Sesión</string>
     <string name="filesystems">Sistemas de Archivos</string>
