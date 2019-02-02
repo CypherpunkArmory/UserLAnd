@@ -1,10 +1,10 @@
-<resources>
-    <string name="app_name">UserLAnd</string>
+<resources>                                                         <!-- Translators, pay attention to this notes! -->
+    <string name="app_name">UserLAnd</string><
     <string name="welcome">Welcome to UserLAnd!</string>
     <string name="permission_request_code">1000</string>
 
     <!-- Labels -->
-    <string name="apps">Apps</string>
+    <string name="apps">Apps</string>                               <!-- This is a button, so the word used should be short! -->
     <string name="sessions">Sessions</string>
     <string name="edit_session">Edit Session</string>
     <string name="filesystems">Filesystems</string>
@@ -19,7 +19,7 @@
     <!-- Menus -->
     <string name="app_info">App Info</string>
     <string name="stop_app">Stop App</string>
-    <string name="kill_service">Kill Service</string>
+    <string name="kill_service">Kill Service</string>               <!-- We know this says name="kill_service" but it is really stopping a session. -->
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
     <string name="save">Save</string>
