@@ -19,7 +19,7 @@
     <!-- Menus -->
     <string name="app_info">Información de Aplicación</string>
     <string name="stop_app">Parar Aplicación</string>
-    <string name="kill_service">Matar Servicio</string>
+    <string name="kill_service">Parar Sesión</string>
     <string name="edit">Editar</string>
     <string name="delete">Borrar</string>
     <string name="save">Guardar</string>
