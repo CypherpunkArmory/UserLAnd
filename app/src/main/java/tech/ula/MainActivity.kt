@@ -18,6 +18,8 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.support.design.widget.TextInputEditText
+import android.support.design.widget.TextInputLayout
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
@@ -584,9 +586,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
         customDialog.setOnShowListener { _ ->
             customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { _ ->
-                val username = customDialog.find<EditText>(R.id.text_input_username).text.toString()
-                val password = customDialog.find<EditText>(R.id.text_input_password).text.toString()
-                val vncPassword = customDialog.find<EditText>(R.id.text_input_vnc_password).text.toString()
+                val username = customDialog.find<TextInputEditText>(R.id.text_input_username).text.toString()
+                val password = customDialog.find<TextInputEditText>(R.id.text_input_password).text.toString()
+                val vncPassword = customDialog.find<TextInputEditText>(R.id.text_input_vnc_password).text.toString()
 
                 if (validateCredentials(username, password, vncPassword)) {
                     customDialog.dismiss()
