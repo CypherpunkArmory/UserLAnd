@@ -309,38 +309,47 @@ class SessionStartupFsmTest {
 
     @Test
     fun `State is DownloadsHaveSucceeded once downloads succeed`() {
-        val downloadList = listOf(asset, largeAsset)
-        sessionFsm.setState(DownloadsRequired(downloadList, true))
+        sessionFsm.setState(DownloadingAssets(0, 0))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockDownloadUtility.handleDownloadComplete(0))
-                .thenReturn(CompletedDownloadsUpdate(1, 2))
         whenever(mockDownloadUtility.handleDownloadComplete(1))
                 .thenReturn(AllDownloadsCompletedSuccessfully)
 
         runBlocking {
-            sessionFsm.submitEvent(DownloadAssets(downloadList), this)
-            sessionFsm.submitEvent(AssetDownloadComplete(0), this)
             sessionFsm.submitEvent(AssetDownloadComplete(1), this)
         }
 
-        verify(mockStateObserver).onChanged(DownloadingAssets(0, 2))
-        verify(mockStateObserver).onChanged(DownloadingAssets(1, 2))
         verify(mockStateObserver).onChanged(DownloadsHaveSucceeded)
     }
 
     @Test
+    fun `State is updated as downloads complete`() {
+        sessionFsm.setState(DownloadingAssets(0, 0))
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockDownloadUtility.handleDownloadComplete(0))
+                .thenReturn(CompletedDownloadsUpdate(1, 3))
+        whenever(mockDownloadUtility.handleDownloadComplete(1))
+                .thenReturn(CompletedDownloadsUpdate(2, 3))
+
+        runBlocking {
+            sessionFsm.submitEvent(AssetDownloadComplete(0), this)
+            sessionFsm.submitEvent(AssetDownloadComplete(1), this)
+        }
+
+        verify(mockStateObserver).onChanged(DownloadingAssets(1, 3))
+        verify(mockStateObserver).onChanged(DownloadingAssets(2, 3))
+    }
+
+    @Test
     fun `State is DownloadsHaveFailed if any downloads fail`() {
-        // TODO these tests aren't really testing the new flow
-        val downloadList = listOf(largeAsset)
-        sessionFsm.setState(DownloadsRequired(downloadList, true))
+        sessionFsm.setState(DownloadingAssets(0, 0))
         sessionFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockDownloadUtility.handleDownloadComplete(0))
                 .thenReturn(AssetDownloadFailure("fail"))
 
         runBlocking {
-            sessionFsm.submitEvent(DownloadAssets(downloadList), this)
             sessionFsm.submitEvent(AssetDownloadComplete(0), this)
         }
 
@@ -349,19 +358,17 @@ class SessionStartupFsmTest {
 
     @Test
     fun `State is unaffected if we intercept a download enqueued by something else`() {
-        val downloadList = listOf(asset)
-        sessionFsm.setState(DownloadsRequired(downloadList, false))
+        sessionFsm.setState(DownloadingAssets(0, 2))
         sessionFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockDownloadUtility.handleDownloadComplete(0))
                 .thenReturn(NonUserlandDownloadFound)
 
         runBlocking {
-            sessionFsm.submitEvent(DownloadAssets(downloadList), this)
             sessionFsm.submitEvent(AssetDownloadComplete(0), this)
         }
 
-        verify(mockStateObserver).onChanged(DownloadingAssets(0, 1))
+        verify(mockStateObserver, never()).onChanged(DownloadingAssets(1, 2))
     }
 
     @Test
