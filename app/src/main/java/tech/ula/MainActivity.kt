@@ -365,6 +365,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             is AssetsHaveNotBeenDownloaded -> {
                 getString(R.string.illegal_state_assets_have_not_been_downloaded)
             }
+            is DownloadCacheAccessedWhileEmpty -> {
+                getString(R.string.illegal_state_empty_download_cache_access)
+            }
             is FailedToCopyAssetsToFilesystem -> {
                 getString(R.string.illegal_state_failed_to_copy_assets_to_filesystem)
             }

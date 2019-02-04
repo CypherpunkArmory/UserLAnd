@@ -2,6 +2,7 @@ package tech.ula.utils
 
 import android.app.DownloadManager
 import com.nhaarman.mockitokotlin2.verify
+import com.nhaarman.mockitokotlin2.whenever
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
 import org.junit.Rule
@@ -58,8 +59,58 @@ class DownloadUtilityTest {
         `when`(downloadManagerWrapper.generateDownloadRequest(url2, destination2)).thenReturn(requestReturn)
     }
 
-    fun getDownloadUrl(distType: String, archType: String, name: String): String {
+    private fun getDownloadUrl(distType: String, archType: String, name: String): String {
         return "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/$name"
+    }
+
+    @Test
+    fun `Returns appropriate value from asset preferences about whether cache is populated`() {
+        val expectedFirstResult = true
+        val expectedSecondResult = false
+        whenever(assetPreferences.getDownloadsAreInProgress())
+                .thenReturn(expectedFirstResult)
+                .thenReturn(expectedSecondResult)
+
+        val firstResult = downloadUtility.downloadStateHasBeenCached()
+        val secondResult = downloadUtility.downloadStateHasBeenCached()
+
+        assertEquals(expectedFirstResult, firstResult)
+        assertEquals(expectedSecondResult, secondResult)
+    }
+
+    @Test
+    fun `Returns CacheSyncAttemptedWhileCacheIsEmpty if sync cache called while nothing is cached`() {
+        whenever(assetPreferences.getDownloadsAreInProgress())
+                .thenReturn(false)
+
+        val result = downloadUtility.syncStateWithCache()
+
+        assertTrue(result is CacheSyncAttemptedWhileCacheIsEmpty)
+    }
+
+    @Test
+    fun `Returns AssetDownloadFailure while syncing if any cached downloads failed`() {
+        val downloadId = 0L
+        val failureReason = "fail"
+        whenever(assetPreferences.getDownloadsAreInProgress())
+                .thenReturn(true)
+        whenever(assetPreferences.getEnqueuedDownloads())
+                .thenReturn(setOf(downloadId))
+
+        whenever(downloadManagerWrapper.downloadHasFailed(downloadId))
+                .thenReturn(true)
+        whenever(downloadManagerWrapper.getDownloadFailureReason(downloadId))
+                .thenReturn(failureReason)
+
+        val result = downloadUtility.syncStateWithCache()
+        assertTrue(result is AssetDownloadFailure)
+        val cast = result as AssetDownloadFailure
+        assertEquals(failureReason, cast.reason)
+    }
+
+    @Test
+    fun `Returns AllDownloadsCompletedSuccessfully if all downloads have completed since cache was updated`() {
+
     }
 
     @Test

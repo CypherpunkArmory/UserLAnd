@@ -4,6 +4,7 @@ import tech.ula.model.entities.Asset
 import java.io.File
 
 sealed class AssetDownloadState
+object CacheSyncAttemptedWhileCacheIsEmpty : AssetDownloadState()
 object NonUserlandDownloadFound : AssetDownloadState()
 object AllDownloadsCompletedSuccessfully : AssetDownloadState()
 data class CompletedDownloadsUpdate(val numCompleted: Int, val numTotal: Int) : AssetDownloadState()
@@ -31,18 +32,13 @@ class DownloadUtility(
     }
 
     fun syncStateWithCache(): AssetDownloadState {
-        // TODO think about what happens if downloads are in progress, or complete while this sync is in progress
+        if (!downloadStateHasBeenCached()) return CacheSyncAttemptedWhileCacheIsEmpty
+
         enqueuedDownloadIds.addAll(assetPreferences.getEnqueuedDownloads())
 
         for (id in enqueuedDownloadIds) {
-            if (downloadManagerWrapper.downloadHasFailed(id)) {
-                val failureReason = downloadManagerWrapper.getDownloadFailureReason(id)
-                return AssetDownloadFailure(failureReason)
-            }
-            if (downloadManagerWrapper.downloadHasSucceeded(id)) {
                 val state = handleDownloadComplete(id)
-                if (state is AllDownloadsCompletedSuccessfully) return state
-            }
+                if (state !is CompletedDownloadsUpdate) return state
         }
         return CompletedDownloadsUpdate(completedDownloadIds.size, enqueuedDownloadIds.size)
     }
@@ -61,7 +57,7 @@ class DownloadUtility(
         if (!downloadIsForUserland(downloadId)) return NonUserlandDownloadFound
 
         if (downloadManagerWrapper.downloadHasFailed(downloadId)) {
-            val reason = getReasonForDownloadFailure(downloadId)
+            val reason = downloadManagerWrapper.getDownloadFailureReason(downloadId)
             return AssetDownloadFailure(reason)
         }
 
@@ -82,12 +78,8 @@ class DownloadUtility(
         return AllDownloadsCompletedSuccessfully
     }
 
-    private fun downloadIsForUserland(id: Long): Boolean {
+    fun downloadIsForUserland(id: Long): Boolean {
         return enqueuedDownloadIds.contains(id)
-    }
-
-    fun getReasonForDownloadFailure(id: Long): String {
-        return downloadManagerWrapper.getDownloadFailureReason(id)
     }
 
     private fun download(asset: Asset): Long {

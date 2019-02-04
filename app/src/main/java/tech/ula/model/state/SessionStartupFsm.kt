@@ -75,7 +75,11 @@ class SessionStartupFsm(
             is RetrieveAssetLists -> currentState is SessionIsReadyForPreparation
             is GenerateDownloads -> currentState is AssetListsRetrievalSucceeded
             is DownloadAssets -> currentState is DownloadsRequired
-            is AssetDownloadComplete -> currentState is DownloadingAssets
+            is AssetDownloadComplete -> {
+                // If we are currently downloading assets, we can handle completed downloads that
+                // don't belong to us. Otherwise, we still don't want to post an illegal transition.
+                currentState is DownloadingAssets || !downloadUtility.downloadIsForUserland(event.downloadAssetId)
+            }
             is CopyDownloadsToLocalStorage -> currentState is DownloadsHaveSucceeded
             is VerifyFilesystemAssets -> currentState is NoDownloadsRequired || currentState is LocalDirectoryCopySucceeded
             is ExtractFilesystem -> currentState is FilesystemAssetVerificationSucceeded
@@ -177,11 +181,12 @@ class SessionStartupFsm(
         return when (assetDownloadState) {
             // We don't care if we've something else has downloaded something.
             is NonUserlandDownloadFound -> {}
-            is AllDownloadsCompletedSuccessfully -> { state.postValue(DownloadsHaveSucceeded) }
+            is CacheSyncAttemptedWhileCacheIsEmpty -> state.postValue(AttemptedCacheAccessWhileEmpty)
+            is AllDownloadsCompletedSuccessfully -> state.postValue(DownloadsHaveSucceeded)
             is CompletedDownloadsUpdate -> {
                 state.postValue(DownloadingAssets(assetDownloadState.numCompleted, assetDownloadState.numTotal))
             }
-            is AssetDownloadFailure -> { state.postValue(DownloadsHaveFailed(assetDownloadState.reason)) }
+            is AssetDownloadFailure -> state.postValue(DownloadsHaveFailed(assetDownloadState.reason))
         }
     }
 
@@ -272,6 +277,7 @@ sealed class DownloadingAssetsState : SessionStartupState()
 data class DownloadingAssets(val numCompleted: Int, val numTotal: Int) : DownloadingAssetsState()
 object DownloadsHaveSucceeded : DownloadingAssetsState()
 data class DownloadsHaveFailed(val reason: String) : DownloadingAssetsState()
+object AttemptedCacheAccessWhileEmpty : DownloadingAssetsState()
 
 sealed class CopyingFilesLocallyState : SessionStartupState()
 object CopyingFilesToLocalDirectories : CopyingFilesLocallyState()

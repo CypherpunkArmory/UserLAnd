@@ -300,6 +300,11 @@ class MainActivityViewModel(
                 }
             }
             is DownloadsHaveFailed -> state.postValue(DownloadsDidNotCompleteSuccessfully(newState.reason))
+            is AttemptedCacheAccessWhileEmpty -> {
+                // TODO test
+                state.postValue(DownloadCacheAccessedWhileEmpty)
+                resetStartupState()
+            }
         }
     }
 
@@ -391,6 +396,7 @@ object ErrorCopyingAppScript : IllegalState()
 object NoSessionSelectedWhenTransitionNecessary : IllegalState()
 object ErrorFetchingAssetLists : IllegalState()
 data class DownloadsDidNotCompleteSuccessfully(val reason: String) : IllegalState()
+object DownloadCacheAccessedWhileEmpty : IllegalState()
 object FailedToCopyAssetsToLocalStorage : IllegalState()
 object AssetsHaveNotBeenDownloaded : IllegalState()
 object FailedToCopyAssetsToFilesystem : IllegalState()
