@@ -26,6 +26,7 @@ import android.view.View
 import android.view.animation.AlphaAnimation
 import android.widget.EditText
 import android.widget.RadioButton
+import android.widget.TextView
 import android.widget.Toast
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
@@ -52,6 +53,7 @@ import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import java.lang.IllegalStateException
 import com.crashlytics.android.Crashlytics
 import io.fabric.sdk.android.Fabric
+import kotlinx.android.synthetic.main.dia_app_select_client.*
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection {
 
@@ -220,7 +222,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         Crashlytics.setString("Last observed state from viewmodel", "$newState")
         return when (newState) {
             is CanOnlyStartSingleSession -> { showToast(R.string.single_session_supported) }
-            is SessionCanBeStarted -> { startSession(newState.session) }
+            is SessionCanBeStarted -> { prepareSessionForStart(newState.session) }
             is SessionCanBeRestarted -> { restartRunningSession(newState.session) }
             is IllegalState -> { handleIllegalState(newState) }
             is UserInputRequiredState -> { handleUserInputState(newState) }
@@ -228,15 +230,60 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         }
     }
 
-    private fun startSession(session: Session) {
+    private fun prepareSessionForStart(session: Session) {
         val step = getString(R.string.progress_starting)
         val details = ""
         updateProgressBar(step, details)
 
+        // TODO: Alert user when defaulting to VNC
+        if (session.serviceType == "xsdl" && Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
+            session.serviceType = "vnc"
+            startSession(session)
+        } else if (session.serviceType == "xsdl") {
+            viewModel.lastSelectedSession = session
+            sendXsdlIntentToSetDisplayNumberAndExpectResult()
+        } else {
+            startSession(session)
+        }
+    }
+
+    private fun startSession(session: Session) {
         val serviceIntent = Intent(this, ServerService::class.java)
                 .putExtra("type", "start")
                 .putExtra("session", session)
         startService(serviceIntent)
+    }
+
+    /*
+    XSDL has a different flow than starting SSH/VNC session.  It sends an intent to XSDL with
+        with a display value.  Then XSDL sends an intent to open UserLAnd signalling
+        that it has an xserver listening.  We set the initial display number as an environment variable
+        then start a twm process to connect to XSDL's xserver.
+    */
+    private fun sendXsdlIntentToSetDisplayNumberAndExpectResult() {
+        try {
+            val xsdlIntent = Intent(Intent.ACTION_MAIN, Uri.parse("x11://give.me.display:4721"))
+            val setDisplayRequestCode = 1
+            startActivityForResult(xsdlIntent, setDisplayRequestCode)
+        } catch (e: Exception) {
+            val appPackageName = "x.org.server"
+            try {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName")))
+            } catch (error: android.content.ActivityNotFoundException) {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$appPackageName")))
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        data?.let {
+            val session = viewModel.lastSelectedSession
+            val result = data.getStringExtra("run")
+            if (session.serviceType == "xsdl" && result.isNotEmpty()) {
+                startSession(session)
+            }
+        }
     }
 
     private fun restartRunningSession(session: Session) {
@@ -562,11 +609,26 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val customDialog = dialog.create()
 
         customDialog.setOnShowListener {
+            val sshTypePreference = customDialog.find<RadioButton>(R.id.ssh_radio_button)
+            val vncTypePreference = customDialog.find<RadioButton>(R.id.vnc_radio_button)
+            val xsdlTypePreference = customDialog.find<RadioButton>(R.id.xsdl_radio_button)
+
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
+                xsdlTypePreference.isEnabled = false
+                xsdlTypePreference.alpha = 0.5f
+
+                val xsdlSupportedText = customDialog.findViewById<TextView>(R.id.text_xsdl_version_supported_description)
+                xsdlSupportedText.visibility = View.VISIBLE
+            }
+
             customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 customDialog.dismiss()
-                val sshTypePreference = customDialog.find<RadioButton>(R.id.ssh_radio_button)
-                val selectedPreference =
-                        if (sshTypePreference.isChecked) SshTypePreference else VncTypePreference
+                val selectedPreference = when {
+                    sshTypePreference.isChecked -> SshTypePreference
+                    vncTypePreference.isChecked -> VncTypePreference
+                    xsdlTypePreference.isChecked -> XsdlTypePreference
+                    else -> PreferenceHasNotBeenSelected
+                }
                 viewModel.submitAppServicePreference(selectedPreference)
             }
         }
