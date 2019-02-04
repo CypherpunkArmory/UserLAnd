@@ -134,7 +134,7 @@
     <string name="button_ok">OK!</string>
     <string name="button_cancel">Cancel</string>
     <string name="general_error_title">Something unexpected happened!</string>
-    <string name="filesystem_credentials_reasoning">We\'re creating a filesystem for your apps.Please enter the relevant required information for us to use as defaults for this filesystem.</string>
+    <string name="filesystem_credentials_reasoning">We\'re creating a filesystem for your apps.\nPlease enter the relevant required information for us to use as defaults for this filesystem.</string>
     <string name="deactivate_sessions">All sessions need to be deactivated to continue this action.</string>
 
     <!-- Clear support files alert -->
