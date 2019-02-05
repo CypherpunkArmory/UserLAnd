@@ -37,8 +37,12 @@ class DownloadUtility(
         enqueuedDownloadIds.addAll(assetPreferences.getEnqueuedDownloads())
 
         for (id in enqueuedDownloadIds) {
-                val state = handleDownloadComplete(id)
-                if (state !is CompletedDownloadsUpdate) return state
+            // Skip in-progress downloads
+            if (!downloadManagerWrapper.downloadHasFailed(id) && !downloadManagerWrapper.downloadHasSucceeded(id)) {
+                continue
+            }
+            val state = handleDownloadComplete(id)
+            if (state !is CompletedDownloadsUpdate) return state
         }
         return CompletedDownloadsUpdate(completedDownloadIds.size, enqueuedDownloadIds.size)
     }
@@ -47,7 +51,6 @@ class DownloadUtility(
         clearPreviousDownloadsFromDownloadsDirectory()
         assetPreferences.clearEnqueuedDownloadsCache()
 
-        // TODO test
         enqueuedDownloadIds.addAll(assetList.map { download(it) })
         assetPreferences.setDownloadsAreInProgress(inProgress = true)
         assetPreferences.setEnqueuedDownloads(enqueuedDownloadIds)
@@ -113,11 +116,11 @@ class DownloadUtility(
             localFile.delete()
     }
 
-    fun setTimestampForDownloadedFile(id: Long) {
+    private fun setTimestampForDownloadedFile(id: Long) {
         val titleName = downloadManagerWrapper.getDownloadTitle(id)
         if (!titleName.containsUserland()) return
         // Title should be asset.concatenatedName
-        val currentTimeSeconds = timeUtility.getCurrentTimeSeconds() // TODO test
+        val currentTimeSeconds = timeUtility.getCurrentTimeSeconds()
         assetPreferences.setLastUpdatedTimestampForAssetUsingConcatenatedName(titleName, currentTimeSeconds)
     }
 

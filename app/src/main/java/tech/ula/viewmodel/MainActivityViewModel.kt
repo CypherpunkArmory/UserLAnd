@@ -301,7 +301,6 @@ class MainActivityViewModel(
             }
             is DownloadsHaveFailed -> state.postValue(DownloadsDidNotCompleteSuccessfully(newState.reason))
             is AttemptedCacheAccessWhileEmpty -> {
-                // TODO test
                 state.postValue(DownloadCacheAccessedWhileEmpty)
                 resetStartupState()
             }

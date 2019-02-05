@@ -19,47 +19,45 @@ import kotlin.text.Charsets.UTF_8
 @RunWith(MockitoJUnitRunner::class)
 class DownloadUtilityTest {
 
-    @get:Rule
-    val tempFolder = TemporaryFolder()
+    @get:Rule val tempFolder = TemporaryFolder()
 
-    @Mock
-    lateinit var assetPreferences: AssetPreferences
+    @Mock lateinit var assetPreferences: AssetPreferences
 
-    @Mock
-    lateinit var downloadManagerWrapper: DownloadManagerWrapper
+    @Mock lateinit var downloadManagerWrapper: DownloadManagerWrapper
 
-    @Mock
-    lateinit var requestReturn: DownloadManager.Request
+    @Mock lateinit var requestReturn1: DownloadManager.Request
+
+    @Mock lateinit var requestReturn2: DownloadManager.Request
 
     lateinit var downloadDirectory: File
 
-    lateinit var asset1: Asset
-    lateinit var asset2: Asset
-    lateinit var assetList: List<Asset>
-    lateinit var downloadUtility: DownloadUtility
+    val asset1 = Asset("name1", "distType1", "archType1", 0)
+    val asset2 = Asset("name2", "distType2", "archType2", 0)
+    val assetList = listOf(asset1, asset2)
 
-    val branch = "master"
+    val url1 = getDownloadUrl(asset1.distributionType, asset1.architectureType, asset1.name)
+    val destination1 = asset1.concatenatedName
+
+    val url2 = getDownloadUrl(asset2.distributionType, asset2.architectureType, asset2.name)
+    val destination2 = asset2.concatenatedName
+
+    lateinit var downloadUtility: DownloadUtility
 
     @Before
     fun setup() {
         downloadDirectory = tempFolder.newFolder("downloads")
-        `when`(downloadManagerWrapper.getDownloadsDirectory()).thenReturn(downloadDirectory)
+        whenever(downloadManagerWrapper.getDownloadsDirectory())
+                .thenReturn(downloadDirectory)
+        whenever(downloadManagerWrapper.generateDownloadRequest(url1, destination1))
+                .thenReturn(requestReturn1)
+        whenever(downloadManagerWrapper.generateDownloadRequest(url2, destination2))
+                .thenReturn(requestReturn2)
+
         downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, applicationFilesDir = tempFolder.root)
-
-        asset1 = Asset("name1", "distType1", "archType1", 0)
-        asset2 = Asset("name2", "distType2", "archType2", 0)
-        assetList = listOf(asset1, asset2)
-
-        val url1 = getDownloadUrl(asset1.distributionType, asset1.architectureType, asset1.name)
-        val destination1 = asset1.concatenatedName
-        `when`(downloadManagerWrapper.generateDownloadRequest(url1, destination1)).thenReturn(requestReturn)
-
-        val url2 = getDownloadUrl(asset2.distributionType, asset2.architectureType, asset2.name)
-        val destination2 = asset2.concatenatedName
-        `when`(downloadManagerWrapper.generateDownloadRequest(url2, destination2)).thenReturn(requestReturn)
     }
 
     private fun getDownloadUrl(distType: String, archType: String, name: String): String {
+        val branch = "master"
         return "https://github.com/CypherpunkArmory/UserLAnd-Assets-$distType/raw/$branch/assets/$archType/$name"
     }
 
@@ -110,14 +108,121 @@ class DownloadUtilityTest {
 
     @Test
     fun `Returns AllDownloadsCompletedSuccessfully if all downloads have completed since cache was updated`() {
+        val downloadId = 0L
+        whenever(assetPreferences.getDownloadsAreInProgress())
+                .thenReturn(true)
+        whenever(assetPreferences.getEnqueuedDownloads())
+                .thenReturn(setOf(downloadId))
+        whenever(downloadManagerWrapper.downloadHasFailed(downloadId))
+                .thenReturn(false)
+        whenever(downloadManagerWrapper.downloadHasSucceeded(downloadId))
+                .thenReturn(true)
+        whenever(downloadManagerWrapper.getDownloadTitle(downloadId))
+                .thenReturn("title")
 
+        val result = downloadUtility.syncStateWithCache()
+
+        assertTrue(result is AllDownloadsCompletedSuccessfully)
+        verify(assetPreferences).setDownloadsAreInProgress(false)
+        verify(assetPreferences).clearEnqueuedDownloadsCache()
     }
 
     @Test
-    fun enqueuesDownload() {
+    fun `Returns CompletedDownloadsUpdate if downloads are still in progress during sync`() {
+        val downloadIds = setOf<Long>(0, 1)
+        whenever(assetPreferences.getDownloadsAreInProgress())
+                .thenReturn(true)
+        whenever(assetPreferences.getEnqueuedDownloads())
+                .thenReturn(downloadIds)
+        whenever(downloadManagerWrapper.downloadHasFailed(0))
+                .thenReturn(false)
+        whenever(downloadManagerWrapper.downloadHasSucceeded(0))
+                .thenReturn(true)
+        whenever(downloadManagerWrapper.downloadHasFailed(1))
+                .thenReturn(false)
+        whenever(downloadManagerWrapper.downloadHasSucceeded(1))
+                .thenReturn(false)
+        whenever(downloadManagerWrapper.getDownloadTitle(0))
+                .thenReturn("title")
+
+        val result = downloadUtility.syncStateWithCache()
+
+        assertTrue(result is CompletedDownloadsUpdate)
+        val cast = result as CompletedDownloadsUpdate
+        assertEquals(1, cast.numCompleted)
+        assertEquals(2, cast.numTotal)
+    }
+
+    @Test
+    fun `Sets up download process`() {
+        whenever(downloadManagerWrapper.enqueue(requestReturn1))
+                .thenReturn(0)
+        whenever(downloadManagerWrapper.enqueue(requestReturn2))
+                .thenReturn(1)
+
         downloadUtility.downloadRequirements(assetList)
 
-        verify(downloadManagerWrapper, times(2)).enqueue(requestReturn)
+        verify(assetPreferences).clearEnqueuedDownloadsCache()
+        verify(assetPreferences).setDownloadsAreInProgress(true)
+        verify(assetPreferences).setEnqueuedDownloads(setOf(0, 1))
+    }
+
+    private fun setupDownloadState() {
+        whenever(downloadManagerWrapper.enqueue(requestReturn1))
+                .thenReturn(0)
+        whenever(downloadManagerWrapper.enqueue(requestReturn2))
+                .thenReturn(1)
+
+        downloadUtility.downloadRequirements(assetList)
+    }
+
+    @Test
+    fun `Returns NonUserLandDownloadFound if a a download we did not start is found`() {
+        setupDownloadState()
+
+        val result = downloadUtility.handleDownloadComplete(-1)
+
+        assertTrue(result is NonUserlandDownloadFound)
+    }
+
+    @Test
+    fun `Returns AssetDownloadFailure if any downloads fail`() {
+        setupDownloadState()
+        whenever(downloadManagerWrapper.downloadHasFailed(0))
+                .thenReturn(true)
+        whenever(downloadManagerWrapper.getDownloadFailureReason(0))
+                .thenReturn("fail")
+
+        val result = downloadUtility.handleDownloadComplete(0)
+
+        assertTrue(result is AssetDownloadFailure)
+        result as AssetDownloadFailure
+        assertEquals("fail", result.reason)
+    }
+
+    @Test
+    fun `Completes downloads and then resets cache when all complete`() {
+        setupDownloadState()
+        whenever(downloadManagerWrapper.downloadHasFailed(0))
+                .thenReturn(false)
+        whenever(downloadManagerWrapper.downloadHasFailed(1))
+                .thenReturn(false)
+        whenever(downloadManagerWrapper.getDownloadTitle(0))
+                .thenReturn("userland-")
+        whenever(downloadManagerWrapper.getDownloadTitle(1))
+                .thenReturn("userland-")
+
+        val result1 = downloadUtility.handleDownloadComplete(0)
+        val result2 = downloadUtility.handleDownloadComplete(1)
+
+        assertTrue(result1 is CompletedDownloadsUpdate)
+        assertTrue(result2 is AllDownloadsCompletedSuccessfully)
+        result1 as CompletedDownloadsUpdate
+        result2 as AllDownloadsCompletedSuccessfully
+        assertEquals(1, result1.numCompleted)
+        assertEquals(2, result1.numTotal)
+        verify(assetPreferences).setDownloadsAreInProgress(false)
+        verify(assetPreferences, times(2)).clearEnqueuedDownloadsCache()
     }
 
     @Test
@@ -154,35 +259,11 @@ class DownloadUtilityTest {
         assertTrue(asset2DownloadsFile.exists())
 
         downloadUtility.downloadRequirements(assetList)
-        verify(downloadManagerWrapper, times(2)).enqueue(requestReturn)
 
         assertFalse(asset1File.exists())
         assertFalse(asset2File.exists())
         assertFalse(asset1DownloadsFile.exists())
         assertFalse(asset2DownloadsFile.exists())
-    }
-
-    @Test
-    fun setsTimestampWhenTitleIsRelevant() {
-        val id = 1L
-        `when`(downloadManagerWrapper.getDownloadTitle(id)).thenReturn(asset1.concatenatedName)
-
-        downloadUtility.setTimestampForDownloadedFile(id)
-
-        // TODO update test
-//        verify(timestampPreferences).setSavedTimestampForFileToNow(asset1.concatenatedName)
-    }
-
-    @Test
-    fun ignoresIrrelevantDownloads() {
-        val id = 1L
-        val titleName = "notuserland"
-        `when`(downloadManagerWrapper.getDownloadTitle(id)).thenReturn(titleName)
-
-        downloadUtility.setTimestampForDownloadedFile(id)
-
-        // TODO update test
-//        verify(timestampPreferences, never()).setSavedTimestampForFileToNow(ArgumentMatchers.anyString())
     }
 
     @Test

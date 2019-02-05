@@ -563,6 +563,18 @@ class MainActivityViewModelTest {
     }
 
     @Test
+    fun `Posts DownloadCacheAccessedWhileEmpty and resets state if it observes similar state`() {
+        sessionStartupStateLiveData.postValue(AttemptedCacheAccessWhileEmpty)
+
+        verify(mockStateObserver).onChanged(DownloadCacheAccessedWhileEmpty)
+        verify(mockAppsStartupFsm).submitEvent(ResetAppState, mainActivityViewModel)
+        verify(mockSessionStartupFsm).submitEvent(ResetSessionState, mainActivityViewModel)
+        assertEquals(unselectedApp, mainActivityViewModel.lastSelectedApp)
+        assertEquals(unselectedSession, mainActivityViewModel.lastSelectedSession)
+        assertEquals(unselectedFilesystem, mainActivityViewModel.lastSelectedFilesystem)
+    }
+
+    @Test
     fun `Posts CopyingDownloads when equivalent state is observed`() {
         makeSessionSelections()
 
