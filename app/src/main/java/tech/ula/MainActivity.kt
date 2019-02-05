@@ -104,16 +104,15 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private val viewModel: MainActivityViewModel by lazy {
         val ulaDatabase = UlaDatabase.getInstance(this)
 
-        val timestampPreferences = TimestampPreferences(this.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE))
         val assetPreferences = AssetPreferences(this.getSharedPreferences("assetLists", Context.MODE_PRIVATE))
-        val assetRepository = AssetRepository(filesDir.path, timestampPreferences, assetPreferences)
+        val assetRepository = AssetRepository(filesDir.path, assetPreferences)
 
         val execUtility = ExecUtility(filesDir.path, Environment.getExternalStorageDirectory().absolutePath, DefaultPreferences(defaultSharedPreferences))
         val filesystemUtility = FilesystemUtility(filesDir.path, execUtility)
 
         val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val downloadManagerWrapper = DownloadManagerWrapper(downloadManager)
-        val downloadUtility = DownloadUtility(timestampPreferences, downloadManagerWrapper, filesDir)
+        val downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, filesDir)
 
         val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
 
@@ -342,7 +341,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             is NoAppSelectedWhenPreferenceSubmitted -> {
                 getString(R.string.illegal_state_no_app_selected_when_preference_submitted)
             }
-            is NoAppSelectedWhenPreparationStarted -> {
+            is NoAppSelectedWhenTransitionNecessary -> {
                 getString(R.string.illegal_state_no_app_selected_when_preparation_started)
             }
             is ErrorFetchingAppDatabaseEntries -> {
@@ -351,7 +350,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             is ErrorCopyingAppScript -> {
                 getString(R.string.illegal_state_error_copying_app_script)
             }
-            is NoSessionSelectedWhenPreparationStarted -> {
+            is NoSessionSelectedWhenTransitionNecessary -> {
                 getString(R.string.illegal_state_no_session_selected_when_preparation_started)
             }
             is ErrorFetchingAssetLists -> {
@@ -365,6 +364,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             }
             is AssetsHaveNotBeenDownloaded -> {
                 getString(R.string.illegal_state_assets_have_not_been_downloaded)
+            }
+            is DownloadCacheAccessedWhileEmpty -> {
+                getString(R.string.illegal_state_empty_download_cache_access)
             }
             is FailedToCopyAssetsToFilesystem -> {
                 getString(R.string.illegal_state_failed_to_copy_assets_to_filesystem)
@@ -488,7 +490,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 val step = getString(R.string.progress_copying_downloads)
                 updateProgressBar(step, "")
             }
-            is FilesystemExtraction -> {
+            is FilesystemExtractionStep -> {
                 val step = getString(R.string.progress_setting_up_filesystem)
                 val details = getString(R.string.progress_extraction_details, state.extractionTarget)
                 updateProgressBar(step, details)

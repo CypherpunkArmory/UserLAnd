@@ -73,20 +73,55 @@ class DefaultPreferences(private val prefs: SharedPreferences) {
     }
 }
 
-class TimestampPreferences(private val prefs: SharedPreferences) {
-    fun getSavedTimestampForFile(assetConcatenatedName: String): Long {
-        return prefs.getLong(assetConcatenatedName, 0)
+class AssetPreferences(private val prefs: SharedPreferences) {
+    private fun String.addTimestampPrefix(): String {
+        return "timestamp-" + this
     }
 
-    fun setSavedTimestampForFileToNow(assetConcatenatedName: String) {
+    fun getLastUpdatedTimestampForAsset(asset: Asset): Long {
+        return prefs.getLong(asset.concatenatedName.addTimestampPrefix(), -1)
+    }
+
+    fun setLastUpdatedTimestampForAssetUsingConcatenatedName(assetConcatenatedName: String, currentTimeSeconds: Long) {
         with(prefs.edit()) {
-            putLong(assetConcatenatedName, currentTimeSeconds())
+            putLong(assetConcatenatedName.addTimestampPrefix(), currentTimeSeconds)
             apply()
         }
     }
-}
 
-class AssetPreferences(private val prefs: SharedPreferences) {
+    private val downloadsAreInProgressKey = "downloadsAreInProgress"
+    fun getDownloadsAreInProgress(): Boolean {
+        return prefs.getBoolean(downloadsAreInProgressKey, false)
+    }
+
+    fun setDownloadsAreInProgress(inProgress: Boolean) {
+        with(prefs.edit()) {
+            putBoolean(downloadsAreInProgressKey, inProgress)
+            apply()
+        }
+    }
+
+    private val enqueuedDownloadsKey = "currentlyEnqueuedDownloads"
+    fun getEnqueuedDownloads(): Set<Long> {
+        val enqueuedDownloadsAsStrings = prefs.getStringSet(enqueuedDownloadsKey, setOf()) ?: setOf<String>()
+        return enqueuedDownloadsAsStrings.map { it.toLong() }.toSet()
+    }
+
+    fun setEnqueuedDownloads(downloads: Set<Long>) {
+        val enqueuedDownloadsAsStrings = downloads.map { it.toString() }.toSet()
+        with(prefs.edit()) {
+            putStringSet(enqueuedDownloadsKey, enqueuedDownloadsAsStrings)
+            apply()
+        }
+    }
+
+    fun clearEnqueuedDownloadsCache() {
+        with(prefs.edit()) {
+            remove(enqueuedDownloadsKey)
+            apply()
+        }
+    }
+
     fun getAssetLists(allAssetListTypes: List<Pair<String, String>>): List<List<Asset>> {
         val assetLists = ArrayList<List<Asset>>()
         allAssetListTypes.forEach {
@@ -277,12 +312,22 @@ class DownloadManagerWrapper(private val downloadManager: DownloadManager) {
         return ""
     }
 
-    fun downloadHasNotFailed(id: Long): Boolean {
+    fun downloadHasSucceeded(id: Long): Boolean {
         val query = generateQuery(id)
         val cursor = generateCursor(query)
         if (cursor.moveToFirst()) {
             val status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
-            return status != DownloadManager.STATUS_FAILED
+            return status == DownloadManager.STATUS_SUCCESSFUL
+        }
+        return false
+    }
+
+    fun downloadHasFailed(id: Long): Boolean {
+        val query = generateQuery(id)
+        val cursor = generateCursor(query)
+        if (cursor.moveToFirst()) {
+            val status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
+            return status == DownloadManager.STATUS_FAILED
         }
         return false
     }
@@ -331,6 +376,10 @@ class LocalFileLocator(private val applicationFilesDir: String, private val reso
 }
 
 class TimeUtility {
+    fun getCurrentTimeSeconds(): Long {
+        return currentTimeSeconds()
+    }
+
     fun getCurrentTimeMillis(): Long {
         return System.currentTimeMillis()
     }

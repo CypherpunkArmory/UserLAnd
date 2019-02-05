@@ -20,10 +20,7 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.utils.CrashlyticsWrapper
-import tech.ula.utils.DownloadUtility
-import tech.ula.utils.FilesystemUtility
-import tech.ula.utils.TimeUtility
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import kotlin.Exception
 
 @RunWith(MockitoJUnitRunner::class)
@@ -92,7 +89,7 @@ class SessionStartupFsmTest {
             GeneratingDownloadRequirements,
             NoDownloadsRequired,
             DownloadsRequired(singleAssetList, false),
-            DownloadingRequirements(0, 0),
+            DownloadingAssets(0, 0),
             DownloadsHaveSucceeded,
             DownloadsHaveFailed(""),
             CopyingFilesToLocalDirectories,
@@ -131,6 +128,14 @@ class SessionStartupFsmTest {
 
         for (event in possibleEvents) {
             for (state in possibleStates) {
+                if (state is WaitingForSessionSelection) {
+                    // Test the branch for receiving downloads not enqueued by us
+                    whenever(mockDownloadUtility.downloadIsForUserland(0L))
+                            .thenReturn(false)
+                } else {
+                    whenever(mockDownloadUtility.downloadIsForUserland(0L))
+                            .thenReturn(true)
+                }
                 sessionFsm.setState(state)
                 val result = sessionFsm.transitionIsAcceptable(event)
                 when {
@@ -138,7 +143,7 @@ class SessionStartupFsmTest {
                     event is RetrieveAssetLists && state is SessionIsReadyForPreparation -> assertTrue(result)
                     event is GenerateDownloads && state is AssetListsRetrievalSucceeded -> assertTrue(result)
                     event is DownloadAssets && state is DownloadsRequired -> assertTrue(result)
-                    event is AssetDownloadComplete && state is DownloadingRequirements -> assertTrue(result)
+                    event is AssetDownloadComplete && (state is DownloadingAssets || state is WaitingForSessionSelection) -> assertTrue(result)
                     event is CopyDownloadsToLocalStorage && state is DownloadsHaveSucceeded -> assertTrue(result)
                     event is VerifyFilesystemAssets && (state is NoDownloadsRequired || state is LocalDirectoryCopySucceeded) -> assertTrue(result)
                     event is ExtractFilesystem && state is FilesystemAssetVerificationSucceeded -> assertTrue(result)
@@ -147,6 +152,21 @@ class SessionStartupFsmTest {
                 }
             }
         }
+    }
+
+    @Test
+    fun `AssetDownloadComplete events can be submitted at any time if they are not userland downloads`() {
+        val downloadId = 0L
+        sessionFsm.setState(WaitingForSessionSelection)
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockDownloadUtility.handleDownloadComplete(downloadId))
+                .thenReturn(NonUserlandDownloadFound)
+
+        runBlocking { sessionFsm.submitEvent(AssetDownloadComplete(downloadId), this) }
+
+        verify(mockStateObserver, times(1)).onChanged(WaitingForSessionSelection)
+        verifyNoMoreInteractions(mockStateObserver)
     }
 
     @Test
@@ -312,82 +332,96 @@ class SessionStartupFsmTest {
 
     @Test
     fun `State is DownloadsHaveSucceeded once downloads succeed`() {
-        val downloadList = listOf(asset, largeAsset)
-        sessionFsm.setState(DownloadsRequired(downloadList, true))
+        sessionFsm.setState(DownloadingAssets(0, 0))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockDownloadUtility.downloadRequirements(downloadList))
-                .thenReturn(listOf(0L, 1L))
-        whenever(mockDownloadUtility.downloadedSuccessfully(0))
-                .thenReturn(true)
-        whenever(mockDownloadUtility.downloadedSuccessfully(1))
-                .thenReturn(true)
+        whenever(mockDownloadUtility.handleDownloadComplete(1))
+                .thenReturn(AllDownloadsCompletedSuccessfully)
 
         runBlocking {
-            sessionFsm.submitEvent(DownloadAssets(downloadList), this)
-            sessionFsm.submitEvent(AssetDownloadComplete(0), this)
             sessionFsm.submitEvent(AssetDownloadComplete(1), this)
         }
 
-        verify(mockDownloadUtility).setTimestampForDownloadedFile(0)
-        verify(mockDownloadUtility).setTimestampForDownloadedFile(1)
-        verify(mockStateObserver).onChanged(DownloadingRequirements(0, 2))
-        verify(mockStateObserver).onChanged(DownloadingRequirements(1, 2))
         verify(mockStateObserver).onChanged(DownloadsHaveSucceeded)
     }
 
     @Test
-    fun `State is DownloadsHaveFailed if any downloads fail`() {
-        val downloadList = listOf(asset, largeAsset)
-        sessionFsm.setState(DownloadsRequired(downloadList, true))
+    fun `State is updated as downloads complete`() {
+        sessionFsm.setState(DownloadingAssets(0, 0))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockDownloadUtility.downloadRequirements(downloadList))
-                .thenReturn(listOf(0L, 1L))
-        whenever(mockDownloadUtility.downloadedSuccessfully(0))
-                .thenReturn(true)
-        whenever(mockDownloadUtility.downloadedSuccessfully(1))
-                .thenReturn(false)
-        whenever(mockDownloadUtility.getReasonForDownloadFailure(1))
-                .thenReturn("fail")
+        whenever(mockDownloadUtility.handleDownloadComplete(0))
+                .thenReturn(CompletedDownloadsUpdate(1, 3))
+        whenever(mockDownloadUtility.handleDownloadComplete(1))
+                .thenReturn(CompletedDownloadsUpdate(2, 3))
 
         runBlocking {
-            sessionFsm.submitEvent(DownloadAssets(downloadList), this)
             sessionFsm.submitEvent(AssetDownloadComplete(0), this)
             sessionFsm.submitEvent(AssetDownloadComplete(1), this)
         }
 
-        verify(mockDownloadUtility).setTimestampForDownloadedFile(0)
-        verify(mockDownloadUtility, never()).setTimestampForDownloadedFile(1)
-        verify(mockStateObserver).onChanged(DownloadingRequirements(0, 2))
-        verify(mockStateObserver).onChanged(DownloadingRequirements(1, 2))
+        verify(mockStateObserver).onChanged(DownloadingAssets(1, 3))
+        verify(mockStateObserver).onChanged(DownloadingAssets(2, 3))
+    }
+
+    @Test
+    fun `State is DownloadsHaveFailed if any downloads fail`() {
+        sessionFsm.setState(DownloadingAssets(0, 0))
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockDownloadUtility.handleDownloadComplete(0))
+                .thenReturn(AssetDownloadFailure("fail"))
+
+        runBlocking {
+            sessionFsm.submitEvent(AssetDownloadComplete(0), this)
+        }
+
         verify(mockStateObserver).onChanged(DownloadsHaveFailed("fail"))
     }
 
     @Test
-    fun `State is DownloadsHaveFailed with reason that we registered an non-enqueued download`() {
-        val downloadList = listOf(asset, largeAsset)
-        sessionFsm.setState(DownloadsRequired(downloadList, true))
+    fun `State is unaffected if we intercept a download enqueued by something else`() {
+        sessionFsm.setState(DownloadingAssets(0, 2))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockDownloadUtility.downloadRequirements(downloadList))
-                .thenReturn(listOf(0L, 1L))
-        whenever(mockDownloadUtility.downloadedSuccessfully(0))
-                .thenReturn(true)
-        whenever(mockDownloadUtility.downloadedSuccessfully(2))
-                .thenReturn(true)
+        whenever(mockDownloadUtility.handleDownloadComplete(0))
+                .thenReturn(NonUserlandDownloadFound)
 
         runBlocking {
-            sessionFsm.submitEvent(DownloadAssets(downloadList), this)
             sessionFsm.submitEvent(AssetDownloadComplete(0), this)
-            sessionFsm.submitEvent(AssetDownloadComplete(2), this)
         }
 
-        verify(mockDownloadUtility).setTimestampForDownloadedFile(0)
-        verify(mockDownloadUtility, never()).setTimestampForDownloadedFile(1)
-        verify(mockStateObserver).onChanged(DownloadingRequirements(0, 2))
-        verify(mockStateObserver).onChanged(DownloadingRequirements(1, 2))
-        verify(mockStateObserver).onChanged(DownloadsHaveFailed("Downloads completed with non-enqueued downloads"))
+        verify(mockStateObserver, never()).onChanged(DownloadingAssets(1, 2))
+    }
+
+    @Test
+    // This case shouldn't ever actually happen
+    fun `Passes on illegal cache access attempts`() {
+        sessionFsm.setState(DownloadingAssets(0, 0))
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockDownloadUtility.handleDownloadComplete(0))
+                .thenReturn(CacheSyncAttemptedWhileCacheIsEmpty)
+
+        runBlocking {
+            sessionFsm.submitEvent(AssetDownloadComplete(0), this)
+        }
+
+        verify(mockStateObserver).onChanged(AttemptedCacheAccessWhileEmpty)
+    }
+
+    @Test
+    fun `Automatically syncs with download cache if download state has been cached`() {
+        whenever(mockDownloadUtility.downloadStateHasBeenCached())
+                .thenReturn(true)
+        whenever(mockDownloadUtility.syncStateWithCache())
+                .thenReturn(AllDownloadsCompletedSuccessfully)
+
+        val syncedSessionFsm = SessionStartupFsm(mockUlaDatabase, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility, mockTimeUtility, mockCrashlyticsWrapper)
+        syncedSessionFsm.getState().observeForever(mockStateObserver)
+
+        verify(mockDownloadUtility).syncStateWithCache()
+        verify(mockStateObserver).onChanged(DownloadsHaveSucceeded)
     }
 
     @Test
