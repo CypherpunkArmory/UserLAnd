@@ -179,7 +179,8 @@ class SessionStartupFsm(
 
     private fun handleAssetDownloadState(assetDownloadState: AssetDownloadState) {
         return when (assetDownloadState) {
-            // We don't care if we've something else has downloaded something.
+            // We don't care if some other app has downloaded something, though we may intercept the
+            // broadcast from the Download Manager.
             is NonUserlandDownloadFound -> {}
             is CacheSyncAttemptedWhileCacheIsEmpty -> state.postValue(AttemptedCacheAccessWhileEmpty)
             is AllDownloadsCompletedSuccessfully -> state.postValue(DownloadsHaveSucceeded)
