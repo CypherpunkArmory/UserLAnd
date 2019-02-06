@@ -12,9 +12,14 @@ apply plugin: 'jacoco'
 android {
     compileSdkVersion 28
 
-    def tracepotPropertiesFile = file("$projectDir/tracepot.properties")
-    def tracepotProperties = new Properties()
-    tracepotProperties.load(new FileInputStream(tracepotPropertiesFile))
+    File tracepotPropertiesFile = file("$projectDir/tracepot.properties")
+    Properties tracepotProperties = new Properties()
+    if (tracepotPropertiesFile.exists()) {
+        tracepotProperties.load(new FileInputStream(tracepotPropertiesFile))
+    } else {
+        tracepotProperties.put('tracepotHttpsEndpoint', '""')
+    }
+
     defaultConfig {
         applicationId "tech.ula"
         minSdkVersion 21
@@ -38,6 +43,7 @@ android {
             targetCompatibility 1.8
         }
     }
+
     buildTypes {
         debug {
             debuggable true
@@ -51,14 +57,17 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
     sourceSets {
         androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
     }
+
     // Enable this and run lintVitalRelease task to check missing translations.
     lintOptions {
         disable 'MissingTranslation'
         disable 'ParcelCreator'
     }
+
     testOptions {
         unitTests {
             includeAndroidResources = true
@@ -76,6 +85,15 @@ androidExtensions {
 
 configurations {
     ktlint
+}
+
+
+tasks.whenTaskAdded { task ->
+    if (task.name == 'assembleRelease') {
+        task.doFirst {
+            assert tracepotPropertiesFile.exists()
+        }
+    }
 }
 
 tasks.withType(Test) {
