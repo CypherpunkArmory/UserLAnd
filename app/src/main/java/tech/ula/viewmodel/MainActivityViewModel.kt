@@ -54,7 +54,7 @@ class MainActivityViewModel(
 
     init {
         state.addSource(appsState) { it?.let { update ->
-            acraWrapper.setString("Last observed app state from viewmodel", "$update")
+            acraWrapper.putCustomString("Last observed app state from viewmodel", "$update")
             // Update stateful variables before handling the update so they can be used during it
             if (update !is WaitingForAppSelection) {
                 appsAreWaitingForSelection = false
@@ -76,7 +76,7 @@ class MainActivityViewModel(
             handleAppsPreparationState(update)
         } }
         state.addSource(sessionState) { it?.let { update ->
-            acraWrapper.setString("Last observed session state from viewmodel", "$update")
+            acraWrapper.putCustomString("Last observed session state from viewmodel", "$update")
             handleSessionPreparationState(update)
         } }
     }
@@ -368,12 +368,12 @@ class MainActivityViewModel(
     }
 
     private fun submitAppsStartupEvent(event: AppsStartupEvent) {
-        acraWrapper.setString("Last viewmodel apps event submission", "$event")
+        acraWrapper.putCustomString("Last viewmodel apps event submission", "$event")
         appsStartupFsm.submitEvent(event, this)
     }
 
     private fun submitSessionStartupEvent(event: SessionStartupEvent) {
-        acraWrapper.setString("Last viewmodel session event submission", "$event")
+        acraWrapper.putCustomString("Last viewmodel session event submission", "$event")
         sessionStartupFsm.submitEvent(event, this)
     }
 }

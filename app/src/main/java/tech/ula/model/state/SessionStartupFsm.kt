@@ -88,8 +88,8 @@ class SessionStartupFsm(
     }
 
     fun submitEvent(event: SessionStartupEvent, coroutineScope: CoroutineScope) = coroutineScope.launch {
-        acraWrapper.setString("Last submitted session fsm event", "$event")
-        acraWrapper.setString("State during session fsm event submission", "${state.value}")
+        acraWrapper.putCustomString("Last submitted session fsm event", "$event")
+        acraWrapper.putCustomString("State during session fsm event submission", "${state.value}")
         if (!transitionIsAcceptable(event)) {
             state.postValue(IncorrectSessionTransition(event, state.value!!))
             return@launch

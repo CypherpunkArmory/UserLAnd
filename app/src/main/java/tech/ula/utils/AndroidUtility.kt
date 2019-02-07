@@ -386,7 +386,7 @@ class TimeUtility {
 }
 
 class AcraWrapper {
-    fun setString(key: String, value: String) {
+    fun putCustomString(key: String, value: String) {
         ACRA.getErrorReporter().putCustomData(key, value)
     }
 }

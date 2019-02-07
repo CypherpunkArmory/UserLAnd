@@ -48,8 +48,8 @@ class AppsStartupFsm(
     }
 
     fun submitEvent(event: AppsStartupEvent, coroutineScope: CoroutineScope) = coroutineScope.launch {
-        acraWrapper.setString("Last submitted apps fsm event", "$event")
-        acraWrapper.setString("State during apps fsm event submission", "${state.value}")
+        acraWrapper.putCustomString("Last submitted apps fsm event", "$event")
+        acraWrapper.putCustomString("State during apps fsm event submission", "${state.value}")
         if (!transitionIsAcceptable(event)) {
             state.postValue(IncorrectAppTransition(event, state.value!!))
             return@launch

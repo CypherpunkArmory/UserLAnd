@@ -89,7 +89,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private val serverServiceBroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             intent.getStringExtra("type")?.let { intentType ->
-                acraWrapper.setString("Last service broadcast received", intentType)
+                acraWrapper.putCustomString("Last service broadcast received", intentType)
                 when (intentType) {
                     "sessionActivated" -> handleSessionHasBeenActivated()
                     "dialog" -> {
@@ -205,7 +205,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             displayClearSupportFilesDialog()
         }
         return NavigationUI.onNavDestinationSelected(item,
-                Navigation.findNavController(this, R.id.nav_host_fragment)) ||
+                Navigation.findNavController(this, R.idv_host_fragment)) ||
                 super.onOptionsItemSelected(item)
     }
 
@@ -235,7 +235,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleStateUpdate(newState: State) {
-        acraWrapper.setString("Last observed state from viewmodel", "$newState")
+        acraWrapper.putCustomString("Last observed state from viewmodel", "$newState")
         return when (newState) {
             is CanOnlyStartSingleSession -> { showToast(R.string.single_session_supported) }
             is SessionCanBeStarted -> { prepareSessionForStart(newState.session) }
@@ -319,7 +319,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleUserInputState(state: UserInputRequiredState) {
-        acraWrapper.setString("Last handled user input state", "$state")
+        acraWrapper.putCustomString("Last handled user input state", "$state")
         return when (state) {
             is FilesystemCredentialsRequired -> {
                 getCredentials()
@@ -341,7 +341,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleIllegalState(state: IllegalState) {
-        acraWrapper.setString("Last handled illegal state", "$state")
+        acraWrapper.putCustomString("Last handled illegal state", "$state")
         val reason: String = when (state) {
             is IllegalStateTransition -> {
                 getString(R.string.illegal_state_transition, state.transition)
@@ -419,7 +419,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 .setPositiveButton(R.string.button_ok) {
                     dialog, _ ->
                     dialog.dismiss()
-                    acraWrapper.setString("Illegal State Crash Reason", reason)
+                    acraWrapper.putCustomString("Illegal State Crash Reason", reason)
                     throw IllegalStateException(reason)
                 }
                 .create().show()
@@ -484,7 +484,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleProgressBarUpdateState(state: ProgressBarUpdateState) {
-        acraWrapper.setString("Last handled progress bar update state", "$state")
+        acraWrapper.putCustomString("Last handled progress bar update state", "$state")
         return when (state) {
             is StartingSetup -> {
                 val step = getString(R.string.progress_start_step)
