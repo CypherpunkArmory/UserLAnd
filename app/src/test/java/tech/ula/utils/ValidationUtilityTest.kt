@@ -99,8 +99,6 @@ class ValidationUtilityTest {
                 "www-data"
         )
 
-        whenever(resources.getStringArray(R.array.blacklisted_usernames))
-                .thenReturn(arrayOf("adm", "audio"))
         whenever(resources.getString(R.string.error_empty_field))
                 .thenReturn("Each field must be entered!")
         whenever(resources.getString(R.string.error_username_invalid_characters))
