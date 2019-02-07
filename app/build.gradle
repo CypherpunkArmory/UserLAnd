@@ -8,11 +8,11 @@ apply plugin: 'kotlin-kapt'
 
 apply plugin: 'jacoco'
 
+File tracepotPropertiesFile = file("$projectDir/tracepot.properties")
 
 android {
     compileSdkVersion 28
 
-    File tracepotPropertiesFile = file("$projectDir/tracepot.properties")
     Properties tracepotProperties = new Properties()
     if (tracepotPropertiesFile.exists()) {
         tracepotProperties.load(new FileInputStream(tracepotPropertiesFile))
