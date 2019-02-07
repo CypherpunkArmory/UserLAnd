@@ -19,7 +19,7 @@ class SessionStartupFsm(
     private val filesystemUtility: FilesystemUtility,
     private val downloadUtility: DownloadUtility,
     private val timeUtility: TimeUtility = TimeUtility(),
-    private val crashlyticsWrapper: CrashlyticsWrapper = CrashlyticsWrapper()
+    private val acraWrapper: AcraWrapper = AcraWrapper()
 ) {
 
     private val state = MutableLiveData<SessionStartupState>().apply { postValue(WaitingForSessionSelection) }
@@ -88,8 +88,8 @@ class SessionStartupFsm(
     }
 
     fun submitEvent(event: SessionStartupEvent, coroutineScope: CoroutineScope) = coroutineScope.launch {
-        crashlyticsWrapper.setString("Last submitted session fsm event", "$event")
-        crashlyticsWrapper.setString("State during session fsm event submission", "${state.value}")
+        acraWrapper.putCustomString("Last submitted session fsm event", "$event")
+        acraWrapper.putCustomString("State during session fsm event submission", "${state.value}")
         if (!transitionIsAcceptable(event)) {
             state.postValue(IncorrectSessionTransition(event, state.value!!))
             return@launch

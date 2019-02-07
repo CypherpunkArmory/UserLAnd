@@ -14,7 +14,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.support.v4.content.ContextCompat
-import com.crashlytics.android.Crashlytics
+import org.acra.ACRA
 import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
@@ -385,8 +385,8 @@ class TimeUtility {
     }
 }
 
-class CrashlyticsWrapper {
-    fun setString(key: String, value: String) {
-        Crashlytics.setString(key, value)
+class AcraWrapper {
+    fun putCustomString(key: String, value: String) {
+        ACRA.getErrorReporter().putCustomData(key, value)
     }
 }

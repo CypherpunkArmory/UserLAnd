@@ -45,8 +45,8 @@ class ExecUtilityTest {
         val command = arrayListOf("echo", "hello world")
         val doWait = true
         execUtility.execLocal(testDirectory, command, testLogger, doWait)
-        assert(logCollector.size > 1)
-        assert(logCollector[1] == "hello world")
+        assert(logCollector.size == 1)
+        assert(logCollector[0] == "hello world")
     }
 
     @Test(expected = RuntimeException::class)

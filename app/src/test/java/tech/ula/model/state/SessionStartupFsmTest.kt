@@ -46,7 +46,7 @@ class SessionStartupFsmTest {
 
     @Mock lateinit var mockStateObserver: Observer<SessionStartupState>
 
-    @Mock lateinit var mockCrashlyticsWrapper: CrashlyticsWrapper
+    @Mock lateinit var mockAcraWrapper: AcraWrapper
 
     lateinit var activeSessionLiveData: MutableLiveData<List<Session>>
 
@@ -114,7 +114,7 @@ class SessionStartupFsmTest {
         whenever(mockUlaDatabase.filesystemDao()).thenReturn(mockFilesystemDao)
         whenever(mockFilesystemDao.getAllFilesystems()).thenReturn(filesystemLiveData)
 
-        sessionFsm = SessionStartupFsm(mockUlaDatabase, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility, mockTimeUtility, mockCrashlyticsWrapper)
+        sessionFsm = SessionStartupFsm(mockUlaDatabase, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility, mockTimeUtility, mockAcraWrapper)
     }
 
     @After
@@ -417,7 +417,7 @@ class SessionStartupFsmTest {
         whenever(mockDownloadUtility.syncStateWithCache())
                 .thenReturn(AllDownloadsCompletedSuccessfully)
 
-        val syncedSessionFsm = SessionStartupFsm(mockUlaDatabase, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility, mockTimeUtility, mockCrashlyticsWrapper)
+        val syncedSessionFsm = SessionStartupFsm(mockUlaDatabase, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility, mockTimeUtility, mockAcraWrapper)
         syncedSessionFsm.getState().observeForever(mockStateObserver)
 
         verify(mockDownloadUtility).syncStateWithCache()

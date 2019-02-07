@@ -17,7 +17,7 @@ class AppsStartupFsm(
     private val appsPreferences: AppsPreferences,
     private val filesystemUtility: FilesystemUtility,
     private val buildWrapper: BuildWrapper = BuildWrapper(),
-    private val crashlyticsWrapper: CrashlyticsWrapper = CrashlyticsWrapper()
+    private val acraWrapper: AcraWrapper = AcraWrapper()
 ) {
 
     private val sessionDao = ulaDatabase.sessionDao()
@@ -48,8 +48,8 @@ class AppsStartupFsm(
     }
 
     fun submitEvent(event: AppsStartupEvent, coroutineScope: CoroutineScope) = coroutineScope.launch {
-        crashlyticsWrapper.setString("Last submitted apps fsm event", "$event")
-        crashlyticsWrapper.setString("State during apps fsm event submission", "${state.value}")
+        acraWrapper.putCustomString("Last submitted apps fsm event", "$event")
+        acraWrapper.putCustomString("State during apps fsm event submission", "${state.value}")
         if (!transitionIsAcceptable(event)) {
             state.postValue(IncorrectAppTransition(event, state.value!!))
             return@launch

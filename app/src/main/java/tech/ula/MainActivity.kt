@@ -3,6 +3,7 @@ package tech.ula
 import android.Manifest
 import android.annotation.TargetApi
 import android.app.AlertDialog
+import android.app.Application
 import android.app.DownloadManager
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
@@ -50,10 +51,13 @@ import tech.ula.ui.AppListFragment
 import tech.ula.ui.SessionListFragment
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
-import java.lang.IllegalStateException
-import com.crashlytics.android.Crashlytics
-import io.fabric.sdk.android.Fabric
 import kotlinx.android.synthetic.main.dia_app_select_client.*
+import org.acra.ACRA
+import org.acra.config.CoreConfigurationBuilder
+import org.acra.config.HttpSenderConfigurationBuilder
+import org.acra.data.StringFormat
+import org.acra.sender.HttpSender
+import kotlin.IllegalStateException
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection {
 
@@ -63,6 +67,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     private var progressBarIsVisible = false
     private var currentFragmentDisplaysProgressDialog = false
+
+    private val acraWrapper = AcraWrapper()
 
     private val navController: NavController by lazy {
         findNavController(R.id.nav_host_fragment)
@@ -83,7 +89,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private val serverServiceBroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             intent.getStringExtra("type")?.let { intentType ->
-                Crashlytics.setString("Last service broadcast received", intentType)
+                acraWrapper.putCustomString("Last service broadcast received", intentType)
                 when (intentType) {
                     "sessionActivated" -> handleSessionHasBeenActivated()
                     "dialog" -> {
@@ -124,7 +130,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Fabric.with(this, Crashlytics())
+        startAcra()
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
         notificationManager.createServiceNotificationChannel() // Android O requirement
@@ -142,6 +148,17 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         setupWithNavController(bottom_nav_view, navController)
 
         viewModel.getState().observe(this, stateObserver)
+    }
+
+    private fun startAcra() {
+        val builder = CoreConfigurationBuilder(applicationContext)
+        builder.setBuildConfigClass(BuildConfig::class.java)
+                .setReportFormat(StringFormat.JSON)
+        builder.getPluginConfigurationBuilder(HttpSenderConfigurationBuilder::class.java)
+                .setUri(BuildConfig.tracepotHttpsEndpoint)
+                .setHttpMethod(HttpSender.Method.POST)
+                .setEnabled(true)
+        ACRA.init(applicationContext as Application, builder)
     }
 
     private fun setNavStartDestination() {
@@ -218,7 +235,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleStateUpdate(newState: State) {
-        Crashlytics.setString("Last observed state from viewmodel", "$newState")
+        acraWrapper.putCustomString("Last observed state from viewmodel", "$newState")
         return when (newState) {
             is CanOnlyStartSingleSession -> { showToast(R.string.single_session_supported) }
             is SessionCanBeStarted -> { prepareSessionForStart(newState.session) }
@@ -302,7 +319,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleUserInputState(state: UserInputRequiredState) {
-        Crashlytics.setString("Last handled user input state", "$state")
+        acraWrapper.putCustomString("Last handled user input state", "$state")
         return when (state) {
             is FilesystemCredentialsRequired -> {
                 getCredentials()
@@ -324,7 +341,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleIllegalState(state: IllegalState) {
-        Crashlytics.setString("Last handled illegal state", "$state")
+        acraWrapper.putCustomString("Last handled illegal state", "$state")
         val reason: String = when (state) {
             is IllegalStateTransition -> {
                 getString(R.string.illegal_state_transition, state.transition)
@@ -402,7 +419,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 .setPositiveButton(R.string.button_ok) {
                     dialog, _ ->
                     dialog.dismiss()
-                    Crashlytics.setString("Illegal State Crash Reason", reason)
+                    acraWrapper.putCustomString("Illegal State Crash Reason", reason)
                     throw IllegalStateException(reason)
                 }
                 .create().show()
@@ -467,7 +484,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleProgressBarUpdateState(state: ProgressBarUpdateState) {
-        Crashlytics.setString("Last handled progress bar update state", "$state")
+        acraWrapper.putCustomString("Last handled progress bar update state", "$state")
         return when (state) {
             is StartingSetup -> {
                 val step = getString(R.string.progress_start_step)
