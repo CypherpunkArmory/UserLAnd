@@ -198,9 +198,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.terms_and_conditions) {
-            throw IllegalStateException() // TODO remove
-//            val intent = Intent("android.intent.action.VIEW", Uri.parse("https://userland.tech/eula"))
-//            startActivity(intent)
+            val intent = Intent("android.intent.action.VIEW", Uri.parse("https://userland.tech/eula"))
+            startActivity(intent)
         }
         if (item.itemId == R.id.clear_support_files) {
             displayClearSupportFilesDialog()
