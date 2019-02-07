@@ -155,6 +155,22 @@ class ValidationUtilityTest {
     }
 
     @Test
+    fun `Username has space`() {
+        val username = "user name"
+        credential = validationUtility.validateUsername(username)
+        assertFalse(credential.credentialIsValid)
+        assertEquals(credential.errorMessage, "Characters in username must be 1 to 30 characters with lowercase letters and/or numbers.")
+    }
+
+    @Test
+    fun `Username is too long`() {
+        val username = "abcdefghijklmnopqrstuvwxyz123456"
+        credential = validationUtility.validateUsername(username)
+        assertFalse(credential.credentialIsValid)
+        assertEquals(credential.errorMessage, "Characters in username must be 1 to 30 characters with lowercase letters and/or numbers.")
+    }
+
+    @Test
     fun `Username is in blacklist`() {
         val username = "root"
         whenever(resources.getString(R.string.error_username_in_blacklist))
