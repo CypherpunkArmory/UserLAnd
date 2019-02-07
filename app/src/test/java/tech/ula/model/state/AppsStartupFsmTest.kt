@@ -41,7 +41,7 @@ class AppsStartupFsmTest {
 
     @Mock lateinit var mockBuildWrapper: BuildWrapper
 
-    @Mock lateinit var mockCrashlyticsWrapper: CrashlyticsWrapper
+    @Mock lateinit var mockAcraWrapper: AcraWrapper
 
     @Mock lateinit var mockStateObserver: Observer<AppsStartupState>
 
@@ -94,7 +94,7 @@ class AppsStartupFsmTest {
         whenever(mockUlaDatabase.filesystemDao()).thenReturn(mockFilesystemDao)
         whenever(mockUlaDatabase.sessionDao()).thenReturn(mockSessionDao)
 
-        appsFsm = AppsStartupFsm(mockUlaDatabase, mockAppsPreferences, mockFilesystemUtility, mockBuildWrapper, mockCrashlyticsWrapper)
+        appsFsm = AppsStartupFsm(mockUlaDatabase, mockAppsPreferences, mockFilesystemUtility, mockBuildWrapper, mockAcraWrapper)
     }
 
     @Test
@@ -127,7 +127,7 @@ class AppsStartupFsmTest {
         appsFsm.getState().observeForever(mockStateObserver)
 
         val event = CheckAppsFilesystemCredentials(appsFilesystem)
-        runBlocking { appsFsm.submitEvent(event) }
+        runBlocking { appsFsm.submitEvent(event, this) }
 
         verify(mockStateObserver).onChanged(IncorrectAppTransition(event, state))
         verify(mockStateObserver, times(2)).onChanged(any())
@@ -147,7 +147,7 @@ class AppsStartupFsmTest {
 
         for (state in possibleStates) {
             appsFsm.setState(state)
-            runBlocking { appsFsm.submitEvent(ResetAppState) }
+            runBlocking { appsFsm.submitEvent(ResetAppState, this) }
         }
 
         val numberOfStates = possibleStates.size
@@ -168,7 +168,7 @@ class AppsStartupFsmTest {
                 .thenReturn(listOf())
                 .thenReturn(listOf(appsFilesystem))
 
-        runBlocking { appsFsm.submitEvent(AppSelected(app)) }
+        runBlocking { appsFsm.submitEvent(AppSelected(app), this) }
 
         verify(mockStateObserver).onChanged(FetchingDatabaseEntries)
         verify(mockStateObserver).onChanged(DatabaseEntriesFetched(appsFilesystem, appSession))
@@ -187,7 +187,7 @@ class AppsStartupFsmTest {
                 .thenReturn(listOf())
                 .thenReturn(listOf(appSession))
 
-        runBlocking { appsFsm.submitEvent(AppSelected(app)) }
+        runBlocking { appsFsm.submitEvent(AppSelected(app), this) }
 
         verify(mockStateObserver).onChanged(FetchingDatabaseEntries)
         verify(mockStateObserver).onChanged(DatabaseEntriesFetched(appsFilesystem, appSession))
@@ -205,7 +205,7 @@ class AppsStartupFsmTest {
         whenever(mockSessionDao.findAppsSession(app.name))
                 .thenReturn(listOf(appSession))
 
-        runBlocking { appsFsm.submitEvent(AppSelected(app)) }
+        runBlocking { appsFsm.submitEvent(AppSelected(app), this) }
 
         verify(mockStateObserver).onChanged(FetchingDatabaseEntries)
         verify(mockStateObserver).onChanged(DatabaseEntriesFetched(appsFilesystem, appSession))
@@ -222,7 +222,7 @@ class AppsStartupFsmTest {
                 .thenReturn(listOf())
                 .thenReturn(listOf()) // Simulate failure to retrieve previous insertion
 
-        runBlocking { appsFsm.submitEvent(AppSelected(app)) }
+        runBlocking { appsFsm.submitEvent(AppSelected(app), this) }
 
         verify(mockFilesystemDao, times(2)).findAppsFilesystemByType(app.filesystemRequired)
         verify(mockFilesystemDao).insertFilesystem(appsFilesystem)
@@ -237,7 +237,7 @@ class AppsStartupFsmTest {
 
         val filesystemWithoutUsername = appsFilesystemWithCredentials
         filesystemWithoutUsername.defaultUsername = ""
-        runBlocking { appsFsm.submitEvent(CheckAppsFilesystemCredentials(filesystemWithoutUsername)) }
+        runBlocking { appsFsm.submitEvent(CheckAppsFilesystemCredentials(filesystemWithoutUsername), this) }
 
         verify(mockStateObserver).onChanged(AppsFilesystemRequiresCredentials(filesystemWithoutUsername))
     }
@@ -249,7 +249,7 @@ class AppsStartupFsmTest {
 
         val filesystemWithoutPassword = appsFilesystemWithCredentials
         filesystemWithoutPassword.defaultPassword = ""
-        runBlocking { appsFsm.submitEvent(CheckAppsFilesystemCredentials(filesystemWithoutPassword)) }
+        runBlocking { appsFsm.submitEvent(CheckAppsFilesystemCredentials(filesystemWithoutPassword), this) }
 
         verify(mockStateObserver).onChanged(AppsFilesystemRequiresCredentials(filesystemWithoutPassword))
     }
@@ -261,7 +261,7 @@ class AppsStartupFsmTest {
 
         val filesystemWithoutVncPassword = appsFilesystemWithCredentials
         filesystemWithoutVncPassword.defaultVncPassword = ""
-        runBlocking { appsFsm.submitEvent(CheckAppsFilesystemCredentials(filesystemWithoutVncPassword)) }
+        runBlocking { appsFsm.submitEvent(CheckAppsFilesystemCredentials(filesystemWithoutVncPassword), this) }
 
         verify(mockStateObserver).onChanged(AppsFilesystemRequiresCredentials(filesystemWithoutVncPassword))
     }
@@ -271,7 +271,7 @@ class AppsStartupFsmTest {
         appsFsm.setState(DatabaseEntriesFetched(appsFilesystem, appSession))
         appsFsm.getState().observeForever(mockStateObserver)
 
-        runBlocking { appsFsm.submitEvent(CheckAppsFilesystemCredentials(appsFilesystemWithCredentials)) }
+        runBlocking { appsFsm.submitEvent(CheckAppsFilesystemCredentials(appsFilesystemWithCredentials), this) }
 
         verify(mockStateObserver).onChanged(AppsFilesystemHasCredentials)
     }
@@ -281,7 +281,7 @@ class AppsStartupFsmTest {
         appsFsm.setState(AppsFilesystemRequiresCredentials(appsFilesystem))
         appsFsm.getState().observeForever(mockStateObserver)
 
-        runBlocking { appsFsm.submitEvent(SubmitAppsFilesystemCredentials(appsFilesystem, defaultUsername, defaultPassword, defaultPassword)) }
+        runBlocking { appsFsm.submitEvent(SubmitAppsFilesystemCredentials(appsFilesystem, defaultUsername, defaultPassword, defaultPassword), this) }
 
         verify(mockFilesystemDao).updateFilesystem(appsFilesystemWithCredentials)
         verify(mockStateObserver).onChanged(AppsFilesystemHasCredentials)
@@ -295,7 +295,7 @@ class AppsStartupFsmTest {
         whenever(mockAppsPreferences.getAppServiceTypePreference(app))
                 .thenReturn(SshTypePreference)
 
-        runBlocking { appsFsm.submitEvent(CheckAppServicePreference(app)) }
+        runBlocking { appsFsm.submitEvent(CheckAppServicePreference(app), this) }
 
         verify(mockStateObserver).onChanged(AppHasServiceTypePreferenceSet)
     }
@@ -308,7 +308,7 @@ class AppsStartupFsmTest {
         whenever(mockAppsPreferences.getAppServiceTypePreference(app))
                 .thenReturn(PreferenceHasNotBeenSelected)
 
-        runBlocking { appsFsm.submitEvent(CheckAppServicePreference(app)) }
+        runBlocking { appsFsm.submitEvent(CheckAppServicePreference(app), this) }
 
         verify(mockStateObserver).onChanged(AppRequiresServiceTypePreference)
     }
@@ -318,7 +318,7 @@ class AppsStartupFsmTest {
         appsFsm.setState(AppRequiresServiceTypePreference)
         appsFsm.getState().observeForever(mockStateObserver)
 
-        runBlocking { appsFsm.submitEvent(SubmitAppServicePreference(app, SshTypePreference)) }
+        runBlocking { appsFsm.submitEvent(SubmitAppServicePreference(app, SshTypePreference), this) }
 
         verify(mockAppsPreferences).setAppServiceTypePreference(app.name, SshTypePreference)
         verify(mockStateObserver).onChanged(AppHasServiceTypePreferenceSet)
@@ -329,7 +329,7 @@ class AppsStartupFsmTest {
         appsFsm.setState(AppHasServiceTypePreferenceSet)
         appsFsm.getState().observeForever(mockStateObserver)
 
-        runBlocking { appsFsm.submitEvent(CopyAppScriptToFilesystem(app, appsFilesystem)) }
+        runBlocking { appsFsm.submitEvent(CopyAppScriptToFilesystem(app, appsFilesystem), this) }
 
         verify(mockStateObserver).onChanged(CopyingAppScript)
         verify(mockStateObserver).onChanged(AppScriptCopySucceeded)
@@ -343,7 +343,7 @@ class AppsStartupFsmTest {
         whenever(mockFilesystemUtility.moveAppScriptToRequiredLocation(app.name, appsFilesystem))
                 .thenThrow(Exception())
 
-        runBlocking { appsFsm.submitEvent(CopyAppScriptToFilesystem(app, appsFilesystem)) }
+        runBlocking { appsFsm.submitEvent(CopyAppScriptToFilesystem(app, appsFilesystem), this) }
 
         verify(mockStateObserver).onChanged(CopyingAppScript)
         verify(mockStateObserver).onChanged(AppScriptCopyFailed)
@@ -357,7 +357,7 @@ class AppsStartupFsmTest {
         whenever(mockAppsPreferences.getAppServiceTypePreference(app))
                 .thenReturn(SshTypePreference)
 
-        runBlocking { appsFsm.submitEvent(SyncDatabaseEntries(app, appSession, appsFilesystemWithCredentials)) }
+        runBlocking { appsFsm.submitEvent(SyncDatabaseEntries(app, appSession, appsFilesystemWithCredentials), this) }
 
         val updatedAppSession = appSession
         updatedAppSession.filesystemId = appsFilesystemWithCredentials.id
@@ -381,7 +381,7 @@ class AppsStartupFsmTest {
         whenever(mockAppsPreferences.getAppServiceTypePreference(app))
                 .thenReturn(VncTypePreference)
 
-        runBlocking { appsFsm.submitEvent(SyncDatabaseEntries(app, appSession, appsFilesystemWithCredentials)) }
+        runBlocking { appsFsm.submitEvent(SyncDatabaseEntries(app, appSession, appsFilesystemWithCredentials), this) }
 
         val updatedAppSession = appSession
         updatedAppSession.filesystemId = appsFilesystemWithCredentials.id

@@ -64,15 +64,10 @@ reference:
       name: Decode Google Cloud credentials
       command: echo $GCLOUD_SERVICE_ACCOUNT_KEY | base64 -di > ${HOME}/client-secret.json
 
-  export_fabric_api_key: &export_fabric_api_key
+  export_tracepot_endpoint: &export_tracepot_endpoint
     run:
-      name: Export fabric apiKey environment variable
-      command: echo "apiKey=$FABRIC_API_KEY" >> app/fabric.properties
-
-  export_fabric_api_secret: &export_fabric_api_secret
-    run:
-      name: Export fabric apiSecret environment variable
-      command: echo "apiSecret=$FABRIC_API_SECRET" >> app/fabric.properties
+      name: Export tracepot https environment variable
+      command: echo "tracepotHttpsEndpoint=$TRACEPOT_ENDPOINT" >> app/tracepot.properties
 
 jobs:
   build_debug:
@@ -84,8 +79,6 @@ jobs:
           name: Download dependencies
           command: ./gradlew androidDependencies
       - *save_cache
-      - *export_fabric_api_key
-      - *export_fabric_api_secret
       - run:
           name: Run ktlint
           command: ./gradlew ktlint
@@ -102,6 +95,7 @@ jobs:
 #    steps:
 #      - checkout
 #      - *restore_cache
+#      - *export_tracepot_endpoint
 #      - run:
 #          name: Download dependencies
 #          command: ./gradlew androidDependencies
@@ -125,8 +119,6 @@ jobs:
     steps:
       - checkout
       - *restore_cache
-      - *export_fabric_api_key
-      - *export_fabric_api_secret
       - run:
           name: Download dependencies
           command: ./gradlew androidDependencies

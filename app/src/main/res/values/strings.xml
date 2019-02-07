@@ -1,10 +1,10 @@
-<resources>
+<resources>                                                         <!-- Translators, pay attention to these notes! --> 
     <string name="app_name">UserLAnd</string>
     <string name="welcome">Welcome to UserLAnd!</string>
     <string name="permission_request_code">1000</string>
 
     <!-- Labels -->
-    <string name="apps">Apps</string>
+    <string name="apps">Apps</string>                               <!-- This is a button, so the word used should be short! -->
     <string name="sessions">Sessions</string>
     <string name="edit_session">Edit Session</string>
     <string name="filesystems">Filesystems</string>
@@ -19,7 +19,7 @@
     <!-- Menus -->
     <string name="app_info">App Info</string>
     <string name="stop_app">Stop App</string>
-    <string name="kill_service">Kill Service</string>
+    <string name="kill_service">Kill Service</string>               <!-- We know this says name="kill_service" but it is really stopping a session. -->
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
     <string name="save">Save</string>
@@ -63,10 +63,11 @@
     <string name="illegal_state_no_session_selected_when_preparation_started">Trying to handle session preparation before one has been selected.</string>
     <string name="illegal_state_error_fetching_asset_lists">Failed to retrieve asset lists.</string>
     <string name="illegal_state_downloads_did_not_complete_successfully">Downloads have failed due to: %1$s.</string>
-    <string name="illegal_state_failed_to_copy_assets_to_local">Failed to copy assets to local storage.</string>
-    <string name="illegal_state_failed_to_copy_assets_to_filesystem">Failed to copy assets to filesystem.</string>
-    <string name="illegal_state_failed_to_extract_filesystem">Failed to extract filesystem.</string>
-    <string name="illegal_state_filesystem_is_missing_assets">Filesystem is missing assets. Try clearing support files.</string>
+    <string name="illegal_state_failed_to_copy_assets_to_local">Failed to copy assets to local storage. Try clearing support files.</string>
+    <string name="illegal_state_assets_have_not_been_downloaded">Assets need to be copied to your filesystem, but it looks like they have not been downloaded. Try clearing support files.</string>
+    <string name="illegal_state_empty_download_cache_access">The downloads cache was empty when access was attempted.</string>
+    <string name="illegal_state_failed_to_copy_assets_to_filesystem">Failed to copy assets to filesystem. Try clearing support files.</string>
+    <string name="illegal_state_failed_to_extract_filesystem">Failed to extract filesystem. Try clearing support files.</string>
     <string name="illegal_state_failed_to_clear_support_files">Failed to clear support files.</string>
 
     <!-- Misc illegal state -->
@@ -128,12 +129,13 @@
     <!-- Client Types -->
     <string name="client_ssh">SSH</string>
     <string name="client_vnc">VNC</string>
+    <string name="client_xsdl">XSDL</string>
 
     <!-- Alerts -->
     <string name="button_ok">OK!</string>
     <string name="button_cancel">Cancel</string>
     <string name="general_error_title">Something unexpected happened!</string>
-    <string name="filesystem_credentials_reasoning">We\'re creating a filesystem for your apps.Please enter the relevant required information for us to use as defaults for this filesystem.</string>
+    <string name="filesystem_credentials_reasoning">We\'re creating a filesystem for your apps.\nPlease enter the relevant required information for us to use as defaults for this filesystem.</string>
     <string name="deactivate_sessions">All sessions need to be deactivated to continue this action.</string>
 
     <!-- Clear support files alert -->
@@ -146,7 +148,7 @@
 
     <!-- Play service error alerts -->
     <string name="alert_need_client_app_title">Can\'t find a client app!</string>
-    <string name="alert_need_client_app_message">You\'ll need an SSH or VNC client to complete this action, but it looks like you don\'t have the play store installed. Please install an SSH or VNC client application to continue.</string>
+    <string name="alert_need_client_app_message">You\'ll need an SSH or VNC or XSDL client to complete this action, but it looks like you don\'t have the play store installed. \n\nPlease install the client application (SSH/VNC/XSDL) associated with the session\'s client type to continue.</string>
 
     <!-- Permissions necessary alert -->
     <string name="alert_permissions_necessary_title">UserLAnd requires permissions!</string>
@@ -177,5 +179,6 @@
     <!-- Misc -->
     <string name="custom_sessions">Custom Sessions</string>
     <string name="apps_sessions">Apps Sessions</string>
+    <string name="info_xsdl_support">XSDL is not fully supported on \nAndroid 9.0 and above yet</string>
 
 </resources>

@@ -8,16 +8,13 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
-import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
-import org.mockito.Mockito.times
 import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.utils.AssetPreferences
 import tech.ula.utils.ConnectionUtility
-import tech.ula.utils.TimestampPreferences
 import java.io.File
 
 @RunWith(MockitoJUnitRunner::class)
@@ -25,9 +22,6 @@ class AssetRepositoryTest {
 
     @get:Rule
     val tempFolder = TemporaryFolder()
-
-    @Mock
-    lateinit var timestampPreferences: TimestampPreferences
 
     @Mock
     lateinit var assetPreferences: AssetPreferences
@@ -51,7 +45,7 @@ class AssetRepositoryTest {
     @Before
     fun setup() {
         applicationFilesDirPath = tempFolder.root.path
-        assetRepository = AssetRepository(applicationFilesDirPath, timestampPreferences,
+        assetRepository = AssetRepository(applicationFilesDirPath,
                 assetPreferences, connectionUtility)
     }
 
@@ -91,7 +85,7 @@ class AssetRepositoryTest {
         val asset = Asset("name", distType, archType, Long.MAX_VALUE)
 
         assertTrue(assetRepository.doesAssetNeedToUpdated(asset))
-        verify(timestampPreferences, never()).getSavedTimestampForFile(anyString())
+//        verify(timestampPreferences, never()).getSavedTimestampForFile(anyString())
     }
 
     @Test
@@ -99,8 +93,8 @@ class AssetRepositoryTest {
         val asset = Asset("late", distType, archType, Long.MAX_VALUE)
         tempFolder.newFolder("dist")
         File("${tempFolder.root.path}/${asset.pathName}").createNewFile()
-        `when`(timestampPreferences.getSavedTimestampForFile(asset.concatenatedName))
-                .thenReturn(Long.MIN_VALUE)
+//        `when`(timestampPreferences.getSavedTimestampForFile(asset.concatenatedName))
+//                .thenReturn(Long.MIN_VALUE)
 
         assertTrue(assetRepository.doesAssetNeedToUpdated(asset))
     }
@@ -110,8 +104,8 @@ class AssetRepositoryTest {
         val asset = Asset("early", distType, archType, Long.MIN_VALUE)
         tempFolder.newFolder("dist")
         File("${tempFolder.root.path}/${asset.pathName}").createNewFile()
-        `when`(timestampPreferences.getSavedTimestampForFile(asset.concatenatedName))
-                .thenReturn(Long.MAX_VALUE)
+//        `when`(timestampPreferences.getSavedTimestampForFile(asset.concatenatedName))
+//                .thenReturn(Long.MAX_VALUE)
 
         assertFalse(assetRepository.doesAssetNeedToUpdated(asset))
     }
