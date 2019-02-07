@@ -205,7 +205,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             displayClearSupportFilesDialog()
         }
         return NavigationUI.onNavDestinationSelected(item,
-                Navigation.findNavController(this, R.idv_host_fragment)) ||
+                Navigation.findNavController(this, R.id.nav_host_fragment)) ||
                 super.onOptionsItemSelected(item)
     }
 
