@@ -180,7 +180,7 @@ class FilesystemEditFragment : Fragment() {
     }
 
     private fun filesystemParametersAreCorrect(): Boolean {
-        val validator = ValidationUtility()
+        val validator = ValidationUtility(activityContext.resources)
         val username = filesystem.defaultUsername
         val password = filesystem.defaultPassword
         val vncPassword = filesystem.defaultVncPassword
@@ -190,25 +190,16 @@ class FilesystemEditFragment : Fragment() {
             return false
         }
 
+        val usernameCredentials = validator.validateUsername(username)
+        val passwordCredentials = validator.validatePasswords(password, vncPassword)
+
         when {
-            username.isEmpty() || password.isEmpty() || vncPassword.isEmpty() -> {
-                Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
-            }
-            vncPassword.length > 8 || vncPassword.length < 6 -> {
-                Toast.makeText(activityContext, R.string.error_vnc_password_length_incorrect, Toast.LENGTH_LONG).show()
-            }
-            !validator.isUsernameValid(username) -> {
-                Toast.makeText(activityContext, R.string.error_username_invalid, Toast.LENGTH_LONG).show()
-            }
-            !validator.isPasswordValid(password) -> {
-                Toast.makeText(activityContext, R.string.error_password_invalid, Toast.LENGTH_LONG).show()
-            }
-            !validator.isPasswordValid(vncPassword) -> {
-                Toast.makeText(activityContext, R.string.error_vnc_password_invalid, Toast.LENGTH_LONG).show()
-            }
-            else -> {
+            !usernameCredentials.credentialIsValid ->
+                Toast.makeText(activityContext, usernameCredentials.errorMessage, Toast.LENGTH_LONG).show()
+            !passwordCredentials.credentialIsValid ->
+                Toast.makeText(activityContext, passwordCredentials.errorMessage, Toast.LENGTH_LONG).show()
+            else ->
                 return true
-            }
         }
         return false
     }

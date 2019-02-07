@@ -658,31 +658,21 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         customDialog.show()
     }
 
-    // TODO the view shouldn't be responsible for validation
     private fun validateCredentials(username: String, password: String, vncPassword: String): Boolean {
-        val validator = ValidationUtility()
+        val resources = this.resources
+        val validator = ValidationUtility(resources)
         var allCredentialsAreValid = false
 
+        val usernameCredentials = validator.validateUsername(username)
+        val passwordCredentials = validator.validatePasswords(password, vncPassword)
+
         when {
-            username.isEmpty() || password.isEmpty() || vncPassword.isEmpty() -> {
-                Toast.makeText(this, R.string.error_empty_field, Toast.LENGTH_LONG).show()
-            }
-            vncPassword.length > 8 || vncPassword.length < 6 -> {
-                Toast.makeText(this, R.string.error_vnc_password_length_incorrect, Toast.LENGTH_LONG).show()
-            }
-            !validator.isUsernameValid(username) -> {
-                Toast.makeText(this, R.string.error_username_invalid, Toast.LENGTH_LONG).show()
-            }
-            !validator.isPasswordValid(password) -> {
-                Toast.makeText(this, R.string.error_password_invalid, Toast.LENGTH_LONG).show()
-            }
-            !validator.isPasswordValid(vncPassword) -> {
-                Toast.makeText(this, R.string.error_vnc_password_invalid, Toast.LENGTH_LONG).show()
-            }
-            else -> {
+            !usernameCredentials.credentialIsValid ->
+                Toast.makeText(this, usernameCredentials.errorMessage, Toast.LENGTH_LONG).show()
+            !passwordCredentials.credentialIsValid ->
+                Toast.makeText(this, passwordCredentials.errorMessage, Toast.LENGTH_LONG).show()
+            else ->
                 allCredentialsAreValid = true
-                return allCredentialsAreValid
-            }
         }
         return allCredentialsAreValid
     }
