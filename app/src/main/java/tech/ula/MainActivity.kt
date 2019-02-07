@@ -128,7 +128,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 .get(MainActivityViewModel::class.java)
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         startAcra()
