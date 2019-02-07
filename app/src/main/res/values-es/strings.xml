@@ -66,7 +66,7 @@
     <string name="illegal_state_failed_to_copy_assets_to_local">Ha fallado la copia de los recursos al almacenamiento local.</string>
     <string name="illegal_state_failed_to_copy_assets_to_filesystem">Ha fallado la copia de los recursos al sistema de archivos.</string>
     <string name="illegal_state_failed_to_extract_filesystem">Ha fallado la extracción del sistema de archivos.</string>
-    <string name="illegal_state_filesystem_is_missing_assets">Al sistema de archivos le faltan recursos. Prueba a borrar los archivos de soporte.</string>
+    <!--  <string name="illegal_state_filesystem_is_missing_assets">Al sistema de archivos le faltan recursos. Prueba a borrar los archivos de soporte.</string> -->
     <string name="illegal_state_failed_to_clear_support_files">Ha fallado la copia de los archivos de soporte.</string>
 
     <!-- Misc illegal state -->
@@ -86,7 +86,7 @@
     <string name="service_notification_description">UserLAnd se está ejecutando en segundo plano.</string>
 
     <!-- Progress bar messages -->
-    <string name="progress_start_step">Dejando todo listo…&&#8230;</string>
+    <string name="progress_start_step">Dejando todo listo…&#8230;</string>
     <string name="progress_fetching_asset_lists">Obteniendo lista de archivos necesarios…&#8230;</string>
     <string name="progress_checking_for_required_updates">Comprobando actualizaciones…&#8230;</string>
     <string name="progress_downloading">Descargando recursos requeridos&#8230;</string>
