@@ -58,6 +58,15 @@ fun displayGenericErrorDialog(activity: Activity, titleId: Int, messageId: Int) 
             .create().show()
 }
 
+// Add or change asset types as needed for testing and staggered releases.
+fun getBranchToDownloadAssetsFrom(assetType: String): String {
+    return when (assetType) {
+        "support" -> "beta"
+        "apps" -> "master"
+        else -> "master"
+    }
+}
+
 class DefaultPreferences(private val prefs: SharedPreferences) {
 
     fun getProotDebuggingEnabled(): Boolean {
