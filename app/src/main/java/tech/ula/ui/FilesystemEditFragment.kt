@@ -181,7 +181,7 @@ class FilesystemEditFragment : Fragment() {
 
     private fun filesystemParametersAreCorrect(): Boolean {
         val blacklistedUsernames = activityContext.resources.getStringArray(R.array.blacklisted_usernames)
-        val validator = ValidationUtility(blacklistedUsernames)
+        val validator = ValidationUtility()
         val username = filesystem.defaultUsername
         val password = filesystem.defaultPassword
         val vncPassword = filesystem.defaultVncPassword
@@ -191,7 +191,7 @@ class FilesystemEditFragment : Fragment() {
             return false
         }
 
-        val usernameCredentials = validator.validateUsername(username)
+        val usernameCredentials = validator.validateUsername(username, blacklistedUsernames)
         val passwordCredentials = validator.validatePassword(password)
         val vncPasswordCredentials = validator.validateVncPassword(vncPassword)
 

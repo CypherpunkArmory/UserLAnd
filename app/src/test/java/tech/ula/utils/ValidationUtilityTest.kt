@@ -1,6 +1,5 @@
 package tech.ula.utils
 
-import android.content.res.Resources
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -18,22 +17,19 @@ class ValidationUtilityTest {
     lateinit var validationUtility: ValidationUtility
 
     @Mock
-    lateinit var credential: Credential
+    lateinit var credential: CredentialValidationStatus
 
-    @Mock
-    lateinit var resources: Resources
+    private var blacklistUsernames = arrayOf("root")
 
     @Before
     fun setup() {
-        val blacklistedUsernames = arrayOf("root")
-        validationUtility = ValidationUtility(blacklistedUsernames)
+        validationUtility = ValidationUtility()
     }
 
     @Test
     fun `Validate fails appropriately if username is empty`() {
         val username = ""
-
-        credential = validationUtility.validateUsername(username)
+        credential = validationUtility.validateUsername(username, blacklistUsernames)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_empty_field)
     }
@@ -41,7 +37,7 @@ class ValidationUtilityTest {
     @Test
     fun `Validation fails appropriately if username is capitalized`() {
         val username = "A"
-        credential = validationUtility.validateUsername(username)
+        credential = validationUtility.validateUsername(username, blacklistUsernames)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_username_invalid_characters)
     }
@@ -49,7 +45,7 @@ class ValidationUtilityTest {
     @Test
     fun `Validation fails appropriately if username has capital letters`() {
         val username = "abC"
-        credential = validationUtility.validateUsername(username)
+        credential = validationUtility.validateUsername(username, blacklistUsernames)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_username_invalid_characters)
     }
@@ -57,7 +53,7 @@ class ValidationUtilityTest {
     @Test
     fun `Validation fails appropriately if username starts with numbers`() {
         val username = "123abc"
-        credential = validationUtility.validateUsername(username)
+        credential = validationUtility.validateUsername(username, blacklistUsernames)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_username_invalid_characters)
     }
@@ -65,7 +61,7 @@ class ValidationUtilityTest {
     @Test
     fun `Validation succeeds appropriately if username starts with underscore`() {
         val username = "_123abc"
-        credential = validationUtility.validateUsername(username)
+        credential = validationUtility.validateUsername(username, blacklistUsernames)
         assertTrue(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, 0)
     }
@@ -73,7 +69,7 @@ class ValidationUtilityTest {
     @Test
     fun `Validation fails appropriately if username has space`() {
         val username = "user name"
-        credential = validationUtility.validateUsername(username)
+        credential = validationUtility.validateUsername(username, blacklistUsernames)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_username_invalid_characters)
     }
@@ -81,7 +77,7 @@ class ValidationUtilityTest {
     @Test
     fun `Validation fails appropriately if username is too long`() {
         val username = "abcdefghijklmnopqrstuvwxyz123456"
-        credential = validationUtility.validateUsername(username)
+        credential = validationUtility.validateUsername(username, blacklistUsernames)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_username_invalid_characters)
     }
@@ -90,7 +86,7 @@ class ValidationUtilityTest {
     fun `Validation fails appropriately if username is in blacklist`() {
         val username = "root"
 
-        credential = validationUtility.validateUsername(username)
+        credential = validationUtility.validateUsername(username, blacklistUsernames)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_username_in_blacklist)
     }

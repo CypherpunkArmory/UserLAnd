@@ -4,49 +4,47 @@ import tech.ula.R
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-class ValidationUtility(blacklisted_usernames: Array<String>) {
+class ValidationUtility {
 
-    private val blacklist = blacklisted_usernames
-
-    fun validateUsername(username: String): Credential {
+    fun validateUsername(username: String, blacklistUsernames: Array<String>): CredentialValidationStatus {
         return when {
             username.isEmpty() ->
-                Credential(false, R.string.error_empty_field)
+                CredentialValidationStatus(false, R.string.error_empty_field)
 
             !validateUsernameCharacters(username) ->
-                Credential(false, R.string.error_username_invalid_characters)
+                CredentialValidationStatus(false, R.string.error_username_invalid_characters)
 
-            blacklist.contains(username) ->
-                Credential(false, R.string.error_username_in_blacklist)
+            blacklistUsernames.contains(username) ->
+                CredentialValidationStatus(false, R.string.error_username_in_blacklist)
 
-            else -> Credential(true)
+            else -> CredentialValidationStatus(true)
         }
     }
 
-    fun validatePassword(password: String): Credential {
+    fun validatePassword(password: String): CredentialValidationStatus {
         return when {
             password.isEmpty() ->
-                Credential(false, R.string.error_empty_field)
+                CredentialValidationStatus(false, R.string.error_empty_field)
 
             !validatePasswordCharacters(password) ->
-                Credential(false, R.string.error_password_invalid)
+                CredentialValidationStatus(false, R.string.error_password_invalid)
 
-            else -> Credential(true)
+            else -> CredentialValidationStatus(true)
         }
     }
 
-    fun validateVncPassword(vncPassword: String): Credential {
+    fun validateVncPassword(vncPassword: String): CredentialValidationStatus {
         return when {
             vncPassword.isEmpty() ->
-                Credential(false, R.string.error_empty_field)
+                CredentialValidationStatus(false, R.string.error_empty_field)
 
             vncPassword.length > 8 || vncPassword.length < 6 ->
-                Credential(false, R.string.error_vnc_password_length_incorrect)
+                CredentialValidationStatus(false, R.string.error_vnc_password_length_incorrect)
 
             !validatePasswordCharacters(vncPassword) ->
-                Credential(false, R.string.error_vnc_password_invalid)
+                CredentialValidationStatus(false, R.string.error_vnc_password_invalid)
 
-            else -> Credential(true)
+            else -> CredentialValidationStatus(true)
         }
     }
 
@@ -76,4 +74,4 @@ class ValidationUtility(blacklisted_usernames: Array<String>) {
     }
 }
 
-data class Credential(val credentialIsValid: Boolean, val errorMessageId: Int = 0)
+data class CredentialValidationStatus(val credentialIsValid: Boolean, val errorMessageId: Int = 0)
