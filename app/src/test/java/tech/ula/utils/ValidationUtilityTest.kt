@@ -104,7 +104,7 @@ class ValidationUtilityTest {
     fun `Validation fails appropriately if vnc password is empty`() {
         val vncPassword = ""
 
-        credential = validationUtility.validatePassword(vncPassword)
+        credential = validationUtility.validateVncPassword(vncPassword)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_empty_field)
     }
