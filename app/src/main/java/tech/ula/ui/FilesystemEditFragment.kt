@@ -180,7 +180,8 @@ class FilesystemEditFragment : Fragment() {
     }
 
     private fun filesystemParametersAreCorrect(): Boolean {
-        val validator = ValidationUtility(activityContext.resources)
+        val blacklistedUsernames = activityContext.resources.getStringArray(R.array.blacklisted_usernames)
+        val validator = ValidationUtility(blacklistedUsernames)
         val username = filesystem.defaultUsername
         val password = filesystem.defaultPassword
         val vncPassword = filesystem.defaultVncPassword
@@ -191,13 +192,16 @@ class FilesystemEditFragment : Fragment() {
         }
 
         val usernameCredentials = validator.validateUsername(username)
-        val passwordCredentials = validator.validatePasswords(password, vncPassword)
+        val passwordCredentials = validator.validatePassword(password)
+        val vncPasswordCredentials = validator.validateVncPassword(vncPassword)
 
         when {
             !usernameCredentials.credentialIsValid ->
-                Toast.makeText(activityContext, usernameCredentials.errorMessage, Toast.LENGTH_LONG).show()
+                Toast.makeText(activityContext, usernameCredentials.errorMessageId, Toast.LENGTH_LONG).show()
             !passwordCredentials.credentialIsValid ->
-                Toast.makeText(activityContext, passwordCredentials.errorMessage, Toast.LENGTH_LONG).show()
+                Toast.makeText(activityContext, passwordCredentials.errorMessageId, Toast.LENGTH_LONG).show()
+            !vncPasswordCredentials.credentialIsValid ->
+                Toast.makeText(activityContext, vncPasswordCredentials.errorMessageId, Toast.LENGTH_LONG).show()
             else ->
                 return true
         }

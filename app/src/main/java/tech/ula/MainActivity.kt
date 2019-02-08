@@ -659,21 +659,27 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun validateCredentials(username: String, password: String, vncPassword: String): Boolean {
-        val resources = this.resources
-        val validator = ValidationUtility(resources)
-        var allCredentialsAreValid = false
+        val blacklistedUsernames = this.resources.getStringArray(R.array.blacklisted_usernames)
+        val validator = ValidationUtility(blacklistedUsernames)
 
         val usernameCredentials = validator.validateUsername(username)
-        val passwordCredentials = validator.validatePasswords(password, vncPassword)
+        val passwordCredentials = validator.validatePassword(password)
+        val vncPasswordCredentials = validator.validateVncPassword(vncPassword)
 
-        when {
-            !usernameCredentials.credentialIsValid ->
-                Toast.makeText(this, usernameCredentials.errorMessage, Toast.LENGTH_LONG).show()
-            !passwordCredentials.credentialIsValid ->
-                Toast.makeText(this, passwordCredentials.errorMessage, Toast.LENGTH_LONG).show()
-            else ->
-                allCredentialsAreValid = true
+        return when {
+            !usernameCredentials.credentialIsValid -> {
+                Toast.makeText(this, usernameCredentials.errorMessageId, Toast.LENGTH_LONG).show()
+                false
+            }
+            !passwordCredentials.credentialIsValid -> {
+                Toast.makeText(this, passwordCredentials.errorMessageId, Toast.LENGTH_LONG).show()
+                false
+            }
+            !vncPasswordCredentials.credentialIsValid -> {
+                Toast.makeText(this, passwordCredentials.errorMessageId, Toast.LENGTH_LONG).show()
+                false
+            }
+            else -> true
         }
-        return allCredentialsAreValid
     }
 }

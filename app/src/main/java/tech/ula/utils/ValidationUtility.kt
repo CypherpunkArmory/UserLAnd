@@ -1,59 +1,53 @@
 package tech.ula.utils
 
-import android.content.res.Resources
 import tech.ula.R
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-class ValidationUtility(systemResources: Resources) {
+class ValidationUtility(blacklisted_usernames: Array<String>) {
 
-    private val resources = systemResources
+    private val blacklist = blacklisted_usernames
 
     fun validateUsername(username: String): Credential {
-        var usernameIsValid = false
-        var errorMessage = ""
-        val blacklist = resources.getStringArray(R.array.blacklisted_usernames)
+        return when {
+            username.isEmpty() ->
+                Credential(false, R.string.error_empty_field)
 
-        when {
-            username.isEmpty() -> {
-                errorMessage = resources.getString(R.string.error_empty_field)
-            }
-            !validateUsernameCharacters(username) -> {
-                errorMessage = resources.getString(R.string.error_username_invalid_characters)
-            }
-            blacklist.contains(username) -> {
-                errorMessage = resources.getString(R.string.error_username_in_blacklist)
-                errorMessage = String.format(errorMessage, username)
-            }
-            else ->
-                usernameIsValid = true
+            !validateUsernameCharacters(username) ->
+                Credential(false, R.string.error_username_invalid_characters)
+
+            blacklist.contains(username) ->
+                Credential(false, R.string.error_username_in_blacklist)
+
+            else -> Credential(true)
         }
-
-        return Credential(usernameIsValid, errorMessage)
     }
 
-    fun validatePasswords(password: String, vncPassword: String): Credential {
-        var passwordIsValid = false
-        var errorMessage = ""
+    fun validatePassword(password: String): Credential {
+        return when {
+            password.isEmpty() ->
+                Credential(false, R.string.error_empty_field)
 
-        when {
-            password.isEmpty() || vncPassword.isEmpty() -> {
-                errorMessage = resources.getString(R.string.error_empty_field)
-            }
-            vncPassword.length > 8 || vncPassword.length < 6 -> {
-                errorMessage = resources.getString(R.string.error_vnc_password_length_incorrect)
-            }
-            !validatePasswordCharacters(password) -> {
-                errorMessage = resources.getString(R.string.error_password_invalid)
-            }
-            !validatePasswordCharacters(vncPassword) -> {
-                errorMessage = resources.getString(R.string.error_vnc_password_invalid)
-            }
-            else ->
-                passwordIsValid = true
+            !validatePasswordCharacters(password) ->
+                Credential(false, R.string.error_password_invalid)
+
+            else -> Credential(true)
         }
+    }
 
-        return Credential(passwordIsValid, errorMessage)
+    fun validateVncPassword(vncPassword: String): Credential {
+        return when {
+            vncPassword.isEmpty() ->
+                Credential(false, R.string.error_empty_field)
+
+            vncPassword.length > 8 || vncPassword.length < 6 ->
+                Credential(false, R.string.error_vnc_password_length_incorrect)
+
+            !validatePasswordCharacters(vncPassword) ->
+                Credential(false, R.string.error_vnc_password_invalid)
+
+            else -> Credential(true)
+        }
     }
 
     private fun validateUsernameCharacters(username: String): Boolean {
@@ -82,5 +76,4 @@ class ValidationUtility(systemResources: Resources) {
     }
 }
 
-sealed class CredentialValidation
-data class Credential(val credentialIsValid: Boolean, val errorMessage: String) : CredentialValidation()
+data class Credential(val credentialIsValid: Boolean, val errorMessageId: Int = 0)
