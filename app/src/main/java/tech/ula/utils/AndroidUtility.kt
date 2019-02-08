@@ -58,6 +58,14 @@ fun displayGenericErrorDialog(activity: Activity, titleId: Int, messageId: Int) 
             .create().show()
 }
 
+fun getBranchToDownloadAssetsFrom(assetType: String): String {
+    return when (assetType) {
+        "support" -> "beta"
+        "apps" -> "master"
+        else -> "master"
+    }
+}
+
 class DefaultPreferences(private val prefs: SharedPreferences) {
 
     fun getProotDebuggingEnabled(): Boolean {

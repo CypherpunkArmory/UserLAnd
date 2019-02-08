@@ -4,6 +4,7 @@ import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.utils.AssetPreferences
 import tech.ula.utils.ConnectionUtility
+import tech.ula.utils.getBranchToDownloadAssetsFrom
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -90,9 +91,7 @@ class AssetRepository(
     ): List<Asset> {
         val assetList = ArrayList<Asset>()
 
-        var branch = "master"
-        if (assetType.equals("support", true))
-            branch = "staging"
+        val branch = getBranchToDownloadAssetsFrom(assetType)
         val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-" +
                 "$assetType/raw/$branch/assets/$architectureType/assets.txt"
 
