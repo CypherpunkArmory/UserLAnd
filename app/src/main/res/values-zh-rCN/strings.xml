@@ -19,7 +19,7 @@
     <string name="add">加</string>
     <string name="refresh">刷新</string>
     <string name="hint_filesystem_name">文件系统名</string>
-    <string name="welcome">欢迎使用Userland</string>
+    <string name="welcome">欢迎使用UserLAnd</string>
     <string name="permission_request_code">1000</string>
     <string name="hint_session_name">会话名</string>
     <string name="hint_username">用户名</string>
@@ -37,11 +37,11 @@
     <string name="prompt_filesystem">文件系统：</string>
     <string name="prompt_service_type">服务类别：</string>
     <string name="prompt_client_type">客户端类别：</string>
-    <string name="services_notification_channel_id">Userland服务</string>
+    <string name="services_notification_channel_id">UserLAnd服务</string>
     <string name="services_notification_channel_name">服务</string>
     <string name="services_notification_channel_description">永久服务</string>
-    <string name="service_notification_title">Userland</string>
-    <string name="service_notification_description">Userland正在后台运行.</string>
+    <string name="service_notification_title">UserLAnd</string>
+    <string name="service_notification_description">UserLAnd正在后台运行.</string>
     <string name="progress_fetching_asset_lists">正在取得素材列表&#8230;</string>
     <string name="progress_checking_for_required_updates">正在检查更新信息&#8230;</string>
     <string name="progress_downloading">正在下载需要的素材&#8230;</string>
@@ -75,8 +75,8 @@
     <string name="filesystem_credentials_reasoning">我们正在为您的程序创建一个文件系统，请输入相关信息，我们将为您设置成此文件系统的默认信息</string>
     <string name="alert_need_client_app_title">无法找到客户端应用！</string>
     <string name="alert_need_client_app_message">您需要一个SSH 或者VNC客户端来完成这项指令，看起来您并没有装载Google Play商店。 请装载SSH或者VNC客户端.</string>
-    <string name="alert_permissions_necessary_title">UserLand需要您的允许！</string>
-    <string name="alert_permissions_necessary_message">请允许UserLand下载文件并将它们储存在本地.</string>
+    <string name="alert_permissions_necessary_title">UserLAnd需要您的允许！</string>
+    <string name="alert_permissions_necessary_message">请允许UserLAnd下载文件并将它们储存在本地.</string>
     <string name="alert_permissions_necessary_cancel_button">取消</string>
     <string name="alert_network_required_for_refresh">刷新程序需要更好的网络连接强度</string>
     <string name="alert_wifi_disabled_title">没有无线网络!</string>
