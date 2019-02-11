@@ -61,7 +61,7 @@ fun displayGenericErrorDialog(activity: Activity, titleId: Int, messageId: Int) 
 // Add or change asset types as needed for testing and staggered releases.
 fun getBranchToDownloadAssetsFrom(assetType: String): String {
     return when (assetType) {
-        "support" -> "master"
+        "support" -> "beta"
         "apps" -> "master"
         else -> "master"
     }
