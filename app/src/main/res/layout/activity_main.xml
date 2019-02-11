@@ -1,25 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
+
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".MainActivity">
-
-    <android.support.design.widget.BottomNavigationView
-        android:id="@+id/bottom_nav_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:itemIconTint="@drawable/bottom_nav_icon_selector"
-        app:itemTextColor="@drawable/bottom_nav_icon_selector"
-        app:menu="@menu/menu_bottom_nav" />
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="top"
         android:background="@color/colorPrimary"
         android:theme="@style/ThemeOverlay.AppCompat.Dark"/>
 
@@ -28,9 +22,8 @@
         android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:defaultNavHost="true"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
-        app:layout_constraintBottom_toTopOf="@id/bottom_nav_view" />
+        android:layout_weight="1"
+        app:defaultNavHost="true" />
 
     <android.support.constraint.ConstraintLayout
         android:id="@+id/layout_progress"
@@ -83,5 +76,13 @@
 
     </android.support.constraint.ConstraintLayout>
 
+    <android.support.design.widget.BottomNavigationView
+        android:id="@+id/bottom_nav_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        app:itemIconTint="@drawable/bottom_nav_icon_selector"
+        app:itemTextColor="@drawable/bottom_nav_icon_selector"
+        app:menu="@menu/menu_bottom_nav" />
 
-</android.support.constraint.ConstraintLayout>
+</LinearLayout>
