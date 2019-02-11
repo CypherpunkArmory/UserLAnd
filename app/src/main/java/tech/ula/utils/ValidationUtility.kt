@@ -1,31 +1,77 @@
 package tech.ula.utils
 
+import tech.ula.R
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-class ValidationUtility() {
+class ValidationUtility {
 
-    fun isUsernameValid(password: String): Boolean {
-        val pattern: Pattern
-        val matcher: Matcher
+    fun validateUsername(username: String, blacklistUsernames: Array<String>): CredentialValidationStatus {
+        return when {
+            username.isEmpty() ->
+                CredentialValidationStatus(false, R.string.error_empty_field)
 
-        val USERNAME_REGEX = "^[a-zA-Z0-9]*\$"
+            !validateUsernameCharacters(username) ->
+                CredentialValidationStatus(false, R.string.error_username_invalid_characters)
 
-        pattern = Pattern.compile(USERNAME_REGEX)
-        matcher = pattern.matcher(password)
+            blacklistUsernames.contains(username) ->
+                CredentialValidationStatus(false, R.string.error_username_in_blacklist)
 
-        return matcher.matches()
+            else -> CredentialValidationStatus(true)
+        }
     }
 
-    fun isPasswordValid(password: String): Boolean {
+    fun validatePassword(password: String): CredentialValidationStatus {
+        return when {
+            password.isEmpty() ->
+                CredentialValidationStatus(false, R.string.error_empty_field)
+
+            !validatePasswordCharacters(password) ->
+                CredentialValidationStatus(false, R.string.error_password_invalid)
+
+            else -> CredentialValidationStatus(true)
+        }
+    }
+
+    fun validateVncPassword(vncPassword: String): CredentialValidationStatus {
+        return when {
+            vncPassword.isEmpty() ->
+                CredentialValidationStatus(false, R.string.error_empty_field)
+
+            vncPassword.length > 8 || vncPassword.length < 6 ->
+                CredentialValidationStatus(false, R.string.error_vnc_password_length_incorrect)
+
+            !validatePasswordCharacters(vncPassword) ->
+                CredentialValidationStatus(false, R.string.error_vnc_password_invalid)
+
+            else -> CredentialValidationStatus(true)
+        }
+    }
+
+    private fun validateUsernameCharacters(username: String): Boolean {
+        val usernameRegex = "([a-z_][a-z0-9_]{0,30})"
+
+        val compiledRegex = Pattern.compile(usernameRegex)
+        val matcher = compiledRegex.matcher(username)
+        val hasValidCharacters = matcher.matches()
+
+        if (hasValidCharacters) {
+            return true
+        }
+        return false
+    }
+
+    private fun validatePasswordCharacters(password: String): Boolean {
         val pattern: Pattern
         val matcher: Matcher
 
-        val PASSWORD_REGEX = "^[a-zA-Z0-9!@#$%^&*()_+=,./?<>:]*\$"
+        val passwordRegex = "^[a-zA-Z0-9!@#$%^&*()_+=,./?<>:]*\$"
 
-        pattern = Pattern.compile(PASSWORD_REGEX)
+        pattern = Pattern.compile(passwordRegex)
         matcher = pattern.matcher(password)
 
         return matcher.matches()
     }
 }
+
+data class CredentialValidationStatus(val credentialIsValid: Boolean, val errorMessageId: Int = 0)

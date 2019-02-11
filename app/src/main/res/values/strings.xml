@@ -44,6 +44,8 @@
     <string name="error_username_invalid">Username has invalid characters</string>
     <string name="error_password_invalid">Password has invalid characters</string>
     <string name="error_vnc_password_invalid">VNC Password has invalid characters</string>
+    <string name="error_username_invalid_characters">Characters in username must be 1 to 30 characters with lowercase letters and/or numbers.</string>
+    <string name="error_username_in_blacklist">That username is possibly reserved by Linux and cannot be used as a filesystem username.</string>
 
     <!-- Illegal State Dialog -->
     <string name="illegal_state_message">%1$s \nThe app will now crash so that we can receive an error log. Feel free to also let us know on Github! We are working to resolve these issues.</string>
