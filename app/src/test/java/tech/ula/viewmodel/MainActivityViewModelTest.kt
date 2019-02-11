@@ -84,6 +84,13 @@ class MainActivityViewModelTest {
     }
 
     @Test
+    fun `Handling onResume submits SyncDownloadState session event`() {
+        mainActivityViewModel.handleOnResume()
+
+        verify(mockSessionStartupFsm).submitEvent(SyncDownloadState, mainActivityViewModel)
+    }
+
+    @Test
     fun `Restarts app setup after permissions are granted if an app was selected first`() {
         mainActivityViewModel.waitForPermissions(appToContinue = selectedApp)
         mainActivityViewModel.permissionsHaveBeenGranted()
@@ -567,11 +574,13 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(AttemptedCacheAccessWhileEmpty)
 
         verify(mockStateObserver).onChanged(DownloadCacheAccessedWhileEmpty)
-        verify(mockAppsStartupFsm).submitEvent(ResetAppState, mainActivityViewModel)
-        verify(mockSessionStartupFsm).submitEvent(ResetSessionState, mainActivityViewModel)
-        assertEquals(unselectedApp, mainActivityViewModel.lastSelectedApp)
-        assertEquals(unselectedSession, mainActivityViewModel.lastSelectedSession)
-        assertEquals(unselectedFilesystem, mainActivityViewModel.lastSelectedFilesystem)
+    }
+
+    @Test
+    fun `Posts DownloadCacheAccessedInAnIncorrectState if AttemptedCacheAccessInIncorrectState is observed`() {
+        sessionStartupStateLiveData.postValue(AttemptedCacheAccessInIncorrectState)
+
+        verify(mockStateObserver).onChanged(DownloadCacheAccessedInAnIncorrectState)
     }
 
     @Test

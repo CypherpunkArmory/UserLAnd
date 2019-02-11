@@ -191,6 +191,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     override fun onResume() {
         super.onResume()
 
+        acraWrapper.putCustomString("Last call to onResume", "${System.currentTimeMillis()}")
+        viewModel.handleOnResume()
         val intent = Intent(this, ServerService::class.java)
                 .putExtra("type", "isProgressBarActive")
         this.startService(intent)
@@ -211,6 +213,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     override fun onStop() {
         super.onStop()
+
+        acraWrapper.putCustomString("Last call to onStop", "${System.currentTimeMillis()}")
         LocalBroadcastManager.getInstance(this)
                 .unregisterReceiver(serverServiceBroadcastReceiver)
         unregisterReceiver(downloadBroadcastReceiver)
@@ -384,6 +388,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             }
             is DownloadCacheAccessedWhileEmpty -> {
                 getString(R.string.illegal_state_empty_download_cache_access)
+            }
+            is DownloadCacheAccessedInAnIncorrectState -> {
+                getString(R.string.illegal_state_download_cache_access_in_incorrect_state)
             }
             is FailedToCopyAssetsToFilesystem -> {
                 getString(R.string.illegal_state_failed_to_copy_assets_to_filesystem)

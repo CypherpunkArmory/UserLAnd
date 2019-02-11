@@ -144,6 +144,7 @@ class SessionStartupFsmTest {
                     event is GenerateDownloads && state is AssetListsRetrievalSucceeded -> assertTrue(result)
                     event is DownloadAssets && state is DownloadsRequired -> assertTrue(result)
                     event is AssetDownloadComplete && (state is DownloadingAssets || state is WaitingForSessionSelection) -> assertTrue(result)
+                    event is SyncDownloadState -> assertTrue(result)
                     event is CopyDownloadsToLocalStorage && state is DownloadsHaveSucceeded -> assertTrue(result)
                     event is VerifyFilesystemAssets && (state is NoDownloadsRequired || state is LocalDirectoryCopySucceeded) -> assertTrue(result)
                     event is ExtractFilesystem && state is FilesystemAssetVerificationSucceeded -> assertTrue(result)
@@ -411,16 +412,65 @@ class SessionStartupFsmTest {
     }
 
     @Test
-    fun `Automatically syncs with download cache if download state has been cached`() {
+    fun `Does nothing if download cache is empty when receiving SyncDownloadState`() {
+        sessionFsm.setState(WaitingForSessionSelection)
+        sessionFsm.getState().observeForever(mockStateObserver)
+        whenever(mockDownloadUtility.downloadStateHasBeenCached())
+                .thenReturn(false)
+
+        runBlocking {
+            sessionFsm.submitEvent(SyncDownloadState, this)
+        }
+
+        verify(mockStateObserver, times(1)).onChanged(WaitingForSessionSelection)
+        verifyNoMoreInteractions(mockStateObserver)
+    }
+
+    @Test
+    fun `Posts AttemptedCacheAccessInIncorrectState if state is not WaitingForSessionSelection or DownloadingAssets`() {
+        sessionFsm.setState(VerifyingFilesystemAssets)
+        sessionFsm.getState().observeForever(mockStateObserver)
+        whenever(mockDownloadUtility.downloadStateHasBeenCached())
+                .thenReturn(true)
+
+        runBlocking {
+            sessionFsm.submitEvent(SyncDownloadState, this)
+        }
+
+        verify(mockStateObserver).onChanged(AttemptedCacheAccessInIncorrectState)
+    }
+
+    @Test
+    fun `Appropriately resets download state if syncing during WaitingForSessionSelection`() {
+        sessionFsm.setState(WaitingForSessionSelection)
+        sessionFsm.getState().observeForever(mockStateObserver)
         whenever(mockDownloadUtility.downloadStateHasBeenCached())
                 .thenReturn(true)
         whenever(mockDownloadUtility.syncStateWithCache())
                 .thenReturn(AllDownloadsCompletedSuccessfully)
 
-        val syncedSessionFsm = SessionStartupFsm(mockUlaDatabase, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility, mockTimeUtility, mockAcraWrapper)
-        syncedSessionFsm.getState().observeForever(mockStateObserver)
+        runBlocking {
+            sessionFsm.submitEvent(SyncDownloadState, this)
+        }
 
-        verify(mockDownloadUtility).syncStateWithCache()
+        verify(mockStateObserver).onChanged(DownloadingAssets(0, 0))
+        verify(mockStateObserver).onChanged(DownloadsHaveSucceeded)
+    }
+
+    @Test
+    fun `Appropriately resets download state if syncing during DownloadingAssets`() {
+        sessionFsm.setState(DownloadingAssets(0, 10))
+        sessionFsm.getState().observeForever(mockStateObserver)
+        whenever(mockDownloadUtility.downloadStateHasBeenCached())
+                .thenReturn(true)
+        whenever(mockDownloadUtility.syncStateWithCache())
+                .thenReturn(AllDownloadsCompletedSuccessfully)
+
+        runBlocking {
+            sessionFsm.submitEvent(SyncDownloadState, this)
+        }
+
+        verify(mockStateObserver).onChanged(DownloadingAssets(0, 0))
         verify(mockStateObserver).onChanged(DownloadsHaveSucceeded)
     }
 

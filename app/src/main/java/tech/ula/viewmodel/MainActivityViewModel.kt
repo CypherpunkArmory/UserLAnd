@@ -85,6 +85,10 @@ class MainActivityViewModel(
         return state
     }
 
+    fun handleOnResume() {
+        submitSessionStartupEvent(SyncDownloadState)
+    }
+
     fun waitForPermissions(appToContinue: App = unselectedApp, sessionToContinue: Session = unselectedSession) {
         resetStartupState()
         lastSelectedApp = appToContinue
@@ -302,7 +306,9 @@ class MainActivityViewModel(
             is DownloadsHaveFailed -> state.postValue(DownloadsDidNotCompleteSuccessfully(newState.reason))
             is AttemptedCacheAccessWhileEmpty -> {
                 state.postValue(DownloadCacheAccessedWhileEmpty)
-                resetStartupState()
+            }
+            is AttemptedCacheAccessInIncorrectState -> {
+                state.postValue(DownloadCacheAccessedInAnIncorrectState)
             }
         }
     }
@@ -396,6 +402,7 @@ object NoSessionSelectedWhenTransitionNecessary : IllegalState()
 object ErrorFetchingAssetLists : IllegalState()
 data class DownloadsDidNotCompleteSuccessfully(val reason: String) : IllegalState()
 object DownloadCacheAccessedWhileEmpty : IllegalState()
+object DownloadCacheAccessedInAnIncorrectState : IllegalState()
 object FailedToCopyAssetsToLocalStorage : IllegalState()
 object AssetsHaveNotBeenDownloaded : IllegalState()
 object FailedToCopyAssetsToFilesystem : IllegalState()
