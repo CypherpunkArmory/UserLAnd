@@ -413,6 +413,7 @@ class UsageUtility(private val prefs: SharedPreferences) {
 
         if (numberTimesOpened == 1) {
             with(prefs.edit()) {
+                putInt(numberOfTimesOpenedKey, numberTimesOpened + 1)
                 putLong(dateTimeFirstOpenKey, Date().time)
                 apply()
             }
