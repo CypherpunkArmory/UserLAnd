@@ -683,7 +683,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 false
             }
             !vncPasswordCredentials.credentialIsValid -> {
-                Toast.makeText(this, passwordCredentials.errorMessageId, Toast.LENGTH_LONG).show()
+                Toast.makeText(this, vncPasswordCredentials.errorMessageId, Toast.LENGTH_LONG).show()
                 false
             }
             else -> true
