@@ -25,6 +25,7 @@ import java.net.HttpURLConnection
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.URL
+import java.util.Date
 
 fun makePermissionsUsable(containingDirectoryPath: String, filename: String) {
     val commandToRun = arrayListOf("chmod", "0777", filename)
@@ -397,5 +398,54 @@ class TimeUtility {
 class AcraWrapper {
     fun putCustomString(key: String, value: String) {
         ACRA.getErrorReporter().putCustomData(key, value)
+    }
+}
+
+class UsageUtility(private val prefs: SharedPreferences) {
+    private val numberOfTimesOpenedKey = "numberOfTimesOpened"
+    private val userGaveFeedbackKey = "userGaveFeedback"
+    private val dateTimeFirstOpenKey = "dateTimeFirstOpen"
+    private val millisecondsInThreeDays = 259200000L
+    private val minimumNumberOfOpensBeforeReviewRequest = 15
+
+    fun addToNumberOfTimesOpened(): Int {
+        val numberTimesOpened = prefs.getInt(numberOfTimesOpenedKey, 1)
+
+        if (numberTimesOpened == 1) {
+            with(prefs.edit()) {
+                putLong(dateTimeFirstOpenKey, Date().time)
+                apply()
+            }
+        } else {
+            with(prefs.edit()) {
+                putInt(numberOfTimesOpenedKey, numberTimesOpened + 1)
+                apply()
+            }
+        }
+
+        return numberTimesOpened
+    }
+
+    fun getIsSufficientTimeElapsedSinceFirstOpen(): Boolean {
+        val dateTimeFirstOpened = prefs.getLong(dateTimeFirstOpenKey, 0L)
+        val dateTimeWithSufficientTimeElapsed = dateTimeFirstOpened + millisecondsInThreeDays
+
+        return (Date().time > dateTimeWithSufficientTimeElapsed)
+    }
+
+    fun numberOfTimesOpenedIsGreaterThanTreshold(): Boolean {
+        val numberTimesOpened = prefs.getInt(numberOfTimesOpenedKey, 1)
+        return numberTimesOpened > minimumNumberOfOpensBeforeReviewRequest
+    }
+
+    fun setUserGaveFeedback() {
+        with(prefs.edit()) {
+            putBoolean(userGaveFeedbackKey, true)
+            apply()
+        }
+    }
+
+    fun getUserGaveFeedback(): Boolean {
+        return prefs.getBoolean(userGaveFeedbackKey, false)
     }
 }
