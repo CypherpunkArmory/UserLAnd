@@ -63,7 +63,7 @@ class ValidationUtilityTest {
         val username = "_123abc"
         credential = validationUtility.validateUsername(username, blacklistUsernames)
         assertTrue(credential.credentialIsValid)
-        assertEquals(credential.errorMessageId, 0)
+        assertEquals(credential.errorMessageId, R.string.general_error_title)
     }
 
     @Test
