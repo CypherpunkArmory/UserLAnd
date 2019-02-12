@@ -15,4 +15,4 @@ This should include things like:
 
 # Describe how your task behaves in a regular Linux environment
 
-This can be omitted if it is not applicable, but leave the header in.
+Describe how the task you are trying to accomplish behaves in a regular Linux environment, if applicable.

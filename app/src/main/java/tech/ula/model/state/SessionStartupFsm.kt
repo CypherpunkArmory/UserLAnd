@@ -37,10 +37,6 @@ class SessionStartupFsm(
     }
 
     init {
-        if (downloadUtility.downloadStateHasBeenCached()) {
-            state.postValue(DownloadingAssets(0, 0)) // Reset state so events can be submitted
-            handleAssetDownloadState(downloadUtility.syncStateWithCache())
-        }
         activeSessionsLiveData.observeForever {
             it?.let { list ->
                 activeSessions.clear()
@@ -80,6 +76,10 @@ class SessionStartupFsm(
                 // don't belong to us. Otherwise, we still don't want to post an illegal transition.
                 currentState is DownloadingAssets || !downloadUtility.downloadIsForUserland(event.downloadAssetId)
             }
+            is SyncDownloadState -> {
+//                currentState is WaitingForSessionSelection || currentState is (DownloadingAssets)
+                true
+            }
             is CopyDownloadsToLocalStorage -> currentState is DownloadsHaveSucceeded
             is VerifyFilesystemAssets -> currentState is NoDownloadsRequired || currentState is LocalDirectoryCopySucceeded
             is ExtractFilesystem -> currentState is FilesystemAssetVerificationSucceeded
@@ -100,7 +100,8 @@ class SessionStartupFsm(
             is GenerateDownloads -> { handleGenerateDownloads(event.filesystem, event.assetLists) }
             is DownloadAssets -> { handleDownloadAssets(event.assetsToDownload) }
             is AssetDownloadComplete -> { handleAssetsDownloadComplete(event.downloadAssetId) }
-            is CopyDownloadsToLocalStorage -> { handleCopyDownloadsToLocalDirectories(event.filesystem) }
+            is SyncDownloadState -> { handleSyncDownloadState() }
+            is CopyDownloadsToLocalStorage -> { handleCopyDownloadsToLocalDirectories() }
             is VerifyFilesystemAssets -> { handleVerifyFilesystemAssets(event.filesystem) }
             is ExtractFilesystem -> { handleExtractFilesystem(event.filesystem) }
             is ResetSessionState -> { state.postValue(WaitingForSessionSelection) }
@@ -191,11 +192,28 @@ class SessionStartupFsm(
         }
     }
 
-    private suspend fun handleCopyDownloadsToLocalDirectories(filesystem: Filesystem) = withContext(Dispatchers.IO) {
+    private fun handleSyncDownloadState() {
+        if (downloadUtility.downloadStateHasBeenCached()) {
+            // Syncing download state should only be necessary on process death and when the app
+            // is moved back into the foreground. This means the state should either be fresh,
+            // or this object has remained in memory and its state will still be downloading assets.
+            state.value?.let { currentState ->
+                if (currentState !is WaitingForSessionSelection && currentState !is DownloadingAssets) {
+                    state.postValue(AttemptedCacheAccessInIncorrectState)
+                    return
+                }
+                state.postValue(DownloadingAssets(0, 0)) // Reset state so events can be submitted
+                handleAssetDownloadState(downloadUtility.syncStateWithCache())
+            }
+        }
+    }
+
+    private suspend fun handleCopyDownloadsToLocalDirectories() = withContext(Dispatchers.IO) {
         state.postValue(CopyingFilesToLocalDirectories)
         try {
+            val filesystemDistributionType = downloadUtility.findDownloadedDistributionType()
             downloadUtility.moveAssetsToCorrectLocalDirectory()
-            assetRepository.setLastDistributionUpdate(filesystem.distributionType)
+            assetRepository.setLastDistributionUpdate(filesystemDistributionType)
         } catch (err: Exception) {
             state.postValue(LocalDirectoryCopyFailed)
             return@withContext
@@ -279,6 +297,7 @@ data class DownloadingAssets(val numCompleted: Int, val numTotal: Int) : Downloa
 object DownloadsHaveSucceeded : DownloadingAssetsState()
 data class DownloadsHaveFailed(val reason: String) : DownloadingAssetsState()
 object AttemptedCacheAccessWhileEmpty : DownloadingAssetsState()
+object AttemptedCacheAccessInIncorrectState : DownloadingAssetsState()
 
 sealed class CopyingFilesLocallyState : SessionStartupState()
 object CopyingFilesToLocalDirectories : CopyingFilesLocallyState()
@@ -302,7 +321,8 @@ data class RetrieveAssetLists(val filesystem: Filesystem) : SessionStartupEvent(
 data class GenerateDownloads(val filesystem: Filesystem, val assetLists: List<List<Asset>>) : SessionStartupEvent()
 data class DownloadAssets(val assetsToDownload: List<Asset>) : SessionStartupEvent()
 data class AssetDownloadComplete(val downloadAssetId: Long) : SessionStartupEvent()
-data class CopyDownloadsToLocalStorage(val filesystem: Filesystem) : SessionStartupEvent()
+object SyncDownloadState : SessionStartupEvent()
+object CopyDownloadsToLocalStorage : SessionStartupEvent()
 data class VerifyFilesystemAssets(val filesystem: Filesystem) : SessionStartupEvent()
 data class ExtractFilesystem(val filesystem: Filesystem) : SessionStartupEvent()
 object ResetSessionState : SessionStartupEvent()

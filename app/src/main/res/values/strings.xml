@@ -44,6 +44,8 @@
     <string name="error_username_invalid">Username has invalid characters</string>
     <string name="error_password_invalid">Password has invalid characters</string>
     <string name="error_vnc_password_invalid">VNC Password has invalid characters</string>
+    <string name="error_username_invalid_characters">Characters in username must be 1 to 30 characters with lowercase letters and/or numbers.</string>
+    <string name="error_username_in_blacklist">That username is possibly reserved by Linux and cannot be used as a filesystem username.</string>
 
     <!-- Illegal State Dialog -->
     <string name="illegal_state_message">%1$s \nThe app will now crash so that we can receive an error log. Feel free to also let us know on Github! We are working to resolve these issues.</string>
@@ -66,6 +68,7 @@
     <string name="illegal_state_failed_to_copy_assets_to_local">Failed to copy assets to local storage. Try clearing support files.</string>
     <string name="illegal_state_assets_have_not_been_downloaded">Assets need to be copied to your filesystem, but it looks like they have not been downloaded. Try clearing support files.</string>
     <string name="illegal_state_empty_download_cache_access">The downloads cache was empty when access was attempted.</string>
+    <string name="illegal_state_download_cache_access_in_incorrect_state">The downloads cache was accessed while in a state which does not support that.</string>
     <string name="illegal_state_failed_to_copy_assets_to_filesystem">Failed to copy assets to filesystem. Try clearing support files.</string>
     <string name="illegal_state_failed_to_extract_filesystem">Failed to extract filesystem. Try clearing support files.</string>
     <string name="illegal_state_failed_to_clear_support_files">Failed to clear support files.</string>

@@ -299,4 +299,20 @@ class DownloadUtilityTest {
         val permissions2 = output.substring(0, 10)
         assertTrue(permissions2 == "-rwxrwxrwx")
     }
+
+    @Test
+    fun `Can parse a distribution type out of downloaded files`() {
+        val assetDownloadFile = File("${downloadDirectory.path}/${asset1.concatenatedName}")
+        assetDownloadFile.createNewFile()
+
+        val result = downloadUtility.findDownloadedDistributionType()
+
+        val expected = "distType1"
+        assertEquals(expected, result)
+    }
+
+    @Test
+    fun `Returns empty string if no distributions are found in downloads directory`() {
+        assertEquals("", downloadUtility.findDownloadedDistributionType())
+    }
 }

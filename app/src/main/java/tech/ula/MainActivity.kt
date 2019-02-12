@@ -191,6 +191,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     override fun onResume() {
         super.onResume()
 
+        acraWrapper.putCustomString("Last call to onResume", "${System.currentTimeMillis()}")
+        viewModel.handleOnResume()
         val intent = Intent(this, ServerService::class.java)
                 .putExtra("type", "isProgressBarActive")
         this.startService(intent)
@@ -211,6 +213,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     override fun onStop() {
         super.onStop()
+
+        acraWrapper.putCustomString("Last call to onStop", "${System.currentTimeMillis()}")
         LocalBroadcastManager.getInstance(this)
                 .unregisterReceiver(serverServiceBroadcastReceiver)
         unregisterReceiver(downloadBroadcastReceiver)
@@ -384,6 +388,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             }
             is DownloadCacheAccessedWhileEmpty -> {
                 getString(R.string.illegal_state_empty_download_cache_access)
+            }
+            is DownloadCacheAccessedInAnIncorrectState -> {
+                getString(R.string.illegal_state_download_cache_access_in_incorrect_state)
             }
             is FailedToCopyAssetsToFilesystem -> {
                 getString(R.string.illegal_state_failed_to_copy_assets_to_filesystem)
@@ -658,32 +665,28 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         customDialog.show()
     }
 
-    // TODO the view shouldn't be responsible for validation
     private fun validateCredentials(username: String, password: String, vncPassword: String): Boolean {
+        val blacklistedUsernames = this.resources.getStringArray(R.array.blacklisted_usernames)
         val validator = ValidationUtility()
-        var allCredentialsAreValid = false
 
-        when {
-            username.isEmpty() || password.isEmpty() || vncPassword.isEmpty() -> {
-                Toast.makeText(this, R.string.error_empty_field, Toast.LENGTH_LONG).show()
+        val usernameCredentials = validator.validateUsername(username, blacklistedUsernames)
+        val passwordCredentials = validator.validatePassword(password)
+        val vncPasswordCredentials = validator.validateVncPassword(vncPassword)
+
+        return when {
+            !usernameCredentials.credentialIsValid -> {
+                Toast.makeText(this, usernameCredentials.errorMessageId, Toast.LENGTH_LONG).show()
+                false
             }
-            vncPassword.length > 8 || vncPassword.length < 6 -> {
-                Toast.makeText(this, R.string.error_vnc_password_length_incorrect, Toast.LENGTH_LONG).show()
+            !passwordCredentials.credentialIsValid -> {
+                Toast.makeText(this, passwordCredentials.errorMessageId, Toast.LENGTH_LONG).show()
+                false
             }
-            !validator.isUsernameValid(username) -> {
-                Toast.makeText(this, R.string.error_username_invalid, Toast.LENGTH_LONG).show()
+            !vncPasswordCredentials.credentialIsValid -> {
+                Toast.makeText(this, vncPasswordCredentials.errorMessageId, Toast.LENGTH_LONG).show()
+                false
             }
-            !validator.isPasswordValid(password) -> {
-                Toast.makeText(this, R.string.error_password_invalid, Toast.LENGTH_LONG).show()
-            }
-            !validator.isPasswordValid(vncPassword) -> {
-                Toast.makeText(this, R.string.error_vnc_password_invalid, Toast.LENGTH_LONG).show()
-            }
-            else -> {
-                allCredentialsAreValid = true
-                return allCredentialsAreValid
-            }
+            else -> true
         }
-        return allCredentialsAreValid
     }
 }

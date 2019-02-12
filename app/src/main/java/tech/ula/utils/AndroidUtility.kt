@@ -58,6 +58,15 @@ fun displayGenericErrorDialog(activity: Activity, titleId: Int, messageId: Int) 
             .create().show()
 }
 
+// Add or change asset types as needed for testing and staggered releases.
+fun getBranchToDownloadAssetsFrom(assetType: String): String {
+    return when (assetType) {
+        "support" -> "staging"
+        "apps" -> "master"
+        else -> "master"
+    }
+}
+
 class DefaultPreferences(private val prefs: SharedPreferences) {
 
     fun getProotDebuggingEnabled(): Boolean {
@@ -336,12 +345,10 @@ class DownloadManagerWrapper(private val downloadManager: DownloadManager) {
         val query = generateQuery(id)
         val cursor = generateCursor(query)
         if (cursor.moveToFirst()) {
-            val status: String = cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_REASON))
-            if (status != "reason") {
-                return status
-            }
+            val status: Int = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_REASON))
+            return "Reason: $status"
         }
-        return "No reason for failure"
+        return "No known reason for failure."
     }
 
     fun getDownloadsDirectory(): File {

@@ -85,10 +85,18 @@ class DownloadUtility(
         return enqueuedDownloadIds.contains(id)
     }
 
+    fun findDownloadedDistributionType(): String {
+        downloadDirectory.listFiles()?.forEach { downloadedFile ->
+            if (downloadedFile.name.containsUserland() && !downloadedFile.name.contains("support")) {
+                val (_, distributionType, _) = downloadedFile.name.split("-", limit = 3)
+                return distributionType
+            }
+        }
+        return ""
+    }
+
     private fun download(asset: Asset): Long {
-        var branch = "master"
-        if (asset.distributionType.equals("support", true))
-            branch = "staging"
+        val branch = getBranchToDownloadAssetsFrom(asset.distributionType)
         val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-" +
                 "${asset.distributionType}/raw/$branch/assets/" +
                 "${asset.architectureType}/${asset.name}"

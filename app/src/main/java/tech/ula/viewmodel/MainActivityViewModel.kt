@@ -85,6 +85,10 @@ class MainActivityViewModel(
         return state
     }
 
+    fun handleOnResume() {
+        submitSessionStartupEvent(SyncDownloadState)
+    }
+
     fun waitForPermissions(appToContinue: App = unselectedApp, sessionToContinue: Session = unselectedSession) {
         resetStartupState()
         lastSelectedApp = appToContinue
@@ -291,18 +295,13 @@ class MainActivityViewModel(
     private fun handleDownloadingAssetsState(newState: DownloadingAssetsState) {
         return when (newState) {
             is DownloadingAssets -> state.postValue(DownloadProgress(newState.numCompleted, newState.numTotal))
-            is DownloadsHaveSucceeded -> {
-                if (sessionPreparationRequirementsHaveBeenSelected()) {
-                    submitSessionStartupEvent(CopyDownloadsToLocalStorage(lastSelectedFilesystem))
-                } else {
-                    state.postValue(ProgressBarOperationComplete)
-                    resetStartupState()
-                }
-            }
+            is DownloadsHaveSucceeded -> submitSessionStartupEvent(CopyDownloadsToLocalStorage)
             is DownloadsHaveFailed -> state.postValue(DownloadsDidNotCompleteSuccessfully(newState.reason))
             is AttemptedCacheAccessWhileEmpty -> {
                 state.postValue(DownloadCacheAccessedWhileEmpty)
-                resetStartupState()
+            }
+            is AttemptedCacheAccessInIncorrectState -> {
+                state.postValue(DownloadCacheAccessedInAnIncorrectState)
             }
         }
     }
@@ -310,9 +309,14 @@ class MainActivityViewModel(
     private fun handleCopyingFilesLocallyState(newState: CopyingFilesLocallyState) {
         return when (newState) {
             is CopyingFilesToLocalDirectories -> state.postValue(CopyingDownloads)
-            is LocalDirectoryCopySucceeded -> { doTransitionIfRequirementsAreSelected {
-                submitSessionStartupEvent(VerifyFilesystemAssets(lastSelectedFilesystem))
-            } }
+            is LocalDirectoryCopySucceeded -> {
+                if (sessionPreparationRequirementsHaveBeenSelected()) {
+                    submitSessionStartupEvent(VerifyFilesystemAssets(lastSelectedFilesystem))
+                } else {
+                    state.postValue(ProgressBarOperationComplete)
+                    resetStartupState()
+                }
+            }
             is LocalDirectoryCopyFailed -> state.postValue(FailedToCopyAssetsToLocalStorage)
         }
     }
@@ -396,6 +400,7 @@ object NoSessionSelectedWhenTransitionNecessary : IllegalState()
 object ErrorFetchingAssetLists : IllegalState()
 data class DownloadsDidNotCompleteSuccessfully(val reason: String) : IllegalState()
 object DownloadCacheAccessedWhileEmpty : IllegalState()
+object DownloadCacheAccessedInAnIncorrectState : IllegalState()
 object FailedToCopyAssetsToLocalStorage : IllegalState()
 object AssetsHaveNotBeenDownloaded : IllegalState()
 object FailedToCopyAssetsToFilesystem : IllegalState()
