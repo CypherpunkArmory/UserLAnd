@@ -25,7 +25,9 @@ import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AlphaAnimation
+import android.widget.Button
 import android.widget.RadioButton
 import android.widget.TextView
 import android.widget.Toast
@@ -76,6 +78,10 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     private val notificationManager by lazy {
         NotificationUtility(this)
+    }
+
+    private val usageUtility by lazy {
+        UsageUtility(this.getSharedPreferences("usage", Context.MODE_PRIVATE))
     }
 
     private val downloadBroadcastReceiver = object : BroadcastReceiver() {
@@ -147,6 +153,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
         setupWithNavController(bottom_nav_view, navController)
 
+        usageUtility.addToNumberOfTimesOpened()
+        setupReviewRequest()
+
         viewModel.getState().observe(this, stateObserver)
     }
 
@@ -159,6 +168,67 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 .setHttpMethod(HttpSender.Method.POST)
                 .setEnabled(true)
         ACRA.init(applicationContext as Application, builder)
+    }
+
+    private fun setupReviewRequest() {
+        val minimumTimePassedReached = usageUtility.getIsSufficientTimeElapsedSinceFirstOpen()
+        val minimumTimesOpenedReached = usageUtility.numberOfTimesOpenedIsGreaterThanTreshold()
+        val userAlreadyGaveReviewOrDismissed = usageUtility.getUserGaveFeedback()
+
+        if (minimumTimePassedReached && minimumTimesOpenedReached && userAlreadyGaveReviewOrDismissed)
+            return
+        else {
+            val requestReviewView = layoutInflater.inflate(R.layout.list_item_review_request, null)
+            val viewHolder = findViewById<ViewGroup>(R.id.request_review_insert_point)
+            viewHolder.addView(requestReviewView, 0)
+            setupReviewRequestUI(viewHolder)
+        }
+    }
+
+    private fun setupReviewRequestUI(viewHolder: ViewGroup) {
+        val requestQuestion = viewHolder.findViewById<TextView>(R.id.prompt_review_question)
+        val negativeBtn = viewHolder.findViewById<Button>(R.id.btn_negative_response)
+        val positiveBtn = viewHolder.findViewById<Button>(R.id.btn_positive_response)
+        viewHolder.visibility = View.VISIBLE
+
+        positiveBtn.setOnClickListener {
+            requestQuestion.text = getString(R.string.review_ask_for_rating)
+            positiveBtn.text = getString(R.string.button_positive)
+            negativeBtn.text = getString(R.string.button_negative_1)
+
+            positiveBtn.setOnClickListener {
+                userGaveReviewOrDismissed(viewHolder)
+                val userlandPlayStoreURI = "https://play.google.com/store/apps/details?id=tech.ula"
+                val intent = Intent("android.intent.action.VIEW", Uri.parse(userlandPlayStoreURI))
+                startActivity(intent)
+            }
+
+            negativeBtn.setOnClickListener {
+                userGaveReviewOrDismissed(viewHolder)
+            }
+        }
+
+        negativeBtn.setOnClickListener {
+            requestQuestion.text = getString(R.string.review_ask_for_feedback)
+            positiveBtn.text = getString(R.string.button_positive)
+            negativeBtn.text = getString(R.string.button_negative_2)
+
+            positiveBtn.setOnClickListener {
+                userGaveReviewOrDismissed(viewHolder)
+                val githubURI = "https://github.com/CypherpunkArmory/UserLAnd"
+                val intent = Intent("android.intent.action.VIEW", Uri.parse(githubURI))
+                startActivity(intent)
+            }
+
+            negativeBtn.setOnClickListener {
+                userGaveReviewOrDismissed(viewHolder)
+            }
+        }
+    }
+
+    private fun userGaveReviewOrDismissed(viewHolder: ViewGroup) {
+        usageUtility.setUserGaveFeedback()
+        viewHolder.visibility = View.GONE
     }
 
     private fun setNavStartDestination() {
