@@ -74,4 +74,4 @@ class ValidationUtility {
     }
 }
 
-data class CredentialValidationStatus(val credentialIsValid: Boolean, val errorMessageId: Int = 0)
+data class CredentialValidationStatus(val credentialIsValid: Boolean, val errorMessageId: Int = R.string.general_error_title)
