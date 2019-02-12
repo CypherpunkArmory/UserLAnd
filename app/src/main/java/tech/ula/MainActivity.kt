@@ -177,6 +177,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
         if (minimumTimePassedReached && minimumTimesOpenedReached && userAlreadyGaveReviewOrDismissed) {
             val requestReviewView = layoutInflater.inflate(R.layout.list_item_review_request, null)
+            requestReviewView.visibility = View.VISIBLE
             val viewHolder = findViewById<ViewGroup>(R.id.request_review_insert_point)
             viewHolder.addView(requestReviewView, 0)
             setupReviewRequestUI(viewHolder)
@@ -187,7 +188,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val requestQuestion = viewHolder.findViewById<TextView>(R.id.prompt_review_question)
         val negativeBtn = viewHolder.findViewById<Button>(R.id.btn_negative_response)
         val positiveBtn = viewHolder.findViewById<Button>(R.id.btn_positive_response)
-        viewHolder.visibility = View.VISIBLE
 
         positiveBtn.setOnClickListener {
             requestQuestion.text = getString(R.string.review_ask_for_rating)
