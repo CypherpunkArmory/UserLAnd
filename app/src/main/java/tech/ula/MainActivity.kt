@@ -175,9 +175,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val minimumTimesOpenedReached = usageUtility.numberOfTimesOpenedIsGreaterThanThreshold()
         val userAlreadyGaveReviewOrDismissed = usageUtility.getUserGaveFeedback()
 
-        if (minimumTimePassedReached && minimumTimesOpenedReached && userAlreadyGaveReviewOrDismissed)
-            return
-        else {
+        if (minimumTimePassedReached && minimumTimesOpenedReached && userAlreadyGaveReviewOrDismissed) {
             val requestReviewView = layoutInflater.inflate(R.layout.list_item_review_request, null)
             val viewHolder = findViewById<ViewGroup>(R.id.request_review_insert_point)
             viewHolder.addView(requestReviewView, 0)
