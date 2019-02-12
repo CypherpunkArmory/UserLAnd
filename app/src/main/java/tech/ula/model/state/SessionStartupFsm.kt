@@ -101,7 +101,7 @@ class SessionStartupFsm(
             is DownloadAssets -> { handleDownloadAssets(event.assetsToDownload) }
             is AssetDownloadComplete -> { handleAssetsDownloadComplete(event.downloadAssetId) }
             is SyncDownloadState -> { handleSyncDownloadState() }
-            is CopyDownloadsToLocalStorage -> { handleCopyDownloadsToLocalDirectories(event.filesystem) }
+            is CopyDownloadsToLocalStorage -> { handleCopyDownloadsToLocalDirectories() }
             is VerifyFilesystemAssets -> { handleVerifyFilesystemAssets(event.filesystem) }
             is ExtractFilesystem -> { handleExtractFilesystem(event.filesystem) }
             is ResetSessionState -> { state.postValue(WaitingForSessionSelection) }
@@ -208,11 +208,12 @@ class SessionStartupFsm(
         }
     }
 
-    private suspend fun handleCopyDownloadsToLocalDirectories(filesystem: Filesystem) = withContext(Dispatchers.IO) {
+    private suspend fun handleCopyDownloadsToLocalDirectories() = withContext(Dispatchers.IO) {
         state.postValue(CopyingFilesToLocalDirectories)
         try {
+            val filesystemDistributionType = downloadUtility.findDownloadedDistributionType()
             downloadUtility.moveAssetsToCorrectLocalDirectory()
-            assetRepository.setLastDistributionUpdate(filesystem.distributionType)
+            assetRepository.setLastDistributionUpdate(filesystemDistributionType)
         } catch (err: Exception) {
             state.postValue(LocalDirectoryCopyFailed)
             return@withContext
@@ -321,7 +322,7 @@ data class GenerateDownloads(val filesystem: Filesystem, val assetLists: List<Li
 data class DownloadAssets(val assetsToDownload: List<Asset>) : SessionStartupEvent()
 data class AssetDownloadComplete(val downloadAssetId: Long) : SessionStartupEvent()
 object SyncDownloadState : SessionStartupEvent()
-data class CopyDownloadsToLocalStorage(val filesystem: Filesystem) : SessionStartupEvent()
+object CopyDownloadsToLocalStorage : SessionStartupEvent()
 data class VerifyFilesystemAssets(val filesystem: Filesystem) : SessionStartupEvent()
 data class ExtractFilesystem(val filesystem: Filesystem) : SessionStartupEvent()
 object ResetSessionState : SessionStartupEvent()

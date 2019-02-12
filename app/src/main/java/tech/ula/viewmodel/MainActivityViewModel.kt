@@ -295,14 +295,7 @@ class MainActivityViewModel(
     private fun handleDownloadingAssetsState(newState: DownloadingAssetsState) {
         return when (newState) {
             is DownloadingAssets -> state.postValue(DownloadProgress(newState.numCompleted, newState.numTotal))
-            is DownloadsHaveSucceeded -> {
-                if (sessionPreparationRequirementsHaveBeenSelected()) {
-                    submitSessionStartupEvent(CopyDownloadsToLocalStorage(lastSelectedFilesystem))
-                } else {
-                    state.postValue(ProgressBarOperationComplete)
-                    resetStartupState()
-                }
-            }
+            is DownloadsHaveSucceeded -> submitSessionStartupEvent(CopyDownloadsToLocalStorage)
             is DownloadsHaveFailed -> state.postValue(DownloadsDidNotCompleteSuccessfully(newState.reason))
             is AttemptedCacheAccessWhileEmpty -> {
                 state.postValue(DownloadCacheAccessedWhileEmpty)
@@ -316,9 +309,14 @@ class MainActivityViewModel(
     private fun handleCopyingFilesLocallyState(newState: CopyingFilesLocallyState) {
         return when (newState) {
             is CopyingFilesToLocalDirectories -> state.postValue(CopyingDownloads)
-            is LocalDirectoryCopySucceeded -> { doTransitionIfRequirementsAreSelected {
-                submitSessionStartupEvent(VerifyFilesystemAssets(lastSelectedFilesystem))
-            } }
+            is LocalDirectoryCopySucceeded -> {
+                if (sessionPreparationRequirementsHaveBeenSelected()) {
+                    submitSessionStartupEvent(VerifyFilesystemAssets(lastSelectedFilesystem))
+                } else {
+                    state.postValue(ProgressBarOperationComplete)
+                    resetStartupState()
+                }
+            }
             is LocalDirectoryCopyFailed -> state.postValue(FailedToCopyAssetsToLocalStorage)
         }
     }
