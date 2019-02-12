@@ -455,6 +455,13 @@ class MainActivityViewModelTest {
     }
 
     @Test
+    fun `Posts NoSessionsSelectedWhenTransitionNecessary if incorrectly transitioning out of SessionIsReadyForPreparation observation`() {
+        sessionStartupStateLiveData.postValue(SessionIsReadyForPreparation(unselectedSession, unselectedFilesystem))
+
+        verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
+    }
+
+    @Test
     fun `Updates selected session and filesystem, posts StartingSetup, and submits RetrieveAssetLists when session is ready for prep is observed`() {
         sessionStartupStateLiveData.postValue(SessionIsReadyForPreparation(selectedSession, selectedFilesystem))
 
@@ -474,6 +481,14 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(RetrievingAssetLists)
 
         verify(mockStateObserver).onChanged(FetchingAssetLists)
+    }
+
+    @Test
+    fun `Posts NoSessionsSelectedWhenTransitionNecessary if AssetRetrievalSucceeded state is observed while no selections have been made`() {
+        val assetLists = listOf(listOf(asset))
+        sessionStartupStateLiveData.postValue(AssetListsRetrievalSucceeded(assetLists))
+
+        verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
     }
 
     @Test
@@ -529,6 +544,13 @@ class MainActivityViewModelTest {
     }
 
     @Test
+    fun `Posts NoSessionSelectedWhenTransitionNecessary if attempted to transition from NoDownloadsRequired while selections have not been made`() {
+        sessionStartupStateLiveData.postValue(NoDownloadsRequired)
+
+        verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
+    }
+
+    @Test
     fun `Submits VerifyFilesystemAssets event when observing NoDownloadsRequired`() {
         makeSessionSelections()
 
@@ -550,12 +572,10 @@ class MainActivityViewModelTest {
 
     @Test
     fun `Submits CopyDownloadsToLocalStorage event when observing download success`() {
-        makeSessionSelections()
-
         sessionStartupStateLiveData.postValue(DownloadsHaveSucceeded)
 
         runBlocking {
-            verify(mockSessionStartupFsm).submitEvent(CopyDownloadsToLocalStorage(selectedFilesystem), mainActivityViewModel)
+            verify(mockSessionStartupFsm).submitEvent(CopyDownloadsToLocalStorage, mainActivityViewModel)
         }
     }
 
@@ -585,15 +605,13 @@ class MainActivityViewModelTest {
 
     @Test
     fun `Posts CopyingDownloads when equivalent state is observed`() {
-        makeSessionSelections()
-
         sessionStartupStateLiveData.postValue(CopyingFilesToLocalDirectories)
 
         verify(mockStateObserver).onChanged(CopyingDownloads)
     }
 
     @Test
-    fun `Submits VerifyFilesystemAssets event when copying success is observed`() {
+    fun `Submits VerifyFilesystemAssets event when copying success is observed and session selections have been made`() {
         makeSessionSelections()
 
         sessionStartupStateLiveData.postValue(LocalDirectoryCopySucceeded)
@@ -604,9 +622,21 @@ class MainActivityViewModelTest {
     }
 
     @Test
-    fun `Posts IllegalState when copying failure is observed`() {
-        makeSessionSelections()
+    fun `Posts ProgressBarOperationComplete and resets session state when LocalDirectoryCopySucceeded observed while selections have not been made`() {
+        sessionStartupStateLiveData.postValue(LocalDirectoryCopySucceeded)
 
+        verify(mockStateObserver).onChanged(ProgressBarOperationComplete)
+        assertEquals(unselectedApp, mainActivityViewModel.lastSelectedApp)
+        assertEquals(unselectedSession, mainActivityViewModel.lastSelectedSession)
+        assertEquals(unselectedFilesystem, mainActivityViewModel.lastSelectedFilesystem)
+        runBlocking {
+            verify(mockSessionStartupFsm).submitEvent(ResetSessionState, mainActivityViewModel)
+            verify(mockAppsStartupFsm).submitEvent(ResetAppState, mainActivityViewModel)
+        }
+    }
+
+    @Test
+    fun `Posts IllegalState when copying failure is observed`() {
         sessionStartupStateLiveData.postValue(LocalDirectoryCopyFailed)
 
         verify(mockStateObserver).onChanged(FailedToCopyAssetsToLocalStorage)
@@ -619,6 +649,13 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(VerifyingFilesystemAssets)
 
         verify(mockStateObserver).onChanged(VerifyingFilesystem)
+    }
+
+    @Test
+    fun `Posts NoSessionSelectedWhenTransitionNecessary if transitioning from FilesystemAssetVerificationSucceeded while selections have not been made`() {
+        sessionStartupStateLiveData.postValue(FilesystemAssetVerificationSucceeded)
+
+        verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
     }
 
     @Test
@@ -658,6 +695,13 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(ExtractingFilesystem(target))
 
         verify(mockStateObserver).onChanged(FilesystemExtractionStep(target))
+    }
+
+    @Test
+    fun `Posts NoSessionSelectedWhenTransitionNecessary when transitioning from ExtractionHasCompletedSuccessfully if no selections have been made`() {
+        sessionStartupStateLiveData.postValue(ExtractionHasCompletedSuccessfully)
+
+        verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
     }
 
     @Test

@@ -73,7 +73,7 @@ class SessionStartupFsmTest {
             GenerateDownloads(filesystem, assetLists),
             DownloadAssets(singleAssetList),
             AssetDownloadComplete(0),
-            CopyDownloadsToLocalStorage(filesystem),
+            CopyDownloadsToLocalStorage,
             ExtractFilesystem(filesystem),
             VerifyFilesystemAssets(filesystem)
     )
@@ -478,11 +478,13 @@ class SessionStartupFsmTest {
     fun `State is LocalDirectoryCopySucceeded if files are moved to correct subdirectories`() {
         sessionFsm.setState(DownloadsHaveSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
+        val filesystemDistributionType = "debian"
+        whenever(mockDownloadUtility.findDownloadedDistributionType()).thenReturn(filesystemDistributionType)
 
-        runBlocking { sessionFsm.submitEvent(CopyDownloadsToLocalStorage(filesystem), this) }
+        runBlocking { sessionFsm.submitEvent(CopyDownloadsToLocalStorage, this) }
 
         verify(mockDownloadUtility).moveAssetsToCorrectLocalDirectory()
-        verify(mockAssetRepository).setLastDistributionUpdate(filesystem.distributionType)
+        verify(mockAssetRepository).setLastDistributionUpdate(filesystemDistributionType)
         verify(mockStateObserver).onChanged(CopyingFilesToLocalDirectories)
         verify(mockStateObserver).onChanged(LocalDirectoryCopySucceeded)
     }
@@ -491,11 +493,12 @@ class SessionStartupFsmTest {
     fun `State is LocalDirectoryCopyFailed if a problem arises`() {
         sessionFsm.setState(DownloadsHaveSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
+        whenever(mockDownloadUtility.findDownloadedDistributionType()).thenReturn("")
 
         whenever(mockDownloadUtility.moveAssetsToCorrectLocalDirectory())
                 .thenThrow(Exception())
 
-        runBlocking { sessionFsm.submitEvent(CopyDownloadsToLocalStorage(filesystem), this) }
+        runBlocking { sessionFsm.submitEvent(CopyDownloadsToLocalStorage, this) }
 
         verify(mockStateObserver).onChanged(CopyingFilesToLocalDirectories)
         verify(mockStateObserver).onChanged(LocalDirectoryCopyFailed)
