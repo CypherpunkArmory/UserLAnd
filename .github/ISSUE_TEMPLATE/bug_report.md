@@ -18,19 +18,17 @@ Click on '....'
 
 Scroll down to '....'
 
-See error
-
 # Screenshots
 
 If applicable, add screenshots to help explain your problem.
 
 # Device Information
 
-Device: [e.g. Pixel XL 2]
-Android Version: [e.g. Oreo, 8.0]
-UserLAnd Version [e.g. 0.1.2]
-Whether the device is rooted
-Whether the device is running LineageOS
+Device: [e.g. Pixel XL 2].  
+Android Version: [e.g. Oreo, 8.0].  
+UserLAnd Version [e.g. 0.1.2].  
+Whether the device is rooted.  
+Whether the device is running LineageOS 
 
 # Additional context
 
