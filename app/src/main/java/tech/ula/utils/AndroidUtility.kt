@@ -433,7 +433,7 @@ class UsageUtility(private val prefs: SharedPreferences) {
         return (Date().time > dateTimeWithSufficientTimeElapsed)
     }
 
-    fun numberOfTimesOpenedIsGreaterThanTreshold(): Boolean {
+    fun numberOfTimesOpenedIsGreaterThanThreshold(): Boolean {
         val numberTimesOpened = prefs.getInt(numberOfTimesOpenedKey, 1)
         return numberTimesOpened > minimumNumberOfOpensBeforeReviewRequest
     }

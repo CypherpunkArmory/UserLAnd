@@ -172,7 +172,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     private fun setupReviewRequest() {
         val minimumTimePassedReached = usageUtility.getIsSufficientTimeElapsedSinceFirstOpen()
-        val minimumTimesOpenedReached = usageUtility.numberOfTimesOpenedIsGreaterThanTreshold()
+        val minimumTimesOpenedReached = usageUtility.numberOfTimesOpenedIsGreaterThanThreshold()
         val userAlreadyGaveReviewOrDismissed = usageUtility.getUserGaveFeedback()
 
         if (minimumTimePassedReached && minimumTimesOpenedReached && userAlreadyGaveReviewOrDismissed)
