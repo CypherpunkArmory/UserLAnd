@@ -346,12 +346,10 @@ class DownloadManagerWrapper(private val downloadManager: DownloadManager) {
         val query = generateQuery(id)
         val cursor = generateCursor(query)
         if (cursor.moveToFirst()) {
-            val status: String = cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_REASON))
-            if (status != "reason") {
-                return status
-            }
+            val status: Int = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_REASON))
+            return "Reason: $status"
         }
-        return "No reason for failure"
+        return "No known reason for failure."
     }
 
     fun getDownloadsDirectory(): File {
