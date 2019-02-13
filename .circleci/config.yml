@@ -161,7 +161,7 @@ jobs:
 
   report_coverage:
     <<: *android_config
-      steps:
+    steps:
       - checkout
       - *restore_cache
       - run:
