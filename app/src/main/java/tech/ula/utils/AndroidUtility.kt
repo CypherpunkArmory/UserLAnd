@@ -25,7 +25,6 @@ import java.net.HttpURLConnection
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.URL
-import java.util.Date
 
 fun makePermissionsUsable(containingDirectoryPath: String, filename: String) {
     val commandToRun = arrayListOf("chmod", "0777", filename)
@@ -412,7 +411,7 @@ class UserFeedbackPreferences(private val prefs: SharedPreferences) {
         if (numberTimesOpened == 1) {
             with(prefs.edit()) {
                 putInt(numberOfTimesOpenedKey, numberTimesOpened + 1)
-                putLong(dateTimeFirstOpenKey, Date().time)
+                putLong(dateTimeFirstOpenKey, System.currentTimeMillis())
                 apply()
             }
         } else {
@@ -429,7 +428,7 @@ class UserFeedbackPreferences(private val prefs: SharedPreferences) {
         val dateTimeFirstOpened = prefs.getLong(dateTimeFirstOpenKey, 0L)
         val dateTimeWithSufficientTimeElapsed = dateTimeFirstOpened + millisecondsInThreeDays
 
-        return (Date().time > dateTimeWithSufficientTimeElapsed)
+        return (System.currentTimeMillis() > dateTimeWithSufficientTimeElapsed)
     }
 
     fun numberOfTimesOpenedIsGreaterThanThreshold(): Boolean {
