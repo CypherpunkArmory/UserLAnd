@@ -172,8 +172,8 @@ jobs:
       - run:
           name: Move Firebase coverage report
           command: mkdir -p app/build/outputs/code-coverage/connected && cp firebase/*/artifacts/coverage.ec app/build/outputs/code-coverage/connected/coverage.ec
-      - *export_gservices_key
-      - *decode_gservices_key
+      - *export_gcloud_key
+      - *decode_gcloud_key
       - run:
           name: Generate JaCoCo report
           command: ./gradlew -PciBuild=true :app:generateCiTestCoverage
