@@ -399,7 +399,7 @@ class AcraWrapper {
     }
 }
 
-class UsageUtility(private val prefs: SharedPreferences) {
+class UserFeedbackPreferences(private val prefs: SharedPreferences) {
     private val numberOfTimesOpenedKey = "numberOfTimesOpened"
     private val userGaveFeedbackKey = "userGaveFeedback"
     private val dateTimeFirstOpenKey = "dateTimeFirstOpen"

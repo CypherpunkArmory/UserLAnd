@@ -80,8 +80,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         NotificationUtility(this)
     }
 
-    private val usageUtility by lazy {
-        UsageUtility(this.getSharedPreferences("usage", Context.MODE_PRIVATE))
+    private val userFeedbackPrefs by lazy {
+        UserFeedbackPreferences(this.getSharedPreferences("usage", Context.MODE_PRIVATE))
     }
 
     private val downloadBroadcastReceiver = object : BroadcastReceiver() {
@@ -153,7 +153,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
         setupWithNavController(bottom_nav_view, navController)
 
-        usageUtility.addToNumberOfTimesOpened()
+        userFeedbackPrefs.addToNumberOfTimesOpened()
         setupReviewRequest()
 
         viewModel.getState().observe(this, stateObserver)
@@ -171,9 +171,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun setupReviewRequest() {
-        val minimumTimePassedReached = usageUtility.getIsSufficientTimeElapsedSinceFirstOpen()
-        val minimumTimesOpenedReached = usageUtility.numberOfTimesOpenedIsGreaterThanThreshold()
-        val userAlreadyGaveReviewOrDismissed = usageUtility.getUserGaveFeedback()
+        val minimumTimePassedReached = userFeedbackPrefs.getIsSufficientTimeElapsedSinceFirstOpen()
+        val minimumTimesOpenedReached = userFeedbackPrefs.numberOfTimesOpenedIsGreaterThanThreshold()
+        val userAlreadyGaveReviewOrDismissed = userFeedbackPrefs.getUserGaveFeedback()
 
         if (minimumTimePassedReached && minimumTimesOpenedReached && !userAlreadyGaveReviewOrDismissed) {
             val requestReviewView = layoutInflater.inflate(R.layout.list_item_review_request, null)
@@ -225,7 +225,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun userGaveReviewOrDismissed(viewHolder: ViewGroup) {
-        usageUtility.setUserGaveFeedback()
+        userFeedbackPrefs.setUserGaveFeedback()
         viewHolder.visibility = View.GONE
     }
 
