@@ -26,6 +26,23 @@ class UserFeedbackUtilityTest {
         userFeedbackUtility = UserFeedbackUtility(sharedPrefs)
     }
 
+    private fun appOpenedNumberOfDaysAgo(days: Int) {
+        val millisecondsInOneDay = 86400000L
+        val millisecondsNow = System.currentTimeMillis()
+        whenever(sharedPrefs.getLong("dateTimeFirstOpen", 0))
+                .thenReturn(millisecondsNow - (millisecondsInOneDay * days))
+    }
+
+    private fun setTimesAppOpened(numberOfTimesOpened: Int) {
+        whenever(sharedPrefs.getInt("numberOfTimesOpened", 1))
+                .thenReturn(numberOfTimesOpened)
+    }
+
+    private fun setUserGaveFeedback(userGaveFeedback: Boolean) {
+        whenever(sharedPrefs.getBoolean("userGaveFeedback", false))
+                .thenReturn(userGaveFeedback)
+    }
+
     @Test
     fun `Asking for feedback is not appropriate if app opened for first time today`() {
         setTimesAppOpened(minimumTimesAppOpenedToShowReview)
@@ -69,22 +86,5 @@ class UserFeedbackUtilityTest {
         appOpenedNumberOfDaysAgo(3)
 
         assertFalse(userFeedbackUtility.askingForFeedbackIsAppropriate())
-    }
-
-    private fun appOpenedNumberOfDaysAgo(days: Int) {
-        val millisecondsInOneDay = 86400000L
-        val millisecondsNow = System.currentTimeMillis()
-        whenever(sharedPrefs.getLong("dateTimeFirstOpen", 0))
-                .thenReturn(millisecondsNow - (millisecondsInOneDay * days))
-    }
-
-    private fun setTimesAppOpened(numberOfTimesOpened: Int) {
-        whenever(sharedPrefs.getInt("numberOfTimesOpened", 1))
-                .thenReturn(numberOfTimesOpened)
-    }
-
-    private fun setUserGaveFeedback(userGaveFeedback: Boolean) {
-        whenever(sharedPrefs.getBoolean("userGaveFeedback", false))
-                .thenReturn(userGaveFeedback)
     }
 }
