@@ -31,7 +31,7 @@
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
             android:layout_weight=".5"
-            android:text="@string/button_negative_1" />
+            android:text="@string/button_negative" />
 
         <Button
             android:id="@+id/btn_positive_response"

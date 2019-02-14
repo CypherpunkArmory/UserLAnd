@@ -136,8 +136,8 @@
 
     <!-- Alerts -->
     <string name="button_yes">Yes!</string>
-    <string name="button_negative_1">Not really</string>
-    <string name="button_negative_2">No, thanks</string>
+    <string name="button_negative">Not really</string>
+    <string name="button_refuse">No, thanks</string>
     <string name="button_positive">Okay, sure</string>
     <string name="button_ok">OK!</string>
     <string name="button_cancel">Cancel</string>

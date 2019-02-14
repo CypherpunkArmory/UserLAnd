@@ -192,7 +192,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         positiveBtn.setOnClickListener {
             requestQuestion.text = getString(R.string.review_ask_for_rating)
             positiveBtn.text = getString(R.string.button_positive)
-            negativeBtn.text = getString(R.string.button_negative_1)
+            negativeBtn.text = getString(R.string.button_refuse)
 
             positiveBtn.setOnClickListener {
                 userGaveReviewOrDismissed(viewHolder)
@@ -209,7 +209,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         negativeBtn.setOnClickListener {
             requestQuestion.text = getString(R.string.review_ask_for_feedback)
             positiveBtn.text = getString(R.string.button_positive)
-            negativeBtn.text = getString(R.string.button_negative_2)
+            negativeBtn.text = getString(R.string.button_negative)
 
             positiveBtn.setOnClickListener {
                 userGaveReviewOrDismissed(viewHolder)
