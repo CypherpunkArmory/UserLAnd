@@ -5,7 +5,6 @@
     android:layout_height="88dp"
     android:gravity="center"
     android:orientation="vertical"
-    android:visibility="gone"
     android:weightSum="1">
 
     <TextView

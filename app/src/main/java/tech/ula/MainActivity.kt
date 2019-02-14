@@ -172,11 +172,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun setupReviewRequestUI() {
-        val requestReviewView = layoutInflater.inflate(R.layout.list_item_review_request, null)
         val viewHolder = findViewById<ViewGroup>(R.id.request_review_insert_point)
-
-        requestReviewView.visibility = View.VISIBLE
-        viewHolder.addView(requestReviewView, 0)
+        layoutInflater.inflate(R.layout.list_item_review_request, viewHolder)
 
         val requestQuestion = viewHolder.findViewById<TextView>(R.id.prompt_review_question)
         val negativeBtn = viewHolder.findViewById<Button>(R.id.btn_negative_response)
@@ -219,7 +216,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     private fun handleUserFeedback(viewHolder: ViewGroup) {
         userFeedbackUtility.userHasGivenFeedback()
-        viewHolder.visibility = View.GONE
+        viewHolder.removeAllViews()
     }
 
     private fun setNavStartDestination() {
