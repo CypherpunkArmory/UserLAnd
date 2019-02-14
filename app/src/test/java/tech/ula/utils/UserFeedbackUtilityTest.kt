@@ -53,7 +53,7 @@ class UserFeedbackUtilityTest {
     }
 
     @Test
-    fun `Asking for feedback is appropriate if app opened if app opened four days ago`() {
+    fun `Asking for feedback is appropriate if app opened four days ago, hasn't given feedback and opened the app at the minimum amount of times`() {
         setTimesAppOpened(minimumTimesAppOpenedToShowReview)
         setUserGaveFeedback(false)
         appOpenedNumberOfDaysAgo(4)
@@ -62,7 +62,16 @@ class UserFeedbackUtilityTest {
     }
 
     @Test
-    fun `Asking for feedback is not appropriate if app opened if app opened two days ago`() {
+    fun `Asking for feedback is appropriate if app opened four days ago`() {
+        setTimesAppOpened(minimumTimesAppOpenedToShowReview)
+        setUserGaveFeedback(false)
+        appOpenedNumberOfDaysAgo(4)
+
+        assertTrue(userFeedbackUtility.askingForFeedbackIsAppropriate())
+    }
+
+    @Test
+    fun `Asking for feedback is not appropriate if app opened two days ago`() {
         setTimesAppOpened(minimumTimesAppOpenedToShowReview)
         setUserGaveFeedback(false)
         appOpenedNumberOfDaysAgo(2)
