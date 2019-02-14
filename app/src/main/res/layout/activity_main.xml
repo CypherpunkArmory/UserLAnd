@@ -1,20 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<LinearLayout
+<android.support.constraint.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     tools:context=".MainActivity">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="top"
         android:background="@color/colorPrimary"
+        android:layout_gravity="top"
+        app:layout_constraintTop_toTopOf="parent"
         android:theme="@style/ThemeOverlay.AppCompat.Dark"/>
 
     <LinearLayout
@@ -22,6 +21,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
         android:orientation="vertical">
     </LinearLayout>
 
@@ -30,8 +30,9 @@
         android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        app:defaultNavHost="true" />
+        app:defaultNavHost="true"
+        app:layout_constraintTop_toBottomOf="@id/request_review_insert_point"
+        app:layout_constraintBottom_toTopOf="@id/bottom_nav_view" />
 
     <android.support.constraint.ConstraintLayout
         android:id="@+id/layout_progress"
@@ -91,6 +92,7 @@
         android:layout_gravity="bottom"
         app:itemIconTint="@drawable/bottom_nav_icon_selector"
         app:itemTextColor="@drawable/bottom_nav_icon_selector"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:menu="@menu/menu_bottom_nav" />
 
-</LinearLayout>
+</android.support.constraint.ConstraintLayout>
