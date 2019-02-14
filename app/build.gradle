@@ -29,7 +29,6 @@ android {
         
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
-        buildConfigField 'boolean', 'ENABLE_PLAY_SERVICES', 'true'
         buildConfigField 'String', 'tracepotHttpsEndpoint', tracepotProperties['tracepotHttpsEndpoint']
 
         javaCompileOptions {
@@ -49,7 +48,6 @@ android {
             debuggable true
             minifyEnabled false
             testCoverageEnabled true
-            buildConfigField 'boolean', 'ENABLE_PLAY_SERVICES', 'false'
         }
         release {
             debuggable false
@@ -87,7 +85,6 @@ configurations {
     ktlint
 }
 
-
 tasks.whenTaskAdded { task ->
     if (task.name == 'assembleRelease') {
         task.doFirst {
@@ -119,7 +116,8 @@ task testAll(dependsOn: ['test', 'connectedAndroidTest']) {
     description = "Run all unit and instrumented tests."
 }
 
-task jacocoUnitTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest', 'createDebugCoverageReport']) {
+// This task is for generating coverage reports locally. It will run connected and unit tests if necessary.
+task jacocoCoverageReport(type: JacocoReport, dependsOn: ['testDebugUnitTest', 'createDebugCoverageReport']) {
 
     reports {
         xml.enabled = true
@@ -127,28 +125,33 @@ task jacocoUnitTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest', '
     }
 
     def fileFilter = [ '**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*' ]
-    def debugTree = fileTree(dir: "$project.buildDir/tmp/kotlin-classes/debug", excludes: fileFilter)
+    def javaClasses = fileTree(dir: "$project.buildDir/intermediates/classes/debug", excludes: fileFilter)
+    def kotlinClasses = fileTree(dir: "$project.buildDir/tmp/kotlin-classes/debug", excludes: fileFilter)
     def mainSrc = "$project.projectDir/src/main/java"
 
     sourceDirectories = files([mainSrc])
-    classDirectories = files([debugTree])
+    classDirectories = files([javaClasses, kotlinClasses])
     executionData = fileTree(dir: project.buildDir, includes: [
             'jacoco/testDebugUnitTest.exec', 'outputs/code-coverage/connected/*coverage.ec'
     ])
 }
 
-task generateCiTestCoverage(type: JacocoReport, dependsOn: ['testDebugUnitTest']) {
+// This task is for generating coverage in CI. It will run unit tests if required but will only
+// correctly report coverage if a 'coverage.ec' file has been moved into the workspace from Firebase.
+task jacocoCoverageReportForCi(type: JacocoReport, dependsOn: ['testDebugUnitTest']) {
+
     reports {
         xml.enabled = true
         html.enabled = true
     }
 
     def fileFilter = [ '**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*' ]
-    def debugTree = fileTree(dir: "$project.buildDir/tmp/kotlin-classes/debug", excludes: fileFilter)
+    def javaClasses = fileTree(dir: "$project.buildDir/intermediates/classes/debug", excludes: fileFilter)
+    def kotlinClasses = fileTree(dir: "$project.buildDir/tmp/kotlin-classes/debug", excludes: fileFilter)
     def mainSrc = "$project.projectDir/src/main/java"
 
     sourceDirectories = files([mainSrc])
-    classDirectories = files([debugTree])
+    classDirectories = files([javaClasses, kotlinClasses])
     executionData = fileTree(dir: project.buildDir, includes: [
             'jacoco/testDebugUnitTest.exec', 'outputs/code-coverage/connected/*coverage.ec'
     ])
@@ -182,8 +185,8 @@ dependencies {
     testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:$mockito_kotlin_version"
     testImplementation "android.arch.core:core-testing:$core_testing_version"
     androidTestImplementation "android.arch.core:core-testing:$core_testing_version"
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation "com.android.support.test.espresso:espresso-core:$espresso_version"
     androidTestImplementation "com.android.support.test.espresso:espresso-intents:$espresso_version"
     androidTestImplementation "android.arch.persistence.room:testing:$arch_version"
+    androidTestImplementation 'androidx.test:runner:1.1.1'
 }

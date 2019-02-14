@@ -176,7 +176,7 @@ jobs:
       - *decode_gcloud_key
       - run:
           name: Generate JaCoCo report
-          command: ./gradlew -PciBuild=true :app:generateCiTestCoverage
+          command: ./gradlew -PciBuild=true :app:jacocoCoverageReportForCi
       - store_artifacts:
           path: app/build/reports/
           destination: /reports/
