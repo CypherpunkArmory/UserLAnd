@@ -80,8 +80,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         NotificationUtility(this)
     }
 
-    private val userFeedbackPrefs by lazy {
-        UserFeedbackPreferences(this.getSharedPreferences("usage", Context.MODE_PRIVATE))
+    private val userFeedbackUtility by lazy {
+        UserFeedbackUtility(this.getSharedPreferences("usage", Context.MODE_PRIVATE))
     }
 
     private val downloadBroadcastReceiver = object : BroadcastReceiver() {
@@ -153,8 +153,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
         setupWithNavController(bottom_nav_view, navController)
 
-        userFeedbackPrefs.addToNumberOfTimesOpened()
-        setupReviewRequest()
+        userFeedbackUtility.incrementNumberOfTimesOpened()
+        if (userFeedbackUtility.askingForFeedbackIsAppropriate())
+            setupReviewRequestUI()
 
         viewModel.getState().observe(this, stateObserver)
     }
@@ -170,21 +171,13 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         ACRA.init(applicationContext as Application, builder)
     }
 
-    private fun setupReviewRequest() {
-        val minimumTimePassedReached = userFeedbackPrefs.getIsSufficientTimeElapsedSinceFirstOpen()
-        val minimumTimesOpenedReached = userFeedbackPrefs.numberOfTimesOpenedIsGreaterThanThreshold()
-        val userAlreadyGaveReviewOrDismissed = userFeedbackPrefs.getUserGaveFeedback()
+    private fun setupReviewRequestUI() {
+        val requestReviewView = layoutInflater.inflate(R.layout.list_item_review_request, null)
+        val viewHolder = findViewById<ViewGroup>(R.id.request_review_insert_point)
 
-        if (minimumTimePassedReached && minimumTimesOpenedReached && !userAlreadyGaveReviewOrDismissed) {
-            val requestReviewView = layoutInflater.inflate(R.layout.list_item_review_request, null)
-            requestReviewView.visibility = View.VISIBLE
-            val viewHolder = findViewById<ViewGroup>(R.id.request_review_insert_point)
-            viewHolder.addView(requestReviewView, 0)
-            setupReviewRequestUI(viewHolder)
-        }
-    }
+        requestReviewView.visibility = View.VISIBLE
+        viewHolder.addView(requestReviewView, 0)
 
-    private fun setupReviewRequestUI(viewHolder: ViewGroup) {
         val requestQuestion = viewHolder.findViewById<TextView>(R.id.prompt_review_question)
         val negativeBtn = viewHolder.findViewById<Button>(R.id.btn_negative_response)
         val positiveBtn = viewHolder.findViewById<Button>(R.id.btn_positive_response)
@@ -195,14 +188,14 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             negativeBtn.text = getString(R.string.button_refuse)
 
             positiveBtn.setOnClickListener {
-                userGaveReviewOrDismissed(viewHolder)
+                handleUserFeedback(viewHolder)
                 val userlandPlayStoreURI = "https://play.google.com/store/apps/details?id=tech.ula"
                 val intent = Intent("android.intent.action.VIEW", Uri.parse(userlandPlayStoreURI))
                 startActivity(intent)
             }
 
             negativeBtn.setOnClickListener {
-                userGaveReviewOrDismissed(viewHolder)
+                handleUserFeedback(viewHolder)
             }
         }
 
@@ -212,20 +205,20 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             negativeBtn.text = getString(R.string.button_negative)
 
             positiveBtn.setOnClickListener {
-                userGaveReviewOrDismissed(viewHolder)
+                handleUserFeedback(viewHolder)
                 val githubURI = "https://github.com/CypherpunkArmory/UserLAnd"
                 val intent = Intent("android.intent.action.VIEW", Uri.parse(githubURI))
                 startActivity(intent)
             }
 
             negativeBtn.setOnClickListener {
-                userGaveReviewOrDismissed(viewHolder)
+                handleUserFeedback(viewHolder)
             }
         }
     }
 
-    private fun userGaveReviewOrDismissed(viewHolder: ViewGroup) {
-        userFeedbackPrefs.setUserGaveFeedback()
+    private fun handleUserFeedback(viewHolder: ViewGroup) {
+        userFeedbackUtility.userHasGivenFeedback()
         viewHolder.visibility = View.GONE
     }
 

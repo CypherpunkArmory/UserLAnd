@@ -398,52 +398,50 @@ class AcraWrapper {
     }
 }
 
-class UserFeedbackPreferences(private val prefs: SharedPreferences) {
+class UserFeedbackUtility(private val prefs: SharedPreferences) {
     private val numberOfTimesOpenedKey = "numberOfTimesOpened"
     private val userGaveFeedbackKey = "userGaveFeedback"
     private val dateTimeFirstOpenKey = "dateTimeFirstOpen"
     private val millisecondsInThreeDays = 259200000L
     private val minimumNumberOfOpensBeforeReviewRequest = 15
 
-    fun addToNumberOfTimesOpened(): Int {
-        val numberTimesOpened = prefs.getInt(numberOfTimesOpenedKey, 1)
+    fun askingForFeedbackIsAppropriate(): Boolean {
+        val minimumTimePassedReached = getIsSufficientTimeElapsedSinceFirstOpen()
+        val minimumTimesOpenedReached = numberOfTimesOpenedIsGreaterThanThreshold()
+        val userAlreadyGaveReviewOrDismissed = getUserGaveFeedback()
 
-        if (numberTimesOpened == 1) {
-            with(prefs.edit()) {
-                putInt(numberOfTimesOpenedKey, numberTimesOpened + 1)
-                putLong(dateTimeFirstOpenKey, System.currentTimeMillis())
-                apply()
-            }
-        } else {
-            with(prefs.edit()) {
-                putInt(numberOfTimesOpenedKey, numberTimesOpened + 1)
-                apply()
-            }
+        return minimumTimePassedReached && minimumTimesOpenedReached && !userAlreadyGaveReviewOrDismissed
+    }
+
+    fun incrementNumberOfTimesOpened() {
+        with(prefs.edit()) {
+            val numberTimesOpened = prefs.getInt(numberOfTimesOpenedKey, 1)
+            if (numberTimesOpened == 1) putLong(dateTimeFirstOpenKey, System.currentTimeMillis())
+            putInt(numberOfTimesOpenedKey, numberTimesOpened + 1)
+            apply()
         }
-
-        return numberTimesOpened
     }
 
-    fun getIsSufficientTimeElapsedSinceFirstOpen(): Boolean {
-        val dateTimeFirstOpened = prefs.getLong(dateTimeFirstOpenKey, 0L)
-        val dateTimeWithSufficientTimeElapsed = dateTimeFirstOpened + millisecondsInThreeDays
-
-        return (System.currentTimeMillis() > dateTimeWithSufficientTimeElapsed)
-    }
-
-    fun numberOfTimesOpenedIsGreaterThanThreshold(): Boolean {
-        val numberTimesOpened = prefs.getInt(numberOfTimesOpenedKey, 1)
-        return numberTimesOpened > minimumNumberOfOpensBeforeReviewRequest
-    }
-
-    fun setUserGaveFeedback() {
+    fun userHasGivenFeedback() {
         with(prefs.edit()) {
             putBoolean(userGaveFeedbackKey, true)
             apply()
         }
     }
 
-    fun getUserGaveFeedback(): Boolean {
+    private fun getUserGaveFeedback(): Boolean {
         return prefs.getBoolean(userGaveFeedbackKey, false)
+    }
+
+    private fun getIsSufficientTimeElapsedSinceFirstOpen(): Boolean {
+        val dateTimeFirstOpened = prefs.getLong(dateTimeFirstOpenKey, 0L)
+        val dateTimeWithSufficientTimeElapsed = dateTimeFirstOpened + millisecondsInThreeDays
+
+        return (System.currentTimeMillis() > dateTimeWithSufficientTimeElapsed)
+    }
+
+    private fun numberOfTimesOpenedIsGreaterThanThreshold(): Boolean {
+        val numberTimesOpened = prefs.getInt(numberOfTimesOpenedKey, 1)
+        return numberTimesOpened > minimumNumberOfOpensBeforeReviewRequest
     }
 }
