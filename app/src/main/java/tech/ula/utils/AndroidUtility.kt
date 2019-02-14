@@ -406,11 +406,7 @@ class UserFeedbackUtility(private val prefs: SharedPreferences) {
     private val minimumNumberOfOpensBeforeReviewRequest = 15
 
     fun askingForFeedbackIsAppropriate(): Boolean {
-        val minimumTimePassedReached = getIsSufficientTimeElapsedSinceFirstOpen()
-        val minimumTimesOpenedReached = numberOfTimesOpenedIsGreaterThanThreshold()
-        val userAlreadyGaveReviewOrDismissed = getUserGaveFeedback()
-
-        return minimumTimePassedReached && minimumTimesOpenedReached && !userAlreadyGaveReviewOrDismissed
+        return getIsSufficientTimeElapsedSinceFirstOpen() && numberOfTimesOpenedIsGreaterThanThreshold() && !getUserGaveFeedback()
     }
 
     fun incrementNumberOfTimesOpened() {
