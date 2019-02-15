@@ -106,6 +106,6 @@
         点击“是的”将会清除支持的文件。但这不会发生在安装的应用程序的文件的。
         点击“是的”将会导致在下次运行会话或应用程序时再下载资源。
     </string>
-    <string name="alert_clear_support_files_clear_button">是的</string>
+    <string name="alert_clear_support_files_clear_button">清除</string>
 
 </resources>
