@@ -119,7 +119,7 @@ jobs:
           command: ./gradlew -PciBuild=true :app:assembleRelease
       - *persist_release_workspace
       - store_artifacts:
-          path: app/build/apk/
+          path: app/build/outputs/apk/
           destination: /apk/
 
   test_unit:
