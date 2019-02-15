@@ -397,3 +397,47 @@ class AcraWrapper {
         ACRA.getErrorReporter().putCustomData(key, value)
     }
 }
+
+class UserFeedbackUtility(private val prefs: SharedPreferences) {
+    private val numberOfTimesOpenedKey = "numberOfTimesOpened"
+    private val userGaveFeedbackKey = "userGaveFeedback"
+    private val dateTimeFirstOpenKey = "dateTimeFirstOpen"
+    private val millisecondsInThreeDays = 259200000L
+    private val minimumNumberOfOpensBeforeReviewRequest = 15
+
+    fun askingForFeedbackIsAppropriate(): Boolean {
+        return getIsSufficientTimeElapsedSinceFirstOpen() && numberOfTimesOpenedIsGreaterThanThreshold() && !getUserGaveFeedback()
+    }
+
+    fun incrementNumberOfTimesOpened() {
+        with(prefs.edit()) {
+            val numberTimesOpened = prefs.getInt(numberOfTimesOpenedKey, 1)
+            if (numberTimesOpened == 1) putLong(dateTimeFirstOpenKey, System.currentTimeMillis())
+            putInt(numberOfTimesOpenedKey, numberTimesOpened + 1)
+            apply()
+        }
+    }
+
+    fun userHasGivenFeedback() {
+        with(prefs.edit()) {
+            putBoolean(userGaveFeedbackKey, true)
+            apply()
+        }
+    }
+
+    private fun getUserGaveFeedback(): Boolean {
+        return prefs.getBoolean(userGaveFeedbackKey, false)
+    }
+
+    private fun getIsSufficientTimeElapsedSinceFirstOpen(): Boolean {
+        val dateTimeFirstOpened = prefs.getLong(dateTimeFirstOpenKey, 0L)
+        val dateTimeWithSufficientTimeElapsed = dateTimeFirstOpened + millisecondsInThreeDays
+
+        return (System.currentTimeMillis() > dateTimeWithSufficientTimeElapsed)
+    }
+
+    private fun numberOfTimesOpenedIsGreaterThanThreshold(): Boolean {
+        val numberTimesOpened = prefs.getInt(numberOfTimesOpenedKey, 1)
+        return numberTimesOpened > minimumNumberOfOpensBeforeReviewRequest
+    }
+}

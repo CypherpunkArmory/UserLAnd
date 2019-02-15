@@ -135,6 +135,10 @@
     <string name="client_xsdl">XSDL</string>
 
     <!-- Alerts -->
+    <string name="button_yes">Yes!</string>
+    <string name="button_negative">Not really</string>
+    <string name="button_refuse">No, thanks</string>
+    <string name="button_positive">Okay, sure</string>
     <string name="button_ok">OK!</string>
     <string name="button_cancel">Cancel</string>
     <string name="general_error_title">Something unexpected happened!</string>
@@ -183,5 +187,10 @@
     <string name="custom_sessions">Custom Sessions</string>
     <string name="apps_sessions">Apps Sessions</string>
     <string name="info_xsdl_support">XSDL is not fully supported on \nAndroid 9.0 and above yet</string>
+
+    <!-- Review request -->
+    <string name="review_is_user_enjoying">Enjoying UserLAnd?</string>
+    <string name="review_ask_for_rating">How about a rating on the Play Store, then?</string>
+    <string name="review_ask_for_feedback">Would you mind giving us some feedback on Github?</string>
 
 </resources>
