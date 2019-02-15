@@ -62,7 +62,7 @@ reference:
   decode_android_key: &decode_android_key
     run:
       name: Decode Android key store
-      command: echo $ANDROID_KEY_STORE | base64 -di > key-store.jks
+      command: echo $ANDROID_KEY_STORE | base64 -di > keystore.jks
 
   export_gcloud_key: &export_gcloud_key
     run:
@@ -199,7 +199,6 @@ workflows:
   workflow:
     jobs:
       - build_debug
-      - build_release
       - test_unit:
           requires:
             - build_debug
@@ -207,6 +206,10 @@ workflows:
           requires:
             - build_debug
       - report_coverage:
+          requires:
+            - test_unit
+            - test_instrumented
+      - build_release:
           requires:
             - test_unit
             - test_instrumented
