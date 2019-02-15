@@ -23,7 +23,7 @@ You can also chat with us on [slack](https://communityinviter.com/apps/userlandt
 See our [CONTRIBUTING](https://github.com/CypherpunkArmory/UserLAnd/blob/master/CONTRIBUTING.md) document.
 
 ## Start using UserLAnd
-See our [Getting Started](https://github.com/CypherpunkArmory/UserLAnd/wiki/Getting-Started) page.
+See our [Getting Started](https://github.com/CypherpunkArmory/UserLAnd/wiki/Getting-Started-in-UserLAnd) page.
 
 ## UserLAnd assets
 The assets that UserLAnd depends on and the scripts that build them are contained in other repositories.  
