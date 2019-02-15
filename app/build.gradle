@@ -43,6 +43,15 @@ android {
         }
     }
 
+    signingConfigs {
+        release {
+            storeFile project.file('../keystore.jks')
+            keyAlias System.getenv('ANDROID_KEY_ALIAS')
+            storePassword System.getenv('ANDROID_STORE_PASSWORD')
+            keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+        }
+    }
+
     buildTypes {
         debug {
             debuggable true

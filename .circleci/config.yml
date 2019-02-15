@@ -54,6 +54,16 @@ reference:
       _JAVA_OPTIONS: "-Xmx2048m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1"
       GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m"'
 
+  # Secrets
+  export_android_key: &export_android_key
+    run:
+      name: Export Android key store environment variable
+      command: echo 'export ANDROID_KEY_STORE="$ANDROID_KEY_STORE"' >> $BASH_ENV
+  decode_android_key: &decode_android_key
+    run:
+      name: Decode Android key store
+      command: echo $ANDROID_KEY_STORE | base64 -di > key-store.jks
+
   export_gcloud_key: &export_gcloud_key
     run:
       name: Export Google Cloud Service key environment variable
@@ -89,29 +99,28 @@ jobs:
           path: app/build/outputs/apk/
           destination: /apk/
 
-#  build_release:
-#    <<: *android_config
-#    steps:
-#      - checkout
-#      - *restore_cache
-#      - *export_tracepot_endpoint
-#      - run:
-#          name: Download dependencies
-#          command: ./gradlew androidDependencies
-#      - *save_cache
-#      - run:
-#          name: Run ktlint
-#          command: ./gradlew ktlint
-#      - run:
-#          name: Build
-#          command: ./gradlew -PciBuild=true :app:assembleRelease
-#      - *persist_release_workspace
-#      - store_artifacts:
-#          path: app/build/apk/
-#          destination: /apk/
-#      - store_artifacts:
-#          path: app/build/outputs/mapping/
-#          destination: /mapping/
+  build_release:
+    <<: *android_config
+    steps:
+      - checkout
+      - *restore_cache
+      - run:
+          name: Download dependencies
+          command: ./gradlew androidDependencies
+      - *save_cache
+      - *export_android_key
+      - *decode_android_key
+      - *export_tracepot_endpoint
+      - run:
+          name: Run ktlint
+          command: ./gradlew ktlint
+      - run:
+          name: Build
+          command: ./gradlew -PciBuild=true :app:assembleRelease
+      - *persist_release_workspace
+      - store_artifacts:
+          path: app/build/apk/
+          destination: /apk/
 
   test_unit:
     <<: *android_config
@@ -190,7 +199,7 @@ workflows:
   workflow:
     jobs:
       - build_debug
-#      - build_release
+      - build_release
       - test_unit:
           requires:
             - build_debug
