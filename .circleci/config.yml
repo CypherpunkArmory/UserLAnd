@@ -58,11 +58,11 @@ reference:
   export_android_key: &export_android_key
     run:
       name: Export Android key store environment variable
-      command: echo 'export ANDROID_KEY_STORE="$ANDROID_KEY_STORE"' >> $BASH_ENV
+      command: echo 'export ANDROID_KEYSTORE="$ANDROID_KEYSTORE"' >> $BASH_ENV
   decode_android_key: &decode_android_key
     run:
       name: Decode Android key store
-      command: echo $ANDROID_KEY_STORE | base64 -di > keystore.jks
+      command: echo $ANDROID_KEYSTORE | base64 -di > keystore.jks
 
   export_gcloud_key: &export_gcloud_key
     run:
