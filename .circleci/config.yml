@@ -199,6 +199,7 @@ workflows:
   workflow:
     jobs:
       - build_debug
+      - build_release
       - test_unit:
           requires:
             - build_debug
@@ -209,7 +210,7 @@ workflows:
           requires:
             - test_unit
             - test_instrumented
-      - build_release:
-          requires:
-            - test_unit
-            - test_instrumented
+#      - build_release:
+#          requires:
+#            - test_unit
+#            - test_instrumented
