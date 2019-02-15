@@ -101,9 +101,9 @@
     <string name="apps_sessions">应用程序会话</string>
     <string name="github_message">发现错误并且想要申请新的功能？上我们的Github，在那里您能得到最快的答复！</string>
     <string name="pref_proot_debugging_level_summary">数值越大，越冗余越高.</string>
-    <string name="alert_clear_support_files_title">真的要清除支持文件吗?</string>
+    <string name="alert_clear_support_files_title">真的要删除支持文件吗?</string>
     <string name="alert_clear_support_files_message">
-        点击“是的”将会清除支持的文件。不过不要担心你的应用程序，我们是不会清除应用程序的文件的。
+        点击“是的”将会清除支持的文件。但这不会发生在安装的应用程序的文件的。
         点击“是的”将会导致在下次运行会话或应用程序时再下载资源。
     </string>
     <string name="alert_clear_support_files_clear_button">是的</string>
