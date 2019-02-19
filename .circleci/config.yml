@@ -101,19 +101,18 @@ reference:
       name: Export tracepot https environment variable
       command: echo "tracepotHttpsEndpoint=$TRACEPOT_ENDPOINT" >> app/tracepot.properties
 
-commands:
-  early_return_for_forked_pull_requests:
+  early_return_for_forked_pull_requests: &early_return_for_forked_pull_requests
     description: >-
       If this build is from a fork, stop executing the current job and return success to avoid
       steps that will fail from missing secrets.
     steps:
-      - run:
-          name: Return early
-          command: |
-            if [ -n "$CIRCLE_PR_NUMBER" ]; then
-              echo "Nothing to do for forked PRs. Skipping this step.
-              circleci step halt
-            fi
+    - run:
+        name: Return early
+        command: |
+          if [ -n "$CIRCLE_PR_NUMBER" ]; then
+            echo "Nothing to do for forked PRs. Skipping this step.
+            circleci step halt
+          fi
 
 jobs:
   build_debug:
@@ -137,7 +136,7 @@ jobs:
   build_release:
     <<: *android_config
     steps:
-      - early_return_for_forked_pull_requests
+      - *early_return_for_forked_pull_requests
       - checkout
       - *restore_cache
       - *android_dependencies
@@ -177,7 +176,7 @@ jobs:
   test_instrumented:
     <<: *android_config
     steps:
-      - early_return_for_forked_pull_requests
+      - *early_return_for_forked_pull_requests
       - *attach_debug_workspace
       - *export_gcloud_key
       - *decode_gcloud_key
@@ -204,7 +203,7 @@ jobs:
   report_coverage:
     <<: *android_config
     steps:
-      - early_return_for_forked_pull_requests
+      - *early_return_for_forked_pull_requests
       - checkout
       - *restore_cache
       - *android_dependencies
@@ -229,7 +228,7 @@ jobs:
   deploy:
     <<: *android_config
     steps:
-      - early_return_for_forked_pull_requests
+      - *early_return_for_forked_pull_requests
       - checkout
       - *restore_cache
       - *ruby_dependencies
@@ -245,6 +244,11 @@ workflows:
   workflow:
     jobs:
       - build_debug
+      - build_release:
+          filters:
+            branches:
+              only:
+                - add-continuous-deployment
       - test_unit:
           requires:
             - build_debug
@@ -255,14 +259,12 @@ workflows:
           requires:
             - test_unit
             - test_instrumented
-      - build_release:
-          requires:
-            - test_unit
-            - test_instrumented
       - deploy:
           filters:
             branches:
               only:
                 - add-continuous-deployment
           requires:
+            - test_unit
+            - test_instrumented
             - build_release
