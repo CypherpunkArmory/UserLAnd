@@ -61,7 +61,7 @@ reference:
   ruby_dependencies: &ruby_dependencies
     run:
       name: Download Ruby dependencies
-      command: bundle check || bundle install -- path vendor/bundle
+      command: bundle check || bundle install --path vendor/bundle
 
   android_dependencies: &android_dependencies
     run:
