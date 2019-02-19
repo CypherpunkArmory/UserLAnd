@@ -102,17 +102,13 @@ reference:
       command: echo "tracepotHttpsEndpoint=$TRACEPOT_ENDPOINT" >> app/tracepot.properties
 
   early_return_for_forked_pull_requests: &early_return_for_forked_pull_requests
-    description: >-
-      If this build is from a fork, stop executing the current job and return success to avoid
-      steps that will fail from missing secrets.
-    steps:
-    - run:
-        name: Return early
-        command: |
-          if [ -n "$CIRCLE_PR_NUMBER" ]; then
-            echo "Nothing to do for forked PRs. Skipping this step.
-            circleci step halt
-          fi
+    run:
+      name: Return early to avoid jobs that forked PRs will fail without secrets.
+      command: |
+        if [ -n "$CIRCLE_PR_NUMBER" ]; then
+          echo "Nothing to do for forked PRs. Skipping this step.
+          circleci step halt
+        fi
 
 jobs:
   build_debug:
