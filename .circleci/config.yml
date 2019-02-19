@@ -106,7 +106,7 @@ reference:
       name: Return early to avoid jobs that forked PRs will fail without secrets.
       command: |
         if [ -n "$CIRCLE_PR_NUMBER" ]; then
-          echo "Nothing to do for forked PRs. Skipping this step.
+          echo "Nothing to do for forked PRs. Skipping this step."
           circleci step halt
         fi
 
