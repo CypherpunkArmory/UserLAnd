@@ -1,4 +1,4 @@
-<resources>                                                         <!-- Translators, pay attention to these notes! --> 
+,<resources>                                                         <!-- Translators, pay attention to these notes! --> 
     <string name="app_name">UserLAnd</string>
     <string name="welcome">Welcome to UserLAnd!</string>
     <string name="permission_request_code">1000</string>
@@ -184,4 +184,8 @@
     <string name="apps_sessions">Apps Sessions</string>
     <string name="info_xsdl_support">XSDL is not fully supported on \nAndroid 9.0 and above yet</string>
 
+    <!-- Review request -->
+    <string name="review_is_user_enjoying">Enjoying UserLAnd?</string>
+    <string name="review_ask_for_rating">How about a rating on the Play Store, then?</string>
+    <string name="review_ask_for_feedback">Would you mind giving us some feedback on Github?</string>
 </resources>
