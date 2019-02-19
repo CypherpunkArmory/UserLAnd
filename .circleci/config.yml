@@ -263,6 +263,6 @@ workflows:
           filters:
             branches:
               only:
-                - add-continuos-deployment
+                - add-continuous-deployment
           requires:
             - build_release
