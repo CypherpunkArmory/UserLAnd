@@ -1,6 +1,7 @@
 version: 2
 
 reference:
+  # Cache
   cache_key: &cache_key
     key: cache-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "build.gradle" }}-{{ checksum "app/build.gradle" }}
   restore_cache: &restore_cache
@@ -13,6 +14,7 @@ reference:
         - ~/.gradle
         - ~/.m2
 
+  # Workspaces
   workspace: &workspace
     ~/workspace
   persist_debug_workspace: &persist_debug_workspace
@@ -44,6 +46,7 @@ reference:
       paths:
         - firebase
 
+  # Basic docker config
   android_config: &android_config
     working_directory: *workspace
     docker:
@@ -53,6 +56,17 @@ reference:
       # Limit JVM heap size to prevent exceeding container memory
       _JAVA_OPTIONS: "-Xmx2048m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1"
       GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m"'
+
+  # Dependencies
+  ruby_dependencies: &ruby_dependencies
+    run:
+      name: Download Ruby dependencies
+      command: bundle check || bundle install -- path vendor/bundle
+
+  android_dependencies: &android_dependencies
+    run:
+      name: Download Android dependencies
+      command: ./gradlew androidDependencies
 
   # Secrets
   export_android_key: &export_android_key
@@ -72,6 +86,15 @@ reference:
     run:
       name: Decode Google Cloud credentials
       command: echo $GCLOUD_SERVICE_ACCOUNT_KEY | base64 -di > ${HOME}/client-secret.json
+
+  export_play_key: &export_play_key
+    run:
+      name: Export Play store key
+      command: echo 'export PLAY_KEY="$PLAY_KEY"' >> $BASH_ENV
+  decode_play_key: &decode_play_key
+    run:
+      name: Decode Play store key
+      command: echo $PLAY_KEY | base64 -di > ${HOME}/play-key.json
 
   export_tracepot_endpoint: &export_tracepot_endpoint
     run:
@@ -98,9 +121,7 @@ jobs:
     steps:
       - checkout
       - *restore_cache
-      - run:
-          name: Download dependencies
-          command: ./gradlew androidDependencies
+      - *android_dependencies
       - *save_cache
       - run:
           name: Run ktlint
@@ -119,9 +140,7 @@ jobs:
       - early_return_for_forked_pull_requests
       - checkout
       - *restore_cache
-      - run:
-          name: Download dependencies
-          command: ./gradlew androidDependencies
+      - *android_dependencies
       - *save_cache
       - *export_android_key
       - *decode_android_key
@@ -142,9 +161,7 @@ jobs:
     steps:
       - checkout
       - *restore_cache
-      - run:
-          name: Download dependencies
-          command: ./gradlew androidDependencies
+      - *android_dependencies
       - *save_cache
       - run:
           name: Run unit tests
@@ -190,9 +207,8 @@ jobs:
       - early_return_for_forked_pull_requests
       - checkout
       - *restore_cache
-      - run:
-          name: Download dependencies
-          command: ./gradlew androidDependencies
+      - *android_dependencies
+      - *save_cache
       - *attach_debug_workspace
       - *attach_firebase_workspace
       - run:
@@ -213,8 +229,16 @@ jobs:
   deploy:
     <<: *android_config
     steps:
-      
-
+      - early_return_for_forked_pull_requests
+      - checkout
+      - *restore_cache
+      - *ruby_dependencies
+      - *attach_release_workspace
+      - *export_play_key
+      - *decode_play_key
+      - run:
+          name: Deploy to Play store
+          command: bundle exec fastlane deploy
 
 workflows:
   version: 2
@@ -235,3 +259,10 @@ workflows:
           requires:
             - test_unit
             - test_instrumented
+      - deploy:
+          filters:
+            branches:
+              only:
+                - releases
+          requires:
+            - build_release

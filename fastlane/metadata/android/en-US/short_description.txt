@@ -1,0 +1,1 @@
+Easily emulate Linux distributions and applications. No root required.
