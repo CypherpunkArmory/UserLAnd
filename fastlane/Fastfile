@@ -1,0 +1,39 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:android)
+
+platform :android do
+  desc "Update changelogs based on latest version code"
+  lane :update_changelogs do
+    gradle(task: "reportVersionCode")
+    versionCode = File.read("../app/versionCode.txt")
+
+    changelog = changelog_from_git_commits(merge_commit_filtering: "exclude_merges")
+    changelogsDir = "metadata/android/en-US/changelogs"
+    changelogFile = changelogsDir + "/" + versionCode + ".txt"
+
+    sh("mkdir", "-p", changelogsDir)
+    File.open(changelogFile, 'w') do |file|
+      file.write changelog
+    end
+  end
+
+  desc "Deploy a new version to the Google Play"
+  lane :deploy do
+    update_changelogs
+    supply(track: "beta")
+  end
+end
