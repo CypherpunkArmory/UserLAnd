@@ -107,6 +107,10 @@ tasks.withType(Test) {
     jacoco.includeNoLocationClasses = true
 }
 
+task reportVersionCode {
+    new File("$projectDir/versionCode.txt").text = "$project.android.defaultConfig.versionCode"
+}
+
 task ktlint(type: JavaExec, group: "verification") {
     description = "Check Kotlin code style."
     classpath = configurations.ktlint

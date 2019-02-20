@@ -16,9 +16,29 @@
 default_platform(:android)
 
 platform :android do
+  desc "Generate versionCode.txt file"
+  lane :generate_version_code do
+    gradle(task: "reportVersionCode")
+  end
+
+  desc "Update changelogs based on latest version code"
+  lane :update_changelogs do
+    versionCode = File.read("../app/versionCode.txt")
+
+    changelog = changelog_from_git_commits
+    changelogsDir = "metadata/android/en-US/changelogs"
+    changelogFile = changelogsDir + "/" + versionCode + ".txt"
+
+    sh("mkdir", "-p", changelogsDir)
+    File.open(changelogFile, 'w') do |file|
+      file.write changelog
+    end
+  end
+
   desc "Deploy a new version to the Google Play"
   lane :deploy do
-    changelog_from_git_commits
-    upload_to_play_store track:"beta"
+    generate_version_code
+    update_changelogs
+    supply
   end
 end

@@ -37,6 +37,7 @@ reference:
       root: *workspace
       paths:
         - app/build
+        - app/versionCode.txt
   attach_firebase_workspace: &attach_firebase_workspace
     attach_workspace:
       at: *workspace
