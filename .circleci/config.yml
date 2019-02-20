@@ -245,7 +245,7 @@ workflows:
           filters:
             branches:
               only:
-                - add-continuous-deployment
+                - releases
       - test_unit:
           requires:
             - build_debug
@@ -260,7 +260,7 @@ workflows:
           filters:
             branches:
               only:
-                - add-continuous-deployment
+                - releases
           requires:
             - test_unit
             - test_instrumented
