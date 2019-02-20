@@ -14,7 +14,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.support.v4.content.ContextCompat
-import com.crashlytics.android.Crashlytics
+import org.acra.ACRA
 import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
@@ -58,6 +58,15 @@ fun displayGenericErrorDialog(activity: Activity, titleId: Int, messageId: Int) 
             .create().show()
 }
 
+// Add or change asset types as needed for testing and staggered releases.
+fun getBranchToDownloadAssetsFrom(assetType: String): String {
+    return when (assetType) {
+        "support" -> "beta"
+        "apps" -> "master"
+        else -> "master"
+    }
+}
+
 class DefaultPreferences(private val prefs: SharedPreferences) {
 
     fun getProotDebuggingEnabled(): Boolean {
@@ -73,20 +82,55 @@ class DefaultPreferences(private val prefs: SharedPreferences) {
     }
 }
 
-class TimestampPreferences(private val prefs: SharedPreferences) {
-    fun getSavedTimestampForFile(assetConcatenatedName: String): Long {
-        return prefs.getLong(assetConcatenatedName, 0)
+class AssetPreferences(private val prefs: SharedPreferences) {
+    private fun String.addTimestampPrefix(): String {
+        return "timestamp-" + this
     }
 
-    fun setSavedTimestampForFileToNow(assetConcatenatedName: String) {
+    fun getLastUpdatedTimestampForAsset(asset: Asset): Long {
+        return prefs.getLong(asset.concatenatedName.addTimestampPrefix(), -1)
+    }
+
+    fun setLastUpdatedTimestampForAssetUsingConcatenatedName(assetConcatenatedName: String, currentTimeSeconds: Long) {
         with(prefs.edit()) {
-            putLong(assetConcatenatedName, currentTimeSeconds())
+            putLong(assetConcatenatedName.addTimestampPrefix(), currentTimeSeconds)
             apply()
         }
     }
-}
 
-class AssetPreferences(private val prefs: SharedPreferences) {
+    private val downloadsAreInProgressKey = "downloadsAreInProgress"
+    fun getDownloadsAreInProgress(): Boolean {
+        return prefs.getBoolean(downloadsAreInProgressKey, false)
+    }
+
+    fun setDownloadsAreInProgress(inProgress: Boolean) {
+        with(prefs.edit()) {
+            putBoolean(downloadsAreInProgressKey, inProgress)
+            apply()
+        }
+    }
+
+    private val enqueuedDownloadsKey = "currentlyEnqueuedDownloads"
+    fun getEnqueuedDownloads(): Set<Long> {
+        val enqueuedDownloadsAsStrings = prefs.getStringSet(enqueuedDownloadsKey, setOf()) ?: setOf<String>()
+        return enqueuedDownloadsAsStrings.map { it.toLong() }.toSet()
+    }
+
+    fun setEnqueuedDownloads(downloads: Set<Long>) {
+        val enqueuedDownloadsAsStrings = downloads.map { it.toString() }.toSet()
+        with(prefs.edit()) {
+            putStringSet(enqueuedDownloadsKey, enqueuedDownloadsAsStrings)
+            apply()
+        }
+    }
+
+    fun clearEnqueuedDownloadsCache() {
+        with(prefs.edit()) {
+            remove(enqueuedDownloadsKey)
+            apply()
+        }
+    }
+
     fun getAssetLists(allAssetListTypes: List<Pair<String, String>>): List<List<Asset>> {
         val assetLists = ArrayList<List<Asset>>()
         allAssetListTypes.forEach {
@@ -140,12 +184,19 @@ object VncTypePreference : AppServiceTypePreference() {
     }
 }
 
+object XsdlTypePreference : AppServiceTypePreference() {
+    override fun toString(): String {
+        return "xsdl"
+    }
+}
+
 class AppsPreferences(private val prefs: SharedPreferences) {
 
     fun setAppServiceTypePreference(appName: String, serviceType: AppServiceTypePreference) {
         val prefAsString = when (serviceType) {
             is SshTypePreference -> "ssh"
             is VncTypePreference -> "vnc"
+            is XsdlTypePreference -> "xsdl"
             else -> "unselected"
         }
         with(prefs.edit()) {
@@ -159,6 +210,7 @@ class AppsPreferences(private val prefs: SharedPreferences) {
 
         return when {
             pref.toLowerCase() == "ssh" || (app.supportsCli && !app.supportsGui) -> SshTypePreference
+            pref.toLowerCase() == "xsdl" -> XsdlTypePreference
             pref.toLowerCase() == "vnc" || (!app.supportsCli && app.supportsGui) -> VncTypePreference
             else -> PreferenceHasNotBeenSelected
         }
@@ -269,12 +321,22 @@ class DownloadManagerWrapper(private val downloadManager: DownloadManager) {
         return ""
     }
 
-    fun downloadHasNotFailed(id: Long): Boolean {
+    fun downloadHasSucceeded(id: Long): Boolean {
         val query = generateQuery(id)
         val cursor = generateCursor(query)
         if (cursor.moveToFirst()) {
             val status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
-            return status != DownloadManager.STATUS_FAILED
+            return status == DownloadManager.STATUS_SUCCESSFUL
+        }
+        return false
+    }
+
+    fun downloadHasFailed(id: Long): Boolean {
+        val query = generateQuery(id)
+        val cursor = generateCursor(query)
+        if (cursor.moveToFirst()) {
+            val status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
+            return status == DownloadManager.STATUS_FAILED
         }
         return false
     }
@@ -283,12 +345,10 @@ class DownloadManagerWrapper(private val downloadManager: DownloadManager) {
         val query = generateQuery(id)
         val cursor = generateCursor(query)
         if (cursor.moveToFirst()) {
-            val status: String = cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_REASON))
-            if (status != "reason") {
-                return status
-            }
+            val status: Int = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_REASON))
+            return "Reason: $status"
         }
-        return "No reason for failure"
+        return "No known reason for failure."
     }
 
     fun getDownloadsDirectory(): File {
@@ -323,13 +383,61 @@ class LocalFileLocator(private val applicationFilesDir: String, private val reso
 }
 
 class TimeUtility {
+    fun getCurrentTimeSeconds(): Long {
+        return currentTimeSeconds()
+    }
+
     fun getCurrentTimeMillis(): Long {
         return System.currentTimeMillis()
     }
 }
 
-class CrashlyticsWrapper {
-    fun setString(key: String, value: String) {
-        Crashlytics.setString(key, value)
+class AcraWrapper {
+    fun putCustomString(key: String, value: String) {
+        ACRA.getErrorReporter().putCustomData(key, value)
+    }
+}
+
+class UserFeedbackUtility(private val prefs: SharedPreferences) {
+    private val numberOfTimesOpenedKey = "numberOfTimesOpened"
+    private val userGaveFeedbackKey = "userGaveFeedback"
+    private val dateTimeFirstOpenKey = "dateTimeFirstOpen"
+    private val millisecondsInThreeDays = 259200000L
+    private val minimumNumberOfOpensBeforeReviewRequest = 15
+
+    fun askingForFeedbackIsAppropriate(): Boolean {
+        return getIsSufficientTimeElapsedSinceFirstOpen() && numberOfTimesOpenedIsGreaterThanThreshold() && !getUserGaveFeedback()
+    }
+
+    fun incrementNumberOfTimesOpened() {
+        with(prefs.edit()) {
+            val numberTimesOpened = prefs.getInt(numberOfTimesOpenedKey, 1)
+            if (numberTimesOpened == 1) putLong(dateTimeFirstOpenKey, System.currentTimeMillis())
+            putInt(numberOfTimesOpenedKey, numberTimesOpened + 1)
+            apply()
+        }
+    }
+
+    fun userHasGivenFeedback() {
+        with(prefs.edit()) {
+            putBoolean(userGaveFeedbackKey, true)
+            apply()
+        }
+    }
+
+    private fun getUserGaveFeedback(): Boolean {
+        return prefs.getBoolean(userGaveFeedbackKey, false)
+    }
+
+    private fun getIsSufficientTimeElapsedSinceFirstOpen(): Boolean {
+        val dateTimeFirstOpened = prefs.getLong(dateTimeFirstOpenKey, 0L)
+        val dateTimeWithSufficientTimeElapsed = dateTimeFirstOpened + millisecondsInThreeDays
+
+        return (System.currentTimeMillis() > dateTimeWithSufficientTimeElapsed)
+    }
+
+    private fun numberOfTimesOpenedIsGreaterThanThreshold(): Boolean {
+        val numberTimesOpened = prefs.getInt(numberOfTimesOpenedKey, 1)
+        return numberTimesOpened > minimumNumberOfOpensBeforeReviewRequest
     }
 }

@@ -63,10 +63,10 @@
     <string name="illegal_state_no_session_selected_when_preparation_started">Попытка подготовки сессии без указания какой именно.</string>
     <string name="illegal_state_error_fetching_asset_lists">Не удалось скачать список файлов.</string>
     <string name="illegal_state_downloads_did_not_complete_successfully">Скачивание не удалось из-за: %1$s.</string>
-    <string name="illegal_state_failed_to_copy_assets_to_local">Не удалось скопировать файлы в локальное хранилище.</string>
-    <string name="illegal_state_failed_to_copy_assets_to_filesystem">Не удалось скопировать файлы в файловую систему.</string>
-    <string name="illegal_state_failed_to_extract_filesystem">Не удалось извлечь файловую систему.</string>
-    <string name="illegal_state_filesystem_is_missing_assets">Обнаружены недостающие файлы. Попробуйте очистку служебных файлов.</string>
+    <string name="illegal_state_failed_to_copy_assets_to_local">Не удалось скопировать файлы в локальное хранилище. Попробуйте очистку служебных файлов.</string>
+    <string name="illegal_state_assets_have_not_been_downloaded">Необходимые файлы не были успешно загружены. Попробуйте очистку служебных файлов.</string>
+    <string name="illegal_state_failed_to_copy_assets_to_filesystem">Не удалось скопировать файлы в файловую систему. Попробуйте очистку служебных файлов.</string>
+    <string name="illegal_state_failed_to_extract_filesystem">Не удалось извлечь файловую систему. Попробуйте очистку служебных файлов.</string>
     <string name="illegal_state_failed_to_clear_support_files">Ошибка очистки служебных файлов.</string>
 
     <!-- Misc illegal state -->

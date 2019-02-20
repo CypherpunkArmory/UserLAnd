@@ -4,7 +4,7 @@ import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.utils.AssetPreferences
 import tech.ula.utils.ConnectionUtility
-import tech.ula.utils.TimestampPreferences
+import tech.ula.utils.getBranchToDownloadAssetsFrom
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -12,7 +12,6 @@ import java.lang.Exception
 
 class AssetRepository(
     private val applicationFilesDirPath: String,
-    private val timestampPreferences: TimestampPreferences,
     private val assetPreferences: AssetPreferences,
     private val connectionUtility: ConnectionUtility = ConnectionUtility()
 ) {
@@ -22,7 +21,7 @@ class AssetRepository(
 
         if (!assetFile.exists()) return true
 
-        val localTimestamp = timestampPreferences.getSavedTimestampForFile(asset.concatenatedName)
+        val localTimestamp = assetPreferences.getLastUpdatedTimestampForAsset(asset)
         return localTimestamp < asset.remoteTimestamp
     }
 
@@ -92,9 +91,7 @@ class AssetRepository(
     ): List<Asset> {
         val assetList = ArrayList<Asset>()
 
-        var branch = "master"
-        if (assetType.equals("support", true))
-            branch = "staging"
+        val branch = getBranchToDownloadAssetsFrom(assetType)
         val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-" +
                 "$assetType/raw/$branch/assets/$architectureType/assets.txt"
 

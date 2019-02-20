@@ -26,11 +26,82 @@
     <string-array name="supported_services">
         <item>ssh</item>
         <item>vnc</item>
+        <item>xsdl</item>
     </string-array>
 
     <string-array name="supported_services_and_types">
         <item>SSH - Dropbear</item>
         <item>VNC - TightVNC</item>
+        <item>SDL - XSDL</item>
     </string-array>
-    
+
+    <string-array name="blacklisted_usernames">
+        <item>adm</item>
+        <item>audio</item>
+        <item>autologin</item>
+        <item>backup</item>
+        <item>bin</item>
+        <item>cdrom</item>
+        <item>daemon</item>
+        <item>dbus</item>
+        <item>dialout</item>
+        <item>dip</item>
+        <item>disk</item>
+        <item>fax</item>
+        <item>floppy</item>
+        <item>ftp</item>
+        <item>games</item>
+        <item>gnats</item>
+        <item>http</item>
+        <item>input</item>
+        <item>irc</item>
+        <item>kmem</item>
+        <item>kvm</item>
+        <item>list</item>
+        <item>locate</item>
+        <item>lock</item>
+        <item>log</item>
+        <item>lp</item>
+        <item>lpadmin</item>
+        <item>mail</item>
+        <item>mem</item>
+        <item>netdev</item>
+        <item>network</item>
+        <item>news</item>
+        <item>nobody</item>
+        <item>nogroup</item>
+        <item>operator</item>
+        <item>optical</item>
+        <item>plugdev</item>
+        <item>postgres</item>
+        <item>power</item>
+        <item>proc</item>
+        <item>proxy</item>
+        <item>rfkill</item>
+        <item>root</item>
+        <item>sambashare</item>
+        <item>sasl</item>
+        <item>scanner</item>
+        <item>shadow</item>
+        <item>smmsp</item>
+        <item>src</item>
+        <item>staff</item>
+        <item>storage</item>
+        <item>sudo</item>
+        <item>sync</item>
+        <item>sys</item>
+        <item>systemd-journal</item>
+        <item>tape</item>
+        <item>tty</item>
+        <item>users</item>
+        <item>utmp</item>
+        <item>uucp</item>
+        <item>uuidd</item>
+        <item>vboxusers</item>
+        <item>video</item>
+        <item>voice</item>
+        <item>wheel</item>
+        <item>www-data</item>
+
+    </string-array>
 </resources>

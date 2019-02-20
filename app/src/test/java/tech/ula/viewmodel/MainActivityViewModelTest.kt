@@ -19,7 +19,7 @@ import tech.ula.model.entities.Session
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.SshTypePreference
 import tech.ula.utils.AssetFileClearer
-import tech.ula.utils.CrashlyticsWrapper
+import tech.ula.utils.AcraWrapper
 
 @RunWith(MockitoJUnitRunner::class)
 class MainActivityViewModelTest {
@@ -32,7 +32,7 @@ class MainActivityViewModelTest {
 
     @Mock lateinit var mockAssetFileClearer: AssetFileClearer
 
-    @Mock lateinit var mockCrashlyticsWrapper: CrashlyticsWrapper
+    @Mock lateinit var mockAcraWrapper: AcraWrapper
 
     @Mock lateinit var mockStateObserver: Observer<State>
 
@@ -74,13 +74,20 @@ class MainActivityViewModelTest {
         whenever(mockSessionStartupFsm.getState()).thenReturn(sessionStartupStateLiveData)
         sessionStartupStateLiveData.postValue(WaitingForSessionSelection)
 
-        mainActivityViewModel = MainActivityViewModel(mockAppsStartupFsm, mockSessionStartupFsm, mockCrashlyticsWrapper)
+        mainActivityViewModel = MainActivityViewModel(mockAppsStartupFsm, mockSessionStartupFsm, mockAcraWrapper)
         mainActivityViewModel.getState().observeForever(mockStateObserver)
     }
 
     @Test
     fun `State does not initially publish onChanged event`() {
         verify(mockStateObserver, never()).onChanged(any())
+    }
+
+    @Test
+    fun `Handling onResume submits SyncDownloadState session event`() {
+        mainActivityViewModel.handleOnResume()
+
+        verify(mockSessionStartupFsm).submitEvent(SyncDownloadState, mainActivityViewModel)
     }
 
     @Test
@@ -282,21 +289,21 @@ class MainActivityViewModelTest {
     fun `Does not post IllegalState if app, session, and filesystem have not been selected and observed event is WaitingForAppSelection`() {
         appsStartupStateLiveData.postValue(WaitingForAppSelection)
 
-        verify(mockStateObserver, never()).onChanged(NoAppSelectedWhenPreparationStarted)
+        verify(mockStateObserver, never()).onChanged(NoAppSelectedWhenTransitionNecessary)
     }
 
     @Test
     fun `Does not post IllegalState if app, session, and filesystem have not been selected and observed event is FetchingDatabaseEntries`() {
         appsStartupStateLiveData.postValue(FetchingDatabaseEntries)
 
-        verify(mockStateObserver, never()).onChanged(NoAppSelectedWhenPreparationStarted)
+        verify(mockStateObserver, never()).onChanged(NoAppSelectedWhenTransitionNecessary)
     }
 
     @Test
     fun `Posts IllegalState if app, session, and filesystem have not been selected and an app state event is observed that is not the above`() {
         appsStartupStateLiveData.postValue(DatabaseEntriesFetchFailed)
 
-        verify(mockStateObserver).onChanged(NoAppSelectedWhenPreparationStarted)
+        verify(mockStateObserver).onChanged(NoAppSelectedWhenTransitionNecessary)
     }
 
     @Test
@@ -414,7 +421,7 @@ class MainActivityViewModelTest {
     fun `Posts IllegalState if session preparation event is observed that is not WaitingForSelection and prep reqs have not been met`() {
         sessionStartupStateLiveData.postValue(NoDownloadsRequired)
 
-        verify(mockStateObserver).onChanged(NoSessionSelectedWhenPreparationStarted)
+        verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
     }
 
     @Test
@@ -448,6 +455,13 @@ class MainActivityViewModelTest {
     }
 
     @Test
+    fun `Posts NoSessionsSelectedWhenTransitionNecessary if incorrectly transitioning out of SessionIsReadyForPreparation observation`() {
+        sessionStartupStateLiveData.postValue(SessionIsReadyForPreparation(unselectedSession, unselectedFilesystem))
+
+        verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
+    }
+
+    @Test
     fun `Updates selected session and filesystem, posts StartingSetup, and submits RetrieveAssetLists when session is ready for prep is observed`() {
         sessionStartupStateLiveData.postValue(SessionIsReadyForPreparation(selectedSession, selectedFilesystem))
 
@@ -467,6 +481,14 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(RetrievingAssetLists)
 
         verify(mockStateObserver).onChanged(FetchingAssetLists)
+    }
+
+    @Test
+    fun `Posts NoSessionsSelectedWhenTransitionNecessary if AssetRetrievalSucceeded state is observed while no selections have been made`() {
+        val assetLists = listOf(listOf(asset))
+        sessionStartupStateLiveData.postValue(AssetListsRetrievalSucceeded(assetLists))
+
+        verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
     }
 
     @Test
@@ -522,6 +544,13 @@ class MainActivityViewModelTest {
     }
 
     @Test
+    fun `Posts NoSessionSelectedWhenTransitionNecessary if attempted to transition from NoDownloadsRequired while selections have not been made`() {
+        sessionStartupStateLiveData.postValue(NoDownloadsRequired)
+
+        verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
+    }
+
+    @Test
     fun `Submits VerifyFilesystemAssets event when observing NoDownloadsRequired`() {
         makeSessionSelections()
 
@@ -536,19 +565,17 @@ class MainActivityViewModelTest {
     fun `Posts DownloadProgress as it observes requirements downloading`() {
         makeSessionSelections()
 
-        sessionStartupStateLiveData.postValue(DownloadingRequirements(0, 0))
+        sessionStartupStateLiveData.postValue(DownloadingAssets(0, 0))
 
         verify(mockStateObserver).onChanged(DownloadProgress(0, 0))
     }
 
     @Test
     fun `Submits CopyDownloadsToLocalStorage event when observing download success`() {
-        makeSessionSelections()
-
         sessionStartupStateLiveData.postValue(DownloadsHaveSucceeded)
 
         runBlocking {
-            verify(mockSessionStartupFsm).submitEvent(CopyDownloadsToLocalStorage(selectedFilesystem), mainActivityViewModel)
+            verify(mockSessionStartupFsm).submitEvent(CopyDownloadsToLocalStorage, mainActivityViewModel)
         }
     }
 
@@ -563,16 +590,28 @@ class MainActivityViewModelTest {
     }
 
     @Test
-    fun `Posts CopyingDownloads when equivalent state is observed`() {
-        makeSessionSelections()
+    fun `Posts DownloadCacheAccessedWhileEmpty and resets state if it observes similar state`() {
+        sessionStartupStateLiveData.postValue(AttemptedCacheAccessWhileEmpty)
 
+        verify(mockStateObserver).onChanged(DownloadCacheAccessedWhileEmpty)
+    }
+
+    @Test
+    fun `Posts DownloadCacheAccessedInAnIncorrectState if AttemptedCacheAccessInIncorrectState is observed`() {
+        sessionStartupStateLiveData.postValue(AttemptedCacheAccessInIncorrectState)
+
+        verify(mockStateObserver).onChanged(DownloadCacheAccessedInAnIncorrectState)
+    }
+
+    @Test
+    fun `Posts CopyingDownloads when equivalent state is observed`() {
         sessionStartupStateLiveData.postValue(CopyingFilesToLocalDirectories)
 
         verify(mockStateObserver).onChanged(CopyingDownloads)
     }
 
     @Test
-    fun `Submits VerifyFilesystemAssets event when copying success is observed`() {
+    fun `Submits VerifyFilesystemAssets event when copying success is observed and session selections have been made`() {
         makeSessionSelections()
 
         sessionStartupStateLiveData.postValue(LocalDirectoryCopySucceeded)
@@ -583,9 +622,21 @@ class MainActivityViewModelTest {
     }
 
     @Test
-    fun `Posts IllegalState when copying failure is observed`() {
-        makeSessionSelections()
+    fun `Posts ProgressBarOperationComplete and resets session state when LocalDirectoryCopySucceeded observed while selections have not been made`() {
+        sessionStartupStateLiveData.postValue(LocalDirectoryCopySucceeded)
 
+        verify(mockStateObserver).onChanged(ProgressBarOperationComplete)
+        assertEquals(unselectedApp, mainActivityViewModel.lastSelectedApp)
+        assertEquals(unselectedSession, mainActivityViewModel.lastSelectedSession)
+        assertEquals(unselectedFilesystem, mainActivityViewModel.lastSelectedFilesystem)
+        runBlocking {
+            verify(mockSessionStartupFsm).submitEvent(ResetSessionState, mainActivityViewModel)
+            verify(mockAppsStartupFsm).submitEvent(ResetAppState, mainActivityViewModel)
+        }
+    }
+
+    @Test
+    fun `Posts IllegalState when copying failure is observed`() {
         sessionStartupStateLiveData.postValue(LocalDirectoryCopyFailed)
 
         verify(mockStateObserver).onChanged(FailedToCopyAssetsToLocalStorage)
@@ -598,6 +649,13 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(VerifyingFilesystemAssets)
 
         verify(mockStateObserver).onChanged(VerifyingFilesystem)
+    }
+
+    @Test
+    fun `Posts NoSessionSelectedWhenTransitionNecessary if transitioning from FilesystemAssetVerificationSucceeded while selections have not been made`() {
+        sessionStartupStateLiveData.postValue(FilesystemAssetVerificationSucceeded)
+
+        verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
     }
 
     @Test
@@ -636,7 +694,14 @@ class MainActivityViewModelTest {
         val target = "bullseye"
         sessionStartupStateLiveData.postValue(ExtractingFilesystem(target))
 
-        verify(mockStateObserver).onChanged(FilesystemExtraction(target))
+        verify(mockStateObserver).onChanged(FilesystemExtractionStep(target))
+    }
+
+    @Test
+    fun `Posts NoSessionSelectedWhenTransitionNecessary when transitioning from ExtractionHasCompletedSuccessfully if no selections have been made`() {
+        sessionStartupStateLiveData.postValue(ExtractionHasCompletedSuccessfully)
+
+        verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
     }
 
     @Test

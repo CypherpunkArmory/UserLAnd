@@ -11,16 +11,15 @@ import kotlin.text.Charsets.UTF_8
 class ExecUtility(
     private val applicationFilesDirPath: String,
     private val externalStoragePath: String,
-    private val defaultPreferences: DefaultPreferences,
-    private val logger: LogUtility = LogUtility()
+    private val defaultPreferences: DefaultPreferences
 ) {
 
-    private val NOOP_CONSUMER: (line: String) -> Int = { 0 }
+    private val noOperationConsumer: (line: String) -> Int = { 0 }
 
     fun execLocal(
         executionDirectory: File,
         command: ArrayList<String>,
-        listener: (String) -> Any = NOOP_CONSUMER,
+        listener: (String) -> Any = noOperationConsumer,
         doWait: Boolean = true,
         wrapped: Boolean = false,
         environmentVars: HashMap<String, String> = HashMap()
@@ -47,8 +46,6 @@ class ExecUtility(
             pb.directory(executionDirectory)
             pb.environment().putAll(env)
             pb.redirectErrorStream(true)
-
-            listener("Running: ${pb.command()} \n with env $env")
 
             val process = pb.start()
             val logProot = prootDebuggingEnabled && command.any { it.contains("execInProot") }
@@ -101,7 +98,7 @@ class ExecUtility(
     fun wrapWithBusyboxAndExecute(
         targetDirectoryName: String,
         commandToWrap: String,
-        listener: (String) -> Any = NOOP_CONSUMER,
+        listener: (String) -> Any = noOperationConsumer,
         doWait: Boolean = true,
         environmentVars: HashMap<String, String> = HashMap()
     ): Process {

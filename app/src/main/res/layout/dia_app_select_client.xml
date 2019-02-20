@@ -1,54 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/text_title_client_description"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="32dp"
-        android:text="@string/prompt_app_connection_type_preference"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <RadioGroup
-        android:id="@+id/radio_apps_service_type_preference"
+    <android.support.constraint.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:gravity="center"
-        android:textAlignment="center"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/text_title_client_description"
-        app:layout_constraintBottom_toBottomOf="parent">
+        android:layout_height="wrap_content">
 
-        <RadioButton
-            android:id="@+id/ssh_radio_button"
+        <TextView
+            android:id="@+id/text_title_client_description"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:checked="true"
-            android:drawableEnd="@drawable/ic_console_24dp"
-            android:drawablePadding="8dp"
-            android:padding="8dp"
-            android:text="@string/client_ssh" />
+            android:layout_marginTop="32dp"
+            android:text="@string/prompt_app_connection_type_preference"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <RadioButton
-            android:id="@+id/vnc_radio_button"
+        <RadioGroup
+            android:id="@+id/radio_apps_service_type_preference"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:textAlignment="center"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_title_client_description">
+
+            <RadioButton
+                android:id="@+id/ssh_radio_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:drawableEnd="@drawable/ic_console_24dp"
+                android:drawablePadding="8dp"
+                android:padding="8dp"
+                android:text="@string/client_ssh" />
+
+            <RadioButton
+                android:id="@+id/vnc_radio_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableEnd="@drawable/ic_desktop_windows_black_24dp"
+                android:drawablePadding="8dp"
+                android:padding="8dp"
+                android:text="@string/client_vnc" />
+
+            <RadioButton
+                android:id="@+id/xsdl_radio_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableEnd="@drawable/ic_desktop_windows_black_24dp"
+                android:drawablePadding="8dp"
+                android:padding="8dp"
+                android:text="@string/client_xsdl" />
+
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/text_xsdl_version_supported_description"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:drawableEnd="@drawable/ic_desktop_windows_black_24dp"
-            android:drawablePadding="8dp"
-            android:padding="8dp"
-            android:text="@string/client_vnc" />
+            android:text="@string/info_xsdl_support"
+            android:visibility="gone"
+            android:textAlignment="center"
+            android:textSize="12sp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:paddingBottom="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/radio_apps_service_type_preference" />
 
-    </RadioGroup>
-
-</android.support.constraint.ConstraintLayout>
+    </android.support.constraint.ConstraintLayout>
+</ScrollView>

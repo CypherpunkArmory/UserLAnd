@@ -8,20 +8,29 @@ apply plugin: 'kotlin-kapt'
 
 apply plugin: 'jacoco'
 
-apply plugin: 'io.fabric'
+File tracepotPropertiesFile = file("$projectDir/tracepot.properties")
 
 android {
     compileSdkVersion 28
+
+    Properties tracepotProperties = new Properties()
+    if (tracepotPropertiesFile.exists()) {
+        tracepotProperties.load(new FileInputStream(tracepotPropertiesFile))
+    } else {
+        tracepotProperties.put('tracepotHttpsEndpoint', '""')
+    }
+
     defaultConfig {
         applicationId "tech.ula"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 43
-        versionName "2.2.3"
+        versionCode 49
+        versionName "2.3.5"
         
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         buildConfigField 'boolean', 'ENABLE_PLAY_SERVICES', 'true'
+        buildConfigField 'String', 'tracepotHttpsEndpoint', tracepotProperties['tracepotHttpsEndpoint']
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -34,6 +43,7 @@ android {
             targetCompatibility 1.8
         }
     }
+
     buildTypes {
         debug {
             debuggable true
@@ -47,14 +57,17 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
     sourceSets {
         androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
     }
+
     // Enable this and run lintVitalRelease task to check missing translations.
     lintOptions {
         disable 'MissingTranslation'
         disable 'ParcelCreator'
     }
+
     testOptions {
         unitTests {
             includeAndroidResources = true
@@ -72,6 +85,15 @@ androidExtensions {
 
 configurations {
     ktlint
+}
+
+
+tasks.whenTaskAdded { task ->
+    if (task.name == 'assembleRelease') {
+        task.doFirst {
+            assert tracepotPropertiesFile.exists()
+        }
+    }
 }
 
 tasks.withType(Test) {
@@ -116,6 +138,8 @@ task jacocoUnitTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest', '
 }
 
 dependencies {
+    def acra_version = '5.1.3'
+
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':terminal-term')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
@@ -133,9 +157,7 @@ dependencies {
     implementation "com.android.support:design:$support_library_version"
     implementation "com.android.support:preference-v7:$support_library_version"
     ktlint "com.github.shyiko:ktlint:0.29.0"
-    implementation("com.crashlytics.sdk.android:crashlytics:2.9.8@aar") {
-        transitive = true
-    }
+    implementation "ch.acra:acra-http:$acra_version"
 
     testImplementation 'junit:junit:4.12'
     testImplementation "org.mockito:mockito-core:$mockito_version"

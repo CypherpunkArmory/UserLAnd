@@ -3,6 +3,7 @@ package tech.ula
 import android.Manifest
 import android.annotation.TargetApi
 import android.app.AlertDialog
+import android.app.Application
 import android.app.DownloadManager
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
@@ -18,14 +19,17 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.support.design.widget.TextInputEditText
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AlphaAnimation
-import android.widget.EditText
+import android.widget.Button
 import android.widget.RadioButton
+import android.widget.TextView
 import android.widget.Toast
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
@@ -49,9 +53,13 @@ import tech.ula.ui.AppListFragment
 import tech.ula.ui.SessionListFragment
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
-import java.lang.IllegalStateException
-import com.crashlytics.android.Crashlytics
-import io.fabric.sdk.android.Fabric
+import kotlinx.android.synthetic.main.dia_app_select_client.*
+import org.acra.ACRA
+import org.acra.config.CoreConfigurationBuilder
+import org.acra.config.HttpSenderConfigurationBuilder
+import org.acra.data.StringFormat
+import org.acra.sender.HttpSender
+import kotlin.IllegalStateException
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection {
 
@@ -62,12 +70,18 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private var progressBarIsVisible = false
     private var currentFragmentDisplaysProgressDialog = false
 
+    private val acraWrapper = AcraWrapper()
+
     private val navController: NavController by lazy {
         findNavController(R.id.nav_host_fragment)
     }
 
     private val notificationManager by lazy {
         NotificationUtility(this)
+    }
+
+    private val userFeedbackUtility by lazy {
+        UserFeedbackUtility(this.getSharedPreferences("usage", Context.MODE_PRIVATE))
     }
 
     private val downloadBroadcastReceiver = object : BroadcastReceiver() {
@@ -81,7 +95,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private val serverServiceBroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             intent.getStringExtra("type")?.let { intentType ->
-                Crashlytics.setString("Last service broadcast received", intentType)
+                acraWrapper.putCustomString("Last service broadcast received", intentType)
                 when (intentType) {
                     "sessionActivated" -> handleSessionHasBeenActivated()
                     "dialog" -> {
@@ -102,16 +116,15 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private val viewModel: MainActivityViewModel by lazy {
         val ulaDatabase = UlaDatabase.getInstance(this)
 
-        val timestampPreferences = TimestampPreferences(this.getSharedPreferences("file_timestamps", Context.MODE_PRIVATE))
         val assetPreferences = AssetPreferences(this.getSharedPreferences("assetLists", Context.MODE_PRIVATE))
-        val assetRepository = AssetRepository(filesDir.path, timestampPreferences, assetPreferences)
+        val assetRepository = AssetRepository(filesDir.path, assetPreferences)
 
         val execUtility = ExecUtility(filesDir.path, Environment.getExternalStorageDirectory().absolutePath, DefaultPreferences(defaultSharedPreferences))
         val filesystemUtility = FilesystemUtility(filesDir.path, execUtility)
 
         val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val downloadManagerWrapper = DownloadManagerWrapper(downloadManager)
-        val downloadUtility = DownloadUtility(timestampPreferences, downloadManagerWrapper, filesDir)
+        val downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, filesDir)
 
         val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
 
@@ -123,7 +136,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Fabric.with(this, Crashlytics())
+        startAcra()
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
         notificationManager.createServiceNotificationChannel() // Android O requirement
@@ -140,7 +153,70 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
         setupWithNavController(bottom_nav_view, navController)
 
+        userFeedbackUtility.incrementNumberOfTimesOpened()
+        if (userFeedbackUtility.askingForFeedbackIsAppropriate())
+            setupReviewRequestUI()
+
         viewModel.getState().observe(this, stateObserver)
+    }
+
+    private fun startAcra() {
+        val builder = CoreConfigurationBuilder(applicationContext)
+        builder.setBuildConfigClass(BuildConfig::class.java)
+                .setReportFormat(StringFormat.JSON)
+        builder.getPluginConfigurationBuilder(HttpSenderConfigurationBuilder::class.java)
+                .setUri(BuildConfig.tracepotHttpsEndpoint)
+                .setHttpMethod(HttpSender.Method.POST)
+                .setEnabled(true)
+        ACRA.init(applicationContext as Application, builder)
+    }
+
+    private fun setupReviewRequestUI() {
+        val viewHolder = findViewById<ViewGroup>(R.id.request_review_insert_point)
+        layoutInflater.inflate(R.layout.list_item_review_request, viewHolder)
+
+        val requestQuestion = viewHolder.findViewById<TextView>(R.id.prompt_review_question)
+        val negativeBtn = viewHolder.findViewById<Button>(R.id.btn_negative_response)
+        val positiveBtn = viewHolder.findViewById<Button>(R.id.btn_positive_response)
+
+        positiveBtn.setOnClickListener {
+            requestQuestion.text = getString(R.string.review_ask_for_rating)
+            positiveBtn.text = getString(R.string.button_positive)
+            negativeBtn.text = getString(R.string.button_refuse)
+
+            positiveBtn.setOnClickListener {
+                handleUserFeedback(viewHolder)
+                val userlandPlayStoreURI = "https://play.google.com/store/apps/details?id=tech.ula"
+                val intent = Intent("android.intent.action.VIEW", Uri.parse(userlandPlayStoreURI))
+                startActivity(intent)
+            }
+
+            negativeBtn.setOnClickListener {
+                handleUserFeedback(viewHolder)
+            }
+        }
+
+        negativeBtn.setOnClickListener {
+            requestQuestion.text = getString(R.string.review_ask_for_feedback)
+            positiveBtn.text = getString(R.string.button_positive)
+            negativeBtn.text = getString(R.string.button_negative)
+
+            positiveBtn.setOnClickListener {
+                handleUserFeedback(viewHolder)
+                val githubURI = "https://github.com/CypherpunkArmory/UserLAnd"
+                val intent = Intent("android.intent.action.VIEW", Uri.parse(githubURI))
+                startActivity(intent)
+            }
+
+            negativeBtn.setOnClickListener {
+                handleUserFeedback(viewHolder)
+            }
+        }
+    }
+
+    private fun handleUserFeedback(viewHolder: ViewGroup) {
+        userFeedbackUtility.userHasGivenFeedback()
+        viewHolder.removeAllViews()
     }
 
     private fun setNavStartDestination() {
@@ -173,6 +249,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     override fun onResume() {
         super.onResume()
 
+        acraWrapper.putCustomString("Last call to onResume", "${System.currentTimeMillis()}")
+        viewModel.handleOnResume()
         val intent = Intent(this, ServerService::class.java)
                 .putExtra("type", "isProgressBarActive")
         this.startService(intent)
@@ -193,6 +271,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     override fun onStop() {
         super.onStop()
+
+        acraWrapper.putCustomString("Last call to onStop", "${System.currentTimeMillis()}")
         LocalBroadcastManager.getInstance(this)
                 .unregisterReceiver(serverServiceBroadcastReceiver)
         unregisterReceiver(downloadBroadcastReceiver)
@@ -217,10 +297,10 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleStateUpdate(newState: State) {
-        Crashlytics.setString("Last observed state from viewmodel", "$newState")
+        acraWrapper.putCustomString("Last observed state from viewmodel", "$newState")
         return when (newState) {
             is CanOnlyStartSingleSession -> { showToast(R.string.single_session_supported) }
-            is SessionCanBeStarted -> { startSession(newState.session) }
+            is SessionCanBeStarted -> { prepareSessionForStart(newState.session) }
             is SessionCanBeRestarted -> { restartRunningSession(newState.session) }
             is IllegalState -> { handleIllegalState(newState) }
             is UserInputRequiredState -> { handleUserInputState(newState) }
@@ -228,15 +308,60 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         }
     }
 
-    private fun startSession(session: Session) {
+    private fun prepareSessionForStart(session: Session) {
         val step = getString(R.string.progress_starting)
         val details = ""
         updateProgressBar(step, details)
 
+        // TODO: Alert user when defaulting to VNC
+        if (session.serviceType == "xsdl" && Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
+            session.serviceType = "vnc"
+            startSession(session)
+        } else if (session.serviceType == "xsdl") {
+            viewModel.lastSelectedSession = session
+            sendXsdlIntentToSetDisplayNumberAndExpectResult()
+        } else {
+            startSession(session)
+        }
+    }
+
+    private fun startSession(session: Session) {
         val serviceIntent = Intent(this, ServerService::class.java)
                 .putExtra("type", "start")
                 .putExtra("session", session)
         startService(serviceIntent)
+    }
+
+    /*
+    XSDL has a different flow than starting SSH/VNC session.  It sends an intent to XSDL with
+        with a display value.  Then XSDL sends an intent to open UserLAnd signalling
+        that it has an xserver listening.  We set the initial display number as an environment variable
+        then start a twm process to connect to XSDL's xserver.
+    */
+    private fun sendXsdlIntentToSetDisplayNumberAndExpectResult() {
+        try {
+            val xsdlIntent = Intent(Intent.ACTION_MAIN, Uri.parse("x11://give.me.display:4721"))
+            val setDisplayRequestCode = 1
+            startActivityForResult(xsdlIntent, setDisplayRequestCode)
+        } catch (e: Exception) {
+            val appPackageName = "x.org.server"
+            try {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName")))
+            } catch (error: android.content.ActivityNotFoundException) {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$appPackageName")))
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        data?.let {
+            val session = viewModel.lastSelectedSession
+            val result = data.getStringExtra("run")
+            if (session.serviceType == "xsdl" && result.isNotEmpty()) {
+                startSession(session)
+            }
+        }
     }
 
     private fun restartRunningSession(session: Session) {
@@ -256,7 +381,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleUserInputState(state: UserInputRequiredState) {
-        Crashlytics.setString("Last handled user input state", "$state")
+        acraWrapper.putCustomString("Last handled user input state", "$state")
         return when (state) {
             is FilesystemCredentialsRequired -> {
                 getCredentials()
@@ -278,7 +403,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleIllegalState(state: IllegalState) {
-        Crashlytics.setString("Last handled illegal state", "$state")
+        acraWrapper.putCustomString("Last handled illegal state", "$state")
         val reason: String = when (state) {
             is IllegalStateTransition -> {
                 getString(R.string.illegal_state_transition, state.transition)
@@ -295,7 +420,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             is NoAppSelectedWhenPreferenceSubmitted -> {
                 getString(R.string.illegal_state_no_app_selected_when_preference_submitted)
             }
-            is NoAppSelectedWhenPreparationStarted -> {
+            is NoAppSelectedWhenTransitionNecessary -> {
                 getString(R.string.illegal_state_no_app_selected_when_preparation_started)
             }
             is ErrorFetchingAppDatabaseEntries -> {
@@ -304,7 +429,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             is ErrorCopyingAppScript -> {
                 getString(R.string.illegal_state_error_copying_app_script)
             }
-            is NoSessionSelectedWhenPreparationStarted -> {
+            is NoSessionSelectedWhenTransitionNecessary -> {
                 getString(R.string.illegal_state_no_session_selected_when_preparation_started)
             }
             is ErrorFetchingAssetLists -> {
@@ -318,6 +443,12 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             }
             is AssetsHaveNotBeenDownloaded -> {
                 getString(R.string.illegal_state_assets_have_not_been_downloaded)
+            }
+            is DownloadCacheAccessedWhileEmpty -> {
+                getString(R.string.illegal_state_empty_download_cache_access)
+            }
+            is DownloadCacheAccessedInAnIncorrectState -> {
+                getString(R.string.illegal_state_download_cache_access_in_incorrect_state)
             }
             is FailedToCopyAssetsToFilesystem -> {
                 getString(R.string.illegal_state_failed_to_copy_assets_to_filesystem)
@@ -353,7 +484,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 .setPositiveButton(R.string.button_ok) {
                     dialog, _ ->
                     dialog.dismiss()
-                    Crashlytics.setString("Illegal State Crash Reason", reason)
+                    acraWrapper.putCustomString("Illegal State Crash Reason", reason)
                     throw IllegalStateException(reason)
                 }
                 .create().show()
@@ -418,7 +549,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleProgressBarUpdateState(state: ProgressBarUpdateState) {
-        Crashlytics.setString("Last handled progress bar update state", "$state")
+        acraWrapper.putCustomString("Last handled progress bar update state", "$state")
         return when (state) {
             is StartingSetup -> {
                 val step = getString(R.string.progress_start_step)
@@ -441,7 +572,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 val step = getString(R.string.progress_copying_downloads)
                 updateProgressBar(step, "")
             }
-            is FilesystemExtraction -> {
+            is FilesystemExtractionStep -> {
                 val step = getString(R.string.progress_setting_up_filesystem)
                 val details = getString(R.string.progress_extraction_details, state.extractionTarget)
                 updateProgressBar(step, details)
@@ -537,9 +668,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
         customDialog.setOnShowListener { _ ->
             customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { _ ->
-                val username = customDialog.find<EditText>(R.id.text_input_username).text.toString()
-                val password = customDialog.find<EditText>(R.id.text_input_password).text.toString()
-                val vncPassword = customDialog.find<EditText>(R.id.text_input_vnc_password).text.toString()
+                val username = customDialog.find<TextInputEditText>(R.id.text_input_username).text.toString()
+                val password = customDialog.find<TextInputEditText>(R.id.text_input_password).text.toString()
+                val vncPassword = customDialog.find<TextInputEditText>(R.id.text_input_vnc_password).text.toString()
 
                 if (validateCredentials(username, password, vncPassword)) {
                     customDialog.dismiss()
@@ -562,11 +693,26 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val customDialog = dialog.create()
 
         customDialog.setOnShowListener {
+            val sshTypePreference = customDialog.find<RadioButton>(R.id.ssh_radio_button)
+            val vncTypePreference = customDialog.find<RadioButton>(R.id.vnc_radio_button)
+            val xsdlTypePreference = customDialog.find<RadioButton>(R.id.xsdl_radio_button)
+
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
+                xsdlTypePreference.isEnabled = false
+                xsdlTypePreference.alpha = 0.5f
+
+                val xsdlSupportedText = customDialog.findViewById<TextView>(R.id.text_xsdl_version_supported_description)
+                xsdlSupportedText.visibility = View.VISIBLE
+            }
+
             customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 customDialog.dismiss()
-                val sshTypePreference = customDialog.find<RadioButton>(R.id.ssh_radio_button)
-                val selectedPreference =
-                        if (sshTypePreference.isChecked) SshTypePreference else VncTypePreference
+                val selectedPreference = when {
+                    sshTypePreference.isChecked -> SshTypePreference
+                    vncTypePreference.isChecked -> VncTypePreference
+                    xsdlTypePreference.isChecked -> XsdlTypePreference
+                    else -> PreferenceHasNotBeenSelected
+                }
                 viewModel.submitAppServicePreference(selectedPreference)
             }
         }
@@ -577,32 +723,28 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         customDialog.show()
     }
 
-    // TODO the view shouldn't be responsible for validation
     private fun validateCredentials(username: String, password: String, vncPassword: String): Boolean {
+        val blacklistedUsernames = this.resources.getStringArray(R.array.blacklisted_usernames)
         val validator = ValidationUtility()
-        var allCredentialsAreValid = false
 
-        when {
-            username.isEmpty() || password.isEmpty() || vncPassword.isEmpty() -> {
-                Toast.makeText(this, R.string.error_empty_field, Toast.LENGTH_LONG).show()
+        val usernameCredentials = validator.validateUsername(username, blacklistedUsernames)
+        val passwordCredentials = validator.validatePassword(password)
+        val vncPasswordCredentials = validator.validateVncPassword(vncPassword)
+
+        return when {
+            !usernameCredentials.credentialIsValid -> {
+                Toast.makeText(this, usernameCredentials.errorMessageId, Toast.LENGTH_LONG).show()
+                false
             }
-            vncPassword.length > 8 || vncPassword.length < 6 -> {
-                Toast.makeText(this, R.string.error_vnc_password_length_incorrect, Toast.LENGTH_LONG).show()
+            !passwordCredentials.credentialIsValid -> {
+                Toast.makeText(this, passwordCredentials.errorMessageId, Toast.LENGTH_LONG).show()
+                false
             }
-            !validator.isUsernameValid(username) -> {
-                Toast.makeText(this, R.string.error_username_invalid, Toast.LENGTH_LONG).show()
+            !vncPasswordCredentials.credentialIsValid -> {
+                Toast.makeText(this, vncPasswordCredentials.errorMessageId, Toast.LENGTH_LONG).show()
+                false
             }
-            !validator.isPasswordValid(password) -> {
-                Toast.makeText(this, R.string.error_password_invalid, Toast.LENGTH_LONG).show()
-            }
-            !validator.isPasswordValid(vncPassword) -> {
-                Toast.makeText(this, R.string.error_vnc_password_invalid, Toast.LENGTH_LONG).show()
-            }
-            else -> {
-                allCredentialsAreValid = true
-                return allCredentialsAreValid
-            }
+            else -> true
         }
-        return allCredentialsAreValid
     }
 }

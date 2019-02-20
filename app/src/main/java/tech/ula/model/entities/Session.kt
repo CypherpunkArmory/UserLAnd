@@ -31,4 +31,10 @@ data class Session(
     var port: Long = 2022,
     var pid: Long = 0,
     val isAppsSession: Boolean = false
-) : Parcelable
+) : Parcelable {
+    override fun toString(): String {
+        return "Session(id=$id, name=$name, filesystemId=$filesystemId, filesystemName=" +
+                "$filesystemName, active=$active, serviceType=$serviceType, port=$port, pid=" +
+                "$pid, isAppsSession=$isAppsSession)"
+    }
+}
