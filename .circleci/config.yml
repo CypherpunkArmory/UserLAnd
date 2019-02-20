@@ -1,6 +1,7 @@
 version: 2
 
 reference:
+  # Cache
   cache_key: &cache_key
     key: cache-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "build.gradle" }}-{{ checksum "app/build.gradle" }}
   restore_cache: &restore_cache
@@ -13,6 +14,7 @@ reference:
         - ~/.gradle
         - ~/.m2
 
+  # Workspaces
   workspace: &workspace
     ~/workspace
   persist_debug_workspace: &persist_debug_workspace
@@ -24,7 +26,6 @@ reference:
         - app/build/outputs/apk
         - app/build/outputs/code-coverage
         - app/build/test-results
-        - app/fabric.properties
   attach_debug_workspace: &attach_debug_workspace
     attach_workspace:
       at: *workspace
@@ -36,6 +37,7 @@ reference:
       root: *workspace
       paths:
         - app/build
+        - app/versionCode.txt
   attach_firebase_workspace: &attach_firebase_workspace
     attach_workspace:
       at: *workspace
@@ -45,6 +47,7 @@ reference:
       paths:
         - firebase
 
+  # Basic docker config
   android_config: &android_config
     working_directory: *workspace
     docker:
@@ -55,6 +58,27 @@ reference:
       _JAVA_OPTIONS: "-Xmx2048m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1"
       GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m"'
 
+  # Dependencies
+  ruby_dependencies: &ruby_dependencies
+    run:
+      name: Download Ruby dependencies
+      command: bundle check || bundle install --path vendor/bundle
+
+  android_dependencies: &android_dependencies
+    run:
+      name: Download Android dependencies
+      command: ./gradlew androidDependencies
+
+  # Secrets
+  export_android_key: &export_android_key
+    run:
+      name: Export Android key store environment variable
+      command: echo 'export ANDROID_KEYSTORE="$ANDROID_KEYSTORE"' >> $BASH_ENV
+  decode_android_key: &decode_android_key
+    run:
+      name: Decode Android key store
+      command: echo $ANDROID_KEYSTORE | base64 -di > keystore.jks
+
   export_gcloud_key: &export_gcloud_key
     run:
       name: Export Google Cloud Service key environment variable
@@ -64,10 +88,28 @@ reference:
       name: Decode Google Cloud credentials
       command: echo $GCLOUD_SERVICE_ACCOUNT_KEY | base64 -di > ${HOME}/client-secret.json
 
+  export_play_key: &export_play_key
+    run:
+      name: Export Play store key
+      command: echo 'export PLAY_KEY="$PLAY_KEY"' >> $BASH_ENV
+  decode_play_key: &decode_play_key
+    run:
+      name: Decode Play store key
+      command: echo $PLAY_KEY | base64 -di > ${HOME}/play-key.json
+
   export_tracepot_endpoint: &export_tracepot_endpoint
     run:
       name: Export tracepot https environment variable
       command: echo "tracepotHttpsEndpoint=$TRACEPOT_ENDPOINT" >> app/tracepot.properties
+
+  early_return_for_forked_pull_requests: &early_return_for_forked_pull_requests
+    run:
+      name: Return early to avoid jobs that forked PRs will fail without secrets.
+      command: |
+        if [ -n "$CIRCLE_PR_NUMBER" ]; then
+          echo "Nothing to do for forked PRs. Skipping this step."
+          circleci step halt
+        fi
 
 jobs:
   build_debug:
@@ -75,9 +117,7 @@ jobs:
     steps:
       - checkout
       - *restore_cache
-      - run:
-          name: Download dependencies
-          command: ./gradlew androidDependencies
+      - *android_dependencies
       - *save_cache
       - run:
           name: Run ktlint
@@ -90,38 +130,34 @@ jobs:
           path: app/build/outputs/apk/
           destination: /apk/
 
-#  build_release:
-#    <<: *android_config
-#    steps:
-#      - checkout
-#      - *restore_cache
-#      - *export_tracepot_endpoint
-#      - run:
-#          name: Download dependencies
-#          command: ./gradlew androidDependencies
-#      - *save_cache
-#      - run:
-#          name: Run ktlint
-#          command: ./gradlew ktlint
-#      - run:
-#          name: Build
-#          command: ./gradlew -PciBuild=true :app:assembleRelease
-#      - *persist_release_workspace
-#      - store_artifacts:
-#          path: app/build/apk/
-#          destination: /apk/
-#      - store_artifacts:
-#          path: app/build/outputs/mapping/
-#          destination: /mapping/
+  build_release:
+    <<: *android_config
+    steps:
+      - *early_return_for_forked_pull_requests
+      - checkout
+      - *restore_cache
+      - *android_dependencies
+      - *save_cache
+      - *export_android_key
+      - *decode_android_key
+      - *export_tracepot_endpoint
+      - run:
+          name: Run ktlint
+          command: ./gradlew ktlint
+      - run:
+          name: Build
+          command: ./gradlew -PciBuild=true :app:assembleRelease
+      - *persist_release_workspace
+      - store_artifacts:
+          path: app/build/outputs/apk/
+          destination: /apk/
 
   test_unit:
     <<: *android_config
     steps:
       - checkout
       - *restore_cache
-      - run:
-          name: Download dependencies
-          command: ./gradlew androidDependencies
+      - *android_dependencies
       - *save_cache
       - run:
           name: Run unit tests
@@ -137,6 +173,7 @@ jobs:
   test_instrumented:
     <<: *android_config
     steps:
+      - *early_return_for_forked_pull_requests
       - *attach_debug_workspace
       - *export_gcloud_key
       - *decode_gcloud_key
@@ -148,7 +185,7 @@ jobs:
           command: gcloud auth activate-service-account --key-file ${HOME}/client-secret.json
       - run:
           name: Run instrumented test on Firebase Test Lab
-          command: gcloud firebase test android run --type instrumentation --app app/build/outputs/apk/debug/app-debug.apk --test app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk --device model=Pixel2,version=28,locale=en_US,orientation=portrait --directories-to-pull=/sdcard/tmp --timeout 20m
+          command: gcloud firebase test android run --type instrumentation --app app/build/outputs/apk/debug/app-debug.apk --test app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk --device model=Pixel2,version=28,locale=en_US,orientation=portrait --environment-variables coverage=true,coverageFile=/sdcard/coverage.ec --directories-to-pull=/sdcard --timeout 20m
       - run:
           name: Create directory to store test results
           command: mkdir firebase
@@ -160,15 +197,71 @@ jobs:
           path: firebase/
           destination: /firebase/
 
+  report_coverage:
+    <<: *android_config
+    steps:
+      - *early_return_for_forked_pull_requests
+      - checkout
+      - *restore_cache
+      - *android_dependencies
+      - *save_cache
+      - *attach_debug_workspace
+      - *attach_firebase_workspace
+      - run:
+          name: Move Firebase coverage report
+          command: mkdir -p app/build/outputs/code-coverage/connected && cp firebase/*/artifacts/coverage.ec app/build/outputs/code-coverage/connected/coverage.ec
+      - *export_gcloud_key
+      - *decode_gcloud_key
+      - run:
+          name: Generate JaCoCo report
+          command: ./gradlew -PciBuild=true :app:jacocoCoverageReportForCi
+      - run:
+          name: Upload coverage to Codecov
+          command: bash <(curl -s https://codecov.io/bash)
+      - store_artifacts:
+          path: app/build/reports/
+          destination: /reports/
+
+  deploy:
+    <<: *android_config
+    steps:
+      - *early_return_for_forked_pull_requests
+      - checkout
+      - *restore_cache
+      - *ruby_dependencies
+      - *attach_release_workspace
+      - *export_play_key
+      - *decode_play_key
+      - run:
+          name: Deploy to Play store
+          command: bundle exec fastlane deploy
+
 workflows:
   version: 2
   workflow:
     jobs:
       - build_debug
-#      - build_release
+      - build_release:
+          filters:
+            branches:
+              only:
+                - releases
       - test_unit:
           requires:
             - build_debug
       - test_instrumented:
           requires:
             - build_debug
+      - report_coverage:
+          requires:
+            - test_unit
+            - test_instrumented
+      - deploy:
+          filters:
+            branches:
+              only:
+                - releases
+          requires:
+            - test_unit
+            - test_instrumented
+            - build_release
