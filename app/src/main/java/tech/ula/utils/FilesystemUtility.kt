@@ -1,7 +1,9 @@
 package tech.ula.utils
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import java.io.File
@@ -81,19 +83,14 @@ class FilesystemUtility(
         }
     }
 
-    fun deleteFilesystem(filesystemId: Long) {
+    suspend fun deleteFilesystem(filesystemId: Long) = withContext(Dispatchers.IO) {
         val directory = File("$applicationFilesDirPath/$filesystemId")
-        GlobalScope.launch {
-            if (directory.exists() && directory.isDirectory)
-                directory.deleteRecursively()
-            val isDirectoryDeleted = directory.deleteRecursively()
-            if (isDirectoryDeleted) {
-                val successMessage = "Successfully deleted filesystem located at: $directory"
-                logger.v("Filesystem Delete", successMessage)
-            } else {
-                val errorMessage = "Error in attempting to delete filesystem located at: $directory"
-                logger.e("Filesystem Delete", errorMessage)
-            }
+        if (!directory.exists() || !directory.isDirectory) return@withContext
+        val command = "rm -r ${directory.absolutePath}"
+        try {
+            execUtility.wrapWithBusyboxAndExecute(applicationFilesDirPath, command)
+        } catch (err: Exception) {
+            logger.logRuntimeErrorForCommand(functionName = "deleteFilesystem", command = command, err = err)
         }
     }
 

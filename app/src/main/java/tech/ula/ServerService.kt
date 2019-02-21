@@ -17,6 +17,7 @@ import tech.ula.model.entities.App
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Session
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import kotlin.coroutines.CoroutineContext
 
 class ServerService : Service() {
 
@@ -204,7 +205,7 @@ class ServerService : Service() {
         activeSessions.values.filter { it.filesystemId == filesystemId }
                 .forEach { killSession(it) }
 
-        filesystemUtility.deleteFilesystem(filesystemId)
+        CoroutineScope(Dispatchers.Main).launch { filesystemUtility.deleteFilesystem(filesystemId) }
     }
 
     private fun sendSessionActivatedBroadcast() {
