@@ -153,10 +153,10 @@ class MainActivityViewModel(
         submitSessionStartupEvent(DownloadAssets(requiredDownloads))
     }
 
-    suspend fun handleClearSupportFiles(assetFileClearer: AssetFileClearer) = withContext(Dispatchers.IO) {
+    suspend fun handleClearSupportFiles(assetFileClearer: AssetFileClearer) {
         if (sessionStartupFsm.sessionsAreActive()) {
             state.postValue(ActiveSessionsMustBeDeactivated)
-            return@withContext
+            return
         }
         state.postValue(ClearingSupportFiles)
         try {
