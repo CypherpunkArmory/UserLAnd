@@ -427,7 +427,6 @@ class DeviceDimensionsUtility {
     }
 }
 
-
 class UserFeedbackUtility(private val prefs: SharedPreferences) {
     private val numberOfTimesOpenedKey = "numberOfTimesOpened"
     private val userGaveFeedbackKey = "userGaveFeedback"
