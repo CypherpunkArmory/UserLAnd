@@ -1,4 +1,5 @@
-UserLAnd allows you to run several Linux distributions like Ubuntu, Debian, and Kali.
+UserLAnd is an open-source app which allows you to run several Linux distributions like Ubuntu,
+Debian, and Kali.
 
 - No need to root your device.
 - Use a built-in terminal to access your favorite shells.
