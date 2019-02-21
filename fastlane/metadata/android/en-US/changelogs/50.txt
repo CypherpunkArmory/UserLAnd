@@ -1,0 +1,133 @@
+Upgrade to v2.3.6.
+Add continuous deployment (#651)
+* Attempt to add coverage reporting.
+
+* Use correct variable names.
+
+* Fix indentation.
+
+* Get unified coverage reporting working.
+
+* Add coverage uploading.
+
+* Add release build workflow.
+
+* Correct path.
+
+* Actually use signing config.
+
+* Remove hyphen.
+
+* Remove build release requirements while testing.
+
+* Rename env variables in config to match names in CI.
+
+* Add command to skip some jobs for forked PRs.
+
+* Add deployment job and configuration.
+
+* Filter deployment off this branch.
+
+* Spell things correctly.
+
+* Change early return for forked PRs to a reference variable.
+
+* Fix format.
+
+* Add closing quotation.
+
+* Remove space from ruby deps argument.
+
+* Add automated changelog reporting.
+
+* Exlude merge commits from changelog, and simplify lanes.
+
+* Switch branch filtering back to releases.
+Update Spanish strings.xml (#580)
+* Update strings.xml
+
+* Update strings.xml
+
+* Update strings.xml
+
+* Update strings.xml
+
+* Update strings.xml
+
+* Update strings.xml
+
+* Update strings.xml
+
+* Update strings.xml
+
+* Update strings.xml
+
+* Update strings.xml
+
+* Update strings.xml
+Improve Chinese language pack (#608)
+* Improve Chinese language pack
+
+* Update strings.xml
+
+* Fix clear button name
+Fix getting started link
+User review request (#628)
+* Convert activity_main.xml to have a LinearLayout
+
+* Created UsageUtility to help determine when to ask for a review
+
+* Add margin to top of apps list view for clearer spacing
+
+* Add placeholder for where review request would app appear in main activity
+
+* Create review request component which is a textview with two buttons
+
+* Set up logic for when review request appears and how it would work.  Currently set to three days minimum and 15 uses
+
+* Fix spelling error in `threshold`
+
+* Fix logic for when review request would appear
+
+* Fix ui to make review request visible instead of viewholder
+
+* Fix logic when revew request tries to show up, user should not have already dismissed it in order to show up
+
+* Fix bug where number of times opening the app was not getting incremented
+
+* Fix validation crash in main activity. (#625)
+
+* Fix validation crash in main activity.
+
+* Use actual string to avoid crashes of this type in the future.
+
+* Use the correct type to derive download failure reason. (#626)
+
+* Upgrade to v2.3.4.
+
+* Upgrade to v2.3.5.
+
+* Rename UsageUtility to UserFeedbackPreferences
+
+* Use system.currentTimeMillis() in place of Date().time to keep it consistent with the codebase
+
+* Rename negative buttons
+
+* Revert activity_mail.xml to constraintLayout
+
+* Rename to UserFeedBackUtility and rename its functions for clarity
+
+* Add unit tests for UserFeedbackUtility
+
+* Change unit test for UserFeedBackUtility to be more robust
+
+* Changed the rootview for requestReviewView to be the viewHolder to avoid using null as the rootView
+
+* Removed need to run all three conditions to show review by calling all functions inline.
+
+* Reordered private functions in UserFeedbackUtilityTests
+
+* Removed unnecessary words in unit test description
+
+* Remove extra test
+Upgrade to v2.3.5.
