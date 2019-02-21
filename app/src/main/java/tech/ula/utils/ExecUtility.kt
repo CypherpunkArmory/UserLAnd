@@ -1,7 +1,9 @@
 package tech.ula.utils
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStream
 import java.util.ArrayList
@@ -111,5 +113,11 @@ class ExecUtility(
             val errorMessage = "Error while executing BusyBox: \nCommand = $command\n\tError = $err"
             throw RuntimeException(errorMessage)
         }
+    }
+
+    suspend fun recursivelyDelete(filesDirPath: String, pathToDirectoryToDelete: String): Boolean = withContext(Dispatchers.IO){
+        val command = "rm -r $pathToDirectoryToDelete"
+        val proc = wrapWithBusyboxAndExecute(filesDirPath, command, doWait = false)
+        return@withContext proc.waitFor() == 0
     }
 }

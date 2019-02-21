@@ -83,15 +83,10 @@ class FilesystemUtility(
         }
     }
 
-    suspend fun deleteFilesystem(filesystemId: Long) = withContext(Dispatchers.IO) {
+    suspend fun deleteFilesystem(filesystemId: Long) {
         val directory = File("$applicationFilesDirPath/$filesystemId")
-        if (!directory.exists() || !directory.isDirectory) return@withContext
-        val command = "rm -r ${directory.absolutePath}"
-        try {
-            execUtility.wrapWithBusyboxAndExecute(applicationFilesDirPath, command)
-        } catch (err: Exception) {
-            logger.logRuntimeErrorForCommand(functionName = "deleteFilesystem", command = command, err = err)
-        }
+        if (!directory.exists() || !directory.isDirectory) return
+        execUtility.recursivelyDelete(applicationFilesDirPath, directory.absolutePath)
     }
 
     @Throws(Exception::class)

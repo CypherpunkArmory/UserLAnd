@@ -5,25 +5,27 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import java.lang.Exception
 
-class AssetFileClearer(private val filesDir: File, private val assetDirectoryNames: Set<String>) {
+class AssetFileClearer(private val filesDir: File,
+                       private val assetDirectoryNames: Set<String>,
+                       private val execUtility: ExecUtility) {
     @Throws(Exception::class)
-    fun clearAllSupportAssets() {
+    suspend fun clearAllSupportAssets() {
         if (!filesDir.exists()) throw FileNotFoundException()
         clearTopLevelAssets(assetDirectoryNames)
         clearFilesystemSupportAssets()
     }
 
     @Throws(IOException::class)
-    private fun clearTopLevelAssets(assetDirectoryNames: Set<String>) {
+    private suspend fun clearTopLevelAssets(assetDirectoryNames: Set<String>) {
         for (file in filesDir.listFiles()) {
             if (!file.isDirectory) continue
             if (!assetDirectoryNames.contains(file.name)) continue
-            if (!file.deleteRecursively()) throw IOException()
+            if (!execUtility.recursivelyDelete(filesDir.path, file.absolutePath)) throw IOException()
         }
     }
 
     @Throws(IOException::class)
-    private fun clearFilesystemSupportAssets() {
+    private suspend fun clearFilesystemSupportAssets() {
         for (file in filesDir.listFiles()) {
             if (!file.isDirectory || file.name.toIntOrNull() == null) continue
 
@@ -34,7 +36,7 @@ class AssetFileClearer(private val filesDir: File, private val assetDirectoryNam
                 // Exclude directories and hidden files.
                 if (supportFile.isDirectory || supportFile.name.first() == '.') continue
                 // Use deleteRecursively extension to match functionality above
-                if (!supportFile.deleteRecursively()) throw IOException()
+                if (!execUtility.recursivelyDelete(filesDir.path, supportFile.path)) throw IOException()
             }
         }
     }
