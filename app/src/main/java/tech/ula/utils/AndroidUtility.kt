@@ -65,7 +65,7 @@ fun getBranchToDownloadAssetsFrom(assetType: String): String {
     return when (assetType) {
         "support" -> "staging"
         "apps" -> "master"
-        else -> "dynamic-vnc-dimensions"
+        else -> "master"
     }
 }
 

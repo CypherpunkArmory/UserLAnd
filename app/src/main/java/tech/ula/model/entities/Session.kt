@@ -30,6 +30,7 @@ data class Session(
     var serviceType: String = "",
     var port: Long = 2022,
     var pid: Long = 0,
+    var geometry: String = "",
     val isAppsSession: Boolean = false
 ) : Parcelable {
     override fun toString(): String {
