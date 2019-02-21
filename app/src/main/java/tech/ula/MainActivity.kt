@@ -316,13 +316,27 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         // TODO: Alert user when defaulting to VNC
         if (session.serviceType == "xsdl" && Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
             session.serviceType = "vnc"
-            startSession(session)
-        } else if (session.serviceType == "xsdl") {
-            viewModel.lastSelectedSession = session
-            sendXsdlIntentToSetDisplayNumberAndExpectResult()
-        } else {
-            startSession(session)
         }
+
+        when (session.serviceType) {
+            "xsdl" -> {
+                viewModel.lastSelectedSession = session
+                sendXsdlIntentToSetDisplayNumberAndExpectResult()
+            }
+            "vnc" -> {
+                saveDeviceDimensions(session)
+                startSession(session)
+            }
+            else -> startSession(session)
+        }
+    }
+
+    private fun saveDeviceDimensions(sesson: Session) {
+        val deviceDimensions = DeviceDimensionsUtility()
+        deviceDimensions.saveDeviceDimensions(applicationContext)
+        val width = deviceDimensions.getLongerDimension()
+        val height = deviceDimensions.getShorterDimension()
+        sesson.geometry = "${width}x$height"
     }
 
     private fun startSession(session: Session) {
