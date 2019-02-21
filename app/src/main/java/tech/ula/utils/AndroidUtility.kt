@@ -14,6 +14,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.support.v4.content.ContextCompat
+import android.util.DisplayMetrics
+import android.view.WindowManager
 import org.acra.ACRA
 import tech.ula.R
 import tech.ula.model.entities.App
@@ -63,7 +65,7 @@ fun getBranchToDownloadAssetsFrom(assetType: String): String {
     return when (assetType) {
         "support" -> "staging"
         "apps" -> "master"
-        else -> "master"
+        else -> "dynamic-vnc-dimensions"
     }
 }
 
@@ -397,6 +399,34 @@ class AcraWrapper {
         ACRA.getErrorReporter().putCustomData(key, value)
     }
 }
+
+class DeviceDimensionsUtility {
+    private var width = 720
+    private var height = 1480
+
+    fun saveDeviceDimensions(context: Context) {
+        val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        val displayMetrics = DisplayMetrics()
+        windowManager.defaultDisplay.getMetrics(displayMetrics)
+        width = displayMetrics.widthPixels
+        height = displayMetrics.heightPixels
+    }
+
+    fun getLongerDimension(): Int {
+        return when (width > height) {
+            true -> width
+            false -> height
+        }
+    }
+
+    fun getShorterDimension(): Int {
+        return when (width < height) {
+            true -> width
+            false -> height
+        }
+    }
+}
+
 
 class UserFeedbackUtility(private val prefs: SharedPreferences) {
     private val numberOfTimesOpenedKey = "numberOfTimesOpened"
