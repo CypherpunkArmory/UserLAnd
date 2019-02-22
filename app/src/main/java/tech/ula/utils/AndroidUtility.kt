@@ -400,29 +400,20 @@ class AcraWrapper {
     }
 }
 
-class DeviceDimensionsUtility {
+class DeviceDimensions {
     private var width = 720
     private var height = 1480
 
-    fun saveDeviceDimensions(context: Context) {
-        val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val displayMetrics = DisplayMetrics()
+    fun getDeviceDimensions(windowManager: WindowManager, displayMetrics: DisplayMetrics) {
         windowManager.defaultDisplay.getMetrics(displayMetrics)
         width = displayMetrics.widthPixels
         height = displayMetrics.heightPixels
     }
 
-    fun getLongerDimension(): Int {
-        return when (width > height) {
-            true -> width
-            false -> height
-        }
-    }
-
-    fun getShorterDimension(): Int {
-        return when (width < height) {
-            true -> width
-            false -> height
+    fun getGeometry(): String {
+        return when (height > width) {
+            true -> "${height}x$width"
+            false -> "${width}x$height"
         }
     }
 }

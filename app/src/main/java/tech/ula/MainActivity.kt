@@ -22,6 +22,7 @@ import android.os.Environment
 import android.support.design.widget.TextInputEditText
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
+import android.util.DisplayMetrics
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -324,19 +325,18 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 sendXsdlIntentToSetDisplayNumberAndExpectResult()
             }
             "vnc" -> {
-                saveDeviceDimensions(session)
+                getDeviceDimensions(session)
                 startSession(session)
             }
             else -> startSession(session)
         }
     }
 
-    private fun saveDeviceDimensions(sesson: Session) {
-        val deviceDimensions = DeviceDimensionsUtility()
-        deviceDimensions.saveDeviceDimensions(applicationContext)
-        val width = deviceDimensions.getLongerDimension()
-        val height = deviceDimensions.getShorterDimension()
-        sesson.geometry = "${width}x$height"
+    private fun getDeviceDimensions(session: Session) {
+        val deviceDimensions = DeviceDimensions()
+        val windowManager = applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        deviceDimensions.getDeviceDimensions(windowManager, DisplayMetrics())
+        session.geometry = deviceDimensions.getGeometry()
     }
 
     private fun startSession(session: Session) {
