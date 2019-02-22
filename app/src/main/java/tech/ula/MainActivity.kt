@@ -27,6 +27,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.animation.AlphaAnimation
 import android.widget.Button
 import android.widget.RadioButton
