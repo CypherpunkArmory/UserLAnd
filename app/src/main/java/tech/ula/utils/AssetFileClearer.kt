@@ -5,9 +5,11 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import java.lang.Exception
 
-class AssetFileClearer(private val filesDir: File,
-                       private val assetDirectoryNames: Set<String>,
-                       private val execUtility: ExecUtility) {
+class AssetFileClearer(
+    private val filesDir: File,
+    private val assetDirectoryNames: Set<String>,
+    private val execUtility: ExecUtility
+) {
     @Throws(Exception::class)
     suspend fun clearAllSupportAssets() {
         if (!filesDir.exists()) throw FileNotFoundException()
@@ -20,7 +22,7 @@ class AssetFileClearer(private val filesDir: File,
         for (file in filesDir.listFiles()) {
             if (!file.isDirectory) continue
             if (!assetDirectoryNames.contains(file.name)) continue
-            if (!execUtility.recursivelyDelete(filesDir.path, file.absolutePath)) throw IOException()
+            if (!execUtility.recursivelyDelete(file.absolutePath)) throw IOException()
         }
     }
 
@@ -36,7 +38,7 @@ class AssetFileClearer(private val filesDir: File,
                 // Exclude directories and hidden files.
                 if (supportFile.isDirectory || supportFile.name.first() == '.') continue
                 // Use deleteRecursively extension to match functionality above
-                if (!execUtility.recursivelyDelete(filesDir.path, supportFile.path)) throw IOException()
+                if (!execUtility.recursivelyDelete(supportFile.path)) throw IOException()
             }
         }
     }

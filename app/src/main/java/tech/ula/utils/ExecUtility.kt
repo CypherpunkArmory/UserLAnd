@@ -77,9 +77,7 @@ class ExecUtility(
     private fun collectOutput(inputStream: InputStream, listener: (String) -> Any) {
         val buf = inputStream.bufferedReader(UTF_8)
 
-        buf.forEachLine {
-            listener(it)
-        }
+        buf.forEachLine { listener(it) }
 
         buf.close()
     }
@@ -115,9 +113,9 @@ class ExecUtility(
         }
     }
 
-    suspend fun recursivelyDelete(filesDirPath: String, pathToDirectoryToDelete: String): Boolean = withContext(Dispatchers.IO){
+    suspend fun recursivelyDelete(pathToDirectoryToDelete: String): Boolean = withContext(Dispatchers.IO) {
         val command = "rm -r $pathToDirectoryToDelete"
-        val proc = wrapWithBusyboxAndExecute(filesDirPath, command, doWait = false)
+        val proc = wrapWithBusyboxAndExecute("", command, doWait = false)
         return@withContext proc.waitFor() == 0
     }
 }

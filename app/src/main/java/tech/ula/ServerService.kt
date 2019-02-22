@@ -17,7 +17,6 @@ import tech.ula.model.entities.App
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Session
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
-import kotlin.coroutines.CoroutineContext
 
 class ServerService : Service() {
 

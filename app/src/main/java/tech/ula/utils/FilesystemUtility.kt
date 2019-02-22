@@ -1,9 +1,5 @@
 package tech.ula.utils
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import java.io.File
@@ -86,7 +82,7 @@ class FilesystemUtility(
     suspend fun deleteFilesystem(filesystemId: Long) {
         val directory = File("$applicationFilesDirPath/$filesystemId")
         if (!directory.exists() || !directory.isDirectory) return
-        if(!execUtility.recursivelyDelete(applicationFilesDirPath, directory.absolutePath)) {
+        if (!execUtility.recursivelyDelete(directory.absolutePath)) {
             logger.e("FilesystemUtility", "Failed to delete filesystem: $filesystemId")
         }
     }

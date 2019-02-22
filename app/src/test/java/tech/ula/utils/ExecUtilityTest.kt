@@ -1,7 +1,6 @@
 package tech.ula.utils
 
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -73,4 +72,32 @@ class ExecUtilityTest {
         assertTrue(debugFile.exists())
         assertEquals("execInProot", debugFile.readText(UTF_8).trim())
     }
+
+//    @Test
+//    fun `Recursively deletes when file is a directory`() {
+//        val subDirectory = File("${testDirectory.absolutePath}/subDirectory")
+//        subDirectory.mkdirs()
+//        assertTrue(subDirectory.exists() && subDirectory.isDirectory)
+//        val subFile = File("${subDirectory.absolutePath}/subFile")
+//        subFile.createNewFile()
+//        assertTrue(subFile.exists())
+//
+//        val result = runBlocking {
+//            execUtility.recursivelyDelete(subDirectory.path)
+//        }
+//
+//        assertTrue(result)
+//        assertFalse(subDirectory.exists())
+//        assertFalse(subFile.exists())
+//    }
+//
+//    @Test
+//    fun `Deletes a single file if recursivelyDelete is called on it`() {
+//
+//    }
+//
+//    @Test
+//    fun `Returns false if recursivelyDelete fails`() {
+//
+//    }
 }

@@ -1,5 +1,6 @@
 package tech.ula.utils
 
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -7,6 +8,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
+import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import java.io.File
 import java.io.FileNotFoundException
@@ -16,6 +18,8 @@ class AssetFileClearerTest {
 
     @get:Rule
     val tempFolder = TemporaryFolder()
+
+    @Mock lateinit var mockExecUtility: ExecUtility
 
     lateinit var filesDir: File
     lateinit var supportDir: File
@@ -44,7 +48,7 @@ class AssetFileClearerTest {
     fun setup() {
         createTestFiles()
 
-        assetFileClearer = AssetFileClearer(filesDir, assetDirectoryNames)
+        assetFileClearer = AssetFileClearer(filesDir, assetDirectoryNames, mockExecUtility)
     }
 
     fun createTestFiles() {
@@ -72,12 +76,12 @@ class AssetFileClearerTest {
     fun `Throws FileNotFoundException if files directory does not exist`() {
         filesDir.deleteRecursively()
 
-        assetFileClearer.clearAllSupportAssets()
+        runBlocking { assetFileClearer.clearAllSupportAssets() }
     }
 
     @Test
     fun `Clears all assets and leaves filesystem structure intact`() {
-        assetFileClearer.clearAllSupportAssets()
+        runBlocking { assetFileClearer.clearAllSupportAssets() }
 
         assertTrue(filesDir.exists())
         assertTrue(randomTopLevelFile.exists())

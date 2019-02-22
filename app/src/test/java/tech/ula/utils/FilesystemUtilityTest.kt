@@ -1,5 +1,6 @@
 package tech.ula.utils
 
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
 import org.junit.Rule
@@ -179,8 +180,7 @@ class FilesystemUtilityTest {
         files.forEach { it.createNewFile() }
         files.forEach { assertTrue(it.exists()) }
 
-        filesystemUtility.deleteFilesystem(filesystemId)
-        Thread.sleep(500)
+        runBlocking { filesystemUtility.deleteFilesystem(filesystemId) }
 
         files.forEach { assertFalse(it.exists()) }
     }
