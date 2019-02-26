@@ -6,7 +6,7 @@ import java.io.File
 
 class FilesystemUtility(
     private val applicationFilesDirPath: String,
-    private val execUtility: ExecUtility,
+    private val busyboxExecutor: BusyboxExecutor,
     private val logger: LogUtility = LogUtility()
 ) {
 
@@ -39,16 +39,16 @@ class FilesystemUtility(
     }
 
     fun extractFilesystem(filesystem: Filesystem, listener: (String) -> Any) {
-        val targetDirectoryName = "${filesystem.id}"
-        val command = "../support/execInProot.sh /support/extractFilesystem.sh"
+        val filesystemDirName = "${filesystem.id}"
+        val command = "/support/extractFilesystem.sh"
         try {
             val env = HashMap<String, String>()
             env["INITIAL_USERNAME"] = filesystem.defaultUsername
             env["INITIAL_PASSWORD"] = filesystem.defaultPassword
             env["INITIAL_VNC_PASSWORD"] = filesystem.defaultVncPassword
 
-            val proc = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, listener, environmentVars = env)
-            proc.waitFor()
+            val process = busyboxExecutor.executeProotCommand(command, filesystemDirName, commandShouldTerminate = true, env = env)
+            process.waitFor()
         } catch (err: Exception) {
             logger.logRuntimeErrorForCommand(functionName = "extractFilesystem", command = command, err = err)
         }
@@ -82,7 +82,7 @@ class FilesystemUtility(
     suspend fun deleteFilesystem(filesystemId: Long) {
         val directory = File("$applicationFilesDirPath/$filesystemId")
         if (!directory.exists() || !directory.isDirectory) return
-        if (!execUtility.recursivelyDelete(directory.absolutePath)) {
+        if (!busyboxExecutor.recursivelyDelete(directory.absolutePath)) {
             logger.e("FilesystemUtility", "Failed to delete filesystem: $filesystemId")
         }
     }

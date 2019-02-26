@@ -5,7 +5,7 @@ import java.io.File
 
 class ServerUtility(
     private val applicationFilesDirPath: String,
-    private val execUtility: ExecUtility,
+    private val busyboxExecutor: BusyboxExecutor,
     private val logger: LogUtility = LogUtility()
 ) {
 
@@ -51,11 +51,11 @@ class ServerUtility(
     }
 
     private fun startSSHServer(session: Session): Long {
-        val targetDirectoryName = session.filesystemId.toString()
+        val filesystemDirName = session.filesystemId.toString()
         deletePidFile(session)
-        val command = "../support/execInProot.sh /bin/bash -c /support/startSSHServer.sh"
+        val command = "/support/startSSHServer.sh"
         return try {
-            val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, doWait = false)
+            val process = busyboxExecutor.executeProotCommand(command, filesystemDirName, commandShouldTerminate = false)
             process.pid()
         } catch (err: Exception) {
             logger.logRuntimeErrorForCommand(functionName = "startSSHServer", command = command, err = err)
@@ -64,15 +64,16 @@ class ServerUtility(
     }
 
     private fun startVNCServer(session: Session): Long {
-        val targetDirectoryName = session.filesystemId.toString()
+        val filesystemDirName = session.filesystemId.toString()
         deletePidFile(session)
-        val command = "../support/execInProot.sh /bin/bash -c /support/startVNCServer.sh"
+        val command = "/support/startVNCServer.sh"
         return try {
             val env = HashMap<String, String>()
             env["INITIAL_USERNAME"] = session.username
             env["INITIAL_VNC_PASSWORD"] = session.vncPassword
             env["DIMENSIONS"] = session.geometry
-            val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, doWait = false, environmentVars = env)
+
+            val process = busyboxExecutor.executeProotCommand(command, filesystemDirName, commandShouldTerminate = false, env = env)
             process.pid()
         } catch (err: Exception) {
             logger.logRuntimeErrorForCommand(functionName = "startVNCServer", command = command, err = err)
@@ -81,15 +82,15 @@ class ServerUtility(
     }
 
     private fun setDisplayNumberAndStartTwm(session: Session): Long {
-        val targetDirectoryName = session.filesystemId.toString()
+        val filesystemDirName = session.filesystemId.toString()
         deletePidFile(session)
-        val command = "../support/execInProot.sh /bin/bash -c '/support/startXSDLServer.sh'"
+        val command = "/support/startXSDLServer.sh'"
         return try {
             val env = HashMap<String, String>()
             env["INITIAL_USERNAME"] = session.username
             env["DISPLAY"] = ":4721"
             env["PULSE_SERVER"] = "127.0.0.1:4721"
-            val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, doWait = false, environmentVars = env)
+            val process = busyboxExecutor.executeProotCommand(command, filesystemDirName, commandShouldTerminate = false, env = env)
             process.pid()
         } catch (err: Exception) {
             logger.logRuntimeErrorForCommand(functionName = "startXSDLServer", command = command, err = err)
@@ -98,25 +99,20 @@ class ServerUtility(
     }
 
     fun stopService(session: Session) {
-        val targetDirectoryName = session.filesystemId.toString()
-
-        val command = "../support/killProcTree.sh ${session.pid} ${session.pid()}"
+        val command = "support/killProcTree.sh ${session.pid} ${session.pid()}"
         try {
-            execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command)
+            busyboxExecutor.executeCommand(command)
         } catch (err: Exception) {
             logger.logRuntimeErrorForCommand(functionName = "stopService", command = command, err = err)
         }
     }
 
     fun isServerRunning(session: Session): Boolean {
-        val targetDirectoryName = session.filesystemId.toString()
-        val command = "../support/isServerInProcTree.sh ${session.pid()}"
+        val command = "support/isServerInProcTree.sh ${session.pid()}"
         try {
             if (session.serviceType == "xsdl")
                 return true
-            val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command)
-            if (process.exitValue() != 0) // isServerInProcTree returns a 1 if it didn't find a server
-                return false
+            return busyboxExecutor.executeCommand(command)
         } catch (err: Exception) {
             logger.logRuntimeErrorForCommand(functionName = "isServerRunning", command = command, err = err)
         }

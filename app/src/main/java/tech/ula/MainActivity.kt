@@ -121,8 +121,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val assetPreferences = AssetPreferences(this.getSharedPreferences("assetLists", Context.MODE_PRIVATE))
         val assetRepository = AssetRepository(filesDir.path, assetPreferences)
 
-        val execUtility = ExecUtility(filesDir.path, Environment.getExternalStorageDirectory().absolutePath, DefaultPreferences(defaultSharedPreferences))
-        val filesystemUtility = FilesystemUtility(filesDir.path, execUtility)
+        val busyboxExecutor = BusyboxExecutor(filesDir, Environment.getExternalStorageDirectory(), DefaultPreferences(defaultSharedPreferences))
+        val filesystemUtility = FilesystemUtility(filesDir.path, busyboxExecutor)
 
         val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val downloadManagerWrapper = DownloadManagerWrapper(downloadManager)
@@ -521,9 +521,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     private fun handleClearSupportFiles() {
         val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
-        val execUtility = ExecUtility(filesDir.path, Environment.getExternalStorageDirectory().absolutePath, DefaultPreferences(defaultSharedPreferences))
+        val busyboxExecutor = BusyboxExecutor(this.filesDir, Environment.getExternalStorageDirectory(), DefaultPreferences(defaultSharedPreferences))
         val assetDirectoryNames = appsPreferences.getDistributionsList().plus("support")
-        val assetFileClearer = AssetFileClearer(this.filesDir, assetDirectoryNames, execUtility)
+        val assetFileClearer = AssetFileClearer(this.filesDir, assetDirectoryNames, busyboxExecutor)
         CoroutineScope(Dispatchers.Main).launch { viewModel.handleClearSupportFiles(assetFileClearer) }
     }
 

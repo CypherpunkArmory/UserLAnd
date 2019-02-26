@@ -1,5 +1,6 @@
 package tech.ula.utils
 
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -15,10 +16,12 @@ class BusyboxExecutor(
     private val busyboxWrapper: BusyboxWrapper = BusyboxWrapper()
 ) {
 
-    private val discardOutput: (String) -> Any = { }
+    private val discardOutput: (String) -> Any = {
+        Log.i("busybox", it)
+    }
 
-    suspend fun recursivelyDelete(pathToDirectoryToDelete: String): Boolean = withContext(Dispatchers.IO) {
-        val command = "rm -rf $pathToDirectoryToDelete"
+    suspend fun recursivelyDelete(absolutePath: String): Boolean = withContext(Dispatchers.IO) {
+        val command = "rm -rf $absolutePath"
         return@withContext executeCommand(command)
     }
 
@@ -27,8 +30,10 @@ class BusyboxExecutor(
         listener: (String) -> Any = discardOutput
     ): Boolean {
         val updatedCommand = busyboxWrapper.addBusybox(command)
+        val env = hashMapOf("ROOT_PATH" to filesDir.absolutePath)
         val processBuilder = ProcessBuilder(updatedCommand)
         processBuilder.directory(filesDir)
+        processBuilder.environment().putAll(env)
         processBuilder.redirectErrorStream(true)
 
         val process = processBuilder.start()
@@ -38,7 +43,7 @@ class BusyboxExecutor(
 
     fun executeProotCommand(
         command: String,
-        filesystemDir: File,
+        filesystemDirName: String,
         commandShouldTerminate: Boolean,
         env: HashMap<String, String> = hashMapOf(),
         listener: (String) -> Any = discardOutput
@@ -48,6 +53,9 @@ class BusyboxExecutor(
                 if (prootDebugEnabled) defaultPreferences.getProotDebuggingLevel() else "-1"
         val prootDebugLocation = defaultPreferences.getProotDebugLogLocation()
 
+        val updatedCommand = busyboxWrapper.addBusyboxAndProot(command)
+        val filesystemDir = File("${filesDir.absolutePath}/$filesystemDirName")
+
         env.putAll(hashMapOf(
                 "LD_LIBRARY_PATH" to "${filesDir.absolutePath}/support",
                 "ROOT_PATH" to filesDir.absolutePath,
@@ -56,19 +64,14 @@ class BusyboxExecutor(
                 "EXTRA_BINDINGS" to "-b ${externalStorageDir.absolutePath}:/sdcard",
                 "OS_VERSION" to System.getProperty("os.version")))
 
-        val updatedCommand = busyboxWrapper.addBusyboxAndProot(command)
         val processBuilder = ProcessBuilder(updatedCommand)
-        processBuilder.directory(filesystemDir)
+        processBuilder.directory(filesDir)
         processBuilder.environment().putAll(env)
         processBuilder.redirectErrorStream(true)
 
         val process = processBuilder.start()
-        when {
-            prootDebugEnabled -> redirectOutputToDebugLog(process.inputStream, prootDebugLocation)
-            commandShouldTerminate && !prootDebugEnabled -> collectOutput(process.inputStream, listener)
-        }
         if (prootDebugEnabled) redirectOutputToDebugLog(process.inputStream, prootDebugLocation)
-        if (commandShouldTerminate && !prootDebugEnabled) {
+        else if (commandShouldTerminate) {
             collectOutput(process.inputStream, listener)
         }
         return process
@@ -99,14 +102,16 @@ class BusyboxExecutor(
     }
 }
 
-// This class is intended to allow stubbing of elements that are unavailable during unit tests
+// This class is intended to allow stubbing of elements that are unavailable during unit tests.
 class BusyboxWrapper {
-    fun addBusybox(command: String): String {
-        return "../support/busybox sh -c $command"
+    // For basic commands, CWD should be `applicationFilesDir`
+    fun addBusybox(command: String): List<String> {
+        return listOf("support/busybox", "sh", "-c", command)
     }
 
-    fun addBusyboxAndProot(command: String): String {
-        val commandWithProot = "../support/execInProot.sh /bin/bash -c $command"
-        return addBusybox(commandWithProot)
+    // Proot scripts expect CWD to be `applicationFilesDir/<filesystem`
+    fun addBusyboxAndProot(command: String): List<String> {
+        val commandWithProot = "support/execInProot.sh $command"
+        return listOf("support/busybox", "sh", "-c", commandWithProot)
     }
 }

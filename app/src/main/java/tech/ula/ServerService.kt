@@ -32,17 +32,17 @@ class ServerService : Service() {
         NotificationUtility(this)
     }
 
-    private val execUtility by lazy {
-        val externalStoragePath = Environment.getExternalStorageDirectory().absolutePath
-        ExecUtility(this.filesDir.path, externalStoragePath, DefaultPreferences(this.defaultSharedPreferences))
+    private val busyboxExecutor by lazy {
+        val externalStorage = Environment.getExternalStorageDirectory()
+        BusyboxExecutor(this.filesDir, externalStorage, DefaultPreferences(this.defaultSharedPreferences))
     }
 
     private val filesystemUtility by lazy {
-        FilesystemUtility(this.filesDir.path, execUtility)
+        FilesystemUtility(this.filesDir.path, busyboxExecutor)
     }
 
     private val serverUtility by lazy {
-        ServerUtility(this.filesDir.path, execUtility)
+        ServerUtility(this.filesDir.path, busyboxExecutor)
     }
 
     override fun onCreate() {

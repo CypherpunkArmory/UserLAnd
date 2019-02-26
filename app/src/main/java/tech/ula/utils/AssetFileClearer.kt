@@ -8,7 +8,7 @@ import java.lang.Exception
 class AssetFileClearer(
     private val filesDir: File,
     private val assetDirectoryNames: Set<String>,
-    private val execUtility: ExecUtility
+    private val busyboxExecutor: BusyboxExecutor
 ) {
     @Throws(Exception::class)
     suspend fun clearAllSupportAssets() {
@@ -22,7 +22,7 @@ class AssetFileClearer(
         for (file in filesDir.listFiles()) {
             if (!file.isDirectory) continue
             if (!assetDirectoryNames.contains(file.name)) continue
-            if (!execUtility.recursivelyDelete(file.absolutePath)) throw IOException()
+            if (!busyboxExecutor.recursivelyDelete(file.absolutePath)) throw IOException()
         }
     }
 
@@ -38,7 +38,7 @@ class AssetFileClearer(
                 // Exclude directories and hidden files.
                 if (supportFile.isDirectory || supportFile.name.first() == '.') continue
                 // Use deleteRecursively extension to match functionality above
-                if (!execUtility.recursivelyDelete(supportFile.path)) throw IOException()
+                if (!busyboxExecutor.recursivelyDelete(supportFile.path)) throw IOException()
             }
         }
     }
