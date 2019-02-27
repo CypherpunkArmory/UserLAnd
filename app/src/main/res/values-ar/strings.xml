@@ -48,10 +48,10 @@
     <string name="error_username_in_blacklist">ربما يتم حجز اسم المستخدم هذا بواسطة Linux ولا يمكن استخدامه كاسم مستخدم لنظام الملفات</string>
 
     <!-- Illegal State Dialog -->
-    <string name="illegal_state_message">٪1$s \n سيتم الآن تعطل التطبيق بحيث يمكننا استلام سجل أخطاء. لا تتردد أيضًا في إخبارنا على جيثب! نحن نعمل على حل هذه القضايا.</string>
+    <string name="illegal_state_message">%1$s \n سيتم الآن تعطل التطبيق بحيث يمكننا استلام سجل أخطاء. لا تتردد أيضًا في إخبارنا على جيثب! نحن نعمل على حل هذه القضايا.</string>
     <string name="illegal_state_title">لقد دخل UserLAnd حالة غير قانونية!</string>
 
-    <string name="illegal_state_transition">انتقال الحالة السيئة:٪1$s</string>
+    <string name="illegal_state_transition">انتقال الحالة السيئة:%1$s</string>
 
     <string name="illegal_state_too_many_selections_when_permissions_granted">تم اختيار كل من الجلسة والتطبيق عند منح الأذونات.</string>
     <string name="illegal_state_no_selections_when_permissions_granted">لم يتم تحديد جلسة أو تطبيق عند منح الأذونات.</string>
@@ -64,7 +64,7 @@
 
     <string name="illegal_state_no_session_selected_when_preparation_started">محاولة التعامل مع إعداد الجلسة قبل اختيار واحد.</string>
     <string name="illegal_state_error_fetching_asset_lists">فشل في استرداد قوائم الأصول.</string>
-    <string name="illegal_state_downloads_did_not_complete_successfully">فشلت التنزيلات بسبب:٪1$s.</string>
+    <string name="illegal_state_downloads_did_not_complete_successfully">فشلت التنزيلات بسبب:%1$s.</string>
     <string name="illegal_state_failed_to_copy_assets_to_local">أخفق نسخ الأصول إلى التخزين المحلي. حاول مسح ملفات الدعم.</string>
     <string name="illegal_state_assets_have_not_been_downloaded">يجب نسخ الأصول الى نظام الملفات الخاص بك ، ولكن يبدو أنه لم يتم تنزيلها. حاول مسح ملفات الدعم.</string>
     <string name="illegal_state_empty_download_cache_access">كانت ذاكرة التخزين المؤقت للتنزيلات فارغة عند محاولة الوصول.</string>
@@ -94,7 +94,7 @@
     <string name="progress_fetching_asset_lists">جلب قوائم الأصول &#8230;</string>
     <string name="progress_checking_for_required_updates">التحقق مما إذا كانت هناك حاجة إلى التحديثات &#8230;</string>
     <string name="progress_downloading">تنزيل الأصول المطلوبة &#8230;</string>
-    <string name="progress_downloading_out_of">تم الانتهاء من ٪1$d من ٪2$d</string>
+    <string name="progress_downloading_out_of">تم الانتهاء من %1$d من %2$d</string>
     <string name="progress_copying_downloads">نسخ الملفات التي تم تنزيلها إلى التخزين المحلي &#8230;</string>
     <string name="progress_setting_up_filesystem">إعداد نظام الملفات &#8230;</string>
     <string name="progress_extraction_details">الاستخراج: ٪1$s</string>
