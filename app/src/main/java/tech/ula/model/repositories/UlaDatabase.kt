@@ -6,8 +6,8 @@ import android.arch.persistence.room.Room
 import android.arch.persistence.room.RoomDatabase
 import android.arch.persistence.room.migration.Migration
 import android.content.Context
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import tech.ula.model.daos.AppsDao
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
@@ -43,7 +43,7 @@ abstract class UlaDatabase : RoomDatabase() {
                                 // Since this should only be called when the app is restarted, all
                                 // all child processes should have been killed and sessions should be
                                 // inactive.
-                                launch(CommonPool) { getInstance(context).sessionDao().resetSessionActivity() }
+                                GlobalScope.launch { getInstance(context).sessionDao().resetSessionActivity() }
                             }
                         })
                         .build()

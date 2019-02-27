@@ -1,0 +1,181 @@
+<resources>
+    <string name="app_name">UserLAnd</string>
+    <string name="welcome">Добро пожаловать в UserLAnd!</string>
+    <string name="permission_request_code">1000</string>
+
+    <!-- Labels -->
+    <string name="apps">Приложения</string>
+    <string name="sessions">Сессии</string>
+    <string name="edit_session">Изменить параметры сессии</string>
+    <string name="filesystems">Файловые системы</string>
+    <string name="edit_filesystem">Изменить параметры файловой системы</string>
+    <string name="settings">Настройки</string>
+    <string name="help">Помощь</string>
+    <string name="toc">Условия и положения</string>
+
+    <!-- Buttons -->
+    <string name="button_continue">Продолжить</string>
+
+    <!-- Menus -->
+    <string name="app_info">Информация о приложении</string>
+    <string name="stop_app">Остановить приложение</string>
+    <string name="kill_service">Прервать службу</string>
+    <string name="edit">Изменить</string>
+    <string name="delete">Удалить</string>
+    <string name="save">Сохранить</string>
+    <string name="add">Добавить</string>
+    <string name="refresh">Обновить</string>
+    <string name="clear_support_files">Очистить все служебные файлы</string>
+
+    <!-- Hints -->
+    <string name="hint_filesystem_name">Имя файловой системы</string>
+    <string name="hint_session_name">Имя сессии</string>
+    <string name="hint_username">Имя пользователя</string>
+    <string name="hint_password">Пароль</string>
+    <string name="hint_vnc_password">Пароль VNC</string>
+
+    <!-- Errors -->
+    <string name="error_session_name">Необходимо ввести имя сессии</string>
+    <string name="error_filesystem_name">Необходимо ввести имя файловой системы</string>
+    <string name="error_username">Необходимо ввести имя пользователя</string>
+    <string name="error_empty_field">Каждое поле нужно заполнить!</string>
+    <string name="error_app_description_not_found">Не удалось найти описание приложения. Попробуйте обновить список.</string>
+    <string name="error_vnc_password_length_incorrect">Пароль VNC должен быть от 6 до 8 знаков!</string>
+    <string name="error_username_invalid">Имя пользователя содержит недопустимые знаки</string>
+    <string name="error_password_invalid">Пароль содержит недопустимые знаки</string>
+    <string name="error_vnc_password_invalid">Пароль VNC содержит недопустимые знаки</string>
+
+    <!-- Illegal State Dialog -->
+    <string name="illegal_state_message">%1$s \nСейчас приложение отправит журнал ошибок и завершит работу. Также вы можете сообщить о проблеме на Github! Мы что-нибудь придумаем.</string>
+    <string name="illegal_state_title">Приложение UserLAnd перешло в некорректное состояние!</string>
+
+    <string name="illegal_state_transition">Переход в некорректное состояние: %1$s</string>
+
+    <string name="illegal_state_too_many_selections_when_permissions_granted">При предоставлении разрешений были одновременно выбраны и приложение, и сессия.</string>
+    <string name="illegal_state_no_selections_when_permissions_granted">При предоставлении разрешений не были выбраны ни приложение, ни сессия.</string>
+
+    <string name="illegal_state_no_filesystem_selected_when_credentials_selected">Параметры файловой системы были отправлены, но не была выбрана конкретная файловая система.</string>
+    <string name="illegal_state_no_app_selected_when_preference_submitted">Параметры приложения были отправлены, но не было выбрано конкретное приложение.</string>
+    <string name="illegal_state_no_app_selected_when_preparation_started">Попытка подготовить приложение без указания какого именно.</string>
+    <string name="illegal_state_error_fetching_app_database_entries">Не удалось скачать записи базы данных приложений.</string>
+    <string name="illegal_state_error_copying_app_script">Не удалось скопировать скрипт приложения.</string>
+
+    <string name="illegal_state_no_session_selected_when_preparation_started">Попытка подготовки сессии без указания какой именно.</string>
+    <string name="illegal_state_error_fetching_asset_lists">Не удалось скачать список файлов.</string>
+    <string name="illegal_state_downloads_did_not_complete_successfully">Скачивание не удалось из-за: %1$s.</string>
+    <string name="illegal_state_failed_to_copy_assets_to_local">Не удалось скопировать файлы в локальное хранилище. Попробуйте очистку служебных файлов.</string>
+    <string name="illegal_state_assets_have_not_been_downloaded">Необходимые файлы не были успешно загружены. Попробуйте очистку служебных файлов.</string>
+    <string name="illegal_state_failed_to_copy_assets_to_filesystem">Не удалось скопировать файлы в файловую систему. Попробуйте очистку служебных файлов.</string>
+    <string name="illegal_state_failed_to_extract_filesystem">Не удалось извлечь файловую систему. Попробуйте очистку служебных файлов.</string>
+    <string name="illegal_state_failed_to_clear_support_files">Ошибка очистки служебных файлов.</string>
+
+    <!-- Misc illegal state -->
+    <string name="illegal_state_unhandled_session_service_type">Попытка запуска сессии с неизвестным типом службы.</string>
+
+    <!-- Prompts -->
+    <string name="prompt_filesystem">Файловая система:</string>
+    <string name="prompt_service_type">Тип службы:</string>
+    <string name="prompt_client_type">Тип клиента:</string>
+    <string name="prompt_app_connection_type_preference">Тип соединения:</string>
+
+    <!-- Notification strings -->
+    <string name="services_notification_channel_id">UserLAndServices</string>
+    <string name="services_notification_channel_name">Службы</string>
+    <string name="services_notification_channel_description">Постоянные службы</string>
+    <string name="service_notification_title">UserLAnd</string>
+    <string name="service_notification_description">UserLAnd работает в фоновом режиме.</string>
+
+    <!-- Progress bar messages -->
+    <string name="progress_start_step">Подготовка&#8230;</string>
+    <string name="progress_fetching_asset_lists">Скачивание списка файлов&#8230;</string>
+    <string name="progress_checking_for_required_updates">Проверка необходимости обновлений&#8230;</string>
+    <string name="progress_downloading">Скачивание требуемых файлов&#8230;</string>
+    <string name="progress_downloading_out_of">%1$d из %2$d завершено</string>
+    <string name="progress_copying_downloads">Копирование скачанных файлов в локальное хранилище&#8230;</string>
+    <string name="progress_setting_up_filesystem">Настройка файловой системы&#8230;</string>
+    <string name="progress_extraction_details">Извлечение: %1$s</string>
+    <string name="progress_verifying_assets">Проверка файлов&#8230;</string>
+    <string name="progress_starting">Запуск службы&#8230;</string>
+    <string name="progress_clearing_support_files">Очистка всех служебных файлов&#8230;</string>
+
+    <!-- Preferences -->
+    <string name="pref_app_category">Настройки приложения</string>
+    <string name="pref_default_landing_page_title">Начальная страница</string>
+    <string name="pref_default_landing_page_message">Выберите страницу, которую бы хотели видеть после запуска UserLAnd.</string>
+    <string name="pref_proot_category">Настройки PRoot</string>
+    <string name="pref_proot_debugging_enabled_title">Журнал отладки PRoot включён</string>
+    <string name="pref_proot_debugging_enabled_summary">Нужно только в случае неполадок. Журнал хранится в\n/mnt/sdcard/PRoot_Debug_Log</string>
+    <string name="pref_proot_debugging_level_title">Уровень подробности журнала</string>
+    <string name="pref_proot_debugging_level_summary">Чем больше число, тем подробнее журнал отладки.</string>
+    <string name="pref_proot_debugging_level_default">-1</string>
+    <string name="pref_proot_delete_debug_file_title">Удалить журнал отладки</string>
+
+    <!-- Help Activity -->
+    <string name="github_message">Испытываете баги или имеете предложения? Наша страница на Github — лучшее место для обратной связи.</string>
+    <string name="supported_services">Поддерживаемые на текущий момент службы:</string>
+    <string name="terminology">Терминология:</string>
+    <string name="desc_apps_title">Приложения:</string>
+    <string name="desc_apps_message">Приложения — простейший способ запустить распространённые программы для Linux.</string>
+    <string name="desc_sessions_title">Сессии:</string>
+    <string name="desc_sessions_message">Сессии запускают сервер на файловой системе, к которому затем можно подключиться с помощью стороннего приложения.</string>
+    <string name="desc_filesystems_title">Файловые системы:</string>
+    <string name="desc_filesystems_message">Файловые системы — это просто набор файлов и пользователей, как в типичном дистрибутиве Linux.</string>
+
+    <!-- Supported Services -->
+    <string name="support_dropbear">SSH — Dropbear</string>
+    <string name="support_tightvnc">VNC — TightVNC</string>
+
+    <!-- Client Types -->
+    <string name="client_ssh">SSH</string>
+    <string name="client_vnc">VNC</string>
+
+    <!-- Alerts -->
+    <string name="button_ok">OK!</string>
+    <string name="button_cancel">Отмена</string>
+    <string name="general_error_title">Произошла какая-то ошибка!</string>
+    <string name="filesystem_credentials_reasoning">Создание файловой системы для ваших приложений. Введите необходимые настройки.</string>
+    <string name="deactivate_sessions">Для продолжения необходимо завершить все сессии.</string>
+
+    <!-- Clear support files alert -->
+    <string name="alert_clear_support_files_title">Очистить все служебные файлы?</string>
+    <string name="alert_clear_support_files_message">
+        Все служебные файлы будут удалены. Созданные файловые системы не будут затронуты. 
+        Это приведёт к необходимости повторной загрузки файлов при запуске сессии или приложения.
+    </string>
+    <string name="alert_clear_support_files_clear_button">Очистить</string>
+
+    <!-- Play service error alerts -->
+    <string name="alert_need_client_app_title">Не удалось найти приложение-клиент!</string>
+    <string name="alert_need_client_app_message">Для данного действия необходим клиент SSH или VNC, который у вас не обнаружен. Установите поддерживаемый клиент, чтобы продожить.</string>
+
+    <!-- Permissions necessary alert -->
+    <string name="alert_permissions_necessary_title">UserLAnd необходимы разрешения!</string>
+    <string name="alert_permissions_necessary_message">Чтобы продолжить, разрешите UserLAnd доступ к памяти телефона (необходимо для скачивания файлов и их перемещения в локальное хранилище).</string>
+    <string name="alert_permissions_necessary_cancel_button">Отмена</string>
+
+    <!-- Network unavailable alert -->
+    <string name="alert_network_required_for_refresh">Обновление приложений требует соединения с интернетом.</string>
+
+    <!-- Wifi alert -->
+    <string name="alert_wifi_disabled_title">Wi-Fi выключен!</string>
+    <string name="alert_wifi_disabled_message">Требуется скачать большой (~80 МБ) файл.</string>
+    <string name="alert_wifi_disabled_continue_button">Продолжить</string>
+    <string name="alert_wifi_disabled_turn_on_wifi_button">Включить Wi-Fi</string>
+    <string name="alert_wifi_disabled_cancel_button">Отмена</string>
+
+    <!-- Toasts -->
+    <string name="session_unique_name_required">Сессии должны иметь различные имена!</string>
+    <string name="filesystem_unique_name_required">Файловые системы должны иметь различные имена!</string>
+    <string name="single_session_supported">На текущий момент UserLAnd поддерживает лишь единственную активную сессию!</string>
+    <string name="no_supported_architecture">На текущий момент UserLAnd не поддерживает архитектуру вашего устройства.</string>
+    <string name="debug_log_deleted">Журнал отладки удалён или не существует!</string>
+
+    <!-- Content descriptions -->
+    <string name="desc_arrow">Изображение: стрелка, означающая связь между сессией и файловой системой.</string>
+    <string name="desc_filesystem_type">Изображение: логотип дистрибутива</string>
+
+    <!-- Misc -->
+    <string name="custom_sessions">Особые сессии</string>
+    <string name="apps_sessions">Сессии приложений</string>
+
+</resources>

@@ -1,0 +1,2 @@
+json_key_file("~/play-key.json")
+package_name("tech.ula")

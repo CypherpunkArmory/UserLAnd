@@ -43,11 +43,17 @@ captures/
 # Keystore files
 *.jks
 
+# Generated files for deployment
+app/versionCode.txt
+fastlane/README.md
+fastlane/report.xml
+
 # External native build folder generated in Android Studio 2.2 and later
 .externalNativeBuild
 
 # Google Services (e.g. APIs or Firebase)
 google-services.json
+app/tracepot.properties
 
 # Freeline
 freeline.py

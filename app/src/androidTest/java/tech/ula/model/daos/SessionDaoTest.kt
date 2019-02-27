@@ -11,7 +11,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.MockitoAnnotations
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
@@ -27,8 +26,6 @@ class SessionDaoTest {
 
     @Before
     fun setup() {
-        MockitoAnnotations.initMocks(this)
-
         db = Room.inMemoryDatabaseBuilder(InstrumentationRegistry.getContext(),
                 UlaDatabase::class.java)
                 .allowMainThreadQueries()

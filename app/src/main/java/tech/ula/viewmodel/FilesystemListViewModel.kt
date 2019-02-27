@@ -3,8 +3,8 @@ package tech.ula.viewmodel
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Filesystem
 
@@ -22,6 +22,6 @@ class FilesystemListViewModel(application: Application) : AndroidViewModel(appli
     }
 
     fun deleteFilesystemById(id: Long) {
-        launch { async { ulaDatabase.filesystemDao().deleteFilesystemById(id) } }
+        GlobalScope.launch { ulaDatabase.filesystemDao().deleteFilesystemById(id) }
     }
 }

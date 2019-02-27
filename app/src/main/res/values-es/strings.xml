@@ -1,0 +1,180 @@
+<resources>
+    <string name="app_name">UserLAnd</string>
+    <string name="welcome">¡Bienvenido a UserLAnd!</string>
+    <string name="permission_request_code">1000</string>
+
+    <!-- Labels -->
+    <string name="apps">Apps</string>
+    <string name="sessions">Sesiones</string>
+    <string name="edit_session">Editar Sesión</string>
+    <string name="filesystems">Sistemas de Archivos</string>
+    <string name="edit_filesystem">Editar Sistema de Archivos</string>
+    <string name="settings">Ajustes</string>
+    <string name="help">Ayuda</string>
+    <string name="toc">Términos y Condiciones</string>
+
+    <!-- Buttons -->
+    <string name="button_continue">Continuar</string>
+
+    <!-- Menus -->
+    <string name="app_info">Información de Aplicación</string>
+    <string name="stop_app">Parar Aplicación</string>
+    <string name="kill_service">Parar Sesión</string>
+    <string name="edit">Editar</string>
+    <string name="delete">Borrar</string>
+    <string name="save">Guardar</string>
+    <string name="add">Agregar</string>
+    <string name="refresh">Actualizar</string>
+    <string name="clear_support_files">Limpiar Todos los Archivos de Soporte</string>
+
+    <!-- Hints -->
+    <string name="hint_filesystem_name">Nombre de Sistema de Archivos</string>
+    <string name="hint_session_name">Nombre de Sesión</string>
+    <string name="hint_username">Nombre de Usuario</string>
+    <string name="hint_password">Contraseña</string>
+    <string name="hint_vnc_password">Contraseña de VNC</string>
+    
+    <!-- Errors -->
+    <string name="error_session_name">Debes especificar un nombre de sesión</string>
+    <string name="error_filesystem_name">Debes especificar un nombre de sistema de archivos</string>
+    <string name="error_username">Debes especificar un nombre de usuario</string>
+    <string name="error_empty_field">¡Todos los campos deben ser rellenados!</string>
+    <string name="error_app_description_not_found">No se ha encontrado la descripción de esta aplicación. Prueba a actualizar la lista.</string>
+    <string name="error_vnc_password_length_incorrect">¡La contraseña de VNC debe tener entre 6 y 8 caracteres!</string>
+    <string name="error_username_invalid">El nombre de usuario contiene caracteres inválidos.</string>
+    <string name="error_password_invalid">La contraseña contiene caracteres inválidos.</string>
+    <string name="error_vnc_password_invalid">La contraseña de VNC contiene caracteres inválidos.</string>
+
+    <!-- Illegal State Dialog -->
+    <string name="illegal_state_message">%1$s \nPor favor, reinicia la app y contacta a un desarrollador.</string>
+    <string name="illegal_state_title">¡UserLAnd ha entrado en un estado ilegal!</string>
+
+    <string name="illegal_state_transition">Mala transición de estado: %1$s</string>
+
+    <string name="illegal_state_too_many_selections_when_permissions_granted">Tanto una sesión como una aplicación fueron seleccionadas cuando los permisos fueron concedidos.</string>
+    <string name="illegal_state_no_selections_when_permissions_granted">Ni una sesión ni una aplicación fueron seleccionadas cuando los permisos fueron concedidos.</string>
+
+    <string name="illegal_state_no_filesystem_selected_when_credentials_selected">Las credenciales fueron guardadas para un sistema de archivos, pero ningún sistema de archivos fue seleccionado.</string>
+    <string name="illegal_state_no_app_selected_when_preference_submitted">Los ajustes de la Aplicación fueron guardados, pero ninguna app fue seleccionada.</string>
+    <string name="illegal_state_no_app_selected_when_preparation_started">Intentando iniciar la preparación de la aplicación, pero ninguna app fue seleccionada.</string>
+    <string name="illegal_state_error_fetching_app_database_entries">No se pudo obtener acceso a la base de datos de las aplicaciones.</string> <!-- I'm not sure if this translation is correct. -->
+    <string name="illegal_state_error_copying_app_script">No se pudo copiar el script de la aplicación.</string>
+
+    <string name="illegal_state_no_session_selected_when_preparation_started">Está intentando iniciar la preparación de la sesión sin haber seleccionado una anteriormente.</string>
+    <string name="illegal_state_error_fetching_asset_lists">Ha fallado la recuperación de la lista de recursos.</string>
+    <string name="illegal_state_downloads_did_not_complete_successfully">Las descargas han fallado debido a: %1$s.</string>
+    <string name="illegal_state_failed_to_copy_assets_to_local">Ha fallado la copia de los recursos al almacenamiento local.</string>
+    <string name="illegal_state_failed_to_copy_assets_to_filesystem">Ha fallado la copia de los recursos al sistema de archivos.</string>
+    <string name="illegal_state_failed_to_extract_filesystem">Ha fallado la extracción del sistema de archivos.</string>
+    <!--  <string name="illegal_state_filesystem_is_missing_assets">Al sistema de archivos le faltan recursos. Prueba a borrar los archivos de soporte.</string> -->
+    <string name="illegal_state_failed_to_clear_support_files">Ha fallado la copia de los archivos de soporte.</string>
+
+    <!-- Misc illegal state -->
+    <string name="illegal_state_unhandled_session_service_type">Intentando iniciar una sesión con un tipo de servicio desconocido.</string>
+
+    <!-- Prompts -->
+    <string name="prompt_filesystem">Sistema de Archivos:</string>
+    <string name="prompt_service_type">Tipo de Servicio:</string>
+    <string name="prompt_client_type">Tipo de Cliente:</string>
+    <string name="prompt_app_connection_type_preference">Seleccione el tipo de conexión: </string>
+
+    <!-- Notification strings -->
+    <string name="services_notification_channel_id">ServiciosDeUserLAnd</string>
+    <string name="services_notification_channel_name">Servicios</string>
+    <string name="services_notification_channel_description">Servicios persistentes</string>
+    <string name="service_notification_title">UserLAnd</string>
+    <string name="service_notification_description">UserLAnd se está ejecutando en segundo plano.</string>
+
+    <!-- Progress bar messages -->
+    <string name="progress_start_step">Dejando todo listo…&#8230;</string>
+    <string name="progress_fetching_asset_lists">Obteniendo lista de archivos necesarios…&#8230;</string>
+    <string name="progress_checking_for_required_updates">Comprobando actualizaciones…&#8230;</string>
+    <string name="progress_downloading">Descargando recursos requeridos&#8230;</string>
+    <string name="progress_downloading_out_of">%1$d de %2$d completados</string>
+    <string name="progress_copying_downloads">Copiando archivos descargados al almacenamiento local&#8230;</string>
+    <string name="progress_setting_up_filesystem">Preparando el sistema de archivos&#8230;</string>
+    <string name="progress_extraction_details">Extrayendo: %1$s</string>
+    <string name="progress_verifying_assets">Verificando recursos&#8230;</string>
+    <string name="progress_starting">Iniciando servicio&#8230;</string>
+    <string name="progress_clearing_support_files">Borrando todos los archivos de soporte&#8230;</string>
+
+    <!-- Preferences -->
+    <string name="pref_app_category">Ajustes de Aplicación</string>
+    <string name="pref_default_landing_page_title">Página de Inicio predeterminada</string>
+    <string name="pref_default_landing_page_message">Seleccione la página que quiera ver cuando inicie UserLAnd.</string>
+    <string name="pref_proot_category">Preferencias de PRoot</string>
+    <string name="pref_proot_debugging_enabled_title">Registro de Depuración de PRoot activado</string>
+    <string name="pref_proot_debugging_enabled_summary">Sólo es necesaria si tiene problemas con UserLAnd. El archivo de registro se almacena en \n/mnt/sdcard/PRoot_Debug_Log</string>
+    <string name="pref_proot_debugging_level_title">Nivel de Verbosidad de Depuración</string>
+    <string name="pref_proot_debugging_level_summary">Cuanto mayor sea el número, mayor será el nivel de verbosidad.</string>
+    <string name="pref_proot_debugging_level_default">-1</string>
+    <string name="pref_proot_delete_debug_file_title">Borrar Registro de Depuración</string>
+
+    <!-- Help Activity -->
+    <string name="github_message">¿Has encontrado bugs o quieres solicitar una función? Nuestra página de GitHub es el mejor lugar para obtener una respuesta rápida.</string>
+    <string name="supported_services">Servidores soportados actualmente:</string>
+    <string name="terminology">Terminología:</string>
+    <string name="desc_apps_title">Aplicaciones:</string>
+    <string name="desc_apps_message">Las Aplicaciones son la forma más fácil de lanzar programas comunes y distribuciones de GNU/Linux.</string>
+    <string name="desc_sessions_title">Sesiones:</string>
+    <string name="desc_sessions_message">Las sesiones inician un servidor en un sistema de archivos, al que luego se podrá conectar utilizando una aplicación cliente de terceros.</string>
+    <string name="desc_filesystems_title">Sistemas de Archivos:</string>
+    <string name="desc_filesystems_message">Los sistemas de archivos son lo que parecen: una estructura de archivos y directorios que contienen los programas y archivos necesarios que permiten el uso de aplicaciones estándar de GNU/Linux.</string>
+
+    <!-- Supported Services -->
+    <string name="support_dropbear">SSH - Dropbear</string>
+    <string name="support_tightvnc">VNC - TightVNC</string>
+
+    <!-- Client Types -->
+    <string name="client_ssh">SSH</string>
+    <string name="client_vnc">VNC</string>
+
+    <!-- Alerts -->
+    <string name="button_ok">¡OK!</string>
+    <string name="button_cancel">Cancelar</string>
+    <string name="general_error_title">¡Ha ocurrido algo inesperado!</string>
+    <string name="filesystem_credentials_reasoning">Estamos creando un sistema de archivos para tus aplicaciones. Ingrese la información requerida para que la usemos como valores predeterminados para este sistema de archivos.</string>
+    <string name="deactivate_sessions">Todas las sesiones deben estar desactivadas para continuar esta acción.</string>
+
+    <!-- Clear support files alert -->
+    <string name="alert_clear_support_files_title">¿Borrar todos los archivos de soporte?</string>
+    <string name="alert_clear_support_files_message">
+        Esto borrará todos los archivos de soporte. Esto no afectará nada de lo que hayas creado en tus
+	sistemas de archivos. Esto hará que los recursos sean descargados de nuevo la próxima vez que una sesión o aplicación sea ejecutada.
+    </string>
+    <string name="alert_clear_support_files_clear_button">Borrar</string>
+
+    <!-- Play service error alerts -->
+    <string name="alert_need_client_app_title">¡No se ha encontrado una aplicación de cliente!</string>
+    <string name="alert_need_client_app_message">Necesitará una aplicación cliente de SSH o VNC para completar esta acción, pero parece que no tiene instalado Google Play Store. Por favor, instale una aplicación cliente para continuar.</string>
+
+    <!-- Permissions necessary alert -->
+    <string name="alert_permissions_necessary_title">¡UserLAnd requiere la concesión de permisos para funcionar!</string>
+    <string name="alert_permissions_necessary_message">Para continuar, habilite los permisos de almacenamiento para que UserLAnd pueda descargar los archivos requeridos y moverlos del almacenamiento externo al almacenamiento local de la app.</string>
+    <string name="alert_permissions_necessary_cancel_button">Cancelar</string>
+
+    <!-- Network unavailable alert -->
+    <string name="alert_network_required_for_refresh">Actualizar la lista de aplicaciones requiere una conexión a Internet disponible o una más fuerte.</string>
+
+    <!-- Wifi alert -->
+    <string name="alert_wifi_disabled_title">¡El Wi-Fi está desactivado!</string>
+    <string name="alert_wifi_disabled_message">Un archivo grande (~80MB) necesita ser descargado.</string>
+    <string name="alert_wifi_disabled_continue_button">Continuar</string>
+    <string name="alert_wifi_disabled_turn_on_wifi_button">Encender Wi-Fi</string>
+    <string name="alert_wifi_disabled_cancel_button">Cancelar</string>
+
+    <!-- Toasts -->
+    <string name="session_unique_name_required">¡Las sesiones requieren un nombre único!</string>
+    <string name="filesystem_unique_name_required">¡Los sistemas de archivos requieren un nombre único!</string>
+    <string name="single_session_supported">¡UserLAnd por ahora sólo soporta una sesión activa!</string>
+    <string name="no_supported_architecture">UserLAnd por ahora no soporta la arquitectura de tu dispositivo.</string>
+    <string name="debug_log_deleted">¡El archivo de registro de depuración fue eliminado o es inexistente!</string>
+
+    <!-- Content descriptions -->
+    <string name="desc_arrow">Imagen: La flecha indica la conexión entre la sesión y el sistema de archivos.</string>
+    <string name="desc_filesystem_type">Imagen: Logotipo de distribución</string>
+
+    <!-- Misc -->
+    <string name="custom_sessions">Sesiones Personalizadas</string>
+    <string name="apps_sessions">Sesiones de Aplicaciones</string>
+</resources>

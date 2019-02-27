@@ -18,12 +18,13 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_edit.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.utils.AppsPreferences
 import tech.ula.utils.BuildWrapper
 import tech.ula.utils.ValidationUtility
-import tech.ula.utils.launchAsync
 import tech.ula.viewmodel.FilesystemEditViewModel
 
 class FilesystemEditFragment : Fragment() {
@@ -167,7 +168,7 @@ class FilesystemEditFragment : Fragment() {
                 Toast.makeText(activityContext, R.string.no_supported_architecture, Toast.LENGTH_LONG).show()
                 return true
             }
-            launchAsync {
+            GlobalScope.launch {
                 when (filesystemEditViewModel.insertFilesystem(filesystem)) {
                     true -> navController.popBackStack()
                     false -> Toast.makeText(activityContext, R.string.filesystem_unique_name_required, Toast.LENGTH_LONG).show()
@@ -179,6 +180,7 @@ class FilesystemEditFragment : Fragment() {
     }
 
     private fun filesystemParametersAreCorrect(): Boolean {
+        val blacklistedUsernames = activityContext.resources.getStringArray(R.array.blacklisted_usernames)
         val validator = ValidationUtility()
         val username = filesystem.defaultUsername
         val password = filesystem.defaultPassword
@@ -189,25 +191,19 @@ class FilesystemEditFragment : Fragment() {
             return false
         }
 
+        val usernameCredentials = validator.validateUsername(username, blacklistedUsernames)
+        val passwordCredentials = validator.validatePassword(password)
+        val vncPasswordCredentials = validator.validateVncPassword(vncPassword)
+
         when {
-            username.isEmpty() || password.isEmpty() || vncPassword.isEmpty() -> {
-                Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
-            }
-            vncPassword.length > 8 || vncPassword.length < 6 -> {
-                Toast.makeText(activityContext, R.string.error_vnc_password_length_incorrect, Toast.LENGTH_LONG).show()
-            }
-            !validator.isUsernameValid(username) -> {
-                Toast.makeText(activityContext, R.string.error_username_invalid, Toast.LENGTH_LONG).show()
-            }
-            !validator.isPasswordValid(password) -> {
-                Toast.makeText(activityContext, R.string.error_password_invalid, Toast.LENGTH_LONG).show()
-            }
-            !validator.isPasswordValid(vncPassword) -> {
-                Toast.makeText(activityContext, R.string.error_vnc_password_invalid, Toast.LENGTH_LONG).show()
-            }
-            else -> {
+            !usernameCredentials.credentialIsValid ->
+                Toast.makeText(activityContext, usernameCredentials.errorMessageId, Toast.LENGTH_LONG).show()
+            !passwordCredentials.credentialIsValid ->
+                Toast.makeText(activityContext, passwordCredentials.errorMessageId, Toast.LENGTH_LONG).show()
+            !vncPasswordCredentials.credentialIsValid ->
+                Toast.makeText(activityContext, vncPasswordCredentials.errorMessageId, Toast.LENGTH_LONG).show()
+            else ->
                 return true
-            }
         }
         return false
     }

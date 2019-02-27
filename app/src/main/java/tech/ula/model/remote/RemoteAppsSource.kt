@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import tech.ula.model.entities.App
 import tech.ula.utils.ConnectionUtility
+import tech.ula.utils.getBranchToDownloadAssetsFrom
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -28,7 +29,8 @@ class GithubAppsFetcher(private val applicationFilesDir: String, private val con
     operator fun <T> List<T>.component6() = get(5)
     operator fun <T> List<T>.component7() = get(6)
 
-    private val branch = "master" // Base off different support branches for testing.
+    private val assetTypeForApps = "apps"
+    private val branch = getBranchToDownloadAssetsFrom(assetTypeForApps) // Base off different support branches for testing.
     private val baseUrl = "://github.com/CypherpunkArmory/UserLAnd-Assets-Support/raw/$branch/apps"
     private var protocol = "https"
     private val hostname = "$protocol$baseUrl"

@@ -1,8 +1,7 @@
 package tech.ula.utils
 
-import android.util.Log
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.InputStream
 import java.util.ArrayList
@@ -12,28 +11,20 @@ import kotlin.text.Charsets.UTF_8
 class ExecUtility(
     private val applicationFilesDirPath: String,
     private val externalStoragePath: String,
-    private val defaultPreferences: DefaultPreferences,
-    private val logger: LogUtility = LogUtility()
+    private val defaultPreferences: DefaultPreferences
 ) {
 
-    companion object {
-        val EXEC_DEBUG_LOGGER = { line: String -> Unit
-            Log.d("EXEC_DEBUG_LOGGER", line)
-        }
-
-        val NOOP_CONSUMER: (line: String) -> Int = { 0 }
-    }
+    private val noOperationConsumer: (line: String) -> Int = { 0 }
 
     fun execLocal(
         executionDirectory: File,
         command: ArrayList<String>,
-        listener: (String) -> Any = NOOP_CONSUMER,
+        listener: (String) -> Any = noOperationConsumer,
         doWait: Boolean = true,
         wrapped: Boolean = false,
         environmentVars: HashMap<String, String> = HashMap()
     ): Process {
 
-        // TODO refactor naming convention to command debugging log
         val prootDebuggingEnabled = defaultPreferences.getProotDebuggingEnabled()
         val prootDebuggingLevel =
                 if (prootDebuggingEnabled) defaultPreferences.getProotDebuggingLevel()
@@ -55,8 +46,6 @@ class ExecUtility(
             pb.directory(executionDirectory)
             pb.environment().putAll(env)
             pb.redirectErrorStream(true)
-
-            listener("Running: ${pb.command()} \n with env $env")
 
             val process = pb.start()
             val logProot = prootDebuggingEnabled && command.any { it.contains("execInProot") }
@@ -94,24 +83,22 @@ class ExecUtility(
     }
 
     private fun writeDebugLogFile(inputStream: InputStream, debugLogLocation: String) {
-        launch(CommonPool) {
-            async {
-                val reader = inputStream.bufferedReader(UTF_8)
-                val writer = File(debugLogLocation).writer(UTF_8)
-                reader.forEachLine {
-                    writer.write("$it\n")
-                }
-                reader.close()
-                writer.flush()
-                writer.close()
+        GlobalScope.launch {
+            val reader = inputStream.bufferedReader(UTF_8)
+            val writer = File(debugLogLocation).writer(UTF_8)
+            reader.forEachLine {
+                writer.write("$it\n")
             }
+            reader.close()
+            writer.flush()
+            writer.close()
         }
     }
 
     fun wrapWithBusyboxAndExecute(
         targetDirectoryName: String,
         commandToWrap: String,
-        listener: (String) -> Any = NOOP_CONSUMER,
+        listener: (String) -> Any = noOperationConsumer,
         doWait: Boolean = true,
         environmentVars: HashMap<String, String> = HashMap()
     ): Process {

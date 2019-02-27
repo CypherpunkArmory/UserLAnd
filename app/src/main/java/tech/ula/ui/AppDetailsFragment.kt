@@ -2,18 +2,23 @@ package tech.ula.ui
 
 import android.app.Activity
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.RadioButton
+import android.widget.TextView
 import kotlinx.android.synthetic.main.frag_app_details.*
+import org.jetbrains.anko.find
 import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.utils.AppsPreferences
 import tech.ula.utils.LocalFileLocator
 import tech.ula.utils.SshTypePreference
 import tech.ula.utils.VncTypePreference
+import tech.ula.utils.XsdlTypePreference
 
 class AppDetailsFragment : Fragment() {
 
@@ -46,27 +51,36 @@ class AppDetailsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        if (!(app.supportsGui && app.supportsCli)) {
+        if (!app.supportsGui) {
             apps_vnc_preference.isEnabled = false
+            apps_xsdl_preference.isEnabled = false
+        } else if (!app.supportsCli && app.supportsGui)
             apps_ssh_preference.isEnabled = false
-            return
+
+        val xsdlPreferenceButton = view.find<RadioButton>(R.id.apps_xsdl_preference)
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
+            xsdlPreferenceButton.isEnabled = false
+            xsdlPreferenceButton.alpha = 0.5f
+
+            val xsdlSupportedText = view.find<TextView>(R.id.text_xsdl_version_supported_description)
+            xsdlSupportedText.visibility = View.VISIBLE
         }
     }
 
     private fun setupPreferredServiceTypeRadioGroup() {
-        val appServiceTypePreference = appsPreferences.getAppServiceTypePreference(app)
-        if (appServiceTypePreference == SshTypePreference) {
-            apps_service_type_preferences.check(R.id.apps_ssh_preference)
-        } else {
-            apps_service_type_preferences.check(R.id.apps_vnc_preference)
+        when (appsPreferences.getAppServiceTypePreference(app)) {
+            is SshTypePreference -> apps_service_type_preferences.check(R.id.apps_ssh_preference)
+            is VncTypePreference -> apps_service_type_preferences.check(R.id.apps_vnc_preference)
+            is XsdlTypePreference -> apps_service_type_preferences.check(R.id.apps_xsdl_preference)
         }
 
         apps_service_type_preferences.setOnCheckedChangeListener { _, checkedId ->
-            val selectedServiceType = when (R.id.apps_ssh_preference) {
-                checkedId -> SshTypePreference
-                else -> VncTypePreference
+            val selectedServiceType = when (checkedId) {
+                R.id.apps_ssh_preference -> SshTypePreference
+                R.id.apps_vnc_preference -> VncTypePreference
+                R.id.apps_xsdl_preference -> XsdlTypePreference
+                else -> SshTypePreference
             }
-
             appsPreferences.setAppServiceTypePreference(app.name, selectedServiceType)
         }
     }
