@@ -14,6 +14,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.support.v4.content.ContextCompat
+import android.util.DisplayMetrics
+import android.view.WindowManager
 import org.acra.ACRA
 import tech.ula.R
 import tech.ula.model.entities.App
@@ -395,6 +397,24 @@ class TimeUtility {
 class AcraWrapper {
     fun putCustomString(key: String, value: String) {
         ACRA.getErrorReporter().putCustomData(key, value)
+    }
+}
+
+class DeviceDimensions {
+    private var width = 720
+    private var height = 1480
+
+    fun getDeviceDimensions(windowManager: WindowManager, displayMetrics: DisplayMetrics) {
+        windowManager.defaultDisplay.getMetrics(displayMetrics)
+        width = displayMetrics.widthPixels
+        height = displayMetrics.heightPixels
+    }
+
+    fun getGeometry(): String {
+        return when (height > width) {
+            true -> "${height}x$width"
+            false -> "${width}x$height"
+        }
     }
 }
 

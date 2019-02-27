@@ -22,10 +22,12 @@ import android.os.Environment
 import android.support.design.widget.TextInputEditText
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
+import android.util.DisplayMetrics
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.animation.AlphaAnimation
 import android.widget.Button
 import android.widget.RadioButton
@@ -316,13 +318,26 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         // TODO: Alert user when defaulting to VNC
         if (session.serviceType == "xsdl" && Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
             session.serviceType = "vnc"
-            startSession(session)
-        } else if (session.serviceType == "xsdl") {
-            viewModel.lastSelectedSession = session
-            sendXsdlIntentToSetDisplayNumberAndExpectResult()
-        } else {
-            startSession(session)
         }
+
+        when (session.serviceType) {
+            "xsdl" -> {
+                viewModel.lastSelectedSession = session
+                sendXsdlIntentToSetDisplayNumberAndExpectResult()
+            }
+            "vnc" -> {
+                getDeviceDimensions(session)
+                startSession(session)
+            }
+            else -> startSession(session)
+        }
+    }
+
+    private fun getDeviceDimensions(session: Session) {
+        val deviceDimensions = DeviceDimensions()
+        val windowManager = applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        deviceDimensions.getDeviceDimensions(windowManager, DisplayMetrics())
+        session.geometry = deviceDimensions.getGeometry()
     }
 
     private fun startSession(session: Session) {

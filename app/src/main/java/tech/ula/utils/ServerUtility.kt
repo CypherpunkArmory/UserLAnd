@@ -71,6 +71,7 @@ class ServerUtility(
             val env = HashMap<String, String>()
             env["INITIAL_USERNAME"] = session.username
             env["INITIAL_VNC_PASSWORD"] = session.vncPassword
+            env["DIMENSIONS"] = session.geometry
             val process = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, doWait = false, environmentVars = env)
             process.pid()
         } catch (err: Exception) {
