@@ -10,10 +10,14 @@ class ServerUtility(
 ) {
 
     fun Process.pid(): Long {
-        return this.toString().substringAfter("pid=").substringBefore(",").substringBefore("]").trim().toLong()
+        return this.toString()
+                .substringAfter("pid=")
+                .substringBefore(",")
+                .substringBefore("]")
+                .trim().toLong()
     }
 
-    fun Session.pidRelativeFilePath(): String {
+    private fun Session.pidRelativeFilePath(): String {
         return when (this.serviceType) {
             "ssh" -> "/run/dropbear.pid"
             "vnc" -> "/home/${this.username}/.vnc/localhost:${this.port}.pid"
@@ -22,7 +26,7 @@ class ServerUtility(
         }
     }
 
-    fun Session.pidFilePath(): String {
+    private fun Session.pidFilePath(): String {
         return "$applicationFilesDirPath/${this.filesystemId}${this.pidRelativeFilePath()}"
     }
 
@@ -55,7 +59,7 @@ class ServerUtility(
         deletePidFile(session)
         val command = "/support/startSSHServer.sh"
         return try {
-            val process = busyboxExecutor.executeProotCommand(command, filesystemDirName, commandShouldTerminate = false)
+            val process: Process = busyboxExecutor.executeProotCommand(command, filesystemDirName, false)
             process.pid()
         } catch (err: Exception) {
             logger.logRuntimeErrorForCommand(functionName = "startSSHServer", command = command, err = err)
