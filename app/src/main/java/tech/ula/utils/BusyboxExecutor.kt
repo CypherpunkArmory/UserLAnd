@@ -1,6 +1,5 @@
 package tech.ula.utils
 
-import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -16,21 +15,15 @@ class BusyboxExecutor(
     private val busyboxWrapper: BusyboxWrapper = BusyboxWrapper()
 ) {
 
-    private val discardOutput: (String) -> Any = {
-        Log.i("busybox", it)
-    }
+    private val discardOutput: (String) -> Any = {}
 
-    suspend fun recursivelyDelete(absolutePath: String): Boolean = withContext(Dispatchers.IO) {
-        val command = "rm -rf $absolutePath"
-        return@withContext executeCommand(command)
-    }
-
+    @Throws(Exception::class)
     fun executeCommand(
         command: String,
         listener: (String) -> Any = discardOutput
     ): Boolean {
         val updatedCommand = busyboxWrapper.addBusybox(command)
-        val env = hashMapOf("ROOT_PATH" to filesDir.absolutePath)
+        val env = busyboxWrapper.getBusyboxEnv(filesDir)
         val processBuilder = ProcessBuilder(updatedCommand)
         processBuilder.directory(filesDir)
         processBuilder.environment().putAll(env)
@@ -41,12 +34,14 @@ class BusyboxExecutor(
         return process.waitFor() == 0
     }
 
+    @Throws(Exception::class)
     fun executeProotCommand(
         command: String,
         filesystemDirName: String,
         commandShouldTerminate: Boolean,
         env: HashMap<String, String> = hashMapOf(),
-        listener: (String) -> Any = discardOutput
+        listener: (String) -> Any = discardOutput,
+        coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     ): Process {
         val prootDebugEnabled = defaultPreferences.getProotDebuggingEnabled()
         val prootDebugLevel =
@@ -56,13 +51,7 @@ class BusyboxExecutor(
         val updatedCommand = busyboxWrapper.addBusyboxAndProot(command)
         val filesystemDir = File("${filesDir.absolutePath}/$filesystemDirName")
 
-        env.putAll(hashMapOf(
-                "LD_LIBRARY_PATH" to "${filesDir.absolutePath}/support",
-                "ROOT_PATH" to filesDir.absolutePath,
-                "ROOTFS_PATH" to filesystemDir.absolutePath,
-                "PROOT_DEBUG_LEVEL" to prootDebugLevel,
-                "EXTRA_BINDINGS" to "-b ${externalStorageDir.absolutePath}:/sdcard",
-                "OS_VERSION" to System.getProperty("os.version")))
+        env.putAll(busyboxWrapper.getProotEnv(filesDir, filesystemDir, prootDebugLevel, externalStorageDir))
 
         val processBuilder = ProcessBuilder(updatedCommand)
         processBuilder.directory(filesDir)
@@ -70,11 +59,16 @@ class BusyboxExecutor(
         processBuilder.redirectErrorStream(true)
 
         val process = processBuilder.start()
-        if (prootDebugEnabled) redirectOutputToDebugLog(process.inputStream, prootDebugLocation)
+        if (prootDebugEnabled) redirectOutputToDebugLog(process.inputStream, prootDebugLocation, coroutineScope)
         else if (commandShouldTerminate) {
             collectOutput(process.inputStream, listener)
         }
         return process
+    }
+
+    suspend fun recursivelyDelete(absolutePath: String): Boolean = withContext(Dispatchers.IO) {
+        val command = "rm -rf $absolutePath"
+        return@withContext executeCommand(command)
     }
 
     private fun collectOutput(inputStream: InputStream, listener: (String) -> Any) {
@@ -85,20 +79,22 @@ class BusyboxExecutor(
         buf.close()
     }
 
-    private fun redirectOutputToDebugLog(inputStream: InputStream, prootDebugLocation: String) {
+    private fun redirectOutputToDebugLog(
+            inputStream: InputStream,
+            prootDebugLocation: String,
+            coroutineScope: CoroutineScope
+    ) = coroutineScope.launch {
         val prootLogFile = File(prootDebugLocation)
         if (prootLogFile.exists()) {
             prootLogFile.delete()
         }
         prootLogFile.createNewFile()
-        CoroutineScope(Dispatchers.IO).launch {
-            val reader = inputStream.bufferedReader(UTF_8)
-            val writer = prootLogFile.writer(UTF_8)
-            reader.forEachLine { line -> writer.write("$line\n") }
-            reader.close()
-            writer.flush()
-            writer.close()
-        }
+        val reader = inputStream.bufferedReader(UTF_8)
+        val writer = prootLogFile.writer(UTF_8)
+        reader.forEachLine { line -> writer.write("$line\n") }
+        reader.close()
+        writer.flush()
+        writer.close()
     }
 }
 
@@ -109,9 +105,23 @@ class BusyboxWrapper {
         return listOf("support/busybox", "sh", "-c", command)
     }
 
+    fun getBusyboxEnv(filesDir: File): HashMap<String, String> {
+        return hashMapOf("ROOT_PATH" to filesDir.absolutePath)
+    }
+
     // Proot scripts expect CWD to be `applicationFilesDir/<filesystem`
     fun addBusyboxAndProot(command: String): List<String> {
         val commandWithProot = "support/execInProot.sh $command"
         return listOf("support/busybox", "sh", "-c", commandWithProot)
+    }
+
+    fun getProotEnv(filesDir: File, filesystemDir: File, prootDebugLevel: String, externalStorageDir: File): HashMap<String, String> {
+        return hashMapOf(
+                "LD_LIBRARY_PATH" to "${filesDir.absolutePath}/support",
+                "ROOT_PATH" to filesDir.absolutePath,
+                "ROOTFS_PATH" to filesystemDir.absolutePath,
+                "PROOT_DEBUG_LEVEL" to prootDebugLevel,
+                "EXTRA_BINDINGS" to "-b ${externalStorageDir.absolutePath}:/sdcard",
+                "OS_VERSION" to System.getProperty("os.version"))
     }
 }

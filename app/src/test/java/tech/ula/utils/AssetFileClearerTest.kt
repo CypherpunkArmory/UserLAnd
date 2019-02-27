@@ -19,7 +19,7 @@ class AssetFileClearerTest {
     @get:Rule
     val tempFolder = TemporaryFolder()
 
-    @Mock lateinit var mockExecUtility: ExecUtility
+    @Mock lateinit var busyboxExecutor: BusyboxExecutor
 
     lateinit var filesDir: File
     lateinit var supportDir: File
@@ -48,7 +48,7 @@ class AssetFileClearerTest {
     fun setup() {
         createTestFiles()
 
-        assetFileClearer = AssetFileClearer(filesDir, assetDirectoryNames, mockExecUtility)
+        assetFileClearer = AssetFileClearer(filesDir, assetDirectoryNames, busyboxExecutor)
     }
 
     fun createTestFiles() {

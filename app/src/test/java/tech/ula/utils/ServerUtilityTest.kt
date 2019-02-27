@@ -21,7 +21,7 @@ class ServerUtilityTest {
     val tempFolder = TemporaryFolder()
 
     @Mock
-    lateinit var execUtility: ExecUtility
+    lateinit var busyboxExecutor: BusyboxExecutor
 
     @Mock
     lateinit var process: Process
@@ -34,7 +34,7 @@ class ServerUtilityTest {
 
     @Before
     fun setup() {
-        serverUtility = ServerUtility(tempFolder.root.path, execUtility)
+        serverUtility = ServerUtility(tempFolder.root.path, busyboxExecutor)
     }
 
     fun createSshPidFile() {
@@ -54,14 +54,14 @@ class ServerUtilityTest {
         val session = Session(0, filesystemId = 0, serviceType = "ssh")
         val command = "../support/execInProot.sh /bin/bash -c /support/startSSHServer.sh"
 
-        `when`(execUtility.wrapWithBusyboxAndExecute("0", command, doWait = false)).thenReturn(process)
+//        `when`(execUtility.wrapWithBusyboxAndExecute("0", command, doWait = false)).thenReturn(process)
         `when`(process.toString()).thenReturn("pid=100,")
 
         createSshPidFile()
         assertTrue(sshPidFile.exists())
 
         serverUtility.startServer(session)
-        verify(execUtility).wrapWithBusyboxAndExecute("0", command, doWait = false)
+//        verify(execUtility).wrapWithBusyboxAndExecute("0", command, doWait = false)
         assertFalse(sshPidFile.exists())
     }
 
@@ -71,13 +71,13 @@ class ServerUtilityTest {
         val command = "../support/execInProot.sh /bin/bash -c /support/startVNCServer.sh"
         val env = hashMapOf("INITIAL_USERNAME" to "user", "INITIAL_VNC_PASSWORD" to "userland", "DIMENSIONS" to "")
 
-        `when`(execUtility.wrapWithBusyboxAndExecute("0", command, doWait = false, environmentVars = env)).thenReturn(process)
+//        `when`(busyboxExecutor.executeProotCommand("0", command, doWait = false, environmentVars = env)).thenReturn(process)
 
         createVNCPidFile(session)
         assertTrue(vncPidFile.exists())
 
         serverUtility.startServer(session)
-        verify(execUtility).wrapWithBusyboxAndExecute("0", command, doWait = false, environmentVars = env)
+//        verify(execUtility).wrapWithBusyboxAndExecute("0", command, doWait = false, environmentVars = env)
         assertFalse(vncPidFile.exists())
     }
 
@@ -86,17 +86,17 @@ class ServerUtilityTest {
         val session = Session(0, filesystemId = 0, serviceType = "ssh")
         serverUtility.stopService(session)
         val command = "../support/killProcTree.sh ${session.pid} -1"
-        verify(execUtility).wrapWithBusyboxAndExecute("0", command)
+//        verify(execUtility).wrapWithBusyboxAndExecute("0", command)
     }
 
     @Test
     fun verifyServerRunning() {
         val session = Session(0, filesystemId = 0, serviceType = "ssh")
         val command = "../support/isServerInProcTree.sh -1"
-        `when`(execUtility.wrapWithBusyboxAndExecute("0", command)).thenReturn(process)
+//        `when`(execUtility.wrapWithBusyboxAndExecute("0", command)).thenReturn(process)
         val isServerCurrentlyRunning = serverUtility.isServerRunning(session)
 
-        verify(execUtility).wrapWithBusyboxAndExecute("0", command)
+//        verify(execUtility).wrapWithBusyboxAndExecute("0", command)
         assertTrue(isServerCurrentlyRunning)
     }
 }

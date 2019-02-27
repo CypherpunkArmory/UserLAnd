@@ -47,7 +47,13 @@ class FilesystemUtility(
             env["INITIAL_PASSWORD"] = filesystem.defaultPassword
             env["INITIAL_VNC_PASSWORD"] = filesystem.defaultVncPassword
 
-            val process = busyboxExecutor.executeProotCommand(command, filesystemDirName, commandShouldTerminate = true, env = env)
+            val process = busyboxExecutor.executeProotCommand(
+                command,
+                filesystemDirName,
+                commandShouldTerminate = true,
+                env = env,
+                listener = listener
+            )
             process.waitFor()
         } catch (err: Exception) {
             logger.logRuntimeErrorForCommand(functionName = "extractFilesystem", command = command, err = err)

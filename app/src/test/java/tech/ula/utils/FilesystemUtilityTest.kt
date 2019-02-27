@@ -23,7 +23,7 @@ class FilesystemUtilityTest {
     lateinit var applicationFilesDirPath: String
 
     @Mock
-    lateinit var execUtility: ExecUtility
+    lateinit var busyboxExecutor: BusyboxExecutor
 
     @Mock
     lateinit var logger: LogUtility
@@ -38,7 +38,7 @@ class FilesystemUtilityTest {
     @Before
     fun setup() {
         applicationFilesDirPath = tempFolder.root.path
-        filesystemUtility = FilesystemUtility(applicationFilesDirPath, execUtility, logger)
+        filesystemUtility = FilesystemUtility(applicationFilesDirPath, busyboxExecutor, logger)
     }
 
     @Test
@@ -56,8 +56,8 @@ class FilesystemUtilityTest {
                 "INITIAL_PASSWORD" to "password", "INITIAL_VNC_PASSWORD" to "vncpass")
 
         filesystemUtility.extractFilesystem(filesystem, statelessListener)
-        verify(execUtility).wrapWithBusyboxAndExecute(targetDirectoryName, command, statelessListener,
-                environmentVars = defaultEnvironmentalVariables)
+//        verify(execUtility).wrapWithBusyboxAndExecute(targetDirectoryName, command, statelessListener,
+//                environmentVars = defaultEnvironmentalVariables)
     }
 
     @Test
