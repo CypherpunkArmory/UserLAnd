@@ -5,25 +5,40 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import java.lang.Exception
 
-class AssetFileClearer(private val filesDir: File, private val assetDirectoryNames: Set<String>) {
+class AssetFileClearer(
+    private val filesDir: File,
+    private val assetDirectoryNames: Set<String>,
+    private val busyboxExecutor: BusyboxExecutor
+) {
     @Throws(Exception::class)
-    fun clearAllSupportAssets() {
+    suspend fun clearAllSupportAssets() {
         if (!filesDir.exists()) throw FileNotFoundException()
-        clearTopLevelAssets(assetDirectoryNames)
         clearFilesystemSupportAssets()
+        clearTopLevelAssets(assetDirectoryNames)
     }
 
     @Throws(IOException::class)
-    private fun clearTopLevelAssets(assetDirectoryNames: Set<String>) {
+    private suspend fun clearTopLevelAssets(assetDirectoryNames: Set<String>) {
+        val supportDirName = "support"
         for (file in filesDir.listFiles()) {
             if (!file.isDirectory) continue
             if (!assetDirectoryNames.contains(file.name)) continue
-            if (!file.deleteRecursively()) throw IOException()
+            // Removing the support directory must happen last since it contains busybox
+            if (file.name == supportDirName) continue
+            if (busyboxExecutor.recursivelyDelete(file.absolutePath) !is SuccessfulExecution) {
+                throw IOException()
+            }
+        }
+        val supportDir = File("${filesDir.absolutePath}/$supportDirName")
+        if (supportDir.exists()) {
+            if (busyboxExecutor.recursivelyDelete(supportDir.absolutePath) !is SuccessfulExecution) {
+                throw IOException()
+            }
         }
     }
 
     @Throws(IOException::class)
-    private fun clearFilesystemSupportAssets() {
+    private suspend fun clearFilesystemSupportAssets() {
         for (file in filesDir.listFiles()) {
             if (!file.isDirectory || file.name.toIntOrNull() == null) continue
 
@@ -33,8 +48,10 @@ class AssetFileClearer(private val filesDir: File, private val assetDirectoryNam
             for (supportFile in supportDirectory.listFiles()) {
                 // Exclude directories and hidden files.
                 if (supportFile.isDirectory || supportFile.name.first() == '.') continue
-                // Use deleteRecursively extension to match functionality above
-                if (!supportFile.deleteRecursively()) throw IOException()
+                // Use deleteRecursively to match functionality above
+                if (busyboxExecutor.recursivelyDelete(supportFile.path) !is SuccessfulExecution) {
+                    throw IOException()
+                }
             }
         }
     }

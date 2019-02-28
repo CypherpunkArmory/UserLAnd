@@ -18,6 +18,7 @@ import tech.ula.model.entities.Session
 import tech.ula.model.repositories.Migration1To2
 import tech.ula.model.repositories.Migration2To3
 import tech.ula.model.repositories.Migration3To4
+import tech.ula.model.repositories.Migration4To5
 import tech.ula.model.repositories.UlaDatabase
 import java.io.IOException
 
@@ -42,7 +43,7 @@ class MigrationTest {
 
         db.close()
 
-        helper.runMigrationsAndValidate(TEST_DB, 2, true, Migration1To2(), Migration2To3(), Migration3To4())
+        helper.runMigrationsAndValidate(TEST_DB, 2, true, Migration1To2(), Migration2To3(), Migration3To4(), Migration4To5())
     }
 
     @Test
@@ -98,10 +99,18 @@ class MigrationTest {
         helper.runMigrationsAndValidate(TEST_DB, 4, true, Migration3To4())
     }
 
+    @Test
+    @Throws(IOException::class)
+    fun migrate4To5() {
+        helper.createDatabase(TEST_DB, 4)
+
+        helper.runMigrationsAndValidate(TEST_DB, 5, true, Migration4To5())
+    }
+
     private fun getMigratedDatabase(): UlaDatabase {
         val db = Room.databaseBuilder(InstrumentationRegistry.getTargetContext(),
                 UlaDatabase::class.java, TEST_DB)
-                .addMigrations(Migration1To2(), Migration2To3(), Migration3To4())
+                .addMigrations(Migration1To2(), Migration2To3(), Migration3To4(), Migration4To5())
                 .build()
 
         helper.closeWhenFinished(db)

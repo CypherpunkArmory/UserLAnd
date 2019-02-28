@@ -7,7 +7,6 @@ import android.arch.lifecycle.ViewModelProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.withContext
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
@@ -153,10 +152,10 @@ class MainActivityViewModel(
         submitSessionStartupEvent(DownloadAssets(requiredDownloads))
     }
 
-    suspend fun handleClearSupportFiles(assetFileClearer: AssetFileClearer) = withContext(Dispatchers.IO) {
+    suspend fun handleClearSupportFiles(assetFileClearer: AssetFileClearer) {
         if (sessionStartupFsm.sessionsAreActive()) {
             state.postValue(ActiveSessionsMustBeDeactivated)
-            return@withContext
+            return
         }
         state.postValue(ClearingSupportFiles)
         try {

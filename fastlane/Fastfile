@@ -35,6 +35,6 @@ platform :android do
   desc "Deploy a new version to the Google Play"
   lane :deploy do
     update_changelogs
-    supply(apk: "../app/build/outputs/apk/release/app-release.apk")
+    supply(apk: "app/build/outputs/apk/release/app-release.apk")
   end
 end

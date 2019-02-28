@@ -1,12 +1,16 @@
 package tech.ula.utils
 
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.never
+import com.nhaarman.mockitokotlin2.verify
+import com.nhaarman.mockitokotlin2.whenever
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
+import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import java.io.File
 import java.io.FileNotFoundException
@@ -16,6 +20,8 @@ class AssetFileClearerTest {
 
     @get:Rule
     val tempFolder = TemporaryFolder()
+
+    @Mock lateinit var busyboxExecutor: BusyboxExecutor
 
     lateinit var filesDir: File
     lateinit var supportDir: File
@@ -44,7 +50,7 @@ class AssetFileClearerTest {
     fun setup() {
         createTestFiles()
 
-        assetFileClearer = AssetFileClearer(filesDir, assetDirectoryNames)
+        assetFileClearer = AssetFileClearer(filesDir, assetDirectoryNames, busyboxExecutor)
     }
 
     fun createTestFiles() {
@@ -72,25 +78,27 @@ class AssetFileClearerTest {
     fun `Throws FileNotFoundException if files directory does not exist`() {
         filesDir.deleteRecursively()
 
-        assetFileClearer.clearAllSupportAssets()
+        runBlocking { assetFileClearer.clearAllSupportAssets() }
     }
 
     @Test
-    fun `Clears all assets and leaves filesystem structure intact`() {
+    fun `Clears all assets and leaves filesystem structure intact`() = runBlocking {
+        whenever(busyboxExecutor.recursivelyDelete(any())).thenReturn(SuccessfulExecution)
         assetFileClearer.clearAllSupportAssets()
 
-        assertTrue(filesDir.exists())
-        assertTrue(randomTopLevelFile.exists())
-        assertTrue(randomTopLevelDir.exists())
+        verify(busyboxExecutor, never()).recursivelyDelete(filesDir.absolutePath)
+        verify(busyboxExecutor, never()).recursivelyDelete(randomTopLevelFile.absolutePath)
+        verify(busyboxExecutor, never()).recursivelyDelete(randomTopLevelDir.absolutePath)
 
-        assertFalse(debianDir.exists())
-        assertFalse(supportDir.exists())
-        assertFalse(topLevelDebianAssetFile.exists())
-        assertFalse(topLevelSupportAssetFile.exists())
+        verify(busyboxExecutor).recursivelyDelete(debianDir.absolutePath)
+        verify(busyboxExecutor).recursivelyDelete(supportDir.absolutePath)
+        verify(busyboxExecutor, never()).recursivelyDelete(topLevelDebianAssetFile.absolutePath)
+        verify(busyboxExecutor, never()).recursivelyDelete(topLevelSupportAssetFile.absolutePath)
 
-        assertTrue(filesystemDir.exists())
-        assertTrue(filesystemSupportDir.exists())
-        assertTrue(hiddenFilesystemSupportFile.exists())
-        assertFalse(nestedFilesystemAssetFile.exists())
+        verify(busyboxExecutor, never()).recursivelyDelete(filesystemDir.absolutePath)
+        verify(busyboxExecutor, never()).recursivelyDelete(filesystemSupportDir.absolutePath)
+        verify(busyboxExecutor, never()).recursivelyDelete(hiddenFilesystemSupportFile.absolutePath)
+        verify(busyboxExecutor).recursivelyDelete(nestedFilesystemAssetFile.absolutePath)
+        Unit
     }
 }

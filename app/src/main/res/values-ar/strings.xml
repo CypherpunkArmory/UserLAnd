@@ -1,0 +1,196 @@
+<resources>                                                         <!-- Translators, pay attention to these notes! --> 
+    <string name="app_name">UserLAnd</string>
+    <string name="welcome">مرحبا بكم في Userland!</string>
+    <string name="permission_request_code">1000</string>
+
+    <!-- Labels -->
+    <string name="apps">التطبيقات</string>                               <!-- This is a button, so the word used should be short! -->
+    <string name="sessions">الجلسات</string>
+    <string name="edit_session">تعديل الجلسة</string>
+    <string name="filesystems">أنظمة الملفات</string>
+    <string name="edit_filesystem">تعديل نظام الملفات</string>
+    <string name="settings">اعدادات</string>
+    <string name="help">مساعدة</string>
+    <string name="toc">الاحكام والشروط</string>
+
+    <!-- Buttons -->
+    <string name="button_continue">استمرار</string>
+
+    <!-- Menus -->
+    <string name="app_info">معلومات التطبيق</string>
+    <string name="stop_app">ايقاف التطبيق</string>
+    <string name="kill_service">قتل الخدمة</string>               <!-- We know this says name="kill_service" but it is really stopping a session. -->
+    <string name="edit">تعديل</string>
+    <string name="delete">حذف</string>
+    <string name="save">حفظ</string>
+    <string name="add">اضافة</string>
+    <string name="refresh">انعاش</string>
+    <string name="clear_support_files">مسح كل ملفات الدعم</string>
+
+    <!-- Hints -->
+    <string name="hint_filesystem_name">اسم نظام الملفات</string>
+    <string name="hint_session_name">اسم الجلسة</string>
+    <string name="hint_username">اسم المستخدم</string>
+    <string name="hint_password">كلمة السر</string>
+    <string name="hint_vnc_password">VNC كلمة السر</string>
+    
+    <!-- Errors -->
+    <string name="error_session_name">يجب عليك تقديم اسم جلسة</string>
+    <string name="error_filesystem_name">يجب عليك تقديم اسم نظام الملفات</string>
+    <string name="error_username">يجب عليك تقديم اسم مستخدم</string>
+    <string name="error_empty_field">يجب إدخال كل الحقول!</string>
+    <string name="error_app_description_not_found">لا يمكن العثور على وصف لهذا التطبيق. حاول تحديث.</string>
+    <string name="error_vnc_password_length_incorrect">يجب أن تكون كلمة مرور VNC بين 6 إلى 8 أحرف!</string>
+    <string name="error_username_invalid">اسم المستخدم يحتوي على أحرف غير صالحة</string>
+    <string name="error_password_invalid">كلمة السر بها أحرف غير صالحة</string>
+    <string name="error_vnc_password_invalid">كلمة السر VNC تحتوي  أحرف غير صالحة</string>
+    <string name="error_username_invalid_characters">يجب أن تتكون الأحرف في اسم المستخدم من 1 إلى 30 حرفًا بأحرف و / أو أرقام صغيرة.</string>
+    <string name="error_username_in_blacklist">ربما يتم حجز اسم المستخدم هذا بواسطة Linux ولا يمكن استخدامه كاسم مستخدم لنظام الملفات</string>
+
+    <!-- Illegal State Dialog -->
+    <string name="illegal_state_message">%1$s \n سيتم الآن تعطل التطبيق بحيث يمكننا استلام سجل أخطاء. لا تتردد أيضًا في إخبارنا على جيثب! نحن نعمل على حل هذه القضايا.</string>
+    <string name="illegal_state_title">لقد دخل UserLAnd حالة غير قانونية!</string>
+
+    <string name="illegal_state_transition">انتقال الحالة السيئة:%1$s</string>
+
+    <string name="illegal_state_too_many_selections_when_permissions_granted">تم اختيار كل من الجلسة والتطبيق عند منح الأذونات.</string>
+    <string name="illegal_state_no_selections_when_permissions_granted">لم يتم تحديد جلسة أو تطبيق عند منح الأذونات.</string>
+
+    <string name="illegal_state_no_filesystem_selected_when_credentials_selected">تم إرسال بيانات الاعتماد نظام الملفات، ولكن لم يتم تحديدها.</string>
+    <string name="illegal_state_no_app_selected_when_preference_submitted">تم إرسال تفضيل التطبيق ، ولكن لم يتم اختيار واحد.</string>
+    <string name="illegal_state_no_app_selected_when_preparation_started">جارٍ محاولة بدء إعداد التطبيق ، ولكن لم يتم تحديد أي تطبيق.</string>
+    <string name="illegal_state_error_fetching_app_database_entries">لا يمكن جلب إدخالات قاعدة بيانات التطبيقات.</string>
+    <string name="illegal_state_error_copying_app_script">لا يمكن نسخ البرنامج النصي للتطبيق.</string>
+
+    <string name="illegal_state_no_session_selected_when_preparation_started">محاولة التعامل مع إعداد الجلسة قبل اختيار واحد.</string>
+    <string name="illegal_state_error_fetching_asset_lists">فشل في استرداد قوائم الأصول.</string>
+    <string name="illegal_state_downloads_did_not_complete_successfully">فشلت التنزيلات بسبب:%1$s.</string>
+    <string name="illegal_state_failed_to_copy_assets_to_local">أخفق نسخ الأصول إلى التخزين المحلي. حاول مسح ملفات الدعم.</string>
+    <string name="illegal_state_assets_have_not_been_downloaded">يجب نسخ الأصول الى نظام الملفات الخاص بك ، ولكن يبدو أنه لم يتم تنزيلها. حاول مسح ملفات الدعم.</string>
+    <string name="illegal_state_empty_download_cache_access">كانت ذاكرة التخزين المؤقت للتنزيلات فارغة عند محاولة الوصول.</string>
+    <string name="illegal_state_download_cache_access_in_incorrect_state">تم الوصول إلى ذاكرة التخزين المؤقت للتنزيل في حالة لا تدعم ذلك.</string>
+    <string name="illegal_state_failed_to_copy_assets_to_filesystem">فشل نسخ الأصول إلى نظام الملفات. حاول مسح ملفات الدعم.</string>
+    <string name="illegal_state_failed_to_extract_filesystem">فشل استخراج نظام الملفات. حاول مسح ملفات الدعم.</string>
+    <string name="illegal_state_failed_to_clear_support_files">فشل مسح ملفات الدعم.</string>
+
+    <!-- Misc illegal state -->
+    <string name="illegal_state_unhandled_session_service_type">محاولة بدء جلسة باستخدام نوع خدمة غير معروف.</string>
+
+    <!-- Prompts -->
+    <string name="prompt_filesystem">ملفات النظام:</string>
+    <string name="prompt_service_type">نوع الخدمة:</string>
+    <string name="prompt_client_type">نوع العميل:</string>
+    <string name="prompt_app_connection_type_preference">يرجى تحديد نوع الاتصال: </string>
+
+    <!-- Notification strings -->
+    <string name="services_notification_channel_id">UserLAnd خدمات</string>
+    <string name="services_notification_channel_name">خدمات</string>
+    <string name="services_notification_channel_description">الخدمات المستمرة</string>
+    <string name="service_notification_title">UserLAnd</string>
+    <string name="service_notification_description">يدير UserLAnd خدمة خلفية.</string>
+
+    <!-- Progress bar messages -->
+    <string name="progress_start_step">الحصول على الأمور جاهزة بالنسبة لك &#8230;</string>
+    <string name="progress_fetching_asset_lists">جلب قوائم الأصول &#8230;</string>
+    <string name="progress_checking_for_required_updates">التحقق مما إذا كانت هناك حاجة إلى التحديثات &#8230;</string>
+    <string name="progress_downloading">تنزيل الأصول المطلوبة &#8230;</string>
+    <string name="progress_downloading_out_of">تم الانتهاء من %1$d من %2$d</string>
+    <string name="progress_copying_downloads">نسخ الملفات التي تم تنزيلها إلى التخزين المحلي &#8230;</string>
+    <string name="progress_setting_up_filesystem">إعداد نظام الملفات &#8230;</string>
+    <string name="progress_extraction_details">الاستخراج: %1$s</string>
+    <string name="progress_verifying_assets">التحقق من الأصول &#8230;</string>
+    <string name="progress_starting">بدء الخدمة &#8230;</string>
+    <string name="progress_clearing_support_files">مسح جميع ملفات الدعم &#8230;</string>
+
+    <!-- Preferences -->
+    <string name="pref_app_category">تفضيلات التطبيق</string>
+    <string name="pref_default_landing_page_title">الصفحة المقصودة الافتراضية</string>
+    <string name="pref_default_landing_page_message">حدد الصفحة التي تريد فتح التطبيق بها.</string>
+    <string name="pref_proot_category">PRoot تفضيلات</string>
+    <string name="pref_proot_debugging_enabled_title">PRoot التصحيح سجلات تمكين</string>
+    <string name="pref_proot_debugging_enabled_summary">ضروري فقط إذا كان لديك مشاكل مع التطبيق. تم تخزين ملف السجل في\n/mnt/sdcard/PRoot_Debug_Log</string>
+    <string name="pref_proot_debugging_level_title">تصحيح مستوى Verbosity</string>
+    <string name="pref_proot_debugging_level_summary">كلما زاد العدد ، كلما ازدادت القيمة.</string>
+    <string name="pref_proot_debugging_level_default">-1</string>
+    <string name="pref_proot_delete_debug_file_title">حذف ملف Debug</string>
+
+    <!-- Help Activity -->
+    <string name="github_message">تعاني من خلل أو تريد أن تطلب ميزة؟ صفحة Github الخاصة بك هي أفضل مكان للذهاب للحصول على استجابة سريعة.</string>
+    <string name="supported_services">الخدمات المدعومة حاليا:</string>
+    <string name="terminology">المصطلح:</string>
+    <string name="desc_apps_title">التطبيقات:</string>
+    <string name="desc_apps_message">التطبيقات هي أسهل طريقة لتشغيل تطبيقات Linux الشائعة.</string>
+    <string name="desc_sessions_title">الجلسات:</string>
+    <string name="desc_sessions_message">تبدأ الجلسات الخادم على نظام ملفات ، والذي يسمح لك بعد ذلك بالاتصال به باستخدام تطبيق عميل تابع لجهة خارجية.</string>
+    <string name="desc_filesystems_title">نظام الملفات:</string>
+    <string name="desc_filesystems_message">أنظمة الملفات هي فقط ما تبدو عليه: مجموعة من المستخدمين وبنية ملفات تسمح بسلوك لينكس.</string>
+
+    <!-- Supported Services -->
+    <string name="support_dropbear">SSH - Dropbear</string>
+    <string name="support_tightvnc">VNC - TightVNC</string>
+
+    <!-- Client Types -->
+    <string name="client_ssh">SSH</string>
+    <string name="client_vnc">VNC</string>
+    <string name="client_xsdl">XSDL</string>
+
+    <!-- Alerts -->
+    <string name="button_yes">موافق!</string>
+    <string name="button_negative">ليس صحيحا</string>
+    <string name="button_refuse">لا شكرا</string>
+    <string name="button_positive">حسنا ، بالتأكيد</string>
+    <string name="button_ok">موافق!</string>
+    <string name="button_cancel">الغاء</string>
+    <string name="general_error_title">حدث شيء غير متوقع!</string>
+    <string name="filesystem_credentials_reasoning">نحن بصدد إنشاء نظام ملفات لتطبيقاتك. \n الرجاء إدخال المعلومات المطلوبة ذات الصلة لكي نستخدمها كإعدادات افتراضية لنظام الملفات هذا.</string>
+    <string name="deactivate_sessions">يجب إلغاء تنشيط جميع الجلسات لمتابعة هذا الإجراء.</string>
+
+    <!-- Clear support files alert -->
+    <string name="alert_clear_support_files_title">مسح كل ملفات الدعم؟</string>
+    <string name="alert_clear_support_files_message">
+        سيؤدي ذلك إلى حذف جميع ملفات الدعم. هذا لن يؤثر على أي شيء قمت بإنشائه على الخاص بك
+                نظام الملفات. سيؤدي ذلك إلى تنزيل مواد العرض مرة أخرى في المرة التالية التي يتم فيها تشغيل جلسة أو تطبيق.
+    </string>
+    <string name="alert_clear_support_files_clear_button">مسح</string>
+
+    <!-- Play service error alerts -->
+    <string name="alert_need_client_app_title">لا يمكن العثور على تطبيق العميل!</string>
+    <string name="alert_need_client_app_message">ستحتاج إلى عميل SSH أو VNC أو XSDL لإكمال هذا الإجراء ، ولكن يبدو أنك لم تقم بتثبيت متجر Play. \n \n الرجاء تثبيت تطبيق العميل (SSH / VNC / XSDL) المقترن بنوع العميل للجلسة للمتابعة.</string>
+
+    <!-- Permissions necessary alert -->
+    <string name="alert_permissions_necessary_title">UserLAnd يتطلب أذونات!</string>
+    <string name="alert_permissions_necessary_message">للمتابعة ، يمكنك تمكين أذونات التخزين للسماح لـ UserLAnd بتنزيل الملفات ونقلها من وحدة التخزين الخارجية إلى تطبيق التخزين المحلي.</string>
+    <string name="alert_permissions_necessary_cancel_button">الغاء</string>
+
+    <!-- Network unavailable alert -->
+    <string name="alert_network_required_for_refresh">تتطلب التطبيقات المنعشة اتصال شبكة متاح أو أقوى.</string>
+
+    <!-- Wifi alert -->
+    <string name="alert_wifi_disabled_title">لا واي فاي!</string>
+    <string name="alert_wifi_disabled_message">يجب تنزيل أصل كبير (~ 80 ميغابايت).</string>
+    <string name="alert_wifi_disabled_continue_button">الاستمرار</string>
+    <string name="alert_wifi_disabled_turn_on_wifi_button">تشغيل الواي فاي</string>
+    <string name="alert_wifi_disabled_cancel_button">الغاء</string>
+
+    <!-- Toasts -->
+    <string name="session_unique_name_required">الجلسات تتطلب اسمًا فريدًا!</string>
+    <string name="filesystem_unique_name_required">تتطلب أنظمة الملفات اسمًا فريدًا!</string>
+    <string name="single_session_supported">UserLAnd يدعم حاليا فقط جلسة واحدة نشطة!</string>
+    <string name="no_supported_architecture">لا يدعم UserLAnd بنية الأجهزة حاليًا.</string>
+    <string name="debug_log_deleted">سجل تصحيح حذف أو غير موجود!</string>
+
+    <!-- Content descriptions -->
+    <string name="desc_arrow">الصورة: السهم يشير إلى الاتصال بين الجلسة ونظام الملفات.</string>
+    <string name="desc_filesystem_type">الصورة: شعار التوزيع</string>
+
+    <!-- Misc -->
+    <string name="custom_sessions">جلسات مخصصة</string>
+    <string name="apps_sessions">جلسات التطبيقات</string>
+    <string name="info_xsdl_support">XSDL غير مدعوم بشكل كامل على \nAndroid 9.0 ما بعد</string>
+
+    <!-- Review request -->
+    <string name="review_is_user_enjoying">تتمتع UserLAnd؟</string>
+    <string name="review_ask_for_rating">ماذا عن التقييم على متجر Play ، إذن؟</string>
+    <string name="review_ask_for_feedback">هل تمانع في إعطائنا بعض التعليقات على Github؟</string>
+
+</resources>

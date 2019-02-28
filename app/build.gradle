@@ -24,8 +24,8 @@ android {
         applicationId "tech.ula"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 51
-        versionName "2.3.7"
+        versionCode 52
+        versionName "2.3.8"
         
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -172,7 +172,7 @@ task jacocoCoverageReportForCi(type: JacocoReport, dependsOn: ['testDebugUnitTes
 }
 
 dependencies {
-    def acra_version = '5.1.3'
+    def acra_version = '5.2.1'
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':terminal-term')

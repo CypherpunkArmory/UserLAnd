@@ -15,7 +15,7 @@ import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
 
-@Database(entities = [Session::class, Filesystem::class, App::class], version = 4, exportSchema = true)
+@Database(entities = [Session::class, Filesystem::class, App::class], version = 5, exportSchema = true)
 abstract class UlaDatabase : RoomDatabase() {
 
     abstract fun sessionDao(): SessionDao
@@ -36,7 +36,7 @@ abstract class UlaDatabase : RoomDatabase() {
         private fun buildDatabase(context: Context): UlaDatabase =
                 Room.databaseBuilder(context.applicationContext,
                         UlaDatabase::class.java, "Data.db")
-                        .addMigrations(Migration1To2(), Migration2To3(), Migration3To4())
+                        .addMigrations(Migration1To2(), Migration2To3(), Migration3To4(), Migration4To5())
                         .addCallback(object : RoomDatabase.Callback() {
                             override fun onOpen(db: SupportSQLiteDatabase) {
                                 super.onOpen(db)
@@ -109,5 +109,11 @@ class Migration3To4 : Migration(3, 4) {
 
         database.execSQL("COMMIT;")
         database.execSQL("PRAGMA foreign_keys_on")
+    }
+}
+
+class Migration4To5 : Migration(4, 5) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE session ADD COLUMN geometry TEXT NOT NULL DEFAULT ''")
     }
 }

@@ -1,14 +1,12 @@
 package tech.ula.utils
 
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import java.io.File
 
 class FilesystemUtility(
     private val applicationFilesDirPath: String,
-    private val execUtility: ExecUtility,
+    private val busyboxExecutor: BusyboxExecutor,
     private val logger: LogUtility = LogUtility()
 ) {
 
@@ -41,17 +39,22 @@ class FilesystemUtility(
     }
 
     fun extractFilesystem(filesystem: Filesystem, listener: (String) -> Any) {
-        val targetDirectoryName = "${filesystem.id}"
-        val command = "../support/execInProot.sh /support/extractFilesystem.sh"
-        try {
-            val env = HashMap<String, String>()
-            env["INITIAL_USERNAME"] = filesystem.defaultUsername
-            env["INITIAL_PASSWORD"] = filesystem.defaultPassword
-            env["INITIAL_VNC_PASSWORD"] = filesystem.defaultVncPassword
+        val filesystemDirName = "${filesystem.id}"
+        val command = "/support/extractFilesystem.sh"
+        val env = HashMap<String, String>()
+        env["INITIAL_USERNAME"] = filesystem.defaultUsername
+        env["INITIAL_PASSWORD"] = filesystem.defaultPassword
+        env["INITIAL_VNC_PASSWORD"] = filesystem.defaultVncPassword
 
-            val proc = execUtility.wrapWithBusyboxAndExecute(targetDirectoryName, command, listener, environmentVars = env)
-            proc.waitFor()
-        } catch (err: Exception) {
+        val result = busyboxExecutor.executeProotCommand(
+            command,
+            filesystemDirName,
+            commandShouldTerminate = true,
+            env = env,
+            listener = listener
+        )
+        if (result is FailedExecution) {
+            val err = result.reason
             logger.logRuntimeErrorForCommand(functionName = "extractFilesystem", command = command, err = err)
         }
     }
@@ -81,19 +84,12 @@ class FilesystemUtility(
         }
     }
 
-    fun deleteFilesystem(filesystemId: Long) {
-        val directory = File("$applicationFilesDirPath/$filesystemId")
-        GlobalScope.launch {
-            if (directory.exists() && directory.isDirectory)
-                directory.deleteRecursively()
-            val isDirectoryDeleted = directory.deleteRecursively()
-            if (isDirectoryDeleted) {
-                val successMessage = "Successfully deleted filesystem located at: $directory"
-                logger.v("Filesystem Delete", successMessage)
-            } else {
-                val errorMessage = "Error in attempting to delete filesystem located at: $directory"
-                logger.e("Filesystem Delete", errorMessage)
-            }
+    suspend fun deleteFilesystem(filesystemId: Long) {
+        val filesystemDirectory = File("$applicationFilesDirPath/$filesystemId")
+        if (!filesystemDirectory.exists() || !filesystemDirectory.isDirectory) return
+        val result = busyboxExecutor.recursivelyDelete(filesystemDirectory.absolutePath)
+        if (result is FailedExecution) {
+            logger.e("FilesystemUtility", "Failed to delete filesystem: $filesystemId")
         }
     }
 

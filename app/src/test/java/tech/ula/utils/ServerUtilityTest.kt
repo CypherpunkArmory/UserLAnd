@@ -1,15 +1,13 @@
 package tech.ula.utils
 
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import com.nhaarman.mockitokotlin2.* // ktlint-disable no-wildcard-imports
+import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.entities.Session
 import java.io.File
@@ -17,86 +15,266 @@ import java.io.File
 @RunWith(MockitoJUnitRunner::class)
 class ServerUtilityTest {
 
-    @get:Rule
-    val tempFolder = TemporaryFolder()
+    @get:Rule val tempFolder = TemporaryFolder()
 
-    @Mock
-    lateinit var execUtility: ExecUtility
+    @Mock lateinit var mockBusyboxExecutor: BusyboxExecutor
 
-    @Mock
-    lateinit var process: Process
+    @Mock lateinit var mockLogUtility: LogUtility
+
+    @Mock lateinit var mockProcess: Process
+
+    lateinit var sshPidFile: File
+    lateinit var vncPidFile: File
+    lateinit var xsdlPidFile: File
+
+    private val filesystemId = 0L
+    private val filesystemDirName = "0"
+    private val fakePid = 100L
 
     lateinit var serverUtility: ServerUtility
 
-    lateinit var sshPidFile: File
-
-    lateinit var vncPidFile: File
-
-    @Before
-    fun setup() {
-        serverUtility = ServerUtility(tempFolder.root.path, execUtility)
-    }
-
-    fun createSshPidFile() {
-        val folder = tempFolder.newFolder("0", "run")
+    private fun createSshPidFile() {
+        val folder = tempFolder.newFolder(filesystemDirName, "run")
         sshPidFile = File("${folder.path}/dropbear.pid")
         sshPidFile.createNewFile()
     }
 
-    fun createVNCPidFile(session: Session) {
-        val folder = tempFolder.newFolder("0", "home", session.username, ".vnc")
+    private fun createVNCPidFile(session: Session) {
+        val folder = tempFolder.newFolder(filesystemDirName, "home", session.username, ".vnc")
         vncPidFile = File("${folder.path}/localhost:${session.port}.pid")
         vncPidFile.createNewFile()
     }
 
-    @Test
-    fun startSSHServer() {
-        val session = Session(0, filesystemId = 0, serviceType = "ssh")
-        val command = "../support/execInProot.sh /bin/bash -c /support/startSSHServer.sh"
+    private fun createXSDLPidFile() {
+        val folder = tempFolder.newFolder(filesystemDirName, "tmp")
+        xsdlPidFile = File("${folder.absolutePath}/xsdl.pidfile")
+        xsdlPidFile.createNewFile()
+    }
 
-        `when`(execUtility.wrapWithBusyboxAndExecute("0", command, doWait = false)).thenReturn(process)
-        `when`(process.toString()).thenReturn("pid=100,")
+    @Before
+    fun setup() {
+        whenever(mockProcess.toString()).thenReturn("pid=$fakePid],")
+
+        serverUtility = ServerUtility(tempFolder.root.path, mockBusyboxExecutor, mockLogUtility)
+    }
+
+    @Test
+    fun `Calling startServer with an SSH session should use the appropriate command`() {
+        val session = Session(0, filesystemId = filesystemId, serviceType = "ssh")
+        val command = "/support/startSSHServer.sh"
+
+        whenever(mockBusyboxExecutor.executeProotCommand(
+                eq(command),
+                eq(filesystemDirName),
+                eq(false),
+                anyOrNull(),
+                anyOrNull(),
+                anyOrNull()))
+                .thenReturn(OngoingExecution(mockProcess))
 
         createSshPidFile()
         assertTrue(sshPidFile.exists())
 
-        serverUtility.startServer(session)
-        verify(execUtility).wrapWithBusyboxAndExecute("0", command, doWait = false)
+        val result = serverUtility.startServer(session)
         assertFalse(sshPidFile.exists())
+        assertEquals(fakePid, result)
     }
 
     @Test
-    fun startVNCServer() {
-        val session = Session(0, filesystemId = 0, serviceType = "vnc", username = "user", vncPassword = "userland")
-        val command = "../support/execInProot.sh /bin/bash -c /support/startVNCServer.sh"
-        val env = hashMapOf("INITIAL_USERNAME" to "user", "INITIAL_VNC_PASSWORD" to "userland")
+    fun `If starting an ssh server fails, an error is logged and -1 is returned`() {
+        val session = Session(0, filesystemId = filesystemId, serviceType = "ssh")
+        val command = "/support/startSSHServer.sh"
 
-        `when`(execUtility.wrapWithBusyboxAndExecute("0", command, doWait = false, environmentVars = env)).thenReturn(process)
+        val reason = "reason"
+        whenever(mockBusyboxExecutor.executeProotCommand(
+                eq(command),
+                eq(filesystemDirName),
+                eq(false),
+                anyOrNull(),
+                anyOrNull(),
+                anyOrNull()
+        ))
+                .thenReturn(FailedExecution(reason))
+
+        createSshPidFile()
+        assertTrue(sshPidFile.exists())
+
+        val result = serverUtility.startServer(session)
+
+        assertFalse(sshPidFile.exists())
+        assertEquals(-1, result)
+        verify(mockLogUtility).logRuntimeErrorForCommand("startSSHServer", command, reason)
+    }
+
+    @Test
+    fun `Calling startServer with a VNC session should use the appropriate command`() {
+        val session = Session(0, filesystemId = filesystemId, serviceType = "vnc", username = "user", vncPassword = "userland", geometry = "10x10")
+        val command = "/support/startVNCServer.sh"
+        val env = hashMapOf("INITIAL_USERNAME" to "user", "INITIAL_VNC_PASSWORD" to "userland", "DIMENSIONS" to "10x10")
+
+        whenever(mockBusyboxExecutor.executeProotCommand(
+                eq(command),
+                eq(filesystemDirName),
+                eq(false),
+                eq(env),
+                anyOrNull(),
+                anyOrNull()
+        ))
+                .thenReturn(OngoingExecution(mockProcess))
 
         createVNCPidFile(session)
         assertTrue(vncPidFile.exists())
 
-        serverUtility.startServer(session)
-        verify(execUtility).wrapWithBusyboxAndExecute("0", command, doWait = false, environmentVars = env)
+        val result = serverUtility.startServer(session)
+
         assertFalse(vncPidFile.exists())
+        assertEquals(fakePid, result)
     }
 
     @Test
-    fun stopService() {
-        val session = Session(0, filesystemId = 0, serviceType = "ssh")
+    fun `If starting a vnc server fails, an error is logged and -1 is returned`() {
+        val session = Session(0, filesystemId = filesystemId, serviceType = "vnc", username = "user", vncPassword = "userland", geometry = "10x10")
+        val command = "/support/startVNCServer.sh"
+        val env = hashMapOf("INITIAL_USERNAME" to "user", "INITIAL_VNC_PASSWORD" to "userland", "DIMENSIONS" to "10x10")
+
+        val reason = "reason"
+        whenever(mockBusyboxExecutor.executeProotCommand(
+                eq(command),
+                eq(filesystemDirName),
+                eq(false),
+                eq(env),
+                anyOrNull(),
+                anyOrNull()
+        ))
+                .thenReturn(FailedExecution(reason))
+
+        createVNCPidFile(session)
+        assertTrue(vncPidFile.exists())
+
+        val result = serverUtility.startServer(session)
+
+        assertFalse(vncPidFile.exists())
+        assertEquals(-1, result)
+        verify(mockLogUtility).logRuntimeErrorForCommand("startVNCServer", command, reason)
+    }
+
+    @Test
+    fun `Calling startServer with an XSDL session should use the appropriate command`() {
+        val session = Session(0, filesystemId = filesystemId, serviceType = "xsdl", username = "user")
+        val command = "/support/startXSDLServer.sh"
+        val env = hashMapOf<String, String>()
+        env["INITIAL_USERNAME"] = session.username
+        env["DISPLAY"] = ":4721"
+        env["PULSE_SERVER"] = "127.0.0.1:4721"
+
+        whenever(mockBusyboxExecutor.executeProotCommand(
+                eq(command),
+                eq(filesystemDirName),
+                eq(false),
+                eq(env),
+                anyOrNull(),
+                anyOrNull()
+        ))
+                .thenReturn(OngoingExecution(mockProcess))
+
+        createXSDLPidFile()
+        assertTrue(xsdlPidFile.exists())
+
+        val result = serverUtility.startServer(session)
+
+        assertFalse(xsdlPidFile.exists())
+        assertEquals(fakePid, result)
+    }
+
+    @Test
+    fun `If starting an XSDL server fails, an error is logged and -1 is returned`() {
+        val session = Session(0, filesystemId = filesystemId, serviceType = "xsdl", username = "user")
+        val command = "/support/startXSDLServer.sh"
+        val env = hashMapOf<String, String>()
+        env["INITIAL_USERNAME"] = session.username
+        env["DISPLAY"] = ":4721"
+        env["PULSE_SERVER"] = "127.0.0.1:4721"
+
+        val reason = "reason"
+        whenever(mockBusyboxExecutor.executeProotCommand(
+                eq(command),
+                eq(filesystemDirName),
+                eq(false),
+                eq(env),
+                anyOrNull(),
+                anyOrNull()
+        ))
+                .thenReturn(FailedExecution(reason))
+
+        createXSDLPidFile()
+        assertTrue(xsdlPidFile.exists())
+
+        val result = serverUtility.startServer(session)
+
+        assertFalse(xsdlPidFile.exists())
+        assertEquals(-1, result)
+        verify(mockLogUtility).logRuntimeErrorForCommand("setDisplayNumberAndStartTwm", command, reason)
+    }
+
+    @Test
+    fun `Calling stop service uses the appropriate command`() {
+        val session = Session(0, filesystemId = filesystemId, serviceType = "ssh")
         serverUtility.stopService(session)
-        val command = "../support/killProcTree.sh ${session.pid} -1"
-        verify(execUtility).wrapWithBusyboxAndExecute("0", command)
+        val command = "support/killProcTree.sh ${session.pid} -1"
+        verify(mockBusyboxExecutor).executeCommand(eq(command), anyOrNull())
     }
 
     @Test
-    fun verifyServerRunning() {
-        val session = Session(0, filesystemId = 0, serviceType = "ssh")
-        val command = "../support/isServerInProcTree.sh -1"
-        `when`(execUtility.wrapWithBusyboxAndExecute("0", command)).thenReturn(process)
-        val isServerCurrentlyRunning = serverUtility.isServerRunning(session)
+    fun `If stop service fails, an error is logged`() {
+        val session = Session(0, filesystemId = filesystemId, serviceType = "ssh")
+        val command = "support/killProcTree.sh ${session.pid} -1"
 
-        verify(execUtility).wrapWithBusyboxAndExecute("0", command)
-        assertTrue(isServerCurrentlyRunning)
+        val reason = "reason"
+        whenever(mockBusyboxExecutor.executeCommand(eq(command), anyOrNull()))
+                .thenReturn(FailedExecution("reason"))
+
+        serverUtility.stopService(session)
+
+        verify(mockLogUtility).logRuntimeErrorForCommand("stopService", command, reason)
+    }
+
+    @Test
+    fun `Server is always considered running if session type is XSDL`() {
+        val session = Session(0, filesystemId = filesystemId, serviceType = "xsdl")
+
+        val result = serverUtility.isServerRunning(session)
+
+        assertTrue(result)
+        verify(mockBusyboxExecutor, never()).executeCommand(anyOrNull(), anyOrNull())
+        verify(mockLogUtility, never()).logRuntimeErrorForCommand(anyOrNull(), anyOrNull(), anyOrNull())
+    }
+
+    @Test
+    fun `Calls appropriate command to check if server is running, and returns the result`() {
+        val session = Session(0, filesystemId = filesystemId, serviceType = "ssh")
+        val command = "support/isServerInProcTree.sh -1"
+        whenever(mockBusyboxExecutor.executeCommand(eq(command), anyOrNull()))
+                .thenReturn(SuccessfulExecution)
+                .thenReturn(FailedExecution(""))
+
+        val result1 = serverUtility.isServerRunning(session)
+        val result2 = serverUtility.isServerRunning(session)
+
+        assertTrue(result1)
+        assertFalse(result2)
+    }
+
+    @Test
+    fun `Logs an error and return false if isServerRunning causes an exception`() {
+        val session = Session(0, filesystemId = filesystemId, serviceType = "ssh")
+        val command = "support/isServerInProcTree.sh -1"
+        val reason = "reason"
+        whenever(mockBusyboxExecutor.executeCommand(eq(command), anyOrNull()))
+                .thenReturn(FailedExecution(reason))
+
+        val result = serverUtility.isServerRunning(session)
+
+        assertFalse(result)
+        verify(mockLogUtility).logRuntimeErrorForCommand("isServerRunning", command, reason)
     }
 }
