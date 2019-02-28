@@ -1,5 +1,6 @@
 package tech.ula.utils
 
+import com.nhaarman.mockitokotlin2.*
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
@@ -16,16 +17,13 @@ import java.io.File
 @RunWith(MockitoJUnitRunner::class)
 class FilesystemUtilityTest {
 
-    @get:Rule
-    val tempFolder = TemporaryFolder()
+    @get:Rule val tempFolder = TemporaryFolder()
 
     lateinit var applicationFilesDirPath: String
 
-    @Mock
-    lateinit var busyboxExecutor: BusyboxExecutor
+    @Mock lateinit var mockBusyboxExecutor: BusyboxExecutor
 
-    @Mock
-    lateinit var logger: LogUtility
+    @Mock lateinit var logger: LogUtility
 
     val statelessListener: (line: String) -> Unit = { }
 
@@ -37,26 +35,35 @@ class FilesystemUtilityTest {
     @Before
     fun setup() {
         applicationFilesDirPath = tempFolder.root.path
-        filesystemUtility = FilesystemUtility(applicationFilesDirPath, busyboxExecutor, logger)
+        filesystemUtility = FilesystemUtility(applicationFilesDirPath, mockBusyboxExecutor, logger)
     }
 
     @Test
-    fun extractFilesystemIsCalledWithCorrectArguments() {
-        val command = "../support/execInProot.sh /support/extractFilesystem.sh"
+    fun `Calling extract filesystem uses the appropriate command`() {
+        val command = "/support/extractFilesystem.sh"
 
         val requiredFilesystemType = "testDist"
         val fakeArchitecture = "testArch"
         val filesystem = Filesystem(0, "apps",
                 archType = fakeArchitecture, distributionType = requiredFilesystemType, isAppsFilesystem = true,
                 defaultUsername = "username", defaultPassword = "password", defaultVncPassword = "vncpass")
-        val targetDirectoryName = "${filesystem.id}"
+        val filesystemDirName = "${filesystem.id}"
 
         val defaultEnvironmentalVariables = hashMapOf<String, String>("INITIAL_USERNAME" to "username",
                 "INITIAL_PASSWORD" to "password", "INITIAL_VNC_PASSWORD" to "vncpass")
+        val mockProcess = mock<Process>()
+        whenever(mockBusyboxExecutor.executeProotCommand(
+                eq(command),
+                eq(filesystemDirName),
+                eq(true),
+                eq(defaultEnvironmentalVariables),
+                eq(statelessListener),
+                anyOrNull()))
+                .thenReturn(mockProcess)
+        whenever(mockProcess.waitFor()).thenReturn(0)
 
         filesystemUtility.extractFilesystem(filesystem, statelessListener)
-//        verify(execUtility).wrapWithBusyboxAndExecute(targetDirectoryName, command, statelessListener,
-//                environmentVars = defaultEnvironmentalVariables)
+        verify(mockProcess).waitFor()
     }
 
     @Test
@@ -168,19 +175,54 @@ class FilesystemUtilityTest {
     }
 
     @Test
-    fun deletesAFilesystem() {
-        val filesystemId = 0L
-        val filesystemRoot = tempFolder.newFolder(filesystemId.toString())
-        val files = ArrayList<File>()
-        for (i in 0..10) {
-            files.add(File("${filesystemRoot.path}/$i"))
+    fun `Exits early if deleteFilesystem called on a path that does not exist`() {
+        val testFile = File("${tempFolder.root.path}/100")
+        assertFalse(testFile.exists())
+
+        runBlocking {
+            filesystemUtility.deleteFilesystem(100)
+            verify(mockBusyboxExecutor, never()).recursivelyDelete(any())
         }
+    }
 
-        files.forEach { it.createNewFile() }
-        files.forEach { assertTrue(it.exists()) }
+    @Test
+    fun `Exits early if deleteFilesystem called on a path that is not a directory`() {
+        val testFile = File("${tempFolder.root.path}/100")
+        testFile.createNewFile()
+        assertTrue(testFile.exists())
 
-        runBlocking { filesystemUtility.deleteFilesystem(filesystemId) }
+        runBlocking {
+            filesystemUtility.deleteFilesystem(100)
+            verify(mockBusyboxExecutor, never()).recursivelyDelete(any())
+        }
+    }
 
-        files.forEach { assertFalse(it.exists()) }
+    @Test
+    fun `Calling deleteFilesystem issues recursivelyDelete to busyboxExecutor`() {
+        val testDir = File("${tempFolder.root.path}/100")
+        testDir.mkdirs()
+        assertTrue(testDir.exists() && testDir.isDirectory)
+
+        runBlocking {
+            whenever(mockBusyboxExecutor.recursivelyDelete(testDir.absolutePath))
+                    .thenReturn(true)
+            filesystemUtility.deleteFilesystem(100)
+            verify(mockBusyboxExecutor).recursivelyDelete(testDir.absolutePath)
+        }
+    }
+
+    @Test
+    fun `Log erros when deleteFilesystem fails`() {
+        val testDir = File("${tempFolder.root.path}/100")
+        testDir.mkdirs()
+        assertTrue(testDir.exists() && testDir.isDirectory)
+
+        runBlocking {
+            whenever(mockBusyboxExecutor.recursivelyDelete(testDir.absolutePath))
+                    .thenReturn(false)
+            filesystemUtility.deleteFilesystem(100)
+            verify(mockBusyboxExecutor).recursivelyDelete(testDir.absolutePath)
+            verify(logger).e("FilesystemUtility", "Failed to delete filesystem: 100")
+        }
     }
 }
