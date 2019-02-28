@@ -85,9 +85,9 @@ class FilesystemUtility(
     }
 
     suspend fun deleteFilesystem(filesystemId: Long) {
-        val directory = File("$applicationFilesDirPath/$filesystemId")
-        if (!directory.exists() || !directory.isDirectory) return
-        val result = busyboxExecutor.recursivelyDelete(directory.absolutePath)
+        val filesystemDirectory = File("$applicationFilesDirPath/$filesystemId")
+        if (!filesystemDirectory.exists() || !filesystemDirectory.isDirectory) return
+        val result = busyboxExecutor.recursivelyDelete(filesystemDirectory.absolutePath)
         if (result is FailedExecution) {
             logger.e("FilesystemUtility", "Failed to delete filesystem: $filesystemId")
         }

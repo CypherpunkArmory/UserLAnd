@@ -136,9 +136,7 @@ class ServerUtility(
                 logger.logRuntimeErrorForCommand(functionName = "isServerRunning", command = command, err = result.reason)
                 false
             }
-            else -> {
-                false
-            }
+            else -> false
         }
     }
 }

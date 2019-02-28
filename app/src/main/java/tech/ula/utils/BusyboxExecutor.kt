@@ -1,6 +1,5 @@
 package tech.ula.utils
 
-import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -22,7 +21,7 @@ class BusyboxExecutor(
     private val busyboxWrapper: BusyboxWrapper = BusyboxWrapper()
 ) {
 
-    private val discardOutput: (String) -> Any = { Log.e("BusyboxExecutor", it) }
+    private val discardOutput: (String) -> Any = { }
 
     fun executeCommand(
         command: String,
