@@ -1,6 +1,6 @@
 package tech.ula.utils
 
-import com.nhaarman.mockitokotlin2.*
+import com.nhaarman.mockitokotlin2.* // ktlint-disable no-wildcard-imports
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before

@@ -1,7 +1,7 @@
 package tech.ula.utils
 
-import com.nhaarman.mockitokotlin2.*
-import org.junit.Assert.*
+import com.nhaarman.mockitokotlin2.* // ktlint-disable no-wildcard-imports
+import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
