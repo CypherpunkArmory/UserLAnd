@@ -108,9 +108,9 @@ class ServerUtilityTest {
 
     @Test
     fun `Calling startServer with a VNC session should use the appropriate command`() {
-        val session = Session(0, filesystemId = filesystemId, serviceType = "vnc", username = "user", vncPassword = "userland")
+        val session = Session(0, filesystemId = filesystemId, serviceType = "vnc", username = "user", vncPassword = "userland", geometry = "10x10")
         val command = "/support/startVNCServer.sh"
-        val env = hashMapOf("INITIAL_USERNAME" to "user", "INITIAL_VNC_PASSWORD" to "userland")
+        val env = hashMapOf("INITIAL_USERNAME" to "user", "INITIAL_VNC_PASSWORD" to "userland", "DIMENSIONS" to "10x10")
 
         whenever(mockBusyboxExecutor.executeProotCommand(
                 eq(command),
@@ -133,9 +133,9 @@ class ServerUtilityTest {
 
     @Test
     fun `If starting a vnc server fails, an error is logged and -1 is returned`() {
-        val session = Session(0, filesystemId = filesystemId, serviceType = "vnc", username = "user", vncPassword = "userland")
+        val session = Session(0, filesystemId = filesystemId, serviceType = "vnc", username = "user", vncPassword = "userland", geometry = "10x10")
         val command = "/support/startVNCServer.sh"
-        val env = hashMapOf("INITIAL_USERNAME" to "user", "INITIAL_VNC_PASSWORD" to "userland")
+        val env = hashMapOf("INITIAL_USERNAME" to "user", "INITIAL_VNC_PASSWORD" to "userland", "DIMENSIONS" to "10x10")
 
         val exception = Exception()
         whenever(mockBusyboxExecutor.executeProotCommand(
