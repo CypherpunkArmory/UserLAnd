@@ -1,5 +1,6 @@
 package tech.ula.utils
 
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -8,6 +9,12 @@ import java.io.File
 import java.io.InputStream
 import kotlin.text.Charsets.UTF_8
 
+sealed class ExecutionResult
+data class MissingExecutionAsset(val asset: String) : ExecutionResult()
+object SuccessfulExecution : ExecutionResult()
+data class FailedExecution(val reason: String) : ExecutionResult()
+data class OngoingExecution(val process: Process) : ExecutionResult()
+
 class BusyboxExecutor(
     private val filesDir: File,
     private val externalStorageDir: File,
@@ -15,13 +22,16 @@ class BusyboxExecutor(
     private val busyboxWrapper: BusyboxWrapper = BusyboxWrapper()
 ) {
 
-    private val discardOutput: (String) -> Any = {}
+    private val discardOutput: (String) -> Any = { Log.e("BusyboxExecutor", it)}
 
     @Throws(Exception::class)
     fun executeCommand(
         command: String,
         listener: (String) -> Any = discardOutput
-    ): Boolean {
+    ): ExecutionResult {
+        if (!busyboxWrapper.busyboxIsPresent(filesDir)) {
+            return MissingExecutionAsset("busybox")
+        }
         val updatedCommand = busyboxWrapper.addBusybox(command)
         val env = busyboxWrapper.getBusyboxEnv(filesDir)
         val processBuilder = ProcessBuilder(updatedCommand)
@@ -29,9 +39,13 @@ class BusyboxExecutor(
         processBuilder.environment().putAll(env)
         processBuilder.redirectErrorStream(true)
 
-        val process = processBuilder.start()
-        collectOutput(process.inputStream, listener)
-        return process.waitFor() == 0
+        return try {
+            val process = processBuilder.start()
+            collectOutput(process.inputStream, listener)
+            getProcessResult(process)
+        } catch (err: Exception) {
+            FailedExecution("$err")
+        }
     }
 
     @Throws(Exception::class)
@@ -42,7 +56,13 @@ class BusyboxExecutor(
         env: HashMap<String, String> = hashMapOf(),
         listener: (String) -> Any = discardOutput,
         coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
-    ): Process {
+    ): ExecutionResult {
+        when {
+            !busyboxWrapper.busyboxIsPresent(filesDir) -> return MissingExecutionAsset("busybox")
+            !busyboxWrapper.prootIsPresent(filesDir) -> return MissingExecutionAsset("proot")
+            !busyboxWrapper.executionScriptIsPresent(filesDir) -> return MissingExecutionAsset("execution script")
+        }
+
         val prootDebugEnabled = defaultPreferences.getProotDebuggingEnabled()
         val prootDebugLevel =
                 if (prootDebugEnabled) defaultPreferences.getProotDebuggingLevel() else "-1"
@@ -62,11 +82,12 @@ class BusyboxExecutor(
         if (prootDebugEnabled) redirectOutputToDebugLog(process.inputStream, prootDebugLocation, coroutineScope)
         else if (commandShouldTerminate) {
             collectOutput(process.inputStream, listener)
+            return getProcessResult(process)
         }
-        return process
+        return OngoingExecution(process)
     }
 
-    suspend fun recursivelyDelete(absolutePath: String): Boolean = withContext(Dispatchers.IO) {
+    suspend fun recursivelyDelete(absolutePath: String): ExecutionResult = withContext(Dispatchers.IO) {
         val command = "rm -rf $absolutePath"
         return@withContext executeCommand(command)
     }
@@ -96,6 +117,11 @@ class BusyboxExecutor(
         writer.flush()
         writer.close()
     }
+
+    private fun getProcessResult(process: Process): ExecutionResult {
+        return if (process.waitFor() == 0) SuccessfulExecution
+        else FailedExecution("Command failed with: ${process.exitValue()}")
+    }
 }
 
 // This class is intended to allow stubbing of elements that are unavailable during unit tests.
@@ -107,6 +133,11 @@ class BusyboxWrapper {
 
     fun getBusyboxEnv(filesDir: File): HashMap<String, String> {
         return hashMapOf("ROOT_PATH" to filesDir.absolutePath)
+    }
+
+    fun busyboxIsPresent(filesDir: File): Boolean {
+        val busyboxFile = File("${filesDir.absolutePath}/support/busybox")
+        return busyboxFile.exists()
     }
 
     // Proot scripts expect CWD to be `applicationFilesDir/<filesystem`
@@ -123,5 +154,15 @@ class BusyboxWrapper {
                 "PROOT_DEBUG_LEVEL" to prootDebugLevel,
                 "EXTRA_BINDINGS" to "-b ${externalStorageDir.absolutePath}:/sdcard",
                 "OS_VERSION" to System.getProperty("os.version"))
+    }
+
+    fun prootIsPresent(filesDir: File): Boolean {
+        val prootFile = File("${filesDir.absolutePath}/support/proot")
+        return prootFile.exists()
+    }
+
+    fun executionScriptIsPresent(filesDir: File): Boolean {
+        val execInProotFile = File("${filesDir.absolutePath}/support/execInProot.sh")
+        return execInProotFile.exists()
     }
 }

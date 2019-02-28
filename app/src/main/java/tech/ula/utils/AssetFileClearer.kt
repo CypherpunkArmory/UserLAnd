@@ -13,16 +13,24 @@ class AssetFileClearer(
     @Throws(Exception::class)
     suspend fun clearAllSupportAssets() {
         if (!filesDir.exists()) throw FileNotFoundException()
-        clearTopLevelAssets(assetDirectoryNames)
         clearFilesystemSupportAssets()
+        clearTopLevelAssets(assetDirectoryNames)
     }
 
     @Throws(IOException::class)
     private suspend fun clearTopLevelAssets(assetDirectoryNames: Set<String>) {
+        val supportDirName = "support"
         for (file in filesDir.listFiles()) {
             if (!file.isDirectory) continue
             if (!assetDirectoryNames.contains(file.name)) continue
-            if (!busyboxExecutor.recursivelyDelete(file.absolutePath)) throw IOException()
+            // Removing the support directory must happen last since it contains busybox
+            if (file.name == supportDirName) continue
+            if (!busyboxExecutor.recursivelyDelete(file.absolutePath))
+                throw IOException()
+        }
+        val supportDir = File("${filesDir.absolutePath}/$supportDirName")
+        if (supportDir.exists()) {
+            if (!busyboxExecutor.recursivelyDelete(supportDir.absolutePath)) throw IOException()
         }
     }
 
@@ -38,7 +46,8 @@ class AssetFileClearer(
                 // Exclude directories and hidden files.
                 if (supportFile.isDirectory || supportFile.name.first() == '.') continue
                 // Use deleteRecursively to match functionality above
-                if (!busyboxExecutor.recursivelyDelete(supportFile.path)) throw IOException()
+                if (!busyboxExecutor.recursivelyDelete(supportFile.path))
+                    throw IOException()
             }
         }
     }
