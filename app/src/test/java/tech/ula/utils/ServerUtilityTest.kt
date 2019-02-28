@@ -70,7 +70,7 @@ class ServerUtilityTest {
                 anyOrNull(),
                 anyOrNull(),
                 anyOrNull()))
-                .thenReturn(mockProcess)
+                .thenReturn(OngoingExecution(mockProcess))
 
         createSshPidFile()
         assertTrue(sshPidFile.exists())
@@ -85,7 +85,7 @@ class ServerUtilityTest {
         val session = Session(0, filesystemId = filesystemId, serviceType = "ssh")
         val command = "/support/startSSHServer.sh"
 
-        val exception = Exception()
+        val reason = "reason"
         whenever(mockBusyboxExecutor.executeProotCommand(
                 eq(command),
                 eq(filesystemDirName),
@@ -94,7 +94,7 @@ class ServerUtilityTest {
                 anyOrNull(),
                 anyOrNull()
         ))
-                .thenThrow(exception)
+                .thenReturn(FailedExecution(reason))
 
         createSshPidFile()
         assertTrue(sshPidFile.exists())
@@ -103,7 +103,7 @@ class ServerUtilityTest {
 
         assertFalse(sshPidFile.exists())
         assertEquals(-1, result)
-        verify(mockLogUtility).logRuntimeErrorForCommand("startSSHServer", command, exception)
+        verify(mockLogUtility).logRuntimeErrorForCommand("startSSHServer", command, reason)
     }
 
     @Test
@@ -120,7 +120,7 @@ class ServerUtilityTest {
                 anyOrNull(),
                 anyOrNull()
         ))
-                .thenReturn(mockProcess)
+                .thenReturn(OngoingExecution(mockProcess))
 
         createVNCPidFile(session)
         assertTrue(vncPidFile.exists())
@@ -137,7 +137,7 @@ class ServerUtilityTest {
         val command = "/support/startVNCServer.sh"
         val env = hashMapOf("INITIAL_USERNAME" to "user", "INITIAL_VNC_PASSWORD" to "userland", "DIMENSIONS" to "10x10")
 
-        val exception = Exception()
+        val reason = "reason"
         whenever(mockBusyboxExecutor.executeProotCommand(
                 eq(command),
                 eq(filesystemDirName),
@@ -146,7 +146,7 @@ class ServerUtilityTest {
                 anyOrNull(),
                 anyOrNull()
         ))
-                .thenThrow(exception)
+                .thenReturn(FailedExecution(reason))
 
         createVNCPidFile(session)
         assertTrue(vncPidFile.exists())
@@ -155,7 +155,7 @@ class ServerUtilityTest {
 
         assertFalse(vncPidFile.exists())
         assertEquals(-1, result)
-        verify(mockLogUtility).logRuntimeErrorForCommand("startVNCServer", command, exception)
+        verify(mockLogUtility).logRuntimeErrorForCommand("startVNCServer", command, reason)
     }
 
     @Test
@@ -175,7 +175,7 @@ class ServerUtilityTest {
                 anyOrNull(),
                 anyOrNull()
         ))
-                .thenReturn(mockProcess)
+                .thenReturn(OngoingExecution(mockProcess))
 
         createXSDLPidFile()
         assertTrue(xsdlPidFile.exists())
@@ -195,7 +195,7 @@ class ServerUtilityTest {
         env["DISPLAY"] = ":4721"
         env["PULSE_SERVER"] = "127.0.0.1:4721"
 
-        val exception = Exception()
+        val reason = "reason"
         whenever(mockBusyboxExecutor.executeProotCommand(
                 eq(command),
                 eq(filesystemDirName),
@@ -204,7 +204,7 @@ class ServerUtilityTest {
                 anyOrNull(),
                 anyOrNull()
         ))
-                .thenThrow(exception)
+                .thenReturn(FailedExecution(reason))
 
         createXSDLPidFile()
         assertTrue(xsdlPidFile.exists())
@@ -213,7 +213,7 @@ class ServerUtilityTest {
 
         assertFalse(xsdlPidFile.exists())
         assertEquals(-1, result)
-        verify(mockLogUtility).logRuntimeErrorForCommand("startXSDLServer", command, exception)
+        verify(mockLogUtility).logRuntimeErrorForCommand("setDisplayNumberAndStartTwm", command, reason)
     }
 
     @Test
@@ -229,13 +229,13 @@ class ServerUtilityTest {
         val session = Session(0, filesystemId = filesystemId, serviceType = "ssh")
         val command = "support/killProcTree.sh ${session.pid} -1"
 
-        val exception = Exception()
+        val reason = "reason"
         whenever(mockBusyboxExecutor.executeCommand(eq(command), anyOrNull()))
-                .thenThrow(exception)
+                .thenReturn(FailedExecution("reason"))
 
         serverUtility.stopService(session)
 
-        verify(mockLogUtility).logRuntimeErrorForCommand("stopService", command, exception)
+        verify(mockLogUtility).logRuntimeErrorForCommand("stopService", command, reason)
     }
 
     @Test
@@ -254,8 +254,8 @@ class ServerUtilityTest {
         val session = Session(0, filesystemId = filesystemId, serviceType = "ssh")
         val command = "support/isServerInProcTree.sh -1"
         whenever(mockBusyboxExecutor.executeCommand(eq(command), anyOrNull()))
-                .thenReturn(true)
-                .thenReturn(false)
+                .thenReturn(SuccessfulExecution)
+                .thenReturn(FailedExecution(""))
 
         val result1 = serverUtility.isServerRunning(session)
         val result2 = serverUtility.isServerRunning(session)
@@ -268,13 +268,13 @@ class ServerUtilityTest {
     fun `Logs an error and return false if isServerRunning causes an exception`() {
         val session = Session(0, filesystemId = filesystemId, serviceType = "ssh")
         val command = "support/isServerInProcTree.sh -1"
-        val exception = Exception()
+        val reason = "reason"
         whenever(mockBusyboxExecutor.executeCommand(eq(command), anyOrNull()))
-                .thenThrow(exception)
+                .thenReturn(FailedExecution(reason))
 
         val result = serverUtility.isServerRunning(session)
 
         assertFalse(result)
-        verify(mockLogUtility).logRuntimeErrorForCommand("isServerRunning", command, exception)
+        verify(mockLogUtility).logRuntimeErrorForCommand("isServerRunning", command, reason)
     }
 }

@@ -11,7 +11,6 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import java.io.File
-import java.io.IOException
 import java.nio.file.Files
 
 @RunWith(MockitoJUnitRunner::class)
@@ -58,12 +57,24 @@ class BusyboxExecutorTest {
         busyboxExecutor = BusyboxExecutor(mockFilesDir, mockExternalStorage, mockDefaultPreferences, mockBusyboxWrapper)
     }
 
+    private fun stubBusyboxIsPresent(present: Boolean) {
+        whenever(mockBusyboxWrapper.busyboxIsPresent(mockFilesDir)).thenReturn(present)
+    }
+
     private fun stubBusyboxCommand(command: String) {
         whenever(mockBusyboxWrapper.addBusybox(command)).thenReturn(command.toExecutableList())
     }
 
     private fun stubBusyboxEnv() {
         whenever(mockBusyboxWrapper.getBusyboxEnv(mockFilesDir)).thenReturn(hashMapOf())
+    }
+
+    private fun stubProotIsPresent(present: Boolean) {
+        whenever(mockBusyboxWrapper.prootIsPresent(mockFilesDir)).thenReturn(present)
+    }
+
+    private fun stubExecutionScriptIsPresent(present: Boolean) {
+        whenever(mockBusyboxWrapper.executionScriptIsPresent(mockFilesDir)).thenReturn(present)
     }
 
     private fun stubProotDebuggingEnabled(enabled: Boolean) {
@@ -90,6 +101,7 @@ class BusyboxExecutorTest {
     fun `Successfully executes legal commands, 'adding' busybox`() {
         val testOutput = "hello"
         val testCommand = "echo $testOutput"
+        stubBusyboxIsPresent(true)
         stubBusyboxCommand(testCommand)
         stubBusyboxEnv()
 
@@ -97,31 +109,69 @@ class BusyboxExecutorTest {
 
         assertEquals(1, outputCollection.size)
         assertEquals(testOutput, outputCollection[0])
-        assertTrue(result)
+        assertTrue(result is SuccessfulExecution)
     }
 
-    @Test(expected = IOException::class)
+    @Test
+    fun `Returns MissingExecutionAsset if busybox is not present`() {
+        val testOutput = "hello"
+        val testCommand = "echo $testOutput"
+        stubBusyboxIsPresent(false)
+
+        val result = busyboxExecutor.executeCommand(testCommand, testListener)
+        assertTrue(result is MissingExecutionAsset)
+        result as MissingExecutionAsset
+        assertEquals("busybox", result.asset)
+    }
+
+    @Test()
     fun `Fails to execute illegal commands, 'adding' busybox`() {
         val testCommand = "badCommand"
+        stubBusyboxIsPresent(true)
         stubBusyboxCommand(testCommand)
         stubBusyboxEnv()
 
-        busyboxExecutor.executeCommand(testCommand, testListener)
+        val result = busyboxExecutor.executeCommand(testCommand, testListener)
+        assertTrue(result is FailedExecution)
     }
 
     @Test
     fun `Successfully executes legal commands, 'adding' proot and busybox`() {
         val testOutput = "hello"
         val testCommand = "echo $testOutput"
+
+        stubBusyboxIsPresent(true)
+        stubProotIsPresent(true)
+        stubExecutionScriptIsPresent(true)
         stubProotDebuggingEnabled(false)
         stubProotCommand(testCommand)
         stubProotEnv()
 
         val result = busyboxExecutor.executeProotCommand(testCommand, testFilesystemDirName, true, hashMapOf(), testListener)
 
+        assertTrue(result is SuccessfulExecution)
         assertEquals(1, outputCollection.size)
         assertEquals(testOutput, outputCollection[0])
-        assertTrue(result.waitFor() == 0)
+    }
+
+    @Test
+    fun `Returns an OngoingExecution result with process if command should not terminate`() {
+        val testOutput = "hello"
+        val testCommand = "echo $testOutput"
+
+        stubBusyboxIsPresent(true)
+        stubProotIsPresent(true)
+        stubExecutionScriptIsPresent(true)
+        stubProotDebuggingEnabled(false)
+        stubProotCommand(testCommand)
+        stubProotEnv()
+
+        val result = busyboxExecutor.executeProotCommand(testCommand, testFilesystemDirName, false, hashMapOf(), testListener)
+
+        assertTrue(result is OngoingExecution)
+        result as OngoingExecution
+        val resultProcess = result.process
+        assertEquals(0, resultProcess.waitFor())
     }
 
     @Test
@@ -131,11 +181,15 @@ class BusyboxExecutorTest {
         val debugFile = File("${mockExternalStorage.absolutePath}/$prootDebugFileName")
         debugFile.createNewFile()
         debugFile.writeText("original text")
+
+        stubBusyboxIsPresent(true)
+        stubProotIsPresent(true)
+        stubExecutionScriptIsPresent(true)
         stubProotDebuggingEnabled(true)
         stubProotCommand(testCommand)
         stubProotEnv()
 
-        val resultProcess = runBlocking {
+        val result = runBlocking {
             busyboxExecutor.executeProotCommand(
                     testCommand,
                     testFilesystemDirName,
@@ -144,23 +198,73 @@ class BusyboxExecutorTest {
                     testListener,
                     this)
         }
-        val resultExitValue = resultProcess.waitFor()
-        val debugText = debugFile.readText()
 
+        assertTrue(result is SuccessfulExecution)
         assertEquals(0, outputCollection.size)
-        assertEquals(0, resultExitValue)
 
+        val debugText = debugFile.readText()
         assertEquals(testOutput, debugText.trim())
     }
 
-    @Test(expected = IOException::class)
+    @Test
+    fun `executeProotCommand returns MissingExecutionAsset with busybox if busybox is missing`() {
+        val testOutput = "hello"
+        val testCommand = "echo $testOutput"
+
+        stubBusyboxIsPresent(false)
+
+        val result = busyboxExecutor.executeProotCommand(testCommand, testFilesystemDirName, true, hashMapOf(), testListener)
+
+        assertTrue(result is MissingExecutionAsset)
+        result as MissingExecutionAsset
+        assertEquals("busybox", result.asset)
+    }
+
+    @Test
+    fun `executeProotCommand returns MissingExecutionAsset with proot if proot is missing`() {
+        val testOutput = "hello"
+        val testCommand = "echo $testOutput"
+
+        stubBusyboxIsPresent(true)
+        stubProotIsPresent(false)
+
+        val result = busyboxExecutor.executeProotCommand(testCommand, testFilesystemDirName, true, hashMapOf(), testListener)
+
+        assertTrue(result is MissingExecutionAsset)
+        result as MissingExecutionAsset
+        assertEquals("proot", result.asset)
+    }
+
+    @Test
+    fun `executeProotCommand returns MissingExecutionAsset with the exec script if the exec script is missing`() {
+        val testOutput = "hello"
+        val testCommand = "echo $testOutput"
+
+        stubBusyboxIsPresent(true)
+        stubProotIsPresent(true)
+        stubExecutionScriptIsPresent(false)
+
+        val result = busyboxExecutor.executeProotCommand(testCommand, testFilesystemDirName, true, hashMapOf(), testListener)
+
+        assertTrue(result is MissingExecutionAsset)
+        result as MissingExecutionAsset
+        assertEquals("execution script", result.asset)
+    }
+
+    @Test()
     fun `Fails to execute illegal commands, 'adding' proot and busybox`() {
         val testCommand = "badCommand"
+
+        stubBusyboxIsPresent(true)
+        stubProotIsPresent(true)
+        stubExecutionScriptIsPresent(true)
         stubProotDebuggingEnabled(false)
         stubProotCommand(testCommand)
         stubProotEnv()
 
-        busyboxExecutor.executeProotCommand(testCommand, testFilesystemDirName, true)
+        val result = busyboxExecutor.executeProotCommand(testCommand, testFilesystemDirName, true)
+
+        assertTrue(result is FailedExecution)
     }
 
     @Test
@@ -176,11 +280,13 @@ class BusyboxExecutorTest {
         assertTrue(testFile.exists())
 
         val command = "rm -rf ${testDir.absolutePath}"
+        stubBusyboxIsPresent(true)
         stubBusyboxCommand(command)
         stubBusyboxEnv()
 
-        busyboxExecutor.recursivelyDelete(testDir.absolutePath)
+        val result = busyboxExecutor.recursivelyDelete(testDir.absolutePath)
 
+        assertTrue(result is SuccessfulExecution)
         assertTrue(mockFilesDir.exists())
         assertFalse(testDir.exists())
         assertFalse(testFile.exists())
@@ -195,11 +301,13 @@ class BusyboxExecutorTest {
         assertTrue(testFile.exists())
 
         val command = "rm -rf ${testFile.absolutePath}"
+        stubBusyboxIsPresent(true)
         stubBusyboxCommand(command)
         stubBusyboxEnv()
 
-        busyboxExecutor.recursivelyDelete(testFile.absolutePath)
+        val result = busyboxExecutor.recursivelyDelete(testFile.absolutePath)
 
+        assertTrue(result is SuccessfulExecution)
         assertTrue(mockFilesDir.exists())
         assertFalse(testFile.exists())
     }
@@ -228,11 +336,13 @@ class BusyboxExecutorTest {
         assertTrue(linkedFile.exists())
 
         val command = "rm -rf ${symbolicDirLinkFile.absolutePath}"
+        stubBusyboxIsPresent(true)
         stubBusyboxCommand(command)
         stubBusyboxEnv()
 
-        busyboxExecutor.recursivelyDelete(symbolicDirLinkFile.absolutePath)
+        val result = busyboxExecutor.recursivelyDelete(symbolicDirLinkFile.absolutePath)
 
+        assertTrue(result is SuccessfulExecution)
         assertFalse(symbolicDirLinkFile.exists())
         assertFalse(linkedFile.exists())
         assertTrue(originalTestDir.exists())

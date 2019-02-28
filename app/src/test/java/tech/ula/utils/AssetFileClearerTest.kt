@@ -83,7 +83,7 @@ class AssetFileClearerTest {
 
     @Test
     fun `Clears all assets and leaves filesystem structure intact`() = runBlocking {
-        whenever(busyboxExecutor.recursivelyDelete(any())).thenReturn(true)
+        whenever(busyboxExecutor.recursivelyDelete(any())).thenReturn(SuccessfulExecution)
         assetFileClearer.clearAllSupportAssets()
 
         verify(busyboxExecutor, never()).recursivelyDelete(filesDir.absolutePath)

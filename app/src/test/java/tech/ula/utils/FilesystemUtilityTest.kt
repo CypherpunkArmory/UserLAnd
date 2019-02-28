@@ -51,7 +51,6 @@ class FilesystemUtilityTest {
 
         val defaultEnvironmentalVariables = hashMapOf<String, String>("INITIAL_USERNAME" to "username",
                 "INITIAL_PASSWORD" to "password", "INITIAL_VNC_PASSWORD" to "vncpass")
-        val mockProcess = mock<Process>()
         whenever(mockBusyboxExecutor.executeProotCommand(
                 eq(command),
                 eq(filesystemDirName),
@@ -59,11 +58,9 @@ class FilesystemUtilityTest {
                 eq(defaultEnvironmentalVariables),
                 eq(statelessListener),
                 anyOrNull()))
-                .thenReturn(mockProcess)
-        whenever(mockProcess.waitFor()).thenReturn(0)
+                .thenReturn(SuccessfulExecution)
 
         filesystemUtility.extractFilesystem(filesystem, statelessListener)
-        verify(mockProcess).waitFor()
     }
 
     @Test
@@ -205,7 +202,7 @@ class FilesystemUtilityTest {
 
         runBlocking {
             whenever(mockBusyboxExecutor.recursivelyDelete(testDir.absolutePath))
-                    .thenReturn(true)
+                    .thenReturn(SuccessfulExecution)
             filesystemUtility.deleteFilesystem(100)
             verify(mockBusyboxExecutor).recursivelyDelete(testDir.absolutePath)
         }
@@ -219,7 +216,7 @@ class FilesystemUtilityTest {
 
         runBlocking {
             whenever(mockBusyboxExecutor.recursivelyDelete(testDir.absolutePath))
-                    .thenReturn(false)
+                    .thenReturn(FailedExecution(""))
             filesystemUtility.deleteFilesystem(100)
             verify(mockBusyboxExecutor).recursivelyDelete(testDir.absolutePath)
             verify(logger).e("FilesystemUtility", "Failed to delete filesystem: 100")

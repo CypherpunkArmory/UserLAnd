@@ -4,7 +4,7 @@ import android.util.DisplayMetrics
 import android.view.Display
 import android.view.WindowManager
 import com.nhaarman.mockitokotlin2.whenever
-import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith

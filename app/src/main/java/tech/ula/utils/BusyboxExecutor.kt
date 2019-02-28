@@ -22,7 +22,7 @@ class BusyboxExecutor(
     private val busyboxWrapper: BusyboxWrapper = BusyboxWrapper()
 ) {
 
-    private val discardOutput: (String) -> Any = { Log.e("BusyboxExecutor", it)}
+    private val discardOutput: (String) -> Any = { Log.e("BusyboxExecutor", it) }
 
     fun executeCommand(
         command: String,
@@ -78,12 +78,23 @@ class BusyboxExecutor(
 
         return try {
             val process = processBuilder.start()
-            if (prootDebugEnabled) redirectOutputToDebugLog(process.inputStream, prootDebugLocation, coroutineScope)
-            else if (commandShouldTerminate) {
-                collectOutput(process.inputStream, listener)
-                getProcessResult(process)
+            when {
+                prootDebugEnabled && commandShouldTerminate -> {
+                    redirectOutputToDebugLog(process.inputStream, prootDebugLocation, coroutineScope)
+                    getProcessResult(process)
+                }
+                prootDebugEnabled && !commandShouldTerminate -> {
+                    redirectOutputToDebugLog(process.inputStream, prootDebugLocation, coroutineScope)
+                    OngoingExecution(process)
+                }
+                commandShouldTerminate -> {
+                    collectOutput(process.inputStream, listener)
+                    getProcessResult(process)
+                }
+                else -> {
+                    OngoingExecution(process)
+                }
             }
-            OngoingExecution(process)
         } catch (err: Exception) {
             FailedExecution("$err")
         }
