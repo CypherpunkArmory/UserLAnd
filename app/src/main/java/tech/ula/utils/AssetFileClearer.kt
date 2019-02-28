@@ -37,7 +37,7 @@ class AssetFileClearer(
             for (supportFile in supportDirectory.listFiles()) {
                 // Exclude directories and hidden files.
                 if (supportFile.isDirectory || supportFile.name.first() == '.') continue
-                // Use deleteRecursively extension to match functionality above
+                // Use deleteRecursively to match functionality above
                 if (!busyboxExecutor.recursivelyDelete(supportFile.path)) throw IOException()
             }
         }

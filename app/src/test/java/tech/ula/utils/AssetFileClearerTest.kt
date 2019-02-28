@@ -1,5 +1,9 @@
 package tech.ula.utils
 
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.never
+import com.nhaarman.mockitokotlin2.verify
+import com.nhaarman.mockitokotlin2.whenever
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -80,21 +84,23 @@ class AssetFileClearerTest {
     }
 
     @Test
-    fun `Clears all assets and leaves filesystem structure intact`() {
-        runBlocking { assetFileClearer.clearAllSupportAssets() }
+    fun `Clears all assets and leaves filesystem structure intact`() = runBlocking {
+        whenever(busyboxExecutor.recursivelyDelete(any())).thenReturn(true)
+        assetFileClearer.clearAllSupportAssets()
 
-        assertTrue(filesDir.exists())
-        assertTrue(randomTopLevelFile.exists())
-        assertTrue(randomTopLevelDir.exists())
+        verify(busyboxExecutor, never()).recursivelyDelete(filesDir.absolutePath)
+        verify(busyboxExecutor, never()).recursivelyDelete(randomTopLevelFile.absolutePath)
+        verify(busyboxExecutor, never()).recursivelyDelete(randomTopLevelDir.absolutePath)
 
-        assertFalse(debianDir.exists())
-        assertFalse(supportDir.exists())
-        assertFalse(topLevelDebianAssetFile.exists())
-        assertFalse(topLevelSupportAssetFile.exists())
+        verify(busyboxExecutor).recursivelyDelete(debianDir.absolutePath)
+        verify(busyboxExecutor).recursivelyDelete(supportDir.absolutePath)
+        verify(busyboxExecutor, never()).recursivelyDelete(topLevelDebianAssetFile.absolutePath)
+        verify(busyboxExecutor, never()).recursivelyDelete(topLevelSupportAssetFile.absolutePath)
 
-        assertTrue(filesystemDir.exists())
-        assertTrue(filesystemSupportDir.exists())
-        assertTrue(hiddenFilesystemSupportFile.exists())
-        assertFalse(nestedFilesystemAssetFile.exists())
+        verify(busyboxExecutor, never()).recursivelyDelete(filesystemDir.absolutePath)
+        verify(busyboxExecutor, never()).recursivelyDelete(filesystemSupportDir.absolutePath)
+        verify(busyboxExecutor, never()).recursivelyDelete(hiddenFilesystemSupportFile.absolutePath)
+        verify(busyboxExecutor).recursivelyDelete(nestedFilesystemAssetFile.absolutePath)
+        Unit
     }
 }
