@@ -80,9 +80,9 @@ class BusyboxExecutor(
     }
 
     private fun redirectOutputToDebugLog(
-            inputStream: InputStream,
-            prootDebugLocation: String,
-            coroutineScope: CoroutineScope
+        inputStream: InputStream,
+        prootDebugLocation: String,
+        coroutineScope: CoroutineScope
     ) = coroutineScope.launch {
         val prootLogFile = File(prootDebugLocation)
         if (prootLogFile.exists()) {

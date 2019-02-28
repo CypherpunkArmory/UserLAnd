@@ -69,8 +69,7 @@ class BusyboxExecutorTest {
     private fun stubProotDebuggingEnabled(enabled: Boolean) {
         if (enabled) {
             whenever(mockDefaultPreferences.getProotDebuggingEnabled()).thenReturn(true)
-        }
-        else {
+        } else {
             whenever(mockDefaultPreferences.getProotDebuggingEnabled()).thenReturn(false)
         }
         // Stub these regardless to ensure unwanted writes don't occur
