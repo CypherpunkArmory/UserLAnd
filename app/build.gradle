@@ -172,7 +172,7 @@ task jacocoCoverageReportForCi(type: JacocoReport, dependsOn: ['testDebugUnitTes
 }
 
 dependencies {
-    def acra_version = '5.1.3'
+    def acra_version = '5.2.1'
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':terminal-term')
