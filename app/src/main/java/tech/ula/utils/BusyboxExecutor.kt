@@ -24,7 +24,6 @@ class BusyboxExecutor(
 
     private val discardOutput: (String) -> Any = { Log.e("BusyboxExecutor", it)}
 
-    @Throws(Exception::class)
     fun executeCommand(
         command: String,
         listener: (String) -> Any = discardOutput
@@ -48,7 +47,6 @@ class BusyboxExecutor(
         }
     }
 
-    @Throws(Exception::class)
     fun executeProotCommand(
         command: String,
         filesystemDirName: String,
@@ -78,13 +76,17 @@ class BusyboxExecutor(
         processBuilder.environment().putAll(env)
         processBuilder.redirectErrorStream(true)
 
-        val process = processBuilder.start()
-        if (prootDebugEnabled) redirectOutputToDebugLog(process.inputStream, prootDebugLocation, coroutineScope)
-        else if (commandShouldTerminate) {
-            collectOutput(process.inputStream, listener)
-            return getProcessResult(process)
+        return try {
+            val process = processBuilder.start()
+            if (prootDebugEnabled) redirectOutputToDebugLog(process.inputStream, prootDebugLocation, coroutineScope)
+            else if (commandShouldTerminate) {
+                collectOutput(process.inputStream, listener)
+                getProcessResult(process)
+            }
+            OngoingExecution(process)
+        } catch (err: Exception) {
+            FailedExecution("$err")
         }
-        return OngoingExecution(process)
     }
 
     suspend fun recursivelyDelete(absolutePath: String): ExecutionResult = withContext(Dispatchers.IO) {

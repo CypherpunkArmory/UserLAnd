@@ -58,12 +58,14 @@ class ServerUtility(
         val filesystemDirName = session.filesystemId.toString()
         deletePidFile(session)
         val command = "/support/startSSHServer.sh"
-        return try {
-            val process: Process = busyboxExecutor.executeProotCommand(command, filesystemDirName, false)
-            process.pid()
-        } catch (err: Exception) {
-            logger.logRuntimeErrorForCommand(functionName = "startSSHServer", command = command, err = err)
-            -1
+        val result = busyboxExecutor.executeProotCommand(command, filesystemDirName, false)
+        return when (result) {
+            is OngoingExecution -> result.process.pid()
+            is FailedExecution -> {
+                logger.logRuntimeErrorForCommand(functionName = "startSSHServer", command = command, err = result.reason)
+                -1
+            }
+            else -> -1
         }
     }
 
@@ -71,17 +73,23 @@ class ServerUtility(
         val filesystemDirName = session.filesystemId.toString()
         deletePidFile(session)
         val command = "/support/startVNCServer.sh"
-        return try {
-            val env = HashMap<String, String>()
-            env["INITIAL_USERNAME"] = session.username
-            env["INITIAL_VNC_PASSWORD"] = session.vncPassword
-            env["DIMENSIONS"] = session.geometry
+        val env = HashMap<String, String>()
+        env["INITIAL_USERNAME"] = session.username
+        env["INITIAL_VNC_PASSWORD"] = session.vncPassword
+        env["DIMENSIONS"] = session.geometry
 
-            val process = busyboxExecutor.executeProotCommand(command, filesystemDirName, commandShouldTerminate = false, env = env)
-            process.pid()
-        } catch (err: Exception) {
-            logger.logRuntimeErrorForCommand(functionName = "startVNCServer", command = command, err = err)
-            -1
+        val result = busyboxExecutor.executeProotCommand(
+                command,
+                filesystemDirName,
+                commandShouldTerminate = false,
+                env = env)
+        return when (result) {
+            is OngoingExecution -> result.process.pid()
+            is FailedExecution -> {
+                logger.logRuntimeErrorForCommand(functionName = "startVNCServer", command = command, err = result.reason)
+                -1
+            }
+            else -> -1
         }
     }
 
@@ -89,25 +97,30 @@ class ServerUtility(
         val filesystemDirName = session.filesystemId.toString()
         deletePidFile(session)
         val command = "/support/startXSDLServer.sh"
-        return try {
-            val env = HashMap<String, String>()
-            env["INITIAL_USERNAME"] = session.username
-            env["DISPLAY"] = ":4721"
-            env["PULSE_SERVER"] = "127.0.0.1:4721"
-            val process = busyboxExecutor.executeProotCommand(command, filesystemDirName, commandShouldTerminate = false, env = env)
-            process.pid()
-        } catch (err: Exception) {
-            logger.logRuntimeErrorForCommand(functionName = "startXSDLServer", command = command, err = err)
-            -1
+        val env = HashMap<String, String>()
+        env["INITIAL_USERNAME"] = session.username
+        env["DISPLAY"] = ":4721"
+        env["PULSE_SERVER"] = "127.0.0.1:4721"
+        val result = busyboxExecutor.executeProotCommand(
+                command,
+                filesystemDirName,
+                commandShouldTerminate = false,
+                env = env)
+        return when (result) {
+            is OngoingExecution -> result.process.pid()
+            is FailedExecution -> {
+                logger.logRuntimeErrorForCommand(functionName = "setDisplayNumberAndStartTwm", command = command, err = result.reason)
+                -1
+            }
+            else -> -1
         }
     }
 
     fun stopService(session: Session) {
         val command = "support/killProcTree.sh ${session.pid} ${session.pid()}"
-        try {
-            busyboxExecutor.executeCommand(command)
-        } catch (err: Exception) {
-            logger.logRuntimeErrorForCommand(functionName = "stopService", command = command, err = err)
+        val result = busyboxExecutor.executeCommand(command)
+        if (result is FailedExecution) {
+            logger.logRuntimeErrorForCommand(functionName = "stopService", command = command, err = result.reason)
         }
     }
 
@@ -116,11 +129,16 @@ class ServerUtility(
         // The server itself is run by a third-party, so we can consider this to always be true.
         // The third-party app is responsible for handling errors starting their server.
         if (session.serviceType == "xsdl") return true
-        return try {
-            busyboxExecutor.executeCommand(command)
-        } catch (err: Exception) {
-            logger.logRuntimeErrorForCommand(functionName = "isServerRunning", command = command, err = err)
-            false
+        val result = busyboxExecutor.executeCommand(command)
+        return when (result) {
+            is SuccessfulExecution -> true
+            is FailedExecution -> {
+                logger.logRuntimeErrorForCommand(functionName = "isServerRunning", command = command, err = result.reason)
+                false
+            }
+            else -> {
+                false
+            }
         }
     }
 }
