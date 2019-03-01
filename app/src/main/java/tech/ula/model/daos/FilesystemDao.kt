@@ -20,7 +20,7 @@ interface FilesystemDao {
     fun findAppsFilesystemByType(requiredFilesystemType: String): List<Filesystem>
 
     @Insert(onConflict = OnConflictStrategy.FAIL)
-    fun insertFilesystem(filesystem: Filesystem)
+    fun insertFilesystem(filesystem: Filesystem): Long
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
     fun updateFilesystem(filesystem: Filesystem)

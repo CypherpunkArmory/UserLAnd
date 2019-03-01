@@ -17,7 +17,8 @@ data class Filesystem(
     var defaultPassword: String = "",
     var defaultVncPassword: String = "",
     val isAppsFilesystem: Boolean = false,
-    var lastUpdated: Long = -1L
+    var lastUpdated: Long = -1L,
+    var isCreatedFromBackup: Boolean = false
 ) : Parcelable {
     override fun toString(): String {
         return "Filesystem(id=$id, name=$name, distributionType=$distributionType, archType=" +
