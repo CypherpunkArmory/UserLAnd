@@ -114,7 +114,12 @@ class MigrationTest {
     private fun getMigratedDatabase(): UlaDatabase {
         val db = Room.databaseBuilder(InstrumentationRegistry.getTargetContext(),
                 UlaDatabase::class.java, TEST_DB)
-                .addMigrations(Migration1To2(), Migration2To3(), Migration3To4(), Migration4To5())
+                .addMigrations(
+                        Migration1To2(),
+                        Migration2To3(),
+                        Migration3To4(),
+                        Migration4To5(),
+                        Migration5To6())
                 .build()
 
         helper.closeWhenFinished(db)
