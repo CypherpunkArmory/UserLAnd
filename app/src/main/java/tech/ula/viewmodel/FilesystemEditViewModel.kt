@@ -2,7 +2,7 @@ package tech.ula.viewmodel
 
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
-import kotlinx.coroutines.*
+import kotlinx.coroutines.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Filesystem
 import java.io.File
@@ -25,10 +25,10 @@ class FilesystemEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(
     }
 
     fun insertFilesystemFromBackup(
-            filesystem: Filesystem,
-            backupPath: String,
-            filesDir: File,
-            coroutineScope: CoroutineScope = this
+        filesystem: Filesystem,
+        backupPath: String,
+        filesDir: File,
+        coroutineScope: CoroutineScope = this
     ) = coroutineScope.launch {
         withContext(Dispatchers.IO) {
             filesystem.isCreatedFromBackup = true
@@ -43,7 +43,7 @@ class FilesystemEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(
         }
     }
 
-    fun updateFilesystem(filesystem: Filesystem) = this.launch {
+    fun updateFilesystem(filesystem: Filesystem, coroutineScope: CoroutineScope = this) = coroutineScope.launch {
         ulaDatabase.filesystemDao().updateFilesystem(filesystem)
         ulaDatabase.sessionDao().updateFilesystemNamesForAllSessions()
     }
