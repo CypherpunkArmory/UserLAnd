@@ -1,38 +1,56 @@
 package tech.ula.viewmodel
 
-import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
-import android.database.sqlite.SQLiteConstraintException
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import android.arch.lifecycle.ViewModel
+import android.arch.lifecycle.ViewModelProvider
+import kotlinx.coroutines.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Filesystem
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.suspendCoroutine
-import kotlin.coroutines.resume
+import java.io.File
+import kotlin.coroutines.CoroutineContext
 
-class FilesystemEditViewModel(application: Application) : AndroidViewModel(application) {
-    private val ulaDatabase: UlaDatabase by lazy {
-        UlaDatabase.getInstance(application)
+class FilesystemEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(), CoroutineScope {
+    private val job = Job()
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
+
+    override fun onCleared() {
+        job.cancel()
+        super.onCleared()
     }
 
-    suspend fun insertFilesystem(filesystem: Filesystem): Boolean {
-        lateinit var result: Continuation<Boolean>
-        GlobalScope.launch {
-            try {
-                ulaDatabase.filesystemDao().insertFilesystem(filesystem)
-                result.resume(true)
-            } catch (err: SQLiteConstraintException) {
-                result.resume(false)
-            }
+    fun insertFilesystem(filesystem: Filesystem, coroutineScope: CoroutineScope = this) = coroutineScope.launch {
+        withContext(Dispatchers.IO) {
+            ulaDatabase.filesystemDao().insertFilesystem(filesystem)
         }
-        return suspendCoroutine { continuation -> result = continuation }
     }
 
-    fun updateFilesystem(filesystem: Filesystem) {
-        GlobalScope.launch {
-            ulaDatabase.filesystemDao().updateFilesystem(filesystem)
-            ulaDatabase.sessionDao().updateFilesystemNamesForAllSessions()
+    fun insertFilesystemFromBackup(
+        filesystem: Filesystem,
+        backupPath: String,
+        filesDir: File,
+        coroutineScope: CoroutineScope = this
+    ) = coroutineScope.launch {
+        withContext(Dispatchers.IO) {
+            filesystem.isCreatedFromBackup = true
+            val id = ulaDatabase.filesystemDao().insertFilesystem(filesystem)
+
+            val filesystemSupportDir = File("${filesDir.absolutePath}/$id/support")
+            filesystemSupportDir.mkdirs()
+
+            val backup = File(backupPath)
+            val backupTarget = File("${filesystemSupportDir.absolutePath}/rootfs.tar.gz")
+            backup.copyTo(backupTarget, overwrite = true)
         }
+    }
+
+    fun updateFilesystem(filesystem: Filesystem, coroutineScope: CoroutineScope = this) = coroutineScope.launch {
+        ulaDatabase.filesystemDao().updateFilesystem(filesystem)
+        ulaDatabase.sessionDao().updateFilesystemNamesForAllSessions()
+    }
+}
+
+class FilesystemEditViewmodelFactory(private val ulaDatabase: UlaDatabase) : ViewModelProvider.NewInstanceFactory() {
+    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        return FilesystemEditViewModel(ulaDatabase) as T
     }
 }
