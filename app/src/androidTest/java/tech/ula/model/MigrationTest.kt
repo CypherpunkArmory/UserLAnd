@@ -15,7 +15,7 @@ import org.junit.runner.RunWith
 import tech.ula.blockingObserve
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.model.repositories.*
+import tech.ula.model.repositories.* // ktlint-disable no-wildcard-imports
 import java.io.IOException
 
 @RunWith(AndroidJUnit4::class)
