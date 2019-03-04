@@ -15,11 +15,7 @@ import org.junit.runner.RunWith
 import tech.ula.blockingObserve
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.model.repositories.Migration1To2
-import tech.ula.model.repositories.Migration2To3
-import tech.ula.model.repositories.Migration3To4
-import tech.ula.model.repositories.Migration4To5
-import tech.ula.model.repositories.UlaDatabase
+import tech.ula.model.repositories.*
 import java.io.IOException
 
 @RunWith(AndroidJUnit4::class)
@@ -105,6 +101,14 @@ class MigrationTest {
         helper.createDatabase(TEST_DB, 4)
 
         helper.runMigrationsAndValidate(TEST_DB, 5, true, Migration4To5())
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun migrate5To6() {
+        helper.createDatabase(TEST_DB, 5)
+
+        helper.runMigrationsAndValidate(TEST_DB, 6, true, Migration5To6())
     }
 
     private fun getMigratedDatabase(): UlaDatabase {

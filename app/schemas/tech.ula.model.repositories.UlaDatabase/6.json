@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 5,
-    "identityHash": "e0ab57d3b8ac504ff016fa68d9ee5478",
+    "version": 6,
+    "identityHash": "050e858c481e459c3dfa5dee6d7cdd7a",
     "entities": [
       {
         "tableName": "session",
@@ -119,7 +119,7 @@
       },
       {
         "tableName": "filesystem",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `distributionType` TEXT NOT NULL, `archType` TEXT NOT NULL, `defaultUsername` TEXT NOT NULL, `defaultPassword` TEXT NOT NULL, `defaultVncPassword` TEXT NOT NULL, `isAppsFilesystem` INTEGER NOT NULL, `lastUpdated` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `distributionType` TEXT NOT NULL, `archType` TEXT NOT NULL, `defaultUsername` TEXT NOT NULL, `defaultPassword` TEXT NOT NULL, `defaultVncPassword` TEXT NOT NULL, `isAppsFilesystem` INTEGER NOT NULL, `lastUpdated` INTEGER NOT NULL, `isCreatedFromBackup` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -172,6 +172,12 @@
           {
             "fieldPath": "lastUpdated",
             "columnName": "lastUpdated",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isCreatedFromBackup",
+            "columnName": "isCreatedFromBackup",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -253,7 +259,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"e0ab57d3b8ac504ff016fa68d9ee5478\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"050e858c481e459c3dfa5dee6d7cdd7a\")"
     ]
   }
 }

@@ -15,7 +15,7 @@ import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
 
-@Database(entities = [Session::class, Filesystem::class, App::class], version = 5, exportSchema = true)
+@Database(entities = [Session::class, Filesystem::class, App::class], version = 6, exportSchema = true)
 abstract class UlaDatabase : RoomDatabase() {
 
     abstract fun sessionDao(): SessionDao
@@ -36,7 +36,13 @@ abstract class UlaDatabase : RoomDatabase() {
         private fun buildDatabase(context: Context): UlaDatabase =
                 Room.databaseBuilder(context.applicationContext,
                         UlaDatabase::class.java, "Data.db")
-                        .addMigrations(Migration1To2(), Migration2To3(), Migration3To4(), Migration4To5())
+                        .addMigrations(
+                                Migration1To2(),
+                                Migration2To3(),
+                                Migration3To4(),
+                                Migration4To5(),
+                                Migration5To6()
+                        )
                         .addCallback(object : RoomDatabase.Callback() {
                             override fun onOpen(db: SupportSQLiteDatabase) {
                                 super.onOpen(db)
@@ -115,5 +121,11 @@ class Migration3To4 : Migration(3, 4) {
 class Migration4To5 : Migration(4, 5) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE session ADD COLUMN geometry TEXT NOT NULL DEFAULT ''")
+    }
+}
+
+class Migration5To6 : Migration(5, 6) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE filesystem ADD COLUMN isCreatedFromBackup INTEGER NOT NULL DEFAULT 0")
     }
 }
