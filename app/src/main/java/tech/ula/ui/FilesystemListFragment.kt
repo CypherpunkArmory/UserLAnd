@@ -5,16 +5,23 @@ import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
 import android.os.Bundle
+import android.os.Environment
 import android.support.v4.app.Fragment
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_list.* // ktlint-disable no-wildcard-imports
 import org.jetbrains.anko.bundleOf
+import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.Filesystem
+import tech.ula.model.repositories.UlaDatabase
+import tech.ula.utils.BusyboxExecutor
+import tech.ula.utils.DefaultPreferences
+import tech.ula.utils.FilesystemUtility
 import tech.ula.viewmodel.FilesystemListViewModel
+import tech.ula.viewmodel.FilesystemListViewmodelFactory
 
 class FilesystemListFragment : Fragment() {
 
@@ -22,13 +29,18 @@ class FilesystemListFragment : Fragment() {
 
     private lateinit var filesystemList: List<Filesystem>
 
+    private val externalStorageDir = Environment.getExternalStorageDirectory()
+
     private val filesystemListViewModel: FilesystemListViewModel by lazy {
-        ViewModelProviders.of(this).get(FilesystemListViewModel::class.java)
+        val filesystemDao = UlaDatabase.getInstance(activityContext).filesystemDao()
+        val busyboxExecutor = BusyboxExecutor(activityContext.filesDir, externalStorageDir, DefaultPreferences(activityContext.defaultSharedPreferences))
+        val filesystemUtility = FilesystemUtility(activityContext.filesDir.absolutePath, busyboxExecutor)
+        ViewModelProviders.of(this, FilesystemListViewmodelFactory(filesystemDao, filesystemUtility)).get(FilesystemListViewModel::class.java)
     }
 
     private val filesystemChangeObserver = Observer<List<Filesystem>> {
-        it?.let {
-            filesystemList = it
+        it?.let { list ->
+            filesystemList = list
 
             list_filesystems.adapter = FilesystemListAdapter(activityContext, filesystemList)
         }
@@ -50,7 +62,6 @@ class FilesystemListFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        filesystemListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
         return inflater.inflate(R.layout.frag_filesystem_list, container, false)
     }
 
@@ -58,6 +69,7 @@ class FilesystemListFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
 
         activityContext = activity!!
+        filesystemListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
         registerForContextMenu(list_filesystems)
     }
 
