@@ -2,8 +2,11 @@ package tech.ula.ui
 
 import android.app.Activity
 import android.arch.lifecycle.ViewModelProviders
+import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
 import android.text.Editable
 import android.text.TextWatcher
@@ -89,6 +92,7 @@ class FilesystemEditFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupTextInputs()
+        setupImportButton()
 
         if (editExisting) {
             spinner_filesystem_type.isEnabled = false
@@ -153,6 +157,31 @@ class FilesystemEditFragment : Fragment() {
         })
     }
 
+    private fun setupImportButton() {
+        import_button.setOnClickListener {
+            val filePickerIntent = Intent(Intent.ACTION_GET_CONTENT)
+            filePickerIntent.type = "application/*"
+            filePickerIntent.addCategory(Intent.CATEGORY_OPENABLE)
+            val fileChooser = Intent.createChooser(filePickerIntent, "Select File")
+
+            try {
+                startActivityForResult(fileChooser, IMPORT_FILESYSTEM_REQUEST_CODE)
+            } catch (activityNotFoundErr: ActivityNotFoundException) {
+                Toast.makeText(activityContext, "Please install a File Manager.", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == IMPORT_FILESYSTEM_REQUEST_CODE) {
+            data?.data?.let {
+                val path = it.path
+                Toast.makeText(activityContext, "Location is: $path", Snackbar.LENGTH_LONG).show()
+            }
+        }
+    }
+
     private fun insertFilesystem(): Boolean {
         val navController = NavHostFragment.findNavController(this)
         if (!filesystemParametersAreCorrect()) {
@@ -203,5 +232,9 @@ class FilesystemEditFragment : Fragment() {
                 return true
         }
         return false
+    }
+
+    companion object {
+        val IMPORT_FILESYSTEM_REQUEST_CODE = 5
     }
 }
