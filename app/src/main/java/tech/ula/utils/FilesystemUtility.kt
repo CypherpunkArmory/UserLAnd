@@ -40,7 +40,7 @@ class FilesystemUtility(
 
     fun extractFilesystem(filesystem: Filesystem, listener: (String) -> Any) {
         val filesystemDirName = "${filesystem.id}"
-        val command = "/support/extractFilesystem.sh"
+        val command = "/support/common/extractFilesystem.sh"
         val env = HashMap<String, String>()
         env["INITIAL_USERNAME"] = filesystem.defaultUsername
         env["INITIAL_PASSWORD"] = filesystem.defaultPassword

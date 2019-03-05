@@ -40,7 +40,7 @@ class FilesystemUtilityTest {
 
     @Test
     fun `Calling extract filesystem uses the appropriate command`() {
-        val command = "/support/extractFilesystem.sh"
+        val command = "/support/common/extractFilesystem.sh"
 
         val requiredFilesystemType = "testDist"
         val fakeArchitecture = "testArch"
@@ -49,7 +49,7 @@ class FilesystemUtilityTest {
                 defaultUsername = "username", defaultPassword = "password", defaultVncPassword = "vncpass")
         val filesystemDirName = "${filesystem.id}"
 
-        val defaultEnvironmentalVariables = hashMapOf<String, String>("INITIAL_USERNAME" to "username",
+        val defaultEnvironmentalVariables = hashMapOf("INITIAL_USERNAME" to "username",
                 "INITIAL_PASSWORD" to "password", "INITIAL_VNC_PASSWORD" to "vncpass")
         whenever(mockBusyboxExecutor.executeProotCommand(
                 eq(command),
