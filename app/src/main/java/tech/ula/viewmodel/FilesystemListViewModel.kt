@@ -3,7 +3,7 @@ package tech.ula.viewmodel
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
-import kotlinx.coroutines.*
+import kotlinx.coroutines.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.entities.Filesystem
 import tech.ula.utils.FilesystemUtility
@@ -36,10 +36,10 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
     }
 
     fun compressFilesystem(
-            filesystem: Filesystem,
-            externalStorageDirectory: File,
-            listener: (String) -> Any,
-            coroutineScope: CoroutineScope = this
+        filesystem: Filesystem,
+        externalStorageDirectory: File,
+        listener: (String) -> Any,
+        coroutineScope: CoroutineScope = this
     ) = coroutineScope.launch {
         filesystemUtility.compressFilesystem(filesystem, externalStorageDirectory)
     }
