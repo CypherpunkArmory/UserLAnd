@@ -41,7 +41,7 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
         listener: (String) -> Any,
         coroutineScope: CoroutineScope = this
     ) = coroutineScope.launch {
-        filesystemUtility.compressFilesystem(filesystem, externalStorageDirectory)
+        filesystemUtility.compressFilesystem(filesystem, externalStorageDirectory, listener)
     }
 }
 
