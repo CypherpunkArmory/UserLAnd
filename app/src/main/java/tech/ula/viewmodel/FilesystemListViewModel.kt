@@ -1,27 +1,41 @@
 package tech.ula.viewmodel
 
-import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import tech.ula.model.repositories.UlaDatabase
+import android.arch.lifecycle.ViewModel
+import android.arch.lifecycle.ViewModelProvider
+import kotlinx.coroutines.*
+import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.entities.Filesystem
+import kotlin.coroutines.CoroutineContext
 
-class FilesystemListViewModel(application: Application) : AndroidViewModel(application) {
-    private val ulaDatabase: UlaDatabase by lazy {
-        UlaDatabase.getInstance(application)
+class FilesystemListViewModel(private val filesystemDao: FilesystemDao) : ViewModel(), CoroutineScope {
+
+    private val job = Job()
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
+
+    override fun onCleared() {
+        job.cancel()
+        super.onCleared()
     }
 
     private val filesystems: LiveData<List<Filesystem>> by lazy {
-        ulaDatabase.filesystemDao().getAllFilesystems()
+        filesystemDao.getAllFilesystems()
     }
 
     fun getAllFilesystems(): LiveData<List<Filesystem>> {
         return filesystems
     }
 
-    fun deleteFilesystemById(id: Long) {
-        GlobalScope.launch { ulaDatabase.filesystemDao().deleteFilesystemById(id) }
+    fun deleteFilesystemById(id: Long, coroutineScope: CoroutineScope = this) = coroutineScope.launch {
+        withContext(Dispatchers.IO) {
+            filesystemDao.deleteFilesystemById(id)
+        }
+    }
+}
+
+class FilesystemListViewmodelFactory(private val filesystemDao: FilesystemDao) : ViewModelProvider.NewInstanceFactory() {
+    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        return FilesystemListViewModel(filesystemDao) as T
     }
 }

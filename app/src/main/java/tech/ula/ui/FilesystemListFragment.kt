@@ -14,7 +14,9 @@ import org.jetbrains.anko.bundleOf
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.Filesystem
+import tech.ula.model.repositories.UlaDatabase
 import tech.ula.viewmodel.FilesystemListViewModel
+import tech.ula.viewmodel.FilesystemListViewmodelFactory
 
 class FilesystemListFragment : Fragment() {
 
@@ -23,12 +25,13 @@ class FilesystemListFragment : Fragment() {
     private lateinit var filesystemList: List<Filesystem>
 
     private val filesystemListViewModel: FilesystemListViewModel by lazy {
-        ViewModelProviders.of(this).get(FilesystemListViewModel::class.java)
+        val filesystemDao = UlaDatabase.getInstance(activityContext).filesystemDao()
+        ViewModelProviders.of(this, FilesystemListViewmodelFactory(filesystemDao)).get(FilesystemListViewModel::class.java)
     }
 
     private val filesystemChangeObserver = Observer<List<Filesystem>> {
-        it?.let {
-            filesystemList = it
+        it?.let { list ->
+            filesystemList = list
 
             list_filesystems.adapter = FilesystemListAdapter(activityContext, filesystemList)
         }
@@ -50,7 +53,6 @@ class FilesystemListFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        filesystemListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
         return inflater.inflate(R.layout.frag_filesystem_list, container, false)
     }
 
@@ -58,6 +60,7 @@ class FilesystemListFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
 
         activityContext = activity!!
+        filesystemListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
         registerForContextMenu(list_filesystems)
     }
 

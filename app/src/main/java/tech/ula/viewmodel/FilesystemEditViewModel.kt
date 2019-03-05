@@ -44,8 +44,10 @@ class FilesystemEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(
     }
 
     fun updateFilesystem(filesystem: Filesystem, coroutineScope: CoroutineScope = this) = coroutineScope.launch {
-        ulaDatabase.filesystemDao().updateFilesystem(filesystem)
-        ulaDatabase.sessionDao().updateFilesystemNamesForAllSessions()
+        withContext(Dispatchers.IO) {
+            ulaDatabase.filesystemDao().updateFilesystem(filesystem)
+            ulaDatabase.sessionDao().updateFilesystemNamesForAllSessions()
+        }
     }
 }
 
