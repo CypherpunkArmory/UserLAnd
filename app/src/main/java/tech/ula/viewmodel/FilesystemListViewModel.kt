@@ -6,9 +6,11 @@ import android.arch.lifecycle.ViewModelProvider
 import kotlinx.coroutines.*
 import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.entities.Filesystem
+import tech.ula.utils.FilesystemUtility
+import java.io.File
 import kotlin.coroutines.CoroutineContext
 
-class FilesystemListViewModel(private val filesystemDao: FilesystemDao) : ViewModel(), CoroutineScope {
+class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private val filesystemUtility: FilesystemUtility) : ViewModel(), CoroutineScope {
 
     private val job = Job()
     override val coroutineContext: CoroutineContext
@@ -32,10 +34,18 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao) : ViewMo
             filesystemDao.deleteFilesystemById(id)
         }
     }
+
+    fun compressFilesystem(
+            filesystem: Filesystem,
+            externalStorageDirectory: File,
+            coroutineScope: CoroutineScope = this
+    ) = coroutineScope.launch {
+        filesystemUtility.compressFilesystem(filesystem, externalStorageDirectory)
+    }
 }
 
-class FilesystemListViewmodelFactory(private val filesystemDao: FilesystemDao) : ViewModelProvider.NewInstanceFactory() {
+class FilesystemListViewmodelFactory(private val filesystemDao: FilesystemDao, private val filesystemUtility: FilesystemUtility) : ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        return FilesystemListViewModel(filesystemDao) as T
+        return FilesystemListViewModel(filesystemDao, filesystemUtility) as T
     }
 }

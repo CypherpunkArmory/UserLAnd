@@ -1,5 +1,7 @@
 package tech.ula.utils
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import java.io.File
@@ -57,6 +59,10 @@ class FilesystemUtility(
             val err = result.reason
             logger.logRuntimeErrorForCommand(functionName = "extractFilesystem", command = command, err = err)
         }
+    }
+
+    suspend fun compressFilesystem(filesystem: Filesystem, externalStorageDirectory: File) = withContext(Dispatchers.IO) {
+        Unit
     }
 
     fun isExtractionComplete(targetDirectoryName: String): Boolean {
