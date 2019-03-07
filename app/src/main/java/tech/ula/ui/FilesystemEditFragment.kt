@@ -7,9 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.provider.OpenableColumns
-import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
 import android.text.Editable
 import android.text.TextWatcher
@@ -32,7 +30,8 @@ import tech.ula.utils.BuildWrapper
 import tech.ula.utils.ValidationUtility
 import tech.ula.viewmodel.FilesystemEditViewModel
 import tech.ula.viewmodel.FilesystemEditViewmodelFactory
-import java.io.File
+import java.io.*
+import java.util.zip.GZIPInputStream
 
 class FilesystemEditFragment : Fragment() {
 
@@ -164,14 +163,9 @@ class FilesystemEditFragment : Fragment() {
     private fun setupImportButton() {
         import_button.setOnClickListener {
             val filePickerIntent = Intent(Intent.ACTION_GET_CONTENT)
-//            filePickerIntent.type = "application/*"
-//            filePickerIntent.addCategory(Intent.EXTRA_LOCAL_ONLY)
-            val userlandExternalStorageUri = Uri.parse("${Environment.getExternalStorageDirectory()}/UserLAnd")
-            val result = File("${Environment.getExternalStorageDirectory()}/UserLAnd").mkdirs()
-//            val filePickerIntent = Intent(Intent.ACTION_VIEW)
-//            filePickerIntent.addCategory(Intent.CATEGORY_OPENABLE)
-            filePickerIntent.setDataAndType(userlandExternalStorageUri, "*/*")
-            val fileChooser = Intent.createChooser(filePickerIntent, "Select File")
+            filePickerIntent.addCategory(Intent.CATEGORY_OPENABLE)
+            filePickerIntent.type = "application/*"
+            val fileChooser = Intent.createChooser(filePickerIntent, "Select Filesystem Backup file")
 
             try {
                 startActivityForResult(fileChooser, IMPORT_FILESYSTEM_REQUEST_CODE)
@@ -181,18 +175,44 @@ class FilesystemEditFragment : Fragment() {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
+    override fun onActivityResult(requestCode: Int, resultCode: Int, returnIntent: Intent?) {
+        super.onActivityResult(requestCode, resultCode, returnIntent)
         if (requestCode == IMPORT_FILESYSTEM_REQUEST_CODE) {
-            data?.data?.let {
-                var cursor = activityContext.contentResolver.query(it, null, null, null, null)
-//                val columIndex = cursor.getColumnIndexOrThrow("_data")
-                if (cursor.moveToFirst()) {
-                    val pathName = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
-                    val cheese = ""
+            returnIntent?.data?.let { uri ->
+                activityContext.contentResolver.query(uri, null, null, null, null).use {
+                    it?.let { cursor ->
+                        if (cursor.moveToFirst()) {
+                            val filename = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                            File("${activityContext.filesDir.absolutePath}/backups").mkdirs()
+                            val destinationPath = "${activityContext.filesDir.absolutePath}/backups/$filename"
+                            val destination = File(destinationPath)
+                            copyBackup(source = uri, destination = destination)
+                        }
+                    }
                 }
-                val path = it.path
-                Toast.makeText(activityContext, "Location is: $path", Snackbar.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun copyBackup(source: Uri, destination: File) {
+        activityContext.contentResolver.openInputStream(source)?.let { fileStream ->
+            val gzipInputStream = GZIPInputStream(fileStream)
+            val streamOutput = FileOutputStream(destination)
+            try {
+                val buffer = ByteArray(1024)
+                var len = 0
+                gzipInputStream.use {
+                    while (len != -1) {
+                        len = gzipInputStream.read(buffer)
+                        streamOutput.write(buffer, 0, len)
+                    }
+                }
+            } catch (e: Exception) {
+                val error = e
+            } finally {
+                fileStream.close()
+                gzipInputStream.close()
+                streamOutput.close()
             }
         }
     }
