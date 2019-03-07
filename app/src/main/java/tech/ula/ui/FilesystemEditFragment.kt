@@ -1,13 +1,11 @@
 package tech.ula.ui
 
-import android.app.Activity
 import android.arch.lifecycle.ViewModelProviders
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.provider.OpenableColumns
 import android.support.v4.app.Fragment
 import android.text.Editable
 import android.text.TextWatcher
@@ -22,6 +20,7 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_edit.*
+import tech.ula.MainActivity
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.repositories.UlaDatabase
@@ -30,12 +29,18 @@ import tech.ula.utils.BuildWrapper
 import tech.ula.utils.ValidationUtility
 import tech.ula.viewmodel.FilesystemEditViewModel
 import tech.ula.viewmodel.FilesystemEditViewmodelFactory
-import java.io.*
-import java.util.zip.GZIPInputStream
 
 class FilesystemEditFragment : Fragment() {
 
-    private lateinit var activityContext: Activity
+    interface FilesystemImport {
+        fun filesystemImportSelected(backupFilesystemUri: Uri, currentFilesystem: Filesystem): String
+    }
+
+    private val doOnFilesystemImport: FilesystemImport by lazy {
+        activityContext
+    }
+
+    private lateinit var activityContext: MainActivity
 
     private val filesystem: Filesystem by lazy {
         arguments?.getParcelable("filesystem") as Filesystem
@@ -76,7 +81,7 @@ class FilesystemEditFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        activityContext = activity!!
+        activityContext = activity!! as MainActivity
 
         if (distributionList.isNotEmpty()) {
             spinner_filesystem_type.adapter = ArrayAdapter(activityContext,
@@ -179,42 +184,15 @@ class FilesystemEditFragment : Fragment() {
         super.onActivityResult(requestCode, resultCode, returnIntent)
         if (requestCode == IMPORT_FILESYSTEM_REQUEST_CODE) {
             returnIntent?.data?.let { uri ->
-                activityContext.contentResolver.query(uri, null, null, null, null).use {
-                    it?.let { cursor ->
-                        if (cursor.moveToFirst()) {
-                            val filename = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
-                            File("${activityContext.filesDir.absolutePath}/backups").mkdirs()
-                            val destinationPath = "${activityContext.filesDir.absolutePath}/backups/$filename"
-                            val destination = File(destinationPath)
-                            copyBackup(source = uri, destination = destination)
-                        }
-                    }
-                }
+                doOnFilesystemImportStart(uri)
             }
         }
     }
 
-    private fun copyBackup(source: Uri, destination: File) {
-        activityContext.contentResolver.openInputStream(source)?.let { fileStream ->
-            val gzipInputStream = GZIPInputStream(fileStream)
-            val streamOutput = FileOutputStream(destination)
-            try {
-                val buffer = ByteArray(1024)
-                var len = 0
-                gzipInputStream.use {
-                    while (len != -1) {
-                        len = gzipInputStream.read(buffer)
-                        streamOutput.write(buffer, 0, len)
-                    }
-                }
-            } catch (e: Exception) {
-                val error = e
-            } finally {
-                fileStream.close()
-                gzipInputStream.close()
-                streamOutput.close()
-            }
-        }
+    private fun doOnFilesystemImportStart(backupFilesystemUri: Uri) {
+        val backupFilename = doOnFilesystemImport.filesystemImportSelected(backupFilesystemUri, currentFilesystem = filesystem)
+        val backupFilesystemPath = "${activityContext.filesDir.absolutePath}/backups/$backupFilename"
+        filesystemEditViewModel.insertFilesystemFromBackup(filesystem, backupFilesystemPath, activityContext.filesDir)
     }
 
     private fun insertFilesystem(): Boolean {
@@ -270,6 +248,6 @@ class FilesystemEditFragment : Fragment() {
     }
 
     companion object {
-        val IMPORT_FILESYSTEM_REQUEST_CODE = 5
+        const val IMPORT_FILESYSTEM_REQUEST_CODE = 5
     }
 }
