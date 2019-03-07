@@ -19,7 +19,6 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.provider.OpenableColumns
 import android.support.design.widget.TextInputEditText
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
@@ -63,15 +62,13 @@ import org.acra.config.HttpSenderConfigurationBuilder
 import org.acra.data.StringFormat
 import org.acra.sender.HttpSender
 import tech.ula.model.entities.Filesystem
-import tech.ula.ui.FilesystemEditFragment
-import java.io.File
-import java.io.FileOutputStream
+import tech.ula.ui.FilesystemListFragment
 import kotlin.IllegalStateException
 
 class MainActivity : AppCompatActivity(),
         SessionListFragment.SessionSelection,
         AppListFragment.AppSelection,
-        FilesystemEditFragment.FilesystemImport {
+        FilesystemListFragment.FilesystemExport {
 
     private val permissionRequestCode: Int by lazy {
         getString(R.string.permission_request_code).toInt()
@@ -306,50 +303,11 @@ class MainActivity : AppCompatActivity(),
         viewModel.submitSessionSelection(session)
     }
 
-    override fun filesystemImportSelected(backupFilesystemUri: Uri, currentFilesystem: Filesystem): String {
-        var backupFilename = ""
+    override fun filesystemExportSelected(filesystem: Filesystem) {
         if (!arePermissionsGranted(this)) {
             showPermissionsNecessaryDialog()
             viewModel.waitForPermissions()
-            return ""
-        }
-
-        contentResolver.query(backupFilesystemUri, null, null, null, null).use {
-            it?.let { cursor ->
-                if (cursor.moveToFirst()) {
-                    backupFilename = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
-                    File("${filesDir.absolutePath}/backups").mkdirs()
-                    val destinationPath = "${filesDir.absolutePath}/backups/$backupFilename"
-                    val destination = File(destinationPath)
-                    if (!destination.exists()) {
-                        CoroutineScope(Dispatchers.Main).launch {
-                            copyBackup(source = backupFilesystemUri, destination = destination)
-                        }
-                    }
-                }
-            }
-        }
-        return backupFilename
-    }
-
-    private fun copyBackup(source: Uri, destination: File) {
-        contentResolver.openInputStream(source)?.let { fileStream ->
-            val streamOutput = FileOutputStream(destination)
-            try {
-                val buffer = ByteArray(1024)
-                var len = 0
-                fileStream.use {
-                    while (len != -1) {
-                        len = fileStream.read(buffer)
-                        streamOutput.write(buffer, 0, len)
-                    }
-                }
-            } catch (e: Exception) {
-                val error = e
-            } finally {
-                fileStream.close()
-                streamOutput.close()
-            }
+            return
         }
     }
 

@@ -1,10 +1,14 @@
 package tech.ula.ui
 
+import android.Manifest
+import android.annotation.TargetApi
+import android.app.AlertDialog
+import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.text.Editable
@@ -27,18 +31,14 @@ import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.AppsPreferences
 import tech.ula.utils.BuildWrapper
 import tech.ula.utils.ValidationUtility
+import tech.ula.utils.arePermissionsGranted
+import tech.ula.viewmodel.FilesystemImportStatus
+import tech.ula.viewmodel.ImportSuccess
+import tech.ula.viewmodel.ImportFailure
 import tech.ula.viewmodel.FilesystemEditViewModel
 import tech.ula.viewmodel.FilesystemEditViewmodelFactory
 
 class FilesystemEditFragment : Fragment() {
-
-    interface FilesystemImport {
-        fun filesystemImportSelected(backupFilesystemUri: Uri, currentFilesystem: Filesystem): String
-    }
-
-    private val doOnFilesystemImport: FilesystemImport by lazy {
-        activityContext
-    }
 
     private lateinit var activityContext: MainActivity
 
@@ -48,6 +48,19 @@ class FilesystemEditFragment : Fragment() {
 
     private val editExisting: Boolean by lazy {
         arguments?.getBoolean("editExisting") ?: false
+    }
+
+    private val permissionRequestCode: Int by lazy {
+        getString(R.string.permission_request_code).toInt()
+    }
+
+    private val filesystemImportStatusObserver = Observer<FilesystemImportStatus> {
+        it?.let { importStatus ->
+            when (importStatus) {
+                is ImportSuccess -> Toast.makeText(activityContext, "Successfully imported backup", Toast.LENGTH_LONG).show()
+                is ImportFailure -> Toast.makeText(activityContext, "Unable to import backup", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     private val filesystemEditViewModel: FilesystemEditViewModel by lazy {
@@ -82,6 +95,7 @@ class FilesystemEditFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         activityContext = activity!! as MainActivity
+        filesystemEditViewModel.getImportStatusLiveData().observe(viewLifecycleOwner, filesystemImportStatusObserver)
 
         if (distributionList.isNotEmpty()) {
             spinner_filesystem_type.adapter = ArrayAdapter(activityContext,
@@ -171,8 +185,13 @@ class FilesystemEditFragment : Fragment() {
             filePickerIntent.addCategory(Intent.CATEGORY_OPENABLE)
             filePickerIntent.type = "application/*"
             val fileChooser = Intent.createChooser(filePickerIntent, "Select Filesystem Backup file")
+            if (!arePermissionsGranted(activityContext)) {
+                showPermissionsNecessaryDialog()
+                return@setOnClickListener
+            }
 
             try {
+                filesystem.isCreatedFromBackup = true
                 startActivityForResult(fileChooser, IMPORT_FILESYSTEM_REQUEST_CODE)
             } catch (activityNotFoundErr: ActivityNotFoundException) {
                 Toast.makeText(activityContext, "Please install a File Manager.", Toast.LENGTH_LONG).show()
@@ -180,19 +199,32 @@ class FilesystemEditFragment : Fragment() {
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.M)
+    private fun showPermissionsNecessaryDialog() {
+        val builder = AlertDialog.Builder(activityContext)
+        builder.setMessage(R.string.alert_permissions_necessary_message)
+                .setTitle(R.string.alert_permissions_necessary_title)
+                .setPositiveButton(R.string.button_ok) {
+                    dialog, _ ->
+                    requestPermissions(arrayOf(
+                            Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                            permissionRequestCode)
+                    dialog.dismiss()
+                }
+                .setNegativeButton(R.string.alert_permissions_necessary_cancel_button) {
+                    dialog, _ ->
+                    dialog.dismiss()
+                }
+        builder.create().show()
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, returnIntent: Intent?) {
         super.onActivityResult(requestCode, resultCode, returnIntent)
         if (requestCode == IMPORT_FILESYSTEM_REQUEST_CODE) {
             returnIntent?.data?.let { uri ->
-                doOnFilesystemImportStart(uri)
+                filesystemEditViewModel.backupUri = uri
             }
         }
-    }
-
-    private fun doOnFilesystemImportStart(backupFilesystemUri: Uri) {
-        val backupFilename = doOnFilesystemImport.filesystemImportSelected(backupFilesystemUri, currentFilesystem = filesystem)
-        val backupFilesystemPath = "${activityContext.filesDir.absolutePath}/backups/$backupFilename"
-        filesystemEditViewModel.insertFilesystemFromBackup(filesystem, backupFilesystemPath, activityContext.filesDir)
     }
 
     private fun insertFilesystem(): Boolean {
@@ -211,7 +243,11 @@ class FilesystemEditFragment : Fragment() {
                 Toast.makeText(activityContext, R.string.no_supported_architecture, Toast.LENGTH_LONG).show()
                 return true
             }
-            filesystemEditViewModel.insertFilesystem(filesystem)
+            if (filesystem.isCreatedFromBackup) {
+                filesystemEditViewModel.insertFilesystemFromBackup(activityContext.contentResolver, filesystem, activityContext.filesDir)
+            } else {
+                filesystemEditViewModel.insertFilesystem(filesystem)
+            }
             navController.popBackStack()
         }
 

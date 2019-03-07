@@ -66,6 +66,9 @@ class FilesystemUtility(
         val command = "/support/common/compressFilesystem.sh"
 
         val externalUserlandDirPath = "${externalStorageDirectory.absolutePath}/UserLAnd"
+        if (!File(externalUserlandDirPath).exists())
+            File(externalUserlandDirPath).mkdirs()
+
         val backupName = "${filesystem.name}-${filesystem.distributionType}-rootfs.tar.gz"
         val backupTarget = "$externalUserlandDirPath/$backupName"
         val env = hashMapOf("TAR_PATH" to backupTarget)
