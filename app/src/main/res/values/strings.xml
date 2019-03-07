@@ -22,6 +22,7 @@
     <string name="kill_service">Kill Service</string>               <!-- We know this says name="kill_service" but it is really stopping a session. -->
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
+    <string name="backup">Export</string>
     <string name="save">Save</string>
     <string name="add">Add</string>
     <string name="refresh">Refresh</string>
