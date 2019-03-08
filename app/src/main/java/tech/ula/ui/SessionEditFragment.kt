@@ -3,18 +3,16 @@ package tech.ula.ui
 import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
-import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.* // ktlint-disable no-wildcard-imports
-import android.widget.*
+import android.widget.* // ktlint-disable no-wildcard-imports
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_session_edit.* // ktlint-disable no-wildcard-imports
 import org.jetbrains.anko.bundleOf
-import org.jetbrains.anko.custom.style
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
@@ -74,7 +72,6 @@ class SessionEditFragment : Fragment() {
         }
     }
 
-
     private fun augmentFilesystemList(filesystems: List<Filesystem>): List<FilesystemDropdownItem> {
         val listBuilder = mutableListOf<FilesystemDropdownItem>()
         if (filesystems.isEmpty()) listBuilder.add(FilesystemDropdownItem.NonFilesystemItem(""))
@@ -101,8 +98,7 @@ class SessionEditFragment : Fragment() {
         return if (item.itemId == R.id.menu_item_add) {
             insertSession()
             true
-        }
-        else super.onOptionsItemSelected(item)
+        } else super.onOptionsItemSelected(item)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
