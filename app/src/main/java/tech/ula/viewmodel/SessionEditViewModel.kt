@@ -35,7 +35,9 @@ class SessionEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(), 
     }
 
     fun updateSession(session: Session, coroutineScope: CoroutineScope = this) = coroutineScope.launch {
-        ulaDatabase.sessionDao().updateSession(session)
+        withContext(Dispatchers.IO) {
+            ulaDatabase.sessionDao().updateSession(session)
+        }
     }
 }
 
