@@ -1,5 +1,6 @@
 package tech.ula.ui
 
+import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
@@ -12,7 +13,6 @@ import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_list.* // ktlint-disable no-wildcard-imports
 import org.jetbrains.anko.bundleOf
 import org.jetbrains.anko.defaultSharedPreferences
-import tech.ula.MainActivity
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.Filesystem
@@ -26,15 +26,7 @@ import java.io.File
 
 class FilesystemListFragment : Fragment() {
 
-    interface FilesystemExport {
-        fun filesystemExportSelected(filesystem: Filesystem)
-    }
-
-    private val doOnFilesystemExport: FilesystemExport by lazy {
-        activityContext
-    }
-
-    private lateinit var activityContext: MainActivity
+    private lateinit var activityContext: Activity
 
     private lateinit var filesystemList: List<Filesystem>
 
@@ -77,7 +69,7 @@ class FilesystemListFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        activityContext = activity!! as MainActivity
+        activityContext = activity!!
         filesystemListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
         registerForContextMenu(list_filesystems)
     }
@@ -118,11 +110,9 @@ class FilesystemListFragment : Fragment() {
     }
 
     private fun exportFilesystem(filesystem: Filesystem): Boolean {
-        doOnFilesystemExport.filesystemExportSelected(filesystem)
-
         // TODO: Add real listener
         val statelessListener: (line: String) -> Unit = { }
-        val destination = File(Environment.getExternalStorageDirectory().path)
+        val destination = File(Environment.getExternalStorageDirectory().absolutePath)
         filesystemListViewModel.compressFilesystem(filesystem, destination, statelessListener)
 
         return true

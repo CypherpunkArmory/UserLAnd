@@ -61,14 +61,9 @@ import org.acra.config.CoreConfigurationBuilder
 import org.acra.config.HttpSenderConfigurationBuilder
 import org.acra.data.StringFormat
 import org.acra.sender.HttpSender
-import tech.ula.model.entities.Filesystem
-import tech.ula.ui.FilesystemListFragment
 import kotlin.IllegalStateException
 
-class MainActivity : AppCompatActivity(),
-        SessionListFragment.SessionSelection,
-        AppListFragment.AppSelection,
-        FilesystemListFragment.FilesystemExport {
+class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection {
 
     private val permissionRequestCode: Int by lazy {
         getString(R.string.permission_request_code).toInt()
@@ -301,14 +296,6 @@ class MainActivity : AppCompatActivity(),
             return
         }
         viewModel.submitSessionSelection(session)
-    }
-
-    override fun filesystemExportSelected(filesystem: Filesystem) {
-        if (!arePermissionsGranted(this)) {
-            showPermissionsNecessaryDialog()
-            viewModel.waitForPermissions()
-            return
-        }
     }
 
     private fun handleStateUpdate(newState: State) {
