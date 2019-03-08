@@ -9,6 +9,7 @@ import android.os.Environment
 import android.support.v4.app.Fragment
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
+import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_list.* // ktlint-disable no-wildcard-imports
 import org.jetbrains.anko.bundleOf
@@ -20,6 +21,9 @@ import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.BusyboxExecutor
 import tech.ula.utils.DefaultPreferences
 import tech.ula.utils.FilesystemUtility
+import tech.ula.viewmodel.ExportSuccess
+import tech.ula.viewmodel.ExportFailure
+import tech.ula.viewmodel.FilesystemExportStatus
 import tech.ula.viewmodel.FilesystemListViewModel
 import tech.ula.viewmodel.FilesystemListViewmodelFactory
 import java.io.File
@@ -47,6 +51,15 @@ class FilesystemListFragment : Fragment() {
         }
     }
 
+    private val filesystemExportStatusObserver = Observer<FilesystemExportStatus> {
+        it?.let { exportStatus ->
+            when (exportStatus) {
+                is ExportSuccess -> Toast.makeText(activityContext, "Successfully exported backup", Toast.LENGTH_LONG).show()
+                is ExportFailure -> Toast.makeText(activityContext, "Unable to exported backup: ${exportStatus.reason}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
@@ -71,6 +84,7 @@ class FilesystemListFragment : Fragment() {
 
         activityContext = activity!!
         filesystemListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
+        filesystemListViewModel.getExportStatusLiveData().observe(viewLifecycleOwner, filesystemExportStatusObserver)
         registerForContextMenu(list_filesystems)
     }
 
@@ -112,8 +126,10 @@ class FilesystemListFragment : Fragment() {
     private fun exportFilesystem(filesystem: Filesystem): Boolean {
         // TODO: Add real listener
         val statelessListener: (line: String) -> Unit = { }
-        val destination = File(Environment.getExternalStorageDirectory().absolutePath)
-        filesystemListViewModel.compressFilesystem(filesystem, destination, statelessListener)
+
+        val localDestination = File("${activityContext.filesDir.path}/backups")
+        val externalDestination = File(Environment.getExternalStoragePublicDirectory("UserLAnd").toString())
+        filesystemListViewModel.compressFilesystem(filesystem, localDestination, externalDestination, statelessListener)
 
         return true
     }

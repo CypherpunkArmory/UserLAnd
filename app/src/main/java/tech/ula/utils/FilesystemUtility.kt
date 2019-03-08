@@ -61,17 +61,14 @@ class FilesystemUtility(
         }
     }
 
-    suspend fun compressFilesystem(filesystem: Filesystem, externalStorageDirectory: File, listener: (String) -> Any) = withContext(Dispatchers.IO) {
+    suspend fun compressFilesystem(filesystem: Filesystem, destinationPath: File, listener: (String) -> Any) = withContext(Dispatchers.IO) {
         val filesystemDirName = "${filesystem.id}"
         val command = "/support/common/compressFilesystem.sh"
+        if (!destinationPath.exists()) destinationPath.mkdirs()
+        val destinationFile = "${destinationPath.path}/rootfs.tar.gz"
+        val env = HashMap<String, String>()
+        env["TAR_PATH"] = destinationFile
 
-        val externalUserlandDirPath = "${externalStorageDirectory.absolutePath}/UserLAnd"
-        if (!File(externalUserlandDirPath).exists())
-            File(externalUserlandDirPath).mkdirs()
-
-        val backupName = "${filesystem.name}-${filesystem.distributionType}-rootfs.tar.gz"
-        val backupTarget = "$externalUserlandDirPath/$backupName"
-        val env = hashMapOf("TAR_PATH" to backupTarget)
 
         val result = busyboxExecutor.executeProotCommand(
                 command,
