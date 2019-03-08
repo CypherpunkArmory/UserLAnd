@@ -3,26 +3,24 @@ package tech.ula.ui
 import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.* // ktlint-disable no-wildcard-imports
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_session_edit.* // ktlint-disable no-wildcard-imports
-import kotlinx.android.synthetic.main.preference_list_fragment.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import org.jetbrains.anko.bundleOf
+import org.jetbrains.anko.custom.style
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
+import tech.ula.model.repositories.UlaDatabase
 import tech.ula.viewmodel.SessionEditViewModel
+import tech.ula.viewmodel.SessionEditViewmodelFactory
 
 class SessionEditFragment : Fragment() {
 
@@ -39,23 +37,17 @@ class SessionEditFragment : Fragment() {
     private var filesystemList: List<Filesystem> = emptyList()
 
     private val sessionEditViewModel: SessionEditViewModel by lazy {
-        ViewModelProviders.of(this).get(SessionEditViewModel::class.java)
+        val ulaDatabase = UlaDatabase.getInstance(activityContext)
+        ViewModelProviders.of(this, SessionEditViewmodelFactory(ulaDatabase)).get(SessionEditViewModel::class.java)
     }
 
     private val filesystemChangeObserver = Observer<List<Filesystem>> {
-        it?.let {
-            val filesystemNames = ArrayList(it.map { filesystem ->
-                "${filesystem.name}: ${filesystem.distributionType.capitalize()}" })
-
-            if (it.isEmpty()) {
-                filesystemNames.add("")
-            }
-
-            filesystemNames.add("Create new")
+        it?.let { newList ->
+            val spinnerList = augmentFilesystemList(newList)
 
             getListDifferenceAndSetNewFilesystem(filesystemList, it)
 
-            val filesystemAdapter = ArrayAdapter(activityContext, android.R.layout.simple_spinner_dropdown_item, filesystemNames)
+            val filesystemAdapter = ArrayAdapter(activityContext, android.R.layout.simple_spinner_dropdown_item, spinnerList)
             val filesystemNamePosition = it.indexOfFirst {
                 filesystem -> filesystem.id == session.filesystemId
             }
@@ -69,13 +61,34 @@ class SessionEditFragment : Fragment() {
         }
     }
 
+    internal sealed class FilesystemDropdownItem {
+        data class NonFilesystemItem(val text: String) : FilesystemDropdownItem() {
+            override fun toString(): String {
+                return text
+            }
+        }
+        data class FilesystemItem(val filesystem: Filesystem) : FilesystemDropdownItem() {
+            override fun toString(): String {
+                return "${filesystem.name}: ${filesystem.distributionType.capitalize()}"
+            }
+        }
+    }
+
+
+    private fun augmentFilesystemList(filesystems: List<Filesystem>): List<FilesystemDropdownItem> {
+        val listBuilder = mutableListOf<FilesystemDropdownItem>()
+        if (filesystems.isEmpty()) listBuilder.add(FilesystemDropdownItem.NonFilesystemItem(""))
+        listBuilder.addAll(filesystems.map { FilesystemDropdownItem.FilesystemItem(it) })
+        listBuilder.add(FilesystemDropdownItem.NonFilesystemItem("Create new"))
+        return listBuilder.toList()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        sessionEditViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
         return inflater.inflate(R.layout.frag_session_edit, container, false)
     }
 
@@ -85,13 +98,17 @@ class SessionEditFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return if (item.itemId == R.id.menu_item_add) insertSession()
+        return if (item.itemId == R.id.menu_item_add) {
+            insertSession()
+            true
+        }
         else super.onOptionsItemSelected(item)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         activityContext = activity!!
+        sessionEditViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -114,19 +131,19 @@ class SessionEditFragment : Fragment() {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val filesystemName = parent?.getItemAtPosition(position)
-                        .toString().substringBefore(":")
-                when (filesystemName) {
-                    "Create new" -> {
-                        val bundle = bundleOf("filesystem" to Filesystem(0), "editExisting" to false)
-                        NavHostFragment.findNavController(this@SessionEditFragment).navigate(R.id.filesystem_edit_fragment, bundle)
-                    }
-                    "" -> return
-                    else -> {
-                        val filesystem = filesystemList.find { it.name == filesystemName }
-                        filesystem?.let {
-                            updateFilesystemDetailsForSession(it)
-                            text_input_username.setText(it.defaultUsername)
+                parent?.let {
+                    val item = parent.getItemAtPosition(position) as FilesystemDropdownItem
+                    when (item) {
+                        is FilesystemDropdownItem.NonFilesystemItem -> {
+                            if (item.text == "Create new") {
+                                val bundle = bundleOf("filesystem" to Filesystem(0), "editExisting" to false)
+                                NavHostFragment.findNavController(this@SessionEditFragment).navigate(R.id.filesystem_edit_fragment, bundle)
+                            } else { }
+                        }
+                        is FilesystemDropdownItem.FilesystemItem -> {
+                            val filesystem = item.filesystem
+                            updateFilesystemDetailsForSession(filesystem)
+                            text_input_username.setText(filesystem.defaultUsername)
                         }
                     }
                 }
@@ -155,10 +172,12 @@ class SessionEditFragment : Fragment() {
         })
     }
 
-    private fun insertSession(): Boolean {
+    private fun insertSession() {
         val navController = NavHostFragment.findNavController(this)
 
-        if (session.name == "") text_input_session_name.error = getString(R.string.error_session_name)
+        if (session.name == "") {
+            text_input_session_name.error = getString(R.string.error_session_name)
+        }
         if (session.filesystemName == "") {
             val errorText = spinner_filesystem_list.selectedView as TextView
             errorText.error = ""
@@ -168,20 +187,12 @@ class SessionEditFragment : Fragment() {
 
         if (session.name == "" || session.username == "" || session.filesystemName == "") {
             Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
-        } else {
-            if (editExisting) {
-                sessionEditViewModel.updateSession(session)
-                navController.popBackStack()
-            } else {
-                GlobalScope.launch {
-                    when (sessionEditViewModel.insertSession(session)) {
-                        true -> navController.popBackStack()
-                        false -> Toast.makeText(activityContext, R.string.session_unique_name_required, Toast.LENGTH_LONG).show()
-                    }
-                }
-            }
+            return
         }
-        return true
+
+        if (editExisting) sessionEditViewModel.updateSession(session)
+        else sessionEditViewModel.insertSession(session)
+        navController.popBackStack()
     }
 
     private fun getDefaultServicePort(selectedServiceType: String): Long {
