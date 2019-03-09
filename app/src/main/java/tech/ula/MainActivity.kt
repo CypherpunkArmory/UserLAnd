@@ -61,9 +61,10 @@ import org.acra.config.CoreConfigurationBuilder
 import org.acra.config.HttpSenderConfigurationBuilder
 import org.acra.data.StringFormat
 import org.acra.sender.HttpSender
+import tech.ula.ui.FilesystemListFragment
 import kotlin.IllegalStateException
 
-class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection {
+class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection, FilesystemListFragment.ExportFilesystem {
 
     private val permissionRequestCode: Int by lazy {
         getString(R.string.permission_request_code).toInt()
@@ -605,6 +606,14 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 killProgressBar()
             }
         }
+    }
+
+    override val getProgressBarAsListener:(String) -> Unit = { line ->
+        updateProgressBar(getString(R.string.progress_exporting_filesystem), line)
+    }
+
+    override fun stopProgressBar() {
+        killProgressBar()
     }
 
     private fun updateProgressBar(step: String, details: String) {

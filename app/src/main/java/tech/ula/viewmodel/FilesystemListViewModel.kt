@@ -48,7 +48,7 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
         }
     }
 
-    fun compressFilesystem(
+    fun compressFilesystemAndExportToStorage(
         filesystem: Filesystem,
         localTempDirectory: File,
         externalStorageDirectory: File,
@@ -57,19 +57,21 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
     ) = coroutineScope.launch {
 
         val backupName = "${filesystem.name}-${filesystem.distributionType}-rootfs.tar.gz"
-        val externalDestinationUri = File("${externalStorageDirectory.path}/$backupName")
+        val externalBackupFile = File("${externalStorageDirectory.path}/$backupName")
+        val localTempBackupFile = File("${localTempDirectory.path}/rootfs.tar.gz")
         if (!externalStorageDirectory.exists()) externalStorageDirectory.mkdirs()
 
         filesystemUtility.compressFilesystem(filesystem, File(localTempDirectory.path), listener)
 
-        if (!File(localTempDirectory.path).exists()) {
+        if (!localTempBackupFile.exists()) {
+            exportStatusLiveData.postValue(ExportFailure("Exporting to local directory failed"))
             return@launch
         }
 
-        val inputStream = File("$localTempDirectory/rootfs.tar.gz").inputStream()
+        val inputStream = localTempBackupFile.inputStream()
 
         try {
-            val streamOutput = FileOutputStream(externalDestinationUri)
+            val streamOutput = FileOutputStream(externalBackupFile)
             inputStream.use { input ->
                 streamOutput.use { fileOut ->
                     input.copyTo(fileOut)
@@ -78,7 +80,11 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
         } catch (e: Exception) {
             exportStatusLiveData.postValue(ExportFailure(e.toString()))
         }
-        exportStatusLiveData.postValue(ExportSuccess)
+
+        when (externalBackupFile.exists()) {
+            true -> exportStatusLiveData.postValue(ExportSuccess)
+            false -> exportStatusLiveData.postValue(ExportFailure("Exporting to external directory failed"))
+        }
     }
 }
 

@@ -12,8 +12,10 @@ import android.widget.AdapterView
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_list.* // ktlint-disable no-wildcard-imports
+import kotlinx.coroutines.*
 import org.jetbrains.anko.bundleOf
 import org.jetbrains.anko.defaultSharedPreferences
+import tech.ula.MainActivity
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.Filesystem
@@ -30,7 +32,12 @@ import java.io.File
 
 class FilesystemListFragment : Fragment() {
 
-    private lateinit var activityContext: Activity
+    interface ExportFilesystem {
+        val getProgressBarAsListener:(String) -> Unit
+        fun stopProgressBar()
+    }
+
+    private lateinit var activityContext: MainActivity
 
     private lateinit var filesystemList: List<Filesystem>
 
@@ -57,6 +64,9 @@ class FilesystemListFragment : Fragment() {
                 is ExportSuccess -> Toast.makeText(activityContext, "Successfully exported backup", Toast.LENGTH_LONG).show()
                 is ExportFailure -> Toast.makeText(activityContext, "Unable to exported backup: ${exportStatus.reason}", Toast.LENGTH_LONG).show()
             }
+            val temporaryBackup = File("${activityContext.filesDir.path}/backups/rootfs.tar.gz")
+            temporaryBackup.delete()
+            activityContext.stopProgressBar()
         }
     }
 
@@ -82,7 +92,7 @@ class FilesystemListFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        activityContext = activity!!
+        activityContext = activity!! as MainActivity
         filesystemListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
         filesystemListViewModel.getExportStatusLiveData().observe(viewLifecycleOwner, filesystemExportStatusObserver)
         registerForContextMenu(list_filesystems)
@@ -93,7 +103,7 @@ class FilesystemListFragment : Fragment() {
         activityContext.menuInflater.inflate(R.menu.context_menu_filesystems, menu)
     }
 
-    override fun onContextItemSelected(item: MenuItem): Boolean {
+     override fun onContextItemSelected(item: MenuItem): Boolean {
         val menuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
         val position = menuInfo.position
         val filesystem = filesystemList[position]
@@ -124,13 +134,12 @@ class FilesystemListFragment : Fragment() {
     }
 
     private fun exportFilesystem(filesystem: Filesystem): Boolean {
-        // TODO: Add real listener
-        val statelessListener: (line: String) -> Unit = { }
-
+        val listener = activityContext.getProgressBarAsListener
         val localDestination = File("${activityContext.filesDir.path}/backups")
         val externalDestination = File(Environment.getExternalStoragePublicDirectory("UserLAnd").toString())
-        filesystemListViewModel.compressFilesystem(filesystem, localDestination, externalDestination, statelessListener)
+        filesystemListViewModel.compressFilesystemAndExportToStorage(filesystem, localDestination, externalDestination, listener)
 
+        activityContext.stopProgressBar()
         return true
     }
 }
