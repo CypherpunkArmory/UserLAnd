@@ -101,8 +101,8 @@
             android:id="@+id/btn_show_advanced_options"
             android:background="?android:attr/selectableItemBackground"
             android:checked="false"
-            android:textOn="Show Advanced Options"
-            android:textOff="Hide Advanced Options"
+            android:textOn="@string/button_advanced_options_hide"
+            android:textOff="@string/button_advanced_options_show"
             android:textColor="@color/colorAccent"
             android:drawableEnd="@drawable/ic_keyboard_arrow_right_white_24dp"
             android:layout_width="wrap_content"
@@ -119,13 +119,12 @@
             android:layout_height="wrap_content"
             android:visibility="gone"
             android:orientation="vertical"
-            app:layout_constraintTop_toBottomOf="@id/btn_show_advanced_options"
-            >
+            app:layout_constraintTop_toBottomOf="@id/btn_show_advanced_options" >
             <TextView
                 android:id="@+id/text_backup_filename"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="No filesystem import detected"
+                android:text="@string/no_backup_selected"
                 android:layout_gravity="center_horizontal"
                 android:padding="8dp" />
 
@@ -133,7 +132,7 @@
                 android:id="@+id/import_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Select backup file to import"
+                android:text="@string/button_select_backup_import"
                 android:orientation="horizontal"
                 android:layout_gravity="center_horizontal"
                 android:padding="16dp"

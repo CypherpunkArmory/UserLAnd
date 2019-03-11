@@ -15,6 +15,9 @@
 
     <!-- Buttons -->
     <string name="button_continue">Continue</string>
+    <string name="button_advanced_options_show">Show Advanced Options</string>
+    <string name="button_advanced_options_hide">Hide Advanced Options</string>
+    <string name="button_select_backup_import">Select backup file to import</string>
 
     <!-- Menus -->
     <string name="app_info">App Info</string>
@@ -189,6 +192,7 @@
     <string name="custom_sessions">Custom Sessions</string>
     <string name="apps_sessions">Apps Sessions</string>
     <string name="info_xsdl_support">XSDL is not fully supported on \nAndroid 9.0 and above yet</string>
+    <string name="no_backup_selected">No filesystem import selected</string>
     
     <!-- Review request -->
     <string name="review_is_user_enjoying">Enjoying UserLAnd?</string>
