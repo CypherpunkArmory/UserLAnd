@@ -47,7 +47,7 @@ class FilesystemEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(
         return backupUri
     }
 
-    fun setBackupUri(uri: Uri) {
+    fun setBackupUri(uri: Uri?) {
         backupUri = uri
     }
 
@@ -55,10 +55,11 @@ class FilesystemEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(
         contentResolver: ContentResolver,
         filesystem: Filesystem,
         filesDir: File,
+        backupUri: Uri?,
         coroutineScope: CoroutineScope = this
     ) = coroutineScope.launch {
         withContext(Dispatchers.IO) {
-            if (getBackupUri() == null) {
+            if (backupUri == null) {
                 importStatusLiveData.postValue(UriUnselected)
                 return@withContext
             }
@@ -70,7 +71,7 @@ class FilesystemEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(
                 filesystemSupportDir.mkdirs()
                 val destination = File("${filesystemSupportDir.absolutePath}/rootfs.tar.gz")
 
-                val inputStream = contentResolver.openInputStream(getBackupUri()!!)
+                val inputStream = contentResolver.openInputStream(backupUri)
                 if (inputStream == null) {
                     importStatusLiveData.postValue(ImportFailure("Could not open input stream"))
                     return@withContext
@@ -86,7 +87,7 @@ class FilesystemEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(
                 importStatusLiveData.postValue(ImportFailure(e.toString()))
             }
 
-            backupUri = null
+            setBackupUri(null)
             importStatusLiveData.postValue(ImportSuccess)
         }
     }
