@@ -147,6 +147,14 @@ class AssetPreferences(private val prefs: SharedPreferences) {
         return assetLists
     }
 
+    fun getCachedAssetList(assetType: String): List<Asset> {
+        val entries = prefs.getStringSet(assetType, setOf()) ?: setOf()
+        return entries.map { entry ->
+            val (filename, remoteTimestamp) = entry.split(regex = "\\-(?=[^.]*\$)".toRegex(), limit = 2)
+            Asset(filename, assetType, "", remoteTimestamp.toLong()) // TODO arch
+        }
+    }
+
     fun setAssetList(assetType: String, architectureType: String, assetList: List<Asset>) {
         val entries = assetList.map {
             "${it.name}-${it.remoteTimestamp}"

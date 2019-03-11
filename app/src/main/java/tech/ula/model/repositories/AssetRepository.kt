@@ -2,18 +2,16 @@ package tech.ula.model.repositories
 
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
+import tech.ula.model.remote.AssetListFetcher
+import tech.ula.model.remote.GithubReleaseAssetListFetcher
 import tech.ula.utils.AssetPreferences
-import tech.ula.utils.ConnectionUtility
-import tech.ula.utils.getBranchToDownloadAssetsFrom
-import java.io.BufferedReader
 import java.io.File
-import java.io.InputStreamReader
-import java.lang.Exception
+import kotlin.Exception
 
 class AssetRepository(
     private val applicationFilesDirPath: String,
     private val assetPreferences: AssetPreferences,
-    private val connectionUtility: ConnectionUtility = ConnectionUtility()
+    private val assetListFetcher: AssetListFetcher = GithubReleaseAssetListFetcher()
 ) {
 
     fun doesAssetNeedToUpdated(asset: Asset): Boolean {
@@ -52,59 +50,15 @@ class AssetRepository(
         return true
     }
 
-    fun getAllAssetLists(distributionType: String, deviceArchitecture: String): List<List<Asset>> {
-        val allAssetListTypes = listOf(
-                "support" to "all",
-                "support" to deviceArchitecture,
-                distributionType to "all",
-                distributionType to deviceArchitecture
-        )
-
-        if (!connectionUtility.httpsHostIsReachable("github.com")) return getCachedAssetLists(allAssetListTypes)
-        return retrieveAllRemoteAssetLists(allAssetListTypes)
-    }
-
-    private fun getCachedAssetLists(allAssetListTypes: List<Pair<String, String>>): List<List<Asset>> {
-        return assetPreferences.getAssetLists(allAssetListTypes)
-    }
-
-    @Throws
-    private fun retrieveAllRemoteAssetLists(allAssetListTypes: List<Pair<String, String>>): List<List<Asset>> {
-        val allAssetLists = ArrayList<List<Asset>>()
-        allAssetListTypes.forEach {
-            (assetType, architectureType) ->
-            val assetList = try {
-                retrieveAndParseAssetList(assetType, architectureType)
+    suspend fun getAllAssetLists(distributionType: String): List<List<Asset>> {
+        return listOf(distributionType, "support").map { repo ->
+            try {
+                val list = assetListFetcher.fetchAssetList(repo)
+                assetPreferences.setAssetList(repo, "", list) // TODO arch type
+                list
             } catch (err: Exception) {
-                emptyList<Asset>()
+                assetPreferences.getCachedAssetList(repo)
             }
-            allAssetLists.add(assetList)
-            assetPreferences.setAssetList(assetType, architectureType, assetList)
         }
-        return allAssetLists.toList()
-    }
-
-    @Throws
-    private fun retrieveAndParseAssetList(
-        assetType: String,
-        architectureType: String
-    ): List<Asset> {
-        val assetList = ArrayList<Asset>()
-
-        val branch = getBranchToDownloadAssetsFrom(assetType)
-        val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-" +
-                "$assetType/raw/$branch/assets/$architectureType/assets.txt"
-
-        val reader = BufferedReader(InputStreamReader(connectionUtility.getUrlInputStream(url)))
-
-        reader.forEachLine {
-            val (filename, timestampAsString) = it.split(" ")
-            if (filename == "assets.txt") return@forEachLine
-            val remoteTimestamp = timestampAsString.toLong()
-            assetList.add(Asset(filename, assetType, architectureType, remoteTimestamp))
-        }
-
-        reader.close()
-        return assetList.toList()
     }
 }

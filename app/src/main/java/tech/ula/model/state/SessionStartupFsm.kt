@@ -131,7 +131,7 @@ class SessionStartupFsm(
         state.postValue(RetrievingAssetLists)
 
         val assetLists = withContext(Dispatchers.IO) {
-            assetRepository.getAllAssetLists(filesystem.distributionType, filesystem.archType)
+            assetRepository.getAllAssetLists(filesystem.distributionType)
         }
 
         if (assetLists.any { it.isEmpty() }) {
