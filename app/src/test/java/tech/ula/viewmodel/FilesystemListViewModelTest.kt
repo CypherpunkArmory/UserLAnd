@@ -65,10 +65,11 @@ class FilesystemListViewModelTest {
     fun `compressFilesystem delegates to the model layer properly`() {
         val filesystem = Filesystem(id = 0)
         val testFile = File("fake")
+        val externalStorageFile = File("external/fake")
         val testListener: (String) -> Unit = {}
 
         runBlocking {
-            filesystemListViewModel.compressFilesystem(filesystem, testFile, testListener, this)
+            filesystemListViewModel.compressFilesystemAndExportToStorage(filesystem, testFile, externalStorageFile, testListener, this)
         }
         verifyBlocking(mockFilesystemUtility) { compressFilesystem(filesystem, testFile, testListener) }
     }
