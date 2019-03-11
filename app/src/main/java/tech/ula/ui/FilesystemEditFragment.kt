@@ -8,6 +8,7 @@ import android.arch.lifecycle.ViewModelProviders
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -115,6 +116,7 @@ class FilesystemEditFragment : Fragment() {
 
         setupTextInputs()
         setupImportButton()
+        setupAdvancedOptionButton()
 
         if (editExisting) {
             spinner_filesystem_type.isEnabled = false
@@ -129,7 +131,7 @@ class FilesystemEditFragment : Fragment() {
         }
     }
 
-    fun setupTextInputs() {
+    private fun setupTextInputs() {
         input_filesystem_name.setText(filesystem.name)
         input_filesystem_username.setText(filesystem.defaultUsername)
         input_filesystem_password.setText(filesystem.defaultPassword)
@@ -199,6 +201,23 @@ class FilesystemEditFragment : Fragment() {
         }
     }
 
+    private fun setupAdvancedOptionButton() {
+        val btn = btn_show_advanced_options
+
+        btn.setOnClickListener {
+            when (btn.isChecked) {
+                true -> {
+                    btn.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_keyboard_arrow_down_white_24dp, 0)
+                    advanced_options.visibility = View.VISIBLE
+                }
+                false -> {
+                    btn.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_keyboard_arrow_right_white_24dp, 0)
+                    advanced_options.visibility = View.GONE
+                }
+            }
+        }
+    }
+
     @TargetApi(Build.VERSION_CODES.M)
     private fun showPermissionsNecessaryDialog() {
         val builder = AlertDialog.Builder(activityContext)
@@ -222,7 +241,8 @@ class FilesystemEditFragment : Fragment() {
         super.onActivityResult(requestCode, resultCode, returnIntent)
         if (requestCode == IMPORT_FILESYSTEM_REQUEST_CODE) {
             returnIntent?.data?.let { uri ->
-                filesystemEditViewModel.backupUri = uri
+                filesystemEditViewModel.setBackupUri(uri)
+                text_backup_filename.text = uri.lastPathSegment
             }
         }
     }
