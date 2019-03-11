@@ -1,6 +1,5 @@
 package tech.ula.ui
 
-import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
@@ -12,7 +11,6 @@ import android.widget.AdapterView
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_list.* // ktlint-disable no-wildcard-imports
-import kotlinx.coroutines.*
 import org.jetbrains.anko.bundleOf
 import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.MainActivity
@@ -33,7 +31,7 @@ import java.io.File
 class FilesystemListFragment : Fragment() {
 
     interface ExportFilesystem {
-        val getProgressBarAsListener:(String) -> Unit
+        val getProgressBarAsListener: (String) -> Unit
         fun stopProgressBar()
     }
 
@@ -103,7 +101,7 @@ class FilesystemListFragment : Fragment() {
         activityContext.menuInflater.inflate(R.menu.context_menu_filesystems, menu)
     }
 
-     override fun onContextItemSelected(item: MenuItem): Boolean {
+    override fun onContextItemSelected(item: MenuItem): Boolean {
         val menuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
         val position = menuInfo.position
         val filesystem = filesystemList[position]

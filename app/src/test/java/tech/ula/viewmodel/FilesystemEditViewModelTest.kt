@@ -2,8 +2,6 @@ package tech.ula.viewmodel
 
 import com.nhaarman.mockitokotlin2.whenever
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -16,7 +14,6 @@ import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.repositories.UlaDatabase
-import java.io.File
 
 @RunWith(MockitoJUnitRunner::class)
 class FilesystemEditViewModelTest {

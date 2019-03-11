@@ -608,7 +608,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         }
     }
 
-    override val getProgressBarAsListener:(String) -> Unit = { line ->
+    override val getProgressBarAsListener: (String) -> Unit = { line ->
         updateProgressBar(getString(R.string.progress_exporting_filesystem), line)
     }
 

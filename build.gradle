@@ -8,7 +8,7 @@ buildscript {
 
     ext {
         kotlin_version = '1.3.11'
-        android_plugin = '3.3.0'
+        android_plugin = '3.3.2'
         ktlint_version = '0.29.0'
 
         support_library_version = '28.0.0'
