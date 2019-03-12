@@ -263,8 +263,7 @@ class FilesystemEditFragment : Fragment() {
                 return true
             }
             if (filesystem.isCreatedFromBackup) {
-                val backupUri = filesystemEditViewModel.getBackupUri()
-                filesystemEditViewModel.insertFilesystemFromBackup(activityContext.contentResolver, filesystem, activityContext.filesDir, backupUri)
+                filesystemEditViewModel.insertFilesystemFromBackup(activityContext.contentResolver, filesystem, activityContext.filesDir)
             } else {
                 filesystemEditViewModel.insertFilesystem(filesystem)
             }

@@ -108,8 +108,8 @@ class FilesystemUtilityTest {
         val filesystem = Filesystem(id = 0, name = "backup", distributionType = "distType")
         val externalStorageDirectory = tempFolder.root
 
-        val expectedBackupName = "${filesystem.name}-${filesystem.distributionType}-rootfs.tar.gz"
-        val expectedBackupPath = "${externalStorageDirectory.absolutePath}/UserLAnd/$expectedBackupName"
+        val expectedBackupName = "rootfs.tar.gz"
+        val expectedBackupPath = "${externalStorageDirectory.absolutePath}/$expectedBackupName"
         val expectedEnv = hashMapOf("TAR_PATH" to expectedBackupPath)
 
         whenever(mockBusyboxExecutor.executeProotCommand(
@@ -139,8 +139,8 @@ class FilesystemUtilityTest {
         val filesystem = Filesystem(id = 0, name = "backup", distributionType = "distType")
         val externalStorageDirectory = tempFolder.root
 
-        val expectedBackupName = "${filesystem.name}-${filesystem.distributionType}-rootfs.tar.gz"
-        val expectedBackupPath = "${externalStorageDirectory.absolutePath}/UserLAnd/$expectedBackupName"
+        val expectedBackupName = "rootfs.tar.gz"
+        val expectedBackupPath = "${externalStorageDirectory.absolutePath}/$expectedBackupName"
         val expectedEnv = hashMapOf("TAR_PATH" to expectedBackupPath)
 
         val failureReason = "reason"
@@ -154,7 +154,9 @@ class FilesystemUtilityTest {
         ))
                 .thenReturn(FailedExecution(failureReason))
 
-        runBlocking { filesystemUtility.compressFilesystem(filesystem, externalStorageDirectory, statelessListener) }
+        runBlocking {
+            filesystemUtility.compressFilesystem(filesystem, externalStorageDirectory, statelessListener)
+        }
 
         verify(logger).logRuntimeErrorForCommand("compressFilesystem", command, failureReason)
     }

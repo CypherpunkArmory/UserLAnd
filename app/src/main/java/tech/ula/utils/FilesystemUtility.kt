@@ -61,13 +61,13 @@ class FilesystemUtility(
         }
     }
 
-    suspend fun compressFilesystem(filesystem: Filesystem, destinationPath: File, listener: (String) -> Any) = withContext(Dispatchers.Main) {
+    suspend fun compressFilesystem(filesystem: Filesystem, destinationFile: File, listener: (String) -> Any) = withContext(Dispatchers.IO) {
         val filesystemDirName = "${filesystem.id}"
         val command = "/support/common/compressFilesystem.sh"
-        if (!destinationPath.exists()) destinationPath.mkdirs()
-        val destinationFile = "${destinationPath.path}/rootfs.tar.gz"
+        if (!destinationFile.exists()) destinationFile.mkdirs()
+        val destinationPath = "${destinationFile.path}/rootfs.tar.gz"
         val env = HashMap<String, String>()
-        env["TAR_PATH"] = destinationFile
+        env["TAR_PATH"] = destinationPath
 
         val result = busyboxExecutor.executeProotCommand(
                 command,

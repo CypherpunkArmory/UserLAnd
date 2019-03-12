@@ -55,7 +55,6 @@ class FilesystemEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(
         contentResolver: ContentResolver,
         filesystem: Filesystem,
         filesDir: File,
-        backupUri: Uri?,
         coroutineScope: CoroutineScope = this
     ) = coroutineScope.launch {
         withContext(Dispatchers.IO) {
@@ -64,15 +63,17 @@ class FilesystemEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(
                 return@withContext
             }
 
+            filesystem.isCreatedFromBackup = true
+            val id = ulaDatabase.filesystemDao().insertFilesystem(filesystem)
+
             try {
-                filesystem.isCreatedFromBackup = true
-                val id = ulaDatabase.filesystemDao().insertFilesystem(filesystem)
                 val filesystemSupportDir = File("${filesDir.absolutePath}/$id/support")
                 filesystemSupportDir.mkdirs()
                 val destination = File("${filesystemSupportDir.absolutePath}/rootfs.tar.gz")
 
                 val inputStream = contentResolver.openInputStream(backupUri)
                 if (inputStream == null) {
+                    ulaDatabase.filesystemDao().deleteFilesystemById(id)
                     importStatusLiveData.postValue(ImportFailure("Could not open input stream"))
                     return@withContext
                 }
@@ -84,6 +85,7 @@ class FilesystemEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(
                     }
                 }
             } catch (e: Exception) {
+                ulaDatabase.filesystemDao().deleteFilesystemById(id)
                 importStatusLiveData.postValue(ImportFailure(e.toString()))
             }
 
