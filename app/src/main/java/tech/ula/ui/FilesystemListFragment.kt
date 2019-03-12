@@ -21,18 +21,14 @@ import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.BusyboxExecutor
 import tech.ula.utils.DefaultPreferences
 import tech.ula.utils.FilesystemUtility
-import tech.ula.viewmodel.ExportSuccess
-import tech.ula.viewmodel.ExportFailure
-import tech.ula.viewmodel.FilesystemExportStatus
-import tech.ula.viewmodel.FilesystemListViewModel
-import tech.ula.viewmodel.FilesystemListViewmodelFactory
+import tech.ula.viewmodel.*
 import java.io.File
 
 class FilesystemListFragment : Fragment() {
 
     interface ExportFilesystem {
-        val getProgressBarAsListener: (String) -> Unit
-        fun stopProgressBar()
+        fun updateExportProgress(details: String)
+        fun stopExportProgress()
     }
 
     private lateinit var activityContext: MainActivity
@@ -59,12 +55,18 @@ class FilesystemListFragment : Fragment() {
     private val filesystemExportStatusObserver = Observer<FilesystemExportStatus> {
         it?.let { exportStatus ->
             when (exportStatus) {
-                is ExportSuccess -> Toast.makeText(activityContext, "Successfully exported backup", Toast.LENGTH_LONG).show()
-                is ExportFailure -> Toast.makeText(activityContext, "Unable to exported backup: ${exportStatus.reason}", Toast.LENGTH_LONG).show()
+                is ExportUpdate -> {
+                    activityContext.updateExportProgress(exportStatus.details)
+                }
+                is ExportSuccess -> {
+                    Toast.makeText(activityContext, "Successfully exported backup", Toast.LENGTH_LONG).show()
+                    activityContext.stopExportProgress()
+                }
+                is ExportFailure -> {
+                    Toast.makeText(activityContext, "Unable to exported backup: ${exportStatus.reason}", Toast.LENGTH_LONG).show()
+                    activityContext.stopExportProgress()
+                }
             }
-            val temporaryBackup = File("${activityContext.filesDir.path}/backups/rootfs.tar.gz")
-            temporaryBackup.delete()
-            activityContext.stopProgressBar()
         }
     }
 
@@ -132,12 +134,9 @@ class FilesystemListFragment : Fragment() {
     }
 
     private fun exportFilesystem(filesystem: Filesystem): Boolean {
-        val listener = activityContext.getProgressBarAsListener
-        val localDestination = File("${activityContext.filesDir.path}/backups")
-        val externalDestination = File(Environment.getExternalStoragePublicDirectory("UserLAnd").toString())
-        filesystemListViewModel.compressFilesystemAndExportToStorage(filesystem, localDestination, externalDestination, listener)
+        val externalDestination = Environment.getExternalStoragePublicDirectory("UserLAnd")
+        filesystemListViewModel.compressFilesystemAndExportToStorage(filesystem, activityContext.filesDir, externalDestination)
 
-        activityContext.stopProgressBar()
         return true
     }
 }

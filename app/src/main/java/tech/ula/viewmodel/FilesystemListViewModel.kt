@@ -14,6 +14,7 @@ import java.lang.Exception
 import kotlin.coroutines.CoroutineContext
 
 sealed class FilesystemExportStatus
+data class ExportUpdate(val details: String) : FilesystemExportStatus()
 object ExportSuccess : FilesystemExportStatus()
 data class ExportFailure(val reason: String) : FilesystemExportStatus()
 
@@ -33,6 +34,9 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
     }
 
     private val exportStatusLiveData = MutableLiveData<FilesystemExportStatus>()
+    private val exportUpdateListener: (String) -> Unit = { details ->
+        exportStatusLiveData.postValue(ExportUpdate(details))
+    }
 
     fun getExportStatusLiveData(): LiveData<FilesystemExportStatus> {
         return exportStatusLiveData
@@ -50,40 +54,34 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
 
     fun compressFilesystemAndExportToStorage(
         filesystem: Filesystem,
-        localTempDirectory: File,
+        filesDir: File,
         externalStorageDirectory: File,
-        listener: (String) -> Any,
         coroutineScope: CoroutineScope = this
     ) = coroutineScope.launch {
+        withContext(Dispatchers.IO) {
+            val backupName = "${filesystem.name}-${filesystem.distributionType}-rootfs.tar.gz"
+            val externalBackupFile = File("${externalStorageDirectory.path}/$backupName")
+            val localTempBackupFile = File("${filesDir.path}/rootfs.tar.gz")
+            if (!externalStorageDirectory.exists()) externalStorageDirectory.mkdirs()
 
-        val backupName = "${filesystem.name}-${filesystem.distributionType}-rootfs.tar.gz"
-        val externalBackupFile = File("${externalStorageDirectory.path}/$backupName")
-        val localTempBackupFile = File("${localTempDirectory.path}/rootfs.tar.gz")
-        if (!externalStorageDirectory.exists()) externalStorageDirectory.mkdirs()
+            filesystemUtility.compressFilesystem(filesystem, localTempBackupFile, exportUpdateListener)
 
-        filesystemUtility.compressFilesystem(filesystem, File(localTempDirectory.path), listener)
-
-        if (!localTempBackupFile.exists()) {
-            exportStatusLiveData.postValue(ExportFailure("Exporting to local directory failed"))
-            return@launch
-        }
-
-        val inputStream = localTempBackupFile.inputStream()
-
-        try {
-            val streamOutput = FileOutputStream(externalBackupFile)
-            inputStream.use { input ->
-                streamOutput.use { fileOut ->
-                    input.copyTo(fileOut)
-                }
+            if (!localTempBackupFile.exists()) {
+                exportStatusLiveData.postValue(ExportFailure("Exporting to local directory failed"))
+                return@withContext
             }
-        } catch (e: Exception) {
-            exportStatusLiveData.postValue(ExportFailure(e.toString()))
-        }
 
-        when (externalBackupFile.exists()) {
-            true -> exportStatusLiveData.postValue(ExportSuccess)
-            false -> exportStatusLiveData.postValue(ExportFailure("Exporting to external directory failed"))
+            try {
+                localTempBackupFile.copyTo(externalBackupFile)
+                localTempBackupFile.delete()
+            } catch (e: Exception) {
+                exportStatusLiveData.postValue(ExportFailure(e.toString()))
+            }
+
+            when (externalBackupFile.exists()) {
+                true -> exportStatusLiveData.postValue(ExportSuccess)
+                false -> exportStatusLiveData.postValue(ExportFailure("Exporting to external directory failed"))
+            }
         }
     }
 }
