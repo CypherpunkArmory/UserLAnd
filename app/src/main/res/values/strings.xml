@@ -198,5 +198,8 @@
     <string name="review_is_user_enjoying">Enjoying UserLAnd?</string>
     <string name="review_ask_for_rating">How about a rating on the Play Store, then?</string>
     <string name="review_ask_for_feedback">Would you mind giving us some feedback on Github?</string>
+
+    <!-- Advanced options -->
+    <string name="desc_import_backups_should_use_same_settings">Fill out the same: \n\n\u2022 username \n\u2022 password \n\u2022 VNC password \n\u2022 distribution \n\n as the backup to ensure smooth functionality</string>
   
 </resources>

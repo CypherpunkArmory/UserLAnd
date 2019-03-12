@@ -211,7 +211,7 @@ class FilesystemEditFragment : Fragment() {
                 }
                 false -> {
                     btn.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_keyboard_arrow_right_white_24dp, 0)
-                    advanced_options.visibility = View.GONE
+                    advanced_options.visibility = View.INVISIBLE
                 }
             }
         }

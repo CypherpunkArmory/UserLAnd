@@ -117,7 +117,7 @@
             android:id="@+id/advanced_options"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:visibility="gone"
+            android:visibility="invisible"
             android:orientation="vertical"
             app:layout_constraintTop_toBottomOf="@id/btn_show_advanced_options" >
             <TextView
@@ -135,8 +135,20 @@
                 android:text="@string/button_select_backup_import"
                 android:orientation="horizontal"
                 android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
                 android:padding="16dp"
                 />
+
+            <TextView
+                android:id="@+id/text_use_same_settings"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/desc_import_backups_should_use_same_settings"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:textAlignment="center"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp" />
         </LinearLayout>
     </android.support.constraint.ConstraintLayout>
 </ScrollView>
