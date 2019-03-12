@@ -9,7 +9,6 @@ import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.entities.Filesystem
 import tech.ula.utils.FilesystemUtility
 import java.io.File
-import java.io.FileOutputStream
 import java.lang.Exception
 import kotlin.coroutines.CoroutineContext
 
@@ -75,13 +74,11 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
                 localTempBackupFile.copyTo(externalBackupFile)
                 localTempBackupFile.delete()
             } catch (e: Exception) {
-                exportStatusLiveData.postValue(ExportFailure(e.toString()))
+                exportStatusLiveData.postValue(ExportFailure("Exporting to external directory failed"))
+                localTempBackupFile.delete()
+                return@withContext
             }
-
-            when (externalBackupFile.exists()) {
-                true -> exportStatusLiveData.postValue(ExportSuccess)
-                false -> exportStatusLiveData.postValue(ExportFailure("Exporting to external directory failed"))
-            }
+            exportStatusLiveData.postValue(ExportSuccess)
         }
     }
 }

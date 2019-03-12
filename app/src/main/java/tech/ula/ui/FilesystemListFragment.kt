@@ -21,8 +21,7 @@ import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.BusyboxExecutor
 import tech.ula.utils.DefaultPreferences
 import tech.ula.utils.FilesystemUtility
-import tech.ula.viewmodel.*
-import java.io.File
+import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 
 class FilesystemListFragment : Fragment() {
 
