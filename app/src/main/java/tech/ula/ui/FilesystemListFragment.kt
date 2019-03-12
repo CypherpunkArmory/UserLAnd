@@ -58,11 +58,11 @@ class FilesystemListFragment : Fragment() {
                     activityContext.updateExportProgress(exportStatus.details)
                 }
                 is ExportSuccess -> {
-                    Toast.makeText(activityContext, "Successfully exported backup", Toast.LENGTH_LONG).show()
+                    Toast.makeText(activityContext, R.string.export_success, Toast.LENGTH_LONG).show()
                     activityContext.stopExportProgress()
                 }
                 is ExportFailure -> {
-                    Toast.makeText(activityContext, "Unable to exported backup: ${exportStatus.reason}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(activityContext, "${R.string.export_failure} + ${exportStatus.reason}", Toast.LENGTH_LONG).show()
                     activityContext.stopExportProgress()
                 }
             }

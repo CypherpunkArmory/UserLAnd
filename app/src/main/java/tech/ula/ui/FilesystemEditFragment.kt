@@ -42,6 +42,8 @@ class FilesystemEditFragment : Fragment() {
 
     private lateinit var activityContext: MainActivity
 
+    private val IMPORT_FILESYSTEM_REQUEST_CODE = 5
+
     private val filesystem: Filesystem by lazy {
         arguments?.getParcelable("filesystem") as Filesystem
     }
@@ -57,8 +59,8 @@ class FilesystemEditFragment : Fragment() {
     private val filesystemImportStatusObserver = Observer<FilesystemImportStatus> {
         it?.let { importStatus ->
             when (importStatus) {
-                is ImportSuccess -> Toast.makeText(activityContext, "Successfully imported backup", Toast.LENGTH_LONG).show()
-                is ImportFailure -> Toast.makeText(activityContext, "Unable to import backup", Toast.LENGTH_LONG).show()
+                is ImportSuccess -> Toast.makeText(activityContext, R.string.import_success, Toast.LENGTH_LONG).show()
+                is ImportFailure -> Toast.makeText(activityContext, R.string.import_failure, Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -185,7 +187,7 @@ class FilesystemEditFragment : Fragment() {
             val filePickerIntent = Intent(Intent.ACTION_GET_CONTENT)
             filePickerIntent.addCategory(Intent.CATEGORY_OPENABLE)
             filePickerIntent.type = "application/*"
-            val fileChooser = Intent.createChooser(filePickerIntent, "Select Filesystem Backup file")
+            val fileChooser = Intent.createChooser(filePickerIntent, getString(R.string.prompt_select_backup))
             if (!arePermissionsGranted(activityContext)) {
                 showPermissionsNecessaryDialog()
                 return@setOnClickListener
@@ -195,7 +197,7 @@ class FilesystemEditFragment : Fragment() {
                 filesystem.isCreatedFromBackup = true
                 startActivityForResult(fileChooser, IMPORT_FILESYSTEM_REQUEST_CODE)
             } catch (activityNotFoundErr: ActivityNotFoundException) {
-                Toast.makeText(activityContext, "Please install a File Manager.", Toast.LENGTH_LONG).show()
+                Toast.makeText(activityContext, R.string.prompt_install_file_manager, Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -300,9 +302,5 @@ class FilesystemEditFragment : Fragment() {
                 return true
         }
         return false
-    }
-
-    companion object {
-        const val IMPORT_FILESYSTEM_REQUEST_CODE = 5
     }
 }
