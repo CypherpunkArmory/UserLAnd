@@ -65,6 +65,9 @@ class FilesystemListFragment : Fragment() {
                     Toast.makeText(activityContext, "${R.string.export_failure} + ${exportStatus.reason}", Toast.LENGTH_LONG).show()
                     activityContext.stopExportProgress()
                 }
+                is ExportStarted -> {
+                    Toast.makeText(activityContext, R.string.export_started, Toast.LENGTH_LONG).show()
+                }
             }
         }
     }

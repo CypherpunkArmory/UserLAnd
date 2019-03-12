@@ -16,6 +16,7 @@ sealed class FilesystemExportStatus
 data class ExportUpdate(val details: String) : FilesystemExportStatus()
 object ExportSuccess : FilesystemExportStatus()
 data class ExportFailure(val reason: String) : FilesystemExportStatus()
+object ExportStarted : FilesystemExportStatus()
 
 class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private val filesystemUtility: FilesystemUtility) : ViewModel(), CoroutineScope {
 
@@ -58,6 +59,7 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
         coroutineScope: CoroutineScope = this
     ) = coroutineScope.launch {
         withContext(Dispatchers.IO) {
+            exportStatusLiveData.postValue(ExportStarted)
             val backupName = "${filesystem.name}-${filesystem.distributionType}-rootfs.tar.gz"
             val externalBackupFile = File("${externalStorageDirectory.path}/$backupName")
             val localTempBackupFile = File("${filesDir.path}/rootfs.tar.gz")

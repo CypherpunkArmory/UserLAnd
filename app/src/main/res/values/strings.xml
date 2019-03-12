@@ -155,6 +155,7 @@
     <string name="import_failure">Unable to import backup</string>
     <string name="export_success">Successfully exported backup</string>
     <string name="export_failure">Unable to export backup</string>
+    <string name="export_started">Export started, please wait</string>
 
     <!-- Clear support files alert -->
     <string name="alert_clear_support_files_title">Clear all support files?</string>
