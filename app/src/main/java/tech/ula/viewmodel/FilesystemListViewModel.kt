@@ -74,11 +74,18 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
                 localTempBackupFile.copyTo(externalBackupFile)
                 localTempBackupFile.delete()
             } catch (e: Exception) {
-                exportStatusLiveData.postValue(ExportFailure("Exporting to external directory failed"))
+                exportStatusLiveData.postValue(ExportFailure("Exporting to external directory failed: $e"))
                 localTempBackupFile.delete()
                 return@withContext
             }
-            exportStatusLiveData.postValue(ExportSuccess)
+
+            when (externalBackupFile.exists() && externalBackupFile.length() > 0) {
+                true -> exportStatusLiveData.postValue(ExportSuccess)
+                false -> {
+                    exportStatusLiveData.postValue(ExportFailure("Exporting to external directory failed"))
+                    localTempBackupFile.delete()
+                }
+            }
         }
     }
 }
