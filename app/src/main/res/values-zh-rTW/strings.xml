@@ -92,7 +92,7 @@
         <string name="desc_arrow">圖像：箭頭指示工作階段與檔案系統之間的關係</string>
         <string name="desc_filesystem_type">圖像：發散的箭頭</string>
         <string name="custom_sessions">工作階段設定</string>
-        <string name="apps_sessions">程式的工作階段/string>
+        <string name="apps_sessions">程式的工作階段</string>
         <string name="github_message">發現錯誤並且想要新的功能？上我們的 Github，在那裡您能得到最快的解答！ </string>
         <string name="pref_proot_debugging_level_summary">數值越大，資訊越詳細。</string>
 </resources>
