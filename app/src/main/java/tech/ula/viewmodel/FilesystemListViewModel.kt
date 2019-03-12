@@ -63,9 +63,9 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
             val localTempBackupFile = File("${filesDir.path}/rootfs.tar.gz")
             if (!externalStorageDirectory.exists()) externalStorageDirectory.mkdirs()
 
-            filesystemUtility.compressFilesystem(filesystem, localTempBackupFile, exportUpdateListener)
+            val compressSuccess = filesystemUtility.compressFilesystem(filesystem, localTempBackupFile, exportUpdateListener)
 
-            if (!localTempBackupFile.exists()) {
+            if (!compressSuccess) {
                 exportStatusLiveData.postValue(ExportFailure("Exporting to local directory failed"))
                 return@withContext
             }
@@ -74,7 +74,7 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
                 localTempBackupFile.copyTo(externalBackupFile)
                 localTempBackupFile.delete()
             } catch (e: Exception) {
-                exportStatusLiveData.postValue(ExportFailure("Exporting to external directory failed: $e"))
+                exportStatusLiveData.postValue(ExportFailure("Exporting to external directory failed"))
                 localTempBackupFile.delete()
                 return@withContext
             }
@@ -82,7 +82,7 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
             when (externalBackupFile.exists() && externalBackupFile.length() > 0) {
                 true -> exportStatusLiveData.postValue(ExportSuccess)
                 false -> {
-                    exportStatusLiveData.postValue(ExportFailure("Exporting to external directory failed"))
+                    exportStatusLiveData.postValue(ExportFailure("Exporting to external directory failed, exported file has no data"))
                     localTempBackupFile.delete()
                 }
             }

@@ -61,7 +61,11 @@ class FilesystemUtility(
         }
     }
 
-    suspend fun compressFilesystem(filesystem: Filesystem, localDestinationFile: File, listener: (String) -> Any) = withContext(Dispatchers.IO) {
+    suspend fun compressFilesystem(
+        filesystem: Filesystem,
+        localDestinationFile: File,
+        listener: (String) -> Any
+    ): Boolean = withContext(Dispatchers.IO) {
         val filesystemDirName = "${filesystem.id}"
         val command = "/support/common/compressFilesystem.sh"
         val env = HashMap<String, String>()
@@ -77,7 +81,9 @@ class FilesystemUtility(
         if (result is FailedExecution) {
             val err = result.reason
             logger.logRuntimeErrorForCommand(functionName = "compressFilesystem", command = command, err = err)
+            return@withContext false
         }
+        true
     }
 
     fun isExtractionComplete(targetDirectoryName: String): Boolean {
