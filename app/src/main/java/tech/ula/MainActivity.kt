@@ -721,6 +721,11 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 xsdlSupportedText.visibility = View.VISIBLE
             }
 
+            if (!viewModel.lastSelectedApp.supportsCli) {
+                sshTypePreference.isEnabled = false
+                sshTypePreference.alpha = 0.5f
+            }
+
             customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 customDialog.dismiss()
                 val selectedPreference = when {
