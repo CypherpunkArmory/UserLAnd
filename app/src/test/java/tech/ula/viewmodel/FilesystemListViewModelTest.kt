@@ -3,13 +3,13 @@ package tech.ula.viewmodel
 import android.arch.core.executor.testing.InstantTaskExecutorRule
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Observer
-import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.verifyBlocking
-import com.nhaarman.mockitokotlin2.whenever
+import com.nhaarman.mockitokotlin2.* // ktlint-disable no-wildcard-imports
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
@@ -23,13 +23,22 @@ class FilesystemListViewModelTest {
 
     @get:Rule val instantTaskExecutorRule = InstantTaskExecutorRule()
 
+    @get:Rule val tempFolder = TemporaryFolder()
+
     @Mock lateinit var mockFilesystemDao: FilesystemDao
 
     @Mock lateinit var mockFilesystemUtility: FilesystemUtility
 
-    @Mock lateinit var mockObserver: Observer<List<Filesystem>>
+    @Mock lateinit var mockFsListObserver: Observer<List<Filesystem>>
+
+    @Mock lateinit var mockExportObserver: Observer<FilesystemExportStatus>
 
     private lateinit var filesystemsLiveData: MutableLiveData<List<Filesystem>>
+
+    private val filesystemName = "fsname"
+    private val filesystemType = "fstype"
+    private val rootfsString = "rootfs.tar.gz"
+    private val expectedBackupName = "$filesystemName-$filesystemType-$rootfsString"
 
     private lateinit var filesystemListViewModel: FilesystemListViewModel
 
@@ -46,10 +55,10 @@ class FilesystemListViewModelTest {
         val testFilesystemName = "test"
         val testFilesystemList = listOf(Filesystem(id = 0, name = testFilesystemName))
 
-        filesystemListViewModel.getAllFilesystems().observeForever(mockObserver)
+        filesystemListViewModel.getAllFilesystems().observeForever(mockFsListObserver)
         filesystemsLiveData.postValue(testFilesystemList)
 
-        verify(mockObserver).onChanged(testFilesystemList)
+        verify(mockFsListObserver).onChanged(testFilesystemList)
     }
 
     @Test
@@ -62,14 +71,61 @@ class FilesystemListViewModelTest {
     }
 
     @Test
-    fun `compressFilesystem delegates to the model layer properly`() {
-        val filesystem = Filesystem(id = 0)
-        val testFile = File("fake")
-        val testListener: (String) -> Unit = {}
+    fun `compressFilesystem copies backup to external and posts ExportSuccess`() {
+        val filesystem = Filesystem(id = 0, name = filesystemName, distributionType = filesystemType)
+        val filesDir = tempFolder.newFolder("files")
+        val externalDir = tempFolder.newFolder("external")
 
+        val expectedLocalBackupFile = File("${filesDir.absolutePath}/$rootfsString")
+        expectedLocalBackupFile.createNewFile()
+        expectedLocalBackupFile.writeText("test")
+
+        filesystemListViewModel.getExportStatusLiveData().observeForever(mockExportObserver)
         runBlocking {
-            filesystemListViewModel.compressFilesystem(filesystem, testFile, testListener, this)
+            filesystemListViewModel.compressFilesystemAndExportToStorage(filesystem, filesDir, externalDir, this)
         }
-        verifyBlocking(mockFilesystemUtility) { compressFilesystem(filesystem, testFile, testListener) }
+
+        verify(mockExportObserver).onChanged(ExportStarted)
+        verifyBlocking(mockFilesystemUtility) { compressFilesystem(eq(filesystem), eq(expectedLocalBackupFile), anyOrNull()) }
+        verify(mockExportObserver).onChanged(ExportSuccess)
+    }
+
+    @Test
+    fun `compressFilesystem posts ExportFailure if the local backup is not created`() {
+        val filesystem = Filesystem(id = 0, name = filesystemName, distributionType = filesystemType)
+        val filesDir = tempFolder.newFolder("files")
+        val externalDir = tempFolder.newFolder("external")
+        val expectedLocalBackupFile = File("${filesDir.absolutePath}/$rootfsString")
+
+        assertFalse(expectedLocalBackupFile.exists())
+        filesystemListViewModel.getExportStatusLiveData().observeForever(mockExportObserver)
+        runBlocking {
+            filesystemListViewModel.compressFilesystemAndExportToStorage(filesystem, filesDir, externalDir, this)
+        }
+
+        verifyBlocking(mockFilesystemUtility) { compressFilesystem(eq(filesystem), eq(expectedLocalBackupFile), anyOrNull()) }
+        verify(mockExportObserver).onChanged(ExportFailure("Exporting to local directory failed"))
+    }
+
+    @Test
+    fun `compressFilesystem posts ExportFailure if a backup of the same name already exists externally`() {
+        val filesystem = Filesystem(id = 0, name = filesystemName, distributionType = filesystemType)
+        val filesDir = tempFolder.newFolder("files")
+        val externalDir = tempFolder.newFolder("external")
+
+        val expectedLocalBackupFile = File("${filesDir.absolutePath}/$rootfsString")
+        expectedLocalBackupFile.createNewFile()
+
+        val expectedExternalBackupFile = File("${externalDir.absolutePath}/$expectedBackupName")
+        expectedExternalBackupFile.createNewFile()
+
+        filesystemListViewModel.getExportStatusLiveData().observeForever(mockExportObserver)
+        runBlocking {
+            filesystemListViewModel.compressFilesystemAndExportToStorage(filesystem, filesDir, externalDir, this)
+        }
+
+        assertFalse(expectedLocalBackupFile.exists())
+        verifyBlocking(mockFilesystemUtility) { compressFilesystem(eq(filesystem), eq(expectedLocalBackupFile), anyOrNull()) }
+        verify(mockExportObserver).onChanged(ExportFailure("Exporting to external directory failed"))
     }
 }

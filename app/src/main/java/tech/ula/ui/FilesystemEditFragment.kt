@@ -1,8 +1,14 @@
 package tech.ula.ui
 
-import android.app.Activity
+import android.Manifest
+import android.annotation.TargetApi
+import android.app.AlertDialog
+import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.text.Editable
@@ -18,18 +24,25 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_edit.*
+import tech.ula.MainActivity
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.AppsPreferences
 import tech.ula.utils.BuildWrapper
 import tech.ula.utils.ValidationUtility
+import tech.ula.utils.arePermissionsGranted
+import tech.ula.viewmodel.FilesystemImportStatus
+import tech.ula.viewmodel.ImportSuccess
+import tech.ula.viewmodel.ImportFailure
 import tech.ula.viewmodel.FilesystemEditViewModel
 import tech.ula.viewmodel.FilesystemEditViewmodelFactory
 
 class FilesystemEditFragment : Fragment() {
 
-    private lateinit var activityContext: Activity
+    private lateinit var activityContext: MainActivity
+
+    private val IMPORT_FILESYSTEM_REQUEST_CODE = 5
 
     private val filesystem: Filesystem by lazy {
         arguments?.getParcelable("filesystem") as Filesystem
@@ -37,6 +50,20 @@ class FilesystemEditFragment : Fragment() {
 
     private val editExisting: Boolean by lazy {
         arguments?.getBoolean("editExisting") ?: false
+    }
+
+    private val permissionRequestCode: Int by lazy {
+        getString(R.string.permission_request_code).toInt()
+    }
+
+    private val filesystemImportStatusObserver = Observer<FilesystemImportStatus> {
+        it?.let { importStatus ->
+            val dialogBuilder = AlertDialog.Builder(activityContext)
+            when (importStatus) {
+                is ImportSuccess -> dialogBuilder.setMessage(R.string.import_success).create().show()
+                is ImportFailure -> dialogBuilder.setMessage(R.string.import_failure).create().show()
+            }
+        }
     }
 
     private val filesystemEditViewModel: FilesystemEditViewModel by lazy {
@@ -70,7 +97,8 @@ class FilesystemEditFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        activityContext = activity!!
+        activityContext = activity!! as MainActivity
+        filesystemEditViewModel.getImportStatusLiveData().observe(viewLifecycleOwner, filesystemImportStatusObserver)
 
         if (distributionList.isNotEmpty()) {
             spinner_filesystem_type.adapter = ArrayAdapter(activityContext,
@@ -89,6 +117,8 @@ class FilesystemEditFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupTextInputs()
+        setupImportButton()
+        setupAdvancedOptionButton()
 
         if (editExisting) {
             spinner_filesystem_type.isEnabled = false
@@ -103,7 +133,7 @@ class FilesystemEditFragment : Fragment() {
         }
     }
 
-    fun setupTextInputs() {
+    private fun setupTextInputs() {
         input_filesystem_name.setText(filesystem.name)
         input_filesystem_username.setText(filesystem.defaultUsername)
         input_filesystem_password.setText(filesystem.defaultPassword)
@@ -153,6 +183,72 @@ class FilesystemEditFragment : Fragment() {
         })
     }
 
+    private fun setupImportButton() {
+        import_button.setOnClickListener {
+            val filePickerIntent = Intent(Intent.ACTION_GET_CONTENT)
+            filePickerIntent.addCategory(Intent.CATEGORY_OPENABLE)
+            filePickerIntent.type = "application/*"
+            val fileChooser = Intent.createChooser(filePickerIntent, getString(R.string.prompt_select_backup))
+            if (!arePermissionsGranted(activityContext)) {
+                showPermissionsNecessaryDialog()
+                return@setOnClickListener
+            }
+
+            try {
+                filesystem.isCreatedFromBackup = true
+                startActivityForResult(fileChooser, IMPORT_FILESYSTEM_REQUEST_CODE)
+            } catch (activityNotFoundErr: ActivityNotFoundException) {
+                Toast.makeText(activityContext, R.string.prompt_install_file_manager, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun setupAdvancedOptionButton() {
+        val btn = btn_show_advanced_options
+
+        btn.setOnClickListener {
+            when (btn.isChecked) {
+                true -> {
+                    btn.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_keyboard_arrow_down_white_24dp, 0)
+                    advanced_options.visibility = View.VISIBLE
+                }
+                false -> {
+                    btn.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_keyboard_arrow_right_white_24dp, 0)
+                    advanced_options.visibility = View.INVISIBLE
+                }
+            }
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    private fun showPermissionsNecessaryDialog() {
+        val builder = AlertDialog.Builder(activityContext)
+        builder.setMessage(R.string.alert_permissions_necessary_message)
+                .setTitle(R.string.alert_permissions_necessary_title)
+                .setPositiveButton(R.string.button_ok) {
+                    dialog, _ ->
+                    requestPermissions(arrayOf(
+                            Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                            permissionRequestCode)
+                    dialog.dismiss()
+                }
+                .setNegativeButton(R.string.alert_permissions_necessary_cancel_button) {
+                    dialog, _ ->
+                    dialog.dismiss()
+                }
+        builder.create().show()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, returnIntent: Intent?) {
+        super.onActivityResult(requestCode, resultCode, returnIntent)
+        if (requestCode == IMPORT_FILESYSTEM_REQUEST_CODE) {
+            returnIntent?.data?.let { uri ->
+                filesystemEditViewModel.backupUri = uri
+                text_backup_filename.text = uri.lastPathSegment
+            }
+        }
+    }
+
     private fun insertFilesystem(): Boolean {
         val navController = NavHostFragment.findNavController(this)
         if (!filesystemParametersAreCorrect()) {
@@ -169,7 +265,11 @@ class FilesystemEditFragment : Fragment() {
                 Toast.makeText(activityContext, R.string.no_supported_architecture, Toast.LENGTH_LONG).show()
                 return true
             }
-            filesystemEditViewModel.insertFilesystem(filesystem)
+            if (filesystem.isCreatedFromBackup) {
+                filesystemEditViewModel.insertFilesystemFromBackup(activityContext.contentResolver, filesystem, activityContext.filesDir)
+            } else {
+                filesystemEditViewModel.insertFilesystem(filesystem)
+            }
             navController.popBackStack()
         }
 

@@ -108,9 +108,9 @@ class FilesystemUtilityTest {
         val filesystem = Filesystem(id = 0, name = "backup", distributionType = "distType")
         val externalStorageDirectory = tempFolder.root
 
-        val expectedBackupName = "${filesystem.name}-${filesystem.distributionType}-rootfs.tar.gz"
-        val expectedBackupPath = "${externalStorageDirectory.absolutePath}/UserLAnd/$expectedBackupName"
-        val expectedEnv = hashMapOf("TAR_PATH" to expectedBackupPath)
+        val destinationName = "rootfs.tar.gz"
+        val destinationPath = "${externalStorageDirectory.absolutePath}/$destinationName"
+        val expectedEnv = hashMapOf("TAR_PATH" to destinationPath)
 
         whenever(mockBusyboxExecutor.executeProotCommand(
                 eq(command),
@@ -122,7 +122,7 @@ class FilesystemUtilityTest {
         ))
                 .thenReturn(SuccessfulExecution)
 
-        runBlocking { filesystemUtility.compressFilesystem(filesystem, externalStorageDirectory, statelessListener) }
+        runBlocking { filesystemUtility.compressFilesystem(filesystem, File(destinationPath), statelessListener) }
         verify(mockBusyboxExecutor).executeProotCommand(
                 eq(command),
                 eq("${filesystem.id}"),
@@ -139,9 +139,9 @@ class FilesystemUtilityTest {
         val filesystem = Filesystem(id = 0, name = "backup", distributionType = "distType")
         val externalStorageDirectory = tempFolder.root
 
-        val expectedBackupName = "${filesystem.name}-${filesystem.distributionType}-rootfs.tar.gz"
-        val expectedBackupPath = "${externalStorageDirectory.absolutePath}/UserLAnd/$expectedBackupName"
-        val expectedEnv = hashMapOf("TAR_PATH" to expectedBackupPath)
+        val destinationName = "rootfs.tar.gz"
+        val destinationPath = "${externalStorageDirectory.absolutePath}/$destinationName"
+        val expectedEnv = hashMapOf("TAR_PATH" to destinationPath)
 
         val failureReason = "reason"
         whenever(mockBusyboxExecutor.executeProotCommand(
@@ -154,7 +154,9 @@ class FilesystemUtilityTest {
         ))
                 .thenReturn(FailedExecution(failureReason))
 
-        runBlocking { filesystemUtility.compressFilesystem(filesystem, externalStorageDirectory, statelessListener) }
+        runBlocking {
+            filesystemUtility.compressFilesystem(filesystem, File(destinationPath), statelessListener)
+        }
 
         verify(logger).logRuntimeErrorForCommand("compressFilesystem", command, failureReason)
     }

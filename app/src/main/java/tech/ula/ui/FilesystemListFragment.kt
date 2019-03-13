@@ -1,6 +1,6 @@
 package tech.ula.ui
 
-import android.app.Activity
+import android.app.AlertDialog
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
@@ -9,10 +9,12 @@ import android.os.Environment
 import android.support.v4.app.Fragment
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
+import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_list.* // ktlint-disable no-wildcard-imports
 import org.jetbrains.anko.bundleOf
 import org.jetbrains.anko.defaultSharedPreferences
+import tech.ula.MainActivity
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.Filesystem
@@ -20,12 +22,16 @@ import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.BusyboxExecutor
 import tech.ula.utils.DefaultPreferences
 import tech.ula.utils.FilesystemUtility
-import tech.ula.viewmodel.FilesystemListViewModel
-import tech.ula.viewmodel.FilesystemListViewmodelFactory
+import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 
 class FilesystemListFragment : Fragment() {
 
-    private lateinit var activityContext: Activity
+    interface ExportFilesystem {
+        fun updateExportProgress(details: String)
+        fun stopExportProgress()
+    }
+
+    private lateinit var activityContext: MainActivity
 
     private lateinit var filesystemList: List<Filesystem>
 
@@ -43,6 +49,28 @@ class FilesystemListFragment : Fragment() {
             filesystemList = list
 
             list_filesystems.adapter = FilesystemListAdapter(activityContext, filesystemList)
+        }
+    }
+
+    private val filesystemExportStatusObserver = Observer<FilesystemExportStatus> {
+        it?.let { exportStatus ->
+            when (exportStatus) {
+                is ExportUpdate -> {
+                    activityContext.updateExportProgress(exportStatus.details)
+                }
+                is ExportSuccess -> {
+                    Toast.makeText(activityContext, R.string.export_success, Toast.LENGTH_LONG).show()
+                    activityContext.stopExportProgress()
+                }
+                is ExportFailure -> {
+                    val dialogBuilder = AlertDialog.Builder(activityContext)
+                    dialogBuilder.setMessage(getString(R.string.export_failure) + "\n${exportStatus.reason}").create().show()
+                    activityContext.stopExportProgress()
+                }
+                is ExportStarted -> {
+                    activityContext.updateExportProgress(getString(R.string.export_started))
+                }
+            }
         }
     }
 
@@ -68,8 +96,9 @@ class FilesystemListFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        activityContext = activity!!
+        activityContext = activity!! as MainActivity
         filesystemListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
+        filesystemListViewModel.getExportStatusLiveData().observe(viewLifecycleOwner, filesystemExportStatusObserver)
         registerForContextMenu(list_filesystems)
     }
 
@@ -85,6 +114,7 @@ class FilesystemListFragment : Fragment() {
         return when (item.itemId) {
             R.id.menu_item_filesystem_edit -> editFilesystem(filesystem)
             R.id.menu_item_filesystem_delete -> deleteFilesystem(filesystem)
+            R.id.menu_item_filesystem_export -> exportFilesystem(filesystem)
             else -> super.onContextItemSelected(item)
         }
     }
@@ -103,6 +133,13 @@ class FilesystemListFragment : Fragment() {
         serviceIntent.putExtra("type", "filesystemIsBeingDeleted")
         serviceIntent.putExtra("filesystemId", filesystem.id)
         activityContext.startService(serviceIntent)
+
+        return true
+    }
+
+    private fun exportFilesystem(filesystem: Filesystem): Boolean {
+        val externalDestination = Environment.getExternalStoragePublicDirectory("UserLAnd")
+        filesystemListViewModel.compressFilesystemAndExportToStorage(filesystem, activityContext.filesDir, externalDestination)
 
         return true
     }
