@@ -31,7 +31,7 @@ class FilesystemEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(
 
     private val importStatusLiveData = MutableLiveData<FilesystemImportStatus>()
 
-    private var backupUri: Uri? = null
+    var backupUri: Uri? = null
 
     fun getImportStatusLiveData(): LiveData<FilesystemImportStatus> {
         return importStatusLiveData
@@ -41,14 +41,6 @@ class FilesystemEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(
         withContext(Dispatchers.IO) {
             ulaDatabase.filesystemDao().insertFilesystem(filesystem)
         }
-    }
-
-    fun getBackupUri(): Uri? {
-        return backupUri
-    }
-
-    fun setBackupUri(uri: Uri?) {
-        backupUri = uri
     }
 
     fun insertFilesystemFromBackup(
@@ -71,7 +63,7 @@ class FilesystemEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(
                 filesystemSupportDir.mkdirs()
                 val destination = File("${filesystemSupportDir.absolutePath}/rootfs.tar.gz")
 
-                val inputStream = contentResolver.openInputStream(backupUri)
+                val inputStream = contentResolver.openInputStream(backupUri!!)
                 if (inputStream == null) {
                     ulaDatabase.filesystemDao().deleteFilesystemById(id)
                     importStatusLiveData.postValue(ImportFailure("Could not open input stream"))
@@ -89,7 +81,7 @@ class FilesystemEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(
                 importStatusLiveData.postValue(ImportFailure(e.toString()))
             }
 
-            setBackupUri(null)
+            backupUri = null
             importStatusLiveData.postValue(ImportSuccess)
         }
     }

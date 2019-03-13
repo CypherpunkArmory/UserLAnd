@@ -66,7 +66,7 @@ class FilesystemEditViewModelTest {
     @Test
     fun `insertFilesystemFromBackup posts UriUnselected if uri has not been set`() {
         filesystemEditViewModel.getImportStatusLiveData().observeForever(mockObserver)
-        filesystemEditViewModel.setBackupUri(null)
+        filesystemEditViewModel.backupUri = null
 
         val filesystem = Filesystem(0)
 
@@ -81,7 +81,7 @@ class FilesystemEditViewModelTest {
     fun `insertFilesystemFromBackup removes db entry posts ImportFailure if input stream is null`() {
         val filesystem = Filesystem(0)
         filesystemEditViewModel.getImportStatusLiveData().observeForever(mockObserver)
-        filesystemEditViewModel.setBackupUri(mockBackupUri)
+        filesystemEditViewModel.backupUri = mockBackupUri
         whenever(mockFilesystemDao.insertFilesystem(filesystem))
                 .thenReturn(0)
         whenever(mockContentResolver.openInputStream(mockBackupUri))
@@ -99,7 +99,7 @@ class FilesystemEditViewModelTest {
     fun `insertFilesystemFromBackup removes db entry and posts ImportFailure if an exception is caught`() {
         val filesystem = Filesystem(0)
         filesystemEditViewModel.getImportStatusLiveData().observeForever(mockObserver)
-        filesystemEditViewModel.setBackupUri(mockBackupUri)
+        filesystemEditViewModel.backupUri = mockBackupUri
         whenever(mockFilesystemDao.insertFilesystem(filesystem))
                 .thenReturn(0)
         val exception = FileNotFoundException()
@@ -131,7 +131,7 @@ class FilesystemEditViewModelTest {
         whenever(mockContentResolver.openInputStream(mockBackupUri))
                 .thenReturn(backupSourceFile.inputStream())
 
-        filesystemEditViewModel.setBackupUri(mockBackupUri)
+        filesystemEditViewModel.backupUri = mockBackupUri
         filesystemEditViewModel.getImportStatusLiveData().observeForever(mockObserver)
         runBlocking {
             filesystemEditViewModel.insertFilesystemFromBackup(mockContentResolver, filesystem, filesDir, this)
@@ -144,7 +144,7 @@ class FilesystemEditViewModelTest {
         assertTrue(expectedBackupTargetFile.exists())
         assertEquals(backupText, readBackupText)
         verify(mockObserver).onChanged(ImportSuccess)
-        assertEquals(null, filesystemEditViewModel.getBackupUri())
+        assertEquals(null, filesystemEditViewModel.backupUri)
     }
 
     @Test

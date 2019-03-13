@@ -242,7 +242,7 @@ class FilesystemEditFragment : Fragment() {
         super.onActivityResult(requestCode, resultCode, returnIntent)
         if (requestCode == IMPORT_FILESYSTEM_REQUEST_CODE) {
             returnIntent?.data?.let { uri ->
-                filesystemEditViewModel.setBackupUri(uri)
+                filesystemEditViewModel.backupUri = uri
                 text_backup_filename.text = uri.lastPathSegment
             }
         }
