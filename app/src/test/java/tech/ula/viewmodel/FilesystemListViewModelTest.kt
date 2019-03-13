@@ -78,12 +78,14 @@ class FilesystemListViewModelTest {
 
         val expectedLocalBackupFile = File("${filesDir.absolutePath}/$rootfsString")
         expectedLocalBackupFile.createNewFile()
+        expectedLocalBackupFile.writeText("test")
 
         filesystemListViewModel.getExportStatusLiveData().observeForever(mockExportObserver)
         runBlocking {
             filesystemListViewModel.compressFilesystemAndExportToStorage(filesystem, filesDir, externalDir, this)
         }
 
+        verify(mockExportObserver).onChanged(ExportStarted)
         verifyBlocking(mockFilesystemUtility) { compressFilesystem(eq(filesystem), eq(expectedLocalBackupFile), anyOrNull()) }
         verify(mockExportObserver).onChanged(ExportSuccess)
     }
