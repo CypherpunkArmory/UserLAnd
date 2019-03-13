@@ -58,9 +58,10 @@ class FilesystemEditFragment : Fragment() {
 
     private val filesystemImportStatusObserver = Observer<FilesystemImportStatus> {
         it?.let { importStatus ->
+            val dialogBuilder = AlertDialog.Builder(activityContext)
             when (importStatus) {
-                is ImportSuccess -> Toast.makeText(activityContext, R.string.import_success, Toast.LENGTH_LONG).show()
-                is ImportFailure -> Toast.makeText(activityContext, R.string.import_failure, Toast.LENGTH_LONG).show()
+                is ImportSuccess -> dialogBuilder.setMessage(R.string.import_success).create().show()
+                is ImportFailure -> dialogBuilder.setMessage(R.string.import_failure).create().show()
             }
         }
     }

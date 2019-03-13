@@ -1,5 +1,6 @@
 package tech.ula.ui
 
+import android.app.AlertDialog
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
@@ -62,11 +63,12 @@ class FilesystemListFragment : Fragment() {
                     activityContext.stopExportProgress()
                 }
                 is ExportFailure -> {
-                    Toast.makeText(activityContext, "${R.string.export_failure} + ${exportStatus.reason}", Toast.LENGTH_LONG).show()
+                    val dialogBuilder = AlertDialog.Builder(activityContext)
+                    dialogBuilder.setMessage(getString(R.string.export_failure) + "\n${exportStatus.reason}").create().show()
                     activityContext.stopExportProgress()
                 }
                 is ExportStarted -> {
-                    Toast.makeText(activityContext, R.string.export_started, Toast.LENGTH_LONG).show()
+                    activityContext.updateExportProgress(getString(R.string.export_started))
                 }
             }
         }
