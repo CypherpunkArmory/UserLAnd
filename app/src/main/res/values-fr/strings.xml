@@ -19,7 +19,7 @@
     <!-- Menus -->
     <string name="app_info">Info appli</string>
     <string name="stop_app">Arrêter l\'appli</string>
-    <string name="kill_service">Tuer le service</string>
+    <string name="stop_session">Tuer le service</string>
     <string name="edit">Modifier</string>
     <string name="delete">Supprimer</string>
     <string name="save">Enregistrer</string>
