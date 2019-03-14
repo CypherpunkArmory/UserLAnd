@@ -148,8 +148,12 @@ class FilesystemListFragment : Fragment() {
     }
 
     private fun exportFilesystem(filesystem: Filesystem): Boolean {
-        val externalDestination = Environment.getExternalStoragePublicDirectory("UserLAnd")
-        filesystemListViewModel.compressFilesystemAndExportToStorage(filesystem, activityContext.filesDir, externalDestination)
+        if (activeSessions.isEmpty()) {
+            val externalDestination = Environment.getExternalStoragePublicDirectory("UserLAnd")
+            filesystemListViewModel.compressFilesystemAndExportToStorage(filesystem, activityContext.filesDir, externalDestination)
+        } else {
+            Toast.makeText(activityContext, R.string.deactivate_sessions, Toast.LENGTH_LONG).show()
+        }
 
         return true
     }
