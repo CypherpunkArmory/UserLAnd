@@ -43,6 +43,14 @@ class ValidationUtilityTest {
     }
 
     @Test
+    fun `Validate fails appropriately if filesystem name is just two periods`() {
+        val filesystemName = ".."
+        credential = validationUtility.validateFilesystemName(filesystemName)
+        assertFalse(credential.credentialIsValid)
+        assertEquals(credential.errorMessageId, R.string.error_filesystem_name_invalid_characters)
+    }
+
+    @Test
     fun `Validate fails appropriately if filesystem name has invalid characters such as forward slashes`() {
         val filesystemName = "filename/"
         credential = validationUtility.validateFilesystemName(filesystemName)
