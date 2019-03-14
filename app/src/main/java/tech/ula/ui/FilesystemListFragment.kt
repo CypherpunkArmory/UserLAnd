@@ -148,7 +148,8 @@ class FilesystemListFragment : Fragment() {
     }
 
     private fun exportFilesystem(filesystem: Filesystem, activeSessions: List<Session>): Boolean {
-        filesystemListViewModel.startExport(filesystem, activeSessions, activityContext.filesDir)
+        val externalDestination = Environment.getExternalStoragePublicDirectory("UserLAnd")
+        filesystemListViewModel.startExport(filesystem, activeSessions, activityContext.filesDir, externalDestination)
         return true
     }
 }

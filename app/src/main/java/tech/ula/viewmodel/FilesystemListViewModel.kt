@@ -4,7 +4,6 @@ import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
-import android.os.Environment
 import kotlinx.coroutines.* // ktlint-disable no-wildcard-imports
 import tech.ula.R
 import tech.ula.model.daos.FilesystemDao
@@ -100,9 +99,8 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
         }
     }
 
-    fun startExport(filesystem: Filesystem, activeSessions: List<Session>, filesDir: File) {
+    fun startExport(filesystem: Filesystem, activeSessions: List<Session>, filesDir: File, externalDestination: File) {
         if (activeSessions.isEmpty()) {
-            val externalDestination = Environment.getExternalStoragePublicDirectory("UserLAnd")
             compressFilesystemAndExportToStorage(filesystem, filesDir, externalDestination)
         } else {
             exportStatusLiveData.postValue(ExportFailure(R.string.deactivate_sessions))
