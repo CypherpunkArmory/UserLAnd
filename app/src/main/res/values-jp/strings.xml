@@ -19,7 +19,7 @@
     <!-- Menus -->
     <string name="app_info">アプリの情報</string>
     <string name="stop_app">アプリを停止</string>
-    <string name="kill_service">サービスを終了</string>
+    <string name="stop_session">サービスを終了</string>
     <string name="edit">編集</string>
     <string name="delete">削除</string>
     <string name="save">保存</string>

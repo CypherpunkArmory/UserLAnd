@@ -19,7 +19,7 @@
     <!-- Menus -->
     <string name="app_info">App Info</string>
     <string name="stop_app">Stop App</string>
-    <string name="kill_service">Kill Service</string>               <!-- We know this says name="kill_service" but it is really stopping a session. -->
+    <string name="stop_session">Stop Session</string>
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
     <string name="save">Save</string>
