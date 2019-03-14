@@ -69,7 +69,7 @@ class FilesystemListFragment : Fragment() {
                 }
                 is ExportFailure -> {
                     val dialogBuilder = AlertDialog.Builder(activityContext)
-                    dialogBuilder.setMessage(getString(R.string.export_failure) + "\n${exportStatus.reason}").create().show()
+                    dialogBuilder.setMessage(getString(R.string.export_failure) + "\n" + getString(exportStatus.reason)).create().show()
                     activityContext.stopExportProgress()
                 }
                 is ExportStarted -> {
@@ -124,7 +124,7 @@ class FilesystemListFragment : Fragment() {
         return when (item.itemId) {
             R.id.menu_item_filesystem_edit -> editFilesystem(filesystem)
             R.id.menu_item_filesystem_delete -> deleteFilesystem(filesystem)
-            R.id.menu_item_filesystem_export -> exportFilesystem(filesystem)
+            R.id.menu_item_filesystem_export -> exportFilesystem(filesystem, activeSessions)
             else -> super.onContextItemSelected(item)
         }
     }
@@ -147,14 +147,8 @@ class FilesystemListFragment : Fragment() {
         return true
     }
 
-    private fun exportFilesystem(filesystem: Filesystem): Boolean {
-        if (activeSessions.isEmpty()) {
-            val externalDestination = Environment.getExternalStoragePublicDirectory("UserLAnd")
-            filesystemListViewModel.compressFilesystemAndExportToStorage(filesystem, activityContext.filesDir, externalDestination)
-        } else {
-            Toast.makeText(activityContext, R.string.deactivate_sessions, Toast.LENGTH_LONG).show()
-        }
-
+    private fun exportFilesystem(filesystem: Filesystem, activeSessions: List<Session>): Boolean {
+        filesystemListViewModel.startExport(filesystem, activeSessions, activityContext.filesDir)
         return true
     }
 }

@@ -4,7 +4,9 @@ import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
+import android.os.Environment
 import kotlinx.coroutines.* // ktlint-disable no-wildcard-imports
+import tech.ula.R
 import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.Filesystem
@@ -17,7 +19,7 @@ import tech.ula.model.entities.Session
 sealed class FilesystemExportStatus
 data class ExportUpdate(val details: String) : FilesystemExportStatus()
 object ExportSuccess : FilesystemExportStatus()
-data class ExportFailure(val reason: String) : FilesystemExportStatus()
+data class ExportFailure(val reason: Int) : FilesystemExportStatus()
 object ExportStarted : FilesystemExportStatus()
 
 class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private val sessionDao: SessionDao, private val filesystemUtility: FilesystemUtility) : ViewModel(), CoroutineScope {
@@ -78,7 +80,7 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
             filesystemUtility.compressFilesystem(filesystem, localTempBackupFile, exportUpdateListener)
 
             if (!localTempBackupFile.exists()) {
-                exportStatusLiveData.postValue(ExportFailure("Exporting to local directory failed"))
+                exportStatusLiveData.postValue(ExportFailure(R.string.error_export_to_local_failed))
                 return@withContext
             }
 
@@ -86,15 +88,24 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
                 localTempBackupFile.copyTo(externalBackupFile)
                 localTempBackupFile.delete()
             } catch (e: Exception) {
-                exportStatusLiveData.postValue(ExportFailure("Exporting to external directory failed"))
+                exportStatusLiveData.postValue(ExportFailure(R.string.error_export_to_external_failed))
                 localTempBackupFile.delete()
                 return@withContext
             }
 
             when (externalBackupFile.exists() && externalBackupFile.length() > 0) {
                 true -> exportStatusLiveData.postValue(ExportSuccess)
-                false -> exportStatusLiveData.postValue(ExportFailure("Exporting to external directory failed, exported file has no data"))
+                false -> exportStatusLiveData.postValue(ExportFailure(R.string.error_export_to_external_failed_no_data))
             }
+        }
+    }
+
+    fun startExport(filesystem: Filesystem, activeSessions: List<Session>, filesDir: File) {
+        if (activeSessions.isEmpty()) {
+            val externalDestination = Environment.getExternalStoragePublicDirectory("UserLAnd")
+            compressFilesystemAndExportToStorage(filesystem, filesDir, externalDestination)
+        } else {
+            exportStatusLiveData.postValue(ExportFailure(R.string.deactivate_sessions))
         }
     }
 }
