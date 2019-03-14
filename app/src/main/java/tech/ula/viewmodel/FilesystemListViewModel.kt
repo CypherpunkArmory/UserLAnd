@@ -46,7 +46,7 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
     }
 
     private val activeSessions: LiveData<List<Session>> by lazy {
-        sessionDao.getAllSessions()
+        sessionDao.findActiveSessions()
     }
 
     fun getAllFilesystems(): LiveData<List<Filesystem>> {
