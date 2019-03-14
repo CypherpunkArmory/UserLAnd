@@ -6,6 +6,21 @@ import java.util.regex.Pattern
 
 class ValidationUtility {
 
+    fun validateFilesystemName(filesystemName: String): CredentialValidationStatus {
+        return when {
+            filesystemName.isEmpty() ->
+                CredentialValidationStatus(false, R.string.error_filesystem_name)
+
+            !validateFilesystemNameCharacters(filesystemName) ->
+                CredentialValidationStatus(false, R.string.error_filesystem_name_invalid_characters)
+
+            filesystemName == "." || filesystemName == ".." ->
+                CredentialValidationStatus(false, R.string.error_filesystem_name_invalid_characters)
+
+            else -> CredentialValidationStatus(true)
+        }
+    }
+
     fun validateUsername(username: String, blacklistUsernames: Array<String>): CredentialValidationStatus {
         return when {
             username.isEmpty() ->
@@ -46,6 +61,19 @@ class ValidationUtility {
 
             else -> CredentialValidationStatus(true)
         }
+    }
+
+    private fun validateFilesystemNameCharacters(filesystemName: String): Boolean {
+        val usernameRegex = "([a-zA-Z0-9!@#$%^&()_+=,.?<>]{0,50})"
+
+        val compiledRegex = Pattern.compile(usernameRegex)
+        val matcher = compiledRegex.matcher(filesystemName)
+        val hasValidCharacters = matcher.matches()
+
+        if (hasValidCharacters) {
+            return true
+        }
+        return false
     }
 
     private fun validateUsernameCharacters(username: String): Boolean {
