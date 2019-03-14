@@ -64,16 +64,12 @@ class ValidationUtility {
     }
 
     private fun validateFilesystemNameCharacters(filesystemName: String): Boolean {
-        val usernameRegex = "([a-zA-Z0-9!@#$%^&()_+=,.?<>]{0,50})"
+        val filesystemNameRegex = "([a-zA-Z0-9!@#$%^&()_+=,.?<>]{0,50})"
 
-        val compiledRegex = Pattern.compile(usernameRegex)
+        val compiledRegex = Pattern.compile(filesystemNameRegex)
         val matcher = compiledRegex.matcher(filesystemName)
         val hasValidCharacters = matcher.matches()
-
-        if (hasValidCharacters) {
-            return true
-        }
-        return false
+        return hasValidCharacters
     }
 
     private fun validateUsernameCharacters(username: String): Boolean {
@@ -82,11 +78,7 @@ class ValidationUtility {
         val compiledRegex = Pattern.compile(usernameRegex)
         val matcher = compiledRegex.matcher(username)
         val hasValidCharacters = matcher.matches()
-
-        if (hasValidCharacters) {
-            return true
-        }
-        return false
+        return hasValidCharacters
     }
 
     private fun validatePasswordCharacters(password: String): Boolean {
@@ -97,8 +89,8 @@ class ValidationUtility {
 
         pattern = Pattern.compile(passwordRegex)
         matcher = pattern.matcher(password)
-
-        return matcher.matches()
+        val hasValidCharacters = matcher.matches()
+        return hasValidCharacters
     }
 }
 
