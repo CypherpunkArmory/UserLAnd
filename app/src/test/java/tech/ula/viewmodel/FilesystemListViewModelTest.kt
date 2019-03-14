@@ -13,6 +13,7 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
+import tech.ula.R
 import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.Filesystem
@@ -38,6 +39,8 @@ class FilesystemListViewModelTest {
 
     private lateinit var filesystemsLiveData: MutableLiveData<List<Filesystem>>
 
+    private lateinit var exportStatusLiveData: MutableLiveData<FilesystemExportStatus>
+
     private val filesystemName = "fsname"
     private val filesystemType = "fstype"
     private val rootfsString = "rootfs.tar.gz"
@@ -49,6 +52,8 @@ class FilesystemListViewModelTest {
     fun setup() {
         filesystemsLiveData = MutableLiveData()
         whenever(mockFilesystemDao.getAllFilesystems()).thenReturn(filesystemsLiveData)
+
+        exportStatusLiveData = MutableLiveData()
 
         filesystemListViewModel = FilesystemListViewModel(mockFilesystemDao, mockSessionDao, mockFilesystemUtility)
     }
@@ -106,8 +111,9 @@ class FilesystemListViewModelTest {
             filesystemListViewModel.compressFilesystemAndExportToStorage(filesystem, filesDir, externalDir, this)
         }
 
+        verify(mockExportObserver).onChanged(ExportStarted)
         verifyBlocking(mockFilesystemUtility) { compressFilesystem(eq(filesystem), eq(expectedLocalBackupFile), anyOrNull()) }
-        verify(mockExportObserver).onChanged(ExportFailure("Exporting to local directory failed"))
+        verify(mockExportObserver).onChanged(ExportFailure(R.string.error_export_to_local_failed))
     }
 
     @Test
@@ -127,8 +133,9 @@ class FilesystemListViewModelTest {
             filesystemListViewModel.compressFilesystemAndExportToStorage(filesystem, filesDir, externalDir, this)
         }
 
+        verify(mockExportObserver).onChanged(ExportStarted)
         assertFalse(expectedLocalBackupFile.exists())
         verifyBlocking(mockFilesystemUtility) { compressFilesystem(eq(filesystem), eq(expectedLocalBackupFile), anyOrNull()) }
-        verify(mockExportObserver).onChanged(ExportFailure("Exporting to external directory failed"))
+        verify(mockExportObserver).onChanged(ExportFailure(R.string.error_export_to_external_failed))
     }
 }
