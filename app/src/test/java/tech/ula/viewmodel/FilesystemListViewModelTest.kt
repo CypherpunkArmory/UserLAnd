@@ -17,6 +17,7 @@ import tech.ula.R
 import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.Filesystem
+import tech.ula.model.entities.Session
 import tech.ula.utils.FilesystemUtility
 import java.io.File
 
@@ -137,5 +138,22 @@ class FilesystemListViewModelTest {
         assertFalse(expectedLocalBackupFile.exists())
         verifyBlocking(mockFilesystemUtility) { compressFilesystem(eq(filesystem), eq(expectedLocalBackupFile), anyOrNull()) }
         verify(mockExportObserver).onChanged(ExportFailure(R.string.error_export_to_external_failed))
+    }
+
+    @Test
+    fun `compressFilesystem posts ExportFailure attempting to export when there is an active session`() {
+        val activeSession = Session(id = -1, name = "active", filesystemId = -1, active = true)
+        val activeSessions = listOf(activeSession)
+
+        val filesystem = Filesystem(id = 0, name = filesystemName, distributionType = filesystemType)
+        val filesDir = tempFolder.newFolder("files")
+        val externalDir = tempFolder.newFolder("external")
+
+        filesystemListViewModel.getExportStatusLiveData().observeForever(mockExportObserver)
+        runBlocking {
+            filesystemListViewModel.startExport(filesystem, activeSessions, externalDir, filesDir)
+        }
+
+        verify(mockExportObserver).onChanged(ExportFailure(R.string.deactivate_sessions))
     }
 }
