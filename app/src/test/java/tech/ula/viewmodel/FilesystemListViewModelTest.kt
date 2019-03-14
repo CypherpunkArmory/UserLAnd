@@ -14,6 +14,7 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.daos.FilesystemDao
+import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.Filesystem
 import tech.ula.utils.FilesystemUtility
 import java.io.File
@@ -26,6 +27,8 @@ class FilesystemListViewModelTest {
     @get:Rule val tempFolder = TemporaryFolder()
 
     @Mock lateinit var mockFilesystemDao: FilesystemDao
+
+    @Mock lateinit var mockSessionDao: SessionDao
 
     @Mock lateinit var mockFilesystemUtility: FilesystemUtility
 
@@ -47,7 +50,7 @@ class FilesystemListViewModelTest {
         filesystemsLiveData = MutableLiveData()
         whenever(mockFilesystemDao.getAllFilesystems()).thenReturn(filesystemsLiveData)
 
-        filesystemListViewModel = FilesystemListViewModel(mockFilesystemDao, mockFilesystemUtility)
+        filesystemListViewModel = FilesystemListViewModel(mockFilesystemDao, mockSessionDao, mockFilesystemUtility)
     }
 
     @Test
