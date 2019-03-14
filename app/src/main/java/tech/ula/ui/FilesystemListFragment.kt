@@ -23,6 +23,8 @@ import tech.ula.utils.BusyboxExecutor
 import tech.ula.utils.DefaultPreferences
 import tech.ula.utils.FilesystemUtility
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
+import tech.ula.model.entities.Session
+import tech.ula.viewmodel.FilesystemListViewModel
 
 class FilesystemListFragment : Fragment() {
 
@@ -37,11 +39,14 @@ class FilesystemListFragment : Fragment() {
 
     private val externalStorageDir = Environment.getExternalStorageDirectory()
 
+    private lateinit var activeSessions: List<Session>
+
     private val filesystemListViewModel: FilesystemListViewModel by lazy {
         val filesystemDao = UlaDatabase.getInstance(activityContext).filesystemDao()
+        val sessionDao = UlaDatabase.getInstance(activityContext).sessionDao()
         val busyboxExecutor = BusyboxExecutor(activityContext.filesDir, externalStorageDir, DefaultPreferences(activityContext.defaultSharedPreferences))
         val filesystemUtility = FilesystemUtility(activityContext.filesDir.absolutePath, busyboxExecutor)
-        ViewModelProviders.of(this, FilesystemListViewmodelFactory(filesystemDao, filesystemUtility)).get(FilesystemListViewModel::class.java)
+        ViewModelProviders.of(this, FilesystemListViewmodelFactory(filesystemDao, sessionDao, filesystemUtility)).get(FilesystemListViewModel::class.java)
     }
 
     private val filesystemChangeObserver = Observer<List<Filesystem>> {
@@ -74,6 +79,10 @@ class FilesystemListFragment : Fragment() {
         }
     }
 
+    private val activeSessionObserver = Observer<List<Session>> {
+        it?.let { sessions -> activeSessions = sessions }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
@@ -99,6 +108,7 @@ class FilesystemListFragment : Fragment() {
         activityContext = activity!! as MainActivity
         filesystemListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
         filesystemListViewModel.getExportStatusLiveData().observe(viewLifecycleOwner, filesystemExportStatusObserver)
+        filesystemListViewModel.getAllActiveSessions().observe(viewLifecycleOwner, activeSessionObserver)
         registerForContextMenu(list_filesystems)
     }
 
