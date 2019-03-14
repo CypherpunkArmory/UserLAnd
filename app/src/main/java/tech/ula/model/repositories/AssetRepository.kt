@@ -13,37 +13,12 @@ import java.io.InputStreamReader
 import java.lang.IllegalStateException
 import kotlin.Exception
 
-data class AssetMetadata(val repoName: String, val isRootFsFile: Boolean) {
-    override fun toString(): String {
-        val downloadName = if (isRootFsFile) "rootfs" else "assets"
-        return "$repoName-$downloadName.tar.gz"
-    }
-}
-
-data class DownloadRequirements(
-    var distributionType: String = "",
-    var distributionAssetsRequired: Boolean = false,
-    var distributionAssetsEndpoint: String = "",
-    var supportAssetsRequired: Boolean = false,
-    var supportAssetsEndpoint: String = "",
-    var rootFsRequired: Boolean = false,
-    var rootFsEndpoint: String = ""
-)
-
-sealed class RepositoryTypes
-object DistributionRepository : RepositoryTypes()
-object SupportRepository : RepositoryTypes()
-
-sealed class RepositoryStatus
-
 class AssetRepository(
     private val applicationFilesDirPath: String,
     private val assetPreferences: AssetPreferences,
     private val githubApiClient: GithubApiClient = GithubApiClient(),
     private val connectionUtility: ConnectionUtility = ConnectionUtility()
 ) {
-
-    private val repositoryStatus = MutableLiveData<RepositoryStatus>()
 
     suspend fun lastDownloadedVersionIsUpToDate(repo: String): Boolean {
         val latestCached = assetPreferences.getLatestDownloadVersion(repo)
@@ -57,36 +32,31 @@ class AssetRepository(
         return latestRemote > latestCached
     }
 
-    @Throws(IllegalStateException::class)
-    suspend fun generateDownloadRequirements(filesystem: Filesystem, assetLists: HashMap<String, List<Asset>>): DownloadRequirements {
-        if (assetLists.size > 2) {
-            throw IllegalStateException(
-                    "Download generation attempted for more lists than support and distribution."
-            )
-        }
-        val downloadRequirements = DownloadRequirements()
+    suspend fun generateDownloadRequirements(filesystem: Filesystem, assetLists: HashMap<String, List<Asset>>): HashMap<String, String> {
+        val downloadRequirements = hashMapOf<String, String>()
         for (entry in assetLists) {
             val (repo, list) = entry
             if (assetsArePresentInSupportDirectories(list) && lastDownloadedVersionIsUpToDate(repo))
                 continue
-            when {
-                repo == "support" -> {
-                    downloadRequirements.supportAssetsRequired = true
-                    downloadRequirements.supportAssetsEndpoint = githubApiClient.getAssetEndpoint("assets", repo)
+            when(repo) {
+                "support" -> {
+                    downloadRequirements[repo] = githubApiClient.getAssetEndpoint("assets", "support")
                 }
-                list.any { it.isLarge } -> {
-                    if (!lastDownloadedFilesystemVersionIsUpToDate(repo)) {
-                        downloadRequirements.rootFsRequired = true
-                        downloadRequirements.rootFsEndpoint = githubApiClient.getAssetEndpoint("rootfs", repo)
-                    }
-                }
-                repo == filesystem.distributionType -> {
-                    downloadRequirements.distributionAssetsRequired = true
-                    downloadRequirements.distributionAssetsEndpoint = githubApiClient.getAssetEndpoint("assets", repo)
+                filesystem.distributionType -> {
+                    downloadRequirements[repo] = githubApiClient.getAssetEndpoint("assets", filesystem.distributionType)
                 }
             }
         }
+        if (rootFsDownloadRequired(filesystem)) {
+            downloadRequirements["rootfs"] = githubApiClient.getAssetEndpoint("rootfs", filesystem.distributionType)
+        }
         return downloadRequirements
+    }
+
+    suspend fun rootFsDownloadRequired(filesystem: Filesystem): Boolean {
+        // TODO Filesystem.iscreatedfrombackup
+        val rootFsFile = File("$applicationFilesDirPath/${filesystem.distributionType}/rootfs.tar.gz")
+        return !rootFsFile.exists() && !lastDownloadedFilesystemVersionIsUpToDate(filesystem.distributionType)
     }
 
     fun getDistributionAssetsForExistingFilesystem(filesystem: Filesystem): List<Asset> {

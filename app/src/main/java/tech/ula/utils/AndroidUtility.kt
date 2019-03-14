@@ -92,17 +92,30 @@ class AssetPreferences(private val prefs: SharedPreferences) {
 
 
 
-    fun setLatestDownloadVersion(type: AssetMetadata, version: String) {
+    private val versionString = "version"
+    private val rootfsString = "rootfs"
+
+    private val lowestVersion = "v0.0.0"
+    fun getLatestDownloadVersion(repo: String): String {
+        return prefs.getString("$repo-$versionString", lowestVersion) ?: lowestVersion
+    }
+
+    fun getLatestDownloadFilesystemVersion(repo: String): String {
+        return prefs.getString("$repo-$rootfsString-$versionString", lowestVersion) ?: lowestVersion
+    }
+
+    fun setLatestDownloadVersion(repo: String, version: String) {
         with (prefs.edit()) {
-            putString(type.toString(), version)
+            putString("$repo-$versionString", version)
             apply()
         }
     }
 
-    // TODO update this
-    fun getLatestDownloadVersion(repo: String): String {
-        return prefs.getString("$repo-version", "v0.0.0") ?: "v0.0.0"
-
+    fun setLatestDownloadFilesystemVersion(repo: String, version: String) {
+        with (prefs.edit()) {
+            putString("$repo-$rootfsString-$versionString", version)
+            apply()
+        }
     }
 
     private val downloadsAreInProgressKey = "downloadsAreInProgress"

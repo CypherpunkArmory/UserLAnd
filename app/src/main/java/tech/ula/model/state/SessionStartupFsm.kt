@@ -150,21 +150,29 @@ class SessionStartupFsm(
         // versions are out of sync
         // assets are missing
         // caveat: rootfs shouldn't be downloaded if extracted
-        val downloadRequirements = assetRepository.generateDownloadRequirements(filesystem, assetLists)
 
-
-        if (downloadRequirements.rootFsRequired) {
-            // If the rootfs has been extracted, don't download it again right now
-            downloadRequirements.rootFsRequired = !filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")
-        }
-        if (!downloadRequirements.distributionAssetsRequired
-                && !downloadRequirements.supportAssetsRequired
-                && !downloadRequirements.rootFsRequired) {
-            state.postValue(NoDownloadsRequired)
+        // Asset lists should always only include distribution and "support"
+        if (assetLists.size > 2) {
+            state.postValue(UnexpectedGenerationSize(assetLists.size, assetLists.keys))
             return
         }
 
-        state.postValue(DownloadsRequired(downloadRequirements, downloadRequirements.rootFsRequired))
+        if (!assetLists.containsKey(filesystem.distributionType)) {
+            state.postValue(GenerationWithWrongRequirements(filesystem.distributionType, assetLists.keys))
+            return
+
+        }
+
+        val downloadRequirements = assetRepository.generateDownloadRequirements(filesystem, assetLists)
+        if (downloadRequirements.contains("rootfs") && filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")) {
+            downloadRequirements.remove("rootfs")
+        }
+
+        if (downloadRequirements.isEmpty()) {
+            state.postValue(NoDownloadsRequired)
+            return
+        }
+        state.postValue(DownloadsRequired(downloadRequirements, downloadRequirements.contains("rootfs")))
     }
 
     private fun handleDownloadAssets(assetsToDownload: List<Asset>) {
@@ -289,8 +297,10 @@ object AssetListsRetrievalFailed : AssetRetrievalState()
 // Download requirements generation state
 sealed class DownloadRequirementsGenerationState : SessionStartupState()
 object GeneratingDownloadRequirements : DownloadRequirementsGenerationState()
-data class DownloadsRequired(val downloadsRequired: DownloadRequirements, val largeDownloadRequired: Boolean) : DownloadRequirementsGenerationState()
+data class DownloadsRequired(val downloadsRequired: HashMap<String, String>, val largeDownloadRequired: Boolean) : DownloadRequirementsGenerationState()
 object NoDownloadsRequired : DownloadRequirementsGenerationState()
+data class UnexpectedGenerationSize(val size: Int, val listNames: Set<String>) : DownloadRequirementsGenerationState()
+data class GenerationWithWrongRequirements(val expectedDistribution: String, val listNames: Set<String>) : DownloadRequirementsGenerationState()
 
 // Downloading asset states
 sealed class DownloadingAssetsState : SessionStartupState()
