@@ -52,7 +52,6 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
         return filesystems
     }
 
-
     fun getAllActiveSessions(): LiveData<List<Session>> {
         return activeSessions
     }
