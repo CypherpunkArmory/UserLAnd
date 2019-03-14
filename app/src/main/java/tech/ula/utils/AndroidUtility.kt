@@ -20,7 +20,6 @@ import org.acra.ACRA
 import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
-import tech.ula.model.repositories.AssetMetadata
 import java.io.File
 import java.io.IOException
 import java.io.InputStream

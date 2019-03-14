@@ -9,9 +9,7 @@ import kotlinx.coroutines.withContext
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.model.repositories.AssetMetadata
 import tech.ula.model.repositories.AssetRepository
-import tech.ula.model.repositories.DownloadRequirements
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 
@@ -100,7 +98,7 @@ class SessionStartupFsm(
             is SessionSelected -> { handleSessionSelected(event.session) }
             is RetrieveAssetLists -> { handleRetrieveAssetLists(event.filesystem) }
             is GenerateDownloads -> { handleGenerateDownloads(event.filesystem, event.assetLists) }
-            is DownloadAssets -> { handleDownloadAssets(event.assetsToDownload) }
+            is DownloadAssets -> { handleDownloadAssets(event.downloadRequirements) }
             is AssetDownloadComplete -> { handleAssetsDownloadComplete(event.downloadAssetId) }
             is SyncDownloadState -> { handleSyncDownloadState() }
             is CopyDownloadsToLocalStorage -> { handleCopyDownloadsToLocalDirectories() }
@@ -153,14 +151,13 @@ class SessionStartupFsm(
 
         // Asset lists should always only include distribution and "support"
         if (assetLists.size > 2) {
-            state.postValue(UnexpectedGenerationSize(assetLists.size, assetLists.keys))
+            state.postValue(UnexpectedDownloadGenerationSize(assetLists.size, assetLists.keys))
             return
         }
 
         if (!assetLists.containsKey(filesystem.distributionType)) {
-            state.postValue(GenerationWithWrongRequirements(filesystem.distributionType, assetLists.keys))
+            state.postValue(UnexpectedDownloadGenerationTypes(filesystem.distributionType, assetLists.keys))
             return
-
         }
 
         val downloadRequirements = assetRepository.generateDownloadRequirements(filesystem, assetLists)
@@ -175,11 +172,11 @@ class SessionStartupFsm(
         state.postValue(DownloadsRequired(downloadRequirements, downloadRequirements.contains("rootfs")))
     }
 
-    private fun handleDownloadAssets(assetsToDownload: List<Asset>) {
+    private fun handleDownloadAssets(downloadRequirements: HashMap<String, String>) {
         // If the state isn't updated first, AssetDownloadComplete events will be submitted before
         // the transition is acceptable.
-        state.postValue(DownloadingAssets(0, assetsToDownload.size))
-        downloadUtility.downloadRequirements(assetsToDownload)
+        state.postValue(DownloadingAssets(0, downloadRequirements.size))
+        downloadUtility.downloadRequirements(downloadRequirements)
     }
 
     private fun handleAssetsDownloadComplete(downloadId: Long) {
@@ -299,8 +296,8 @@ sealed class DownloadRequirementsGenerationState : SessionStartupState()
 object GeneratingDownloadRequirements : DownloadRequirementsGenerationState()
 data class DownloadsRequired(val downloadsRequired: HashMap<String, String>, val largeDownloadRequired: Boolean) : DownloadRequirementsGenerationState()
 object NoDownloadsRequired : DownloadRequirementsGenerationState()
-data class UnexpectedGenerationSize(val size: Int, val listNames: Set<String>) : DownloadRequirementsGenerationState()
-data class GenerationWithWrongRequirements(val expectedDistribution: String, val listNames: Set<String>) : DownloadRequirementsGenerationState()
+data class UnexpectedDownloadGenerationSize(val size: Int, val listNames: Set<String>) : DownloadRequirementsGenerationState()
+data class UnexpectedDownloadGenerationTypes(val expectedDistribution: String, val listNames: Set<String>) : DownloadRequirementsGenerationState()
 
 // Downloading asset states
 sealed class DownloadingAssetsState : SessionStartupState()
@@ -330,7 +327,7 @@ sealed class SessionStartupEvent
 data class SessionSelected(val session: Session) : SessionStartupEvent()
 data class RetrieveAssetLists(val filesystem: Filesystem) : SessionStartupEvent()
 data class GenerateDownloads(val filesystem: Filesystem, val assetLists: HashMap<String, List<Asset>>) : SessionStartupEvent()
-data class DownloadAssets(val assetsToDownload: List<Asset>) : SessionStartupEvent()
+data class DownloadAssets(val downloadRequirements: HashMap<String, String>) : SessionStartupEvent()
 data class AssetDownloadComplete(val downloadAssetId: Long) : SessionStartupEvent()
 object SyncDownloadState : SessionStartupEvent()
 object CopyDownloadsToLocalStorage : SessionStartupEvent()

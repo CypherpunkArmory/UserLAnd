@@ -407,10 +407,10 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             }
             is LargeDownloadRequired -> {
                 if (wifiIsEnabled()) {
-                    viewModel.startAssetDownloads(state.requiredDownloads)
+                    viewModel.startAssetDownloads(state.downloadRequirements)
                     return
                 }
-                displayNetworkChoicesDialog(state.requiredDownloads)
+                displayNetworkChoicesDialog(state.downloadRequirements)
             }
             is ActiveSessionsMustBeDeactivated -> {
                 displayGenericErrorDialog(this, R.string.general_error_title, R.string.deactivate_sessions)
@@ -654,7 +654,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         return false
     }
 
-    private fun displayNetworkChoicesDialog(downloadsToContinue: List<Asset>) {
+    private fun displayNetworkChoicesDialog(downloadsToContinue: HashMap<String, String>) {
         val builder = AlertDialog.Builder(this)
         builder.setMessage(R.string.alert_wifi_disabled_message)
                 .setTitle(R.string.alert_wifi_disabled_title)

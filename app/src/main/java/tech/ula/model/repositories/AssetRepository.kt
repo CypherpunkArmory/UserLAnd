@@ -29,7 +29,7 @@ class AssetRepository(
     suspend fun lastDownloadedFilesystemVersionIsUpToDate(repo: String): Boolean {
         val latestCached = assetPreferences.getLatestDownloadFilesystemVersion(repo)
         val latestRemote = githubApiClient.getLatestReleaseVersion(repo)
-        return latestRemote > latestCached
+        return latestCached > latestRemote
     }
 
     suspend fun generateDownloadRequirements(filesystem: Filesystem, assetLists: HashMap<String, List<Asset>>): HashMap<String, String> {
@@ -56,7 +56,7 @@ class AssetRepository(
     suspend fun rootFsDownloadRequired(filesystem: Filesystem): Boolean {
         // TODO Filesystem.iscreatedfrombackup
         val rootFsFile = File("$applicationFilesDirPath/${filesystem.distributionType}/rootfs.tar.gz")
-        return !rootFsFile.exists() && !lastDownloadedFilesystemVersionIsUpToDate(filesystem.distributionType)
+        return !rootFsFile.exists() || !lastDownloadedFilesystemVersionIsUpToDate(filesystem.distributionType)
     }
 
     fun getDistributionAssetsForExistingFilesystem(filesystem: Filesystem): List<Asset> {

@@ -148,8 +148,8 @@ class MainActivityViewModel(
     }
 
     // Exposed so that downloads can be continued from activity
-    fun startAssetDownloads(requiredDownloads: List<Asset>) {
-        submitSessionStartupEvent(DownloadAssets(requiredDownloads))
+    fun startAssetDownloads(downloadRequirements: HashMap<String, String>) {
+        submitSessionStartupEvent(DownloadAssets(downloadRequirements))
     }
 
     suspend fun handleClearSupportFiles(assetFileClearer: AssetFileClearer) {
@@ -278,11 +278,17 @@ class MainActivityViewModel(
     private fun handleDownloadRequirementsGenerationState(newState: DownloadRequirementsGenerationState) {
         return when (newState) {
             is GeneratingDownloadRequirements -> state.postValue(CheckingForAssetsUpdates)
+            is UnexpectedDownloadGenerationSize -> {
+                // TODO post illegal state
+            }
+            is UnexpectedDownloadGenerationTypes -> {
+                // TODO post illegal state
+            }
             is DownloadsRequired -> {
                 if (newState.largeDownloadRequired) {
-                    state.postValue(LargeDownloadRequired(newState.requiredDownloads))
+                    state.postValue(LargeDownloadRequired(newState.downloadsRequired))
                 } else {
-                    startAssetDownloads(newState.requiredDownloads)
+                    startAssetDownloads(newState.downloadsRequired)
                 }
             }
             is NoDownloadsRequired -> { doTransitionIfRequirementsAreSelected {
@@ -409,7 +415,7 @@ object FailedToClearSupportFiles : IllegalState()
 sealed class UserInputRequiredState : State()
 object FilesystemCredentialsRequired : UserInputRequiredState()
 object AppServiceTypePreferenceRequired : UserInputRequiredState()
-data class LargeDownloadRequired(val requiredDownloads: List<Asset>) : UserInputRequiredState()
+data class LargeDownloadRequired(val downloadRequirements: HashMap<String, String>) : UserInputRequiredState()
 object ActiveSessionsMustBeDeactivated : UserInputRequiredState()
 
 sealed class ProgressBarUpdateState : State()

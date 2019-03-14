@@ -47,11 +47,20 @@ class DownloadUtility(
         return CompletedDownloadsUpdate(completedDownloadIds.size, enqueuedDownloadIds.size)
     }
 
-    fun downloadRequirements(assetList: List<Asset>) {
+    fun downloadRequirements(downloadRequirements: HashMap<String, String>) {
         clearPreviousDownloadsFromDownloadsDirectory()
         assetPreferences.clearEnqueuedDownloadsCache()
+        enqueuedDownloadIds.clear()
+        completedDownloadIds.clear()
 
-        enqueuedDownloadIds.addAll(assetList.map { download(it) })
+        enqueuedDownloadIds.addAll(downloadRequirements.map {
+            val (name, url) = it
+            val destination = "$userlandDownloadPrefix$name"
+            val request = downloadManagerWrapper.generateDownloadRequest(url, destination)
+//            deletePreviousDownloadFromLocalDirectory(asset)
+            downloadManagerWrapper.enqueue(request)
+        })
+//        enqueuedDownloadIds.addAll(assetList.map { download(it) })
         assetPreferences.setDownloadsAreInProgress(inProgress = true)
         assetPreferences.setEnqueuedDownloads(enqueuedDownloadIds)
     }
@@ -129,7 +138,7 @@ class DownloadUtility(
         if (!titleName.containsUserland()) return
         // Title should be asset.concatenatedName
         val currentTimeSeconds = timeUtility.getCurrentTimeSeconds()
-        assetPreferences.setLastUpdatedTimestampForAssetUsingConcatenatedName(titleName, currentTimeSeconds)
+//        assetPreferences.setLastUpdatedTimestampForAssetUsingConcatenatedName(titleName, currentTimeSeconds) TODO remove
     }
 
     @Throws(Exception::class)
