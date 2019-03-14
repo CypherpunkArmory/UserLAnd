@@ -20,6 +20,7 @@ import org.acra.ACRA
 import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
+import tech.ula.model.repositories.AssetMetadata
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -89,15 +90,19 @@ class AssetPreferences(private val prefs: SharedPreferences) {
         return "timestamp-" + this
     }
 
-    fun getLastUpdatedTimestampForAsset(asset: Asset): Long {
-        return prefs.getLong(asset.concatenatedName.addTimestampPrefix(), -1)
-    }
 
-    fun setLastUpdatedTimestampForAssetUsingConcatenatedName(assetConcatenatedName: String, currentTimeSeconds: Long) {
-        with(prefs.edit()) {
-            putLong(assetConcatenatedName.addTimestampPrefix(), currentTimeSeconds)
+
+    fun setLatestDownloadVersion(type: AssetMetadata, version: String) {
+        with (prefs.edit()) {
+            putString(type.toString(), version)
             apply()
         }
+    }
+
+    // TODO update this
+    fun getLatestDownloadVersion(repo: String): String {
+        return prefs.getString("$repo-version", "v0.0.0") ?: "v0.0.0"
+
     }
 
     private val downloadsAreInProgressKey = "downloadsAreInProgress"

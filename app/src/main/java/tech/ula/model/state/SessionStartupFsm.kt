@@ -9,7 +9,9 @@ import kotlinx.coroutines.withContext
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
+import tech.ula.model.repositories.AssetMetadata
 import tech.ula.model.repositories.AssetRepository
+import tech.ula.model.repositories.DownloadRequirements
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 
@@ -134,7 +136,7 @@ class SessionStartupFsm(
             assetRepository.getAllAssetLists(filesystem.distributionType)
         }
 
-        if (assetLists.any { it.isEmpty() }) {
+        if (assetLists.values.any { it.isEmpty() }) {
             state.postValue(AssetListsRetrievalFailed)
             return
         }
@@ -142,30 +144,27 @@ class SessionStartupFsm(
         state.postValue(AssetListsRetrievalSucceeded(assetLists))
     }
 
-    private fun handleGenerateDownloads(filesystem: Filesystem, assetLists: List<List<Asset>>) {
+    private suspend fun handleGenerateDownloads(filesystem: Filesystem, assetLists: HashMap<String, List<Asset>>) {
         state.postValue(GeneratingDownloadRequirements)
 
-        val requiredDownloads = assetLists.map { assetList ->
-            assetList.filter { asset ->
-                val needsUpdate = assetRepository.doesAssetNeedToUpdated(asset)
+        // versions are out of sync
+        // assets are missing
+        // caveat: rootfs shouldn't be downloaded if extracted
+        val downloadRequirements = assetRepository.generateDownloadRequirements(filesystem, assetLists)
 
-                // Rootfs tar files can be left of the download generation if the filesystem is
-                // being created from backup or has already been extracted.
-                if (asset.isLarge && needsUpdate && (filesystem.isCreatedFromBackup ||
-                        filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))) {
-                    return@filter false
-                }
-                needsUpdate
-            }
-        }.flatten()
 
-        if (requiredDownloads.isEmpty()) {
+        if (downloadRequirements.rootFsRequired) {
+            // If the rootfs has been extracted, don't download it again right now
+            downloadRequirements.rootFsRequired = !filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")
+        }
+        if (!downloadRequirements.distributionAssetsRequired
+                && !downloadRequirements.supportAssetsRequired
+                && !downloadRequirements.rootFsRequired) {
             state.postValue(NoDownloadsRequired)
             return
         }
 
-        val largeDownloadRequired = requiredDownloads.any { it.isLarge }
-        state.postValue(DownloadsRequired(requiredDownloads, largeDownloadRequired))
+        state.postValue(DownloadsRequired(downloadRequirements, downloadRequirements.rootFsRequired))
     }
 
     private fun handleDownloadAssets(assetsToDownload: List<Asset>) {
@@ -284,13 +283,13 @@ data class SessionIsReadyForPreparation(val session: Session, val filesystem: Fi
 // Asset retrieval states
 sealed class AssetRetrievalState : SessionStartupState()
 object RetrievingAssetLists : AssetRetrievalState()
-data class AssetListsRetrievalSucceeded(val assetLists: List<List<Asset>>) : AssetRetrievalState()
+data class AssetListsRetrievalSucceeded(val assetLists: HashMap<String, List<Asset>>) : AssetRetrievalState()
 object AssetListsRetrievalFailed : AssetRetrievalState()
 
 // Download requirements generation state
 sealed class DownloadRequirementsGenerationState : SessionStartupState()
 object GeneratingDownloadRequirements : DownloadRequirementsGenerationState()
-data class DownloadsRequired(val requiredDownloads: List<Asset>, val largeDownloadRequired: Boolean) : DownloadRequirementsGenerationState()
+data class DownloadsRequired(val downloadsRequired: DownloadRequirements, val largeDownloadRequired: Boolean) : DownloadRequirementsGenerationState()
 object NoDownloadsRequired : DownloadRequirementsGenerationState()
 
 // Downloading asset states
@@ -320,7 +319,7 @@ object ExtractionFailed : ExtractionState()
 sealed class SessionStartupEvent
 data class SessionSelected(val session: Session) : SessionStartupEvent()
 data class RetrieveAssetLists(val filesystem: Filesystem) : SessionStartupEvent()
-data class GenerateDownloads(val filesystem: Filesystem, val assetLists: List<List<Asset>>) : SessionStartupEvent()
+data class GenerateDownloads(val filesystem: Filesystem, val assetLists: HashMap<String, List<Asset>>) : SessionStartupEvent()
 data class DownloadAssets(val assetsToDownload: List<Asset>) : SessionStartupEvent()
 data class AssetDownloadComplete(val downloadAssetId: Long) : SessionStartupEvent()
 object SyncDownloadState : SessionStartupEvent()
