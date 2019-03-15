@@ -46,7 +46,6 @@ import kotlinx.coroutines.launch
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.find
 import tech.ula.model.entities.App
-import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.UlaDatabase
@@ -62,6 +61,7 @@ import org.acra.config.HttpSenderConfigurationBuilder
 import org.acra.data.StringFormat
 import org.acra.sender.HttpSender
 import tech.ula.ui.FilesystemListFragment
+import tech.ula.model.repositories.DownloadMetadata
 import kotlin.IllegalStateException
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection, FilesystemListFragment.ExportFilesystem {
@@ -654,7 +654,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         return false
     }
 
-    private fun displayNetworkChoicesDialog(downloadsToContinue: HashMap<String, String>) {
+    private fun displayNetworkChoicesDialog(downloadsToContinue: List<DownloadMetadata>) {
         val builder = AlertDialog.Builder(this)
         builder.setMessage(R.string.alert_wifi_disabled_message)
                 .setTitle(R.string.alert_wifi_disabled_title)

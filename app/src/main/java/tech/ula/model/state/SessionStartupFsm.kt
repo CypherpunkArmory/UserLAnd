@@ -10,6 +10,7 @@ import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
+import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 
@@ -145,10 +146,6 @@ class SessionStartupFsm(
     private suspend fun handleGenerateDownloads(filesystem: Filesystem, assetLists: HashMap<String, List<Asset>>) {
         state.postValue(GeneratingDownloadRequirements)
 
-        // versions are out of sync
-        // assets are missing
-        // caveat: rootfs shouldn't be downloaded if extracted
-
         // Asset lists should always only include distribution and "support"
         if (assetLists.size > 2) {
             state.postValue(UnexpectedDownloadGenerationSize(assetLists.size, assetLists.keys))
@@ -160,19 +157,21 @@ class SessionStartupFsm(
             return
         }
 
-        val downloadRequirements = assetRepository.generateDownloadRequirements(filesystem, assetLists)
-        if (downloadRequirements.contains("rootfs") && filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")) {
-            downloadRequirements.remove("rootfs")
-        }
+        val filesystemHasAlreadyBeenExtracted = filesystemUtility
+                .hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")
+        val downloadRequirements = assetRepository
+                .generateDownloadRequirements(filesystem, assetLists, filesystemHasAlreadyBeenExtracted)
 
         if (downloadRequirements.isEmpty()) {
             state.postValue(NoDownloadsRequired)
             return
         }
-        state.postValue(DownloadsRequired(downloadRequirements, downloadRequirements.contains("rootfs")))
+
+        val largeDownloadRequired = downloadRequirements.any { it.filename == "rootfs" }
+        state.postValue(DownloadsRequired(downloadRequirements, largeDownloadRequired))
     }
 
-    private fun handleDownloadAssets(downloadRequirements: HashMap<String, String>) {
+    private fun handleDownloadAssets(downloadRequirements: List<DownloadMetadata>) {
         // If the state isn't updated first, AssetDownloadComplete events will be submitted before
         // the transition is acceptable.
         state.postValue(DownloadingAssets(0, downloadRequirements.size))
@@ -217,9 +216,7 @@ class SessionStartupFsm(
     private suspend fun handleCopyDownloadsToLocalDirectories() = withContext(Dispatchers.IO) {
         state.postValue(CopyingFilesToLocalDirectories)
         try {
-            val filesystemDistributionType = downloadUtility.findDownloadedDistributionType()
-            downloadUtility.moveAssetsToCorrectLocalDirectory()
-            assetRepository.setLastDistributionUpdate(filesystemDistributionType)
+            downloadUtility.moveAssetsToStagingDirectory()
         } catch (err: Exception) {
             state.postValue(LocalDirectoryCopyFailed)
             return@withContext
@@ -294,7 +291,7 @@ object AssetListsRetrievalFailed : AssetRetrievalState()
 // Download requirements generation state
 sealed class DownloadRequirementsGenerationState : SessionStartupState()
 object GeneratingDownloadRequirements : DownloadRequirementsGenerationState()
-data class DownloadsRequired(val downloadsRequired: HashMap<String, String>, val largeDownloadRequired: Boolean) : DownloadRequirementsGenerationState()
+data class DownloadsRequired(val downloadsRequired: List<DownloadMetadata>, val largeDownloadRequired: Boolean) : DownloadRequirementsGenerationState()
 object NoDownloadsRequired : DownloadRequirementsGenerationState()
 data class UnexpectedDownloadGenerationSize(val size: Int, val listNames: Set<String>) : DownloadRequirementsGenerationState()
 data class UnexpectedDownloadGenerationTypes(val expectedDistribution: String, val listNames: Set<String>) : DownloadRequirementsGenerationState()
@@ -327,7 +324,7 @@ sealed class SessionStartupEvent
 data class SessionSelected(val session: Session) : SessionStartupEvent()
 data class RetrieveAssetLists(val filesystem: Filesystem) : SessionStartupEvent()
 data class GenerateDownloads(val filesystem: Filesystem, val assetLists: HashMap<String, List<Asset>>) : SessionStartupEvent()
-data class DownloadAssets(val downloadRequirements: HashMap<String, String>) : SessionStartupEvent()
+data class DownloadAssets(val downloadRequirements: List<DownloadMetadata>) : SessionStartupEvent()
 data class AssetDownloadComplete(val downloadAssetId: Long) : SessionStartupEvent()
 object SyncDownloadState : SessionStartupEvent()
 object CopyDownloadsToLocalStorage : SessionStartupEvent()

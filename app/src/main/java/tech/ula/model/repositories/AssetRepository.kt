@@ -13,6 +13,8 @@ import java.io.InputStreamReader
 import java.lang.IllegalStateException
 import kotlin.Exception
 
+data class DownloadMetadata(val filename: String, val assetType: String, val versionCode: String, val url: String)
+
 class AssetRepository(
     private val applicationFilesDirPath: String,
     private val assetPreferences: AssetPreferences,
@@ -32,23 +34,29 @@ class AssetRepository(
         return latestCached > latestRemote
     }
 
-    suspend fun generateDownloadRequirements(filesystem: Filesystem, assetLists: HashMap<String, List<Asset>>): HashMap<String, String> {
-        val downloadRequirements = hashMapOf<String, String>()
+    suspend fun generateDownloadRequirements(
+            filesystem: Filesystem,
+            assetLists: HashMap<String, List<Asset>>,
+            filesystemHasAlreadyBeenExtracted: Boolean
+    ): List<DownloadMetadata> {
+        val downloadRequirements = mutableListOf<DownloadMetadata>()
         for (entry in assetLists) {
             val (repo, list) = entry
             if (assetsArePresentInSupportDirectories(list) && lastDownloadedVersionIsUpToDate(repo))
                 continue
-            when(repo) {
-                "support" -> {
-                    downloadRequirements[repo] = githubApiClient.getAssetEndpoint("assets", "support")
-                }
-                filesystem.distributionType -> {
-                    downloadRequirements[repo] = githubApiClient.getAssetEndpoint("assets", filesystem.distributionType)
-                }
-            }
+            val filename = "assets"
+            val versionCode = githubApiClient.getLatestReleaseVersion(repo)
+            val url = githubApiClient.getAssetEndpoint(filename, repo)
+            val downloadMetadata = DownloadMetadata(filename, versionCode, url, repo)
+            downloadRequirements.add(downloadMetadata)
         }
-        if (rootFsDownloadRequired(filesystem)) {
-            downloadRequirements["rootfs"] = githubApiClient.getAssetEndpoint("rootfs", filesystem.distributionType)
+        if (!filesystemHasAlreadyBeenExtracted && rootFsDownloadRequired(filesystem)) {
+            val repo = filesystem.distributionType
+            val filename = "rootfs"
+            val versionCode = githubApiClient.getLatestReleaseVersion(repo)
+            val url = githubApiClient.getAssetEndpoint(filename, repo)
+            val downloadMetadata = DownloadMetadata(filename, versionCode, url, repo)
+            downloadRequirements.add(downloadMetadata)
         }
         return downloadRequirements
     }

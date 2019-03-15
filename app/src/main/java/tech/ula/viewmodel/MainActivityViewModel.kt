@@ -11,6 +11,7 @@ import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
+import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.AppServiceTypePreference
 import tech.ula.utils.AssetFileClearer
@@ -148,7 +149,7 @@ class MainActivityViewModel(
     }
 
     // Exposed so that downloads can be continued from activity
-    fun startAssetDownloads(downloadRequirements: HashMap<String, String>) {
+    fun startAssetDownloads(downloadRequirements: List<DownloadMetadata>) {
         submitSessionStartupEvent(DownloadAssets(downloadRequirements))
     }
 
@@ -415,7 +416,7 @@ object FailedToClearSupportFiles : IllegalState()
 sealed class UserInputRequiredState : State()
 object FilesystemCredentialsRequired : UserInputRequiredState()
 object AppServiceTypePreferenceRequired : UserInputRequiredState()
-data class LargeDownloadRequired(val downloadRequirements: HashMap<String, String>) : UserInputRequiredState()
+data class LargeDownloadRequired(val downloadRequirements: List<DownloadMetadata>) : UserInputRequiredState()
 object ActiveSessionsMustBeDeactivated : UserInputRequiredState()
 
 sealed class ProgressBarUpdateState : State()

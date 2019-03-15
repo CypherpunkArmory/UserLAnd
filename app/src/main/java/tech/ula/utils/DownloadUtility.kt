@@ -1,6 +1,7 @@
 package tech.ula.utils
 
 import tech.ula.model.entities.Asset
+import tech.ula.model.repositories.DownloadMetadata
 import java.io.File
 
 sealed class AssetDownloadState
@@ -47,20 +48,17 @@ class DownloadUtility(
         return CompletedDownloadsUpdate(completedDownloadIds.size, enqueuedDownloadIds.size)
     }
 
-    fun downloadRequirements(downloadRequirements: HashMap<String, String>) {
+    fun downloadRequirements(downloadRequirements: List<DownloadMetadata>) {
         clearPreviousDownloadsFromDownloadsDirectory()
         assetPreferences.clearEnqueuedDownloadsCache()
         enqueuedDownloadIds.clear()
         completedDownloadIds.clear()
 
-        enqueuedDownloadIds.addAll(downloadRequirements.map {
-            val (name, url) = it
-            val destination = "$userlandDownloadPrefix$name"
-            val request = downloadManagerWrapper.generateDownloadRequest(url, destination)
-//            deletePreviousDownloadFromLocalDirectory(asset)
+        enqueuedDownloadIds.addAll(downloadRequirements.map { metadata ->
+            val destination = "$userlandDownloadPrefix${metadata.assetType}-${metadata.filename}-${metadata.versionCode}"
+            val request = downloadManagerWrapper.generateDownloadRequest(metadata.url, destination)
             downloadManagerWrapper.enqueue(request)
         })
-//        enqueuedDownloadIds.addAll(assetList.map { download(it) })
         assetPreferences.setDownloadsAreInProgress(inProgress = true)
         assetPreferences.setEnqueuedDownloads(enqueuedDownloadIds)
     }
@@ -74,7 +72,7 @@ class DownloadUtility(
         }
 
         completedDownloadIds.add(downloadId)
-        setTimestampForDownloadedFile(downloadId)
+        setMostRecentlyDownloadedVersion(downloadId)
         if (completedDownloadIds.size != enqueuedDownloadIds.size) {
             return CompletedDownloadsUpdate(completedDownloadIds.size, enqueuedDownloadIds.size)
         }
@@ -104,17 +102,6 @@ class DownloadUtility(
         return ""
     }
 
-    private fun download(asset: Asset): Long {
-        val branch = getBranchToDownloadAssetsFrom(asset.distributionType)
-        val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-" +
-                "${asset.distributionType}/raw/$branch/assets/" +
-                "${asset.architectureType}/${asset.name}"
-        val destination = asset.concatenatedName
-        val request = downloadManagerWrapper.generateDownloadRequest(url, destination)
-        deletePreviousDownloadFromLocalDirectory(asset)
-        return downloadManagerWrapper.enqueue(request)
-    }
-
     private fun clearPreviousDownloadsFromDownloadsDirectory() {
         val downloadDirectoryFiles = downloadDirectory.listFiles()
         downloadDirectoryFiles?.let {
@@ -126,33 +113,25 @@ class DownloadUtility(
         }
     }
 
-    private fun deletePreviousDownloadFromLocalDirectory(asset: Asset) {
-        val localFile = File(applicationFilesDir, asset.pathName)
+    private fun setMostRecentlyDownloadedVersion(id: Long) {
+        val title = downloadManagerWrapper.getDownloadTitle(id)
+        if (!title.containsUserland()) return
+        val (_,repo, filename, version) = title.split("-", limit = 4)
+        if (filename == "rootfs") assetPreferences.setLatestDownloadFilesystemVersion(repo, version)
+        else assetPreferences.setLatestDownloadVersion(repo, version)
 
-        if (localFile.exists())
-            localFile.delete()
-    }
-
-    private fun setTimestampForDownloadedFile(id: Long) {
-        val titleName = downloadManagerWrapper.getDownloadTitle(id)
-        if (!titleName.containsUserland()) return
-        // Title should be asset.concatenatedName
-        val currentTimeSeconds = timeUtility.getCurrentTimeSeconds()
-//        assetPreferences.setLastUpdatedTimestampForAssetUsingConcatenatedName(titleName, currentTimeSeconds) TODO remove
     }
 
     @Throws(Exception::class)
-    fun moveAssetsToCorrectLocalDirectory() {
+    fun moveAssetsToStagingDirectory() {
         downloadDirectory.walkBottomUp()
                 .filter { it.name.containsUserland() }
                 .forEach {
                     val delimitedContents = it.name.split("-", limit = 3)
                     if (delimitedContents.size != 3) return@forEach
-                    val (_, directory, filename) = delimitedContents
-                    val containingDirectory = File("${applicationFilesDir.path}/$directory")
-                    val targetDestination = File("${containingDirectory.path}/$filename")
-                    it.copyTo(targetDestination, overwrite = true)
-                    makePermissionsUsable(containingDirectory.path, filename)
+                    val (_, filename) = delimitedContents
+                    val stagingDirectory = File("${applicationFilesDir.path}/$filename")
+                    it.copyTo(stagingDirectory, overwrite = true)
                     it.delete()
                 }
     }
