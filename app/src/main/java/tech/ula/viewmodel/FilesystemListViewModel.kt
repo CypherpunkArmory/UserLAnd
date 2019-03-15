@@ -5,20 +5,23 @@ import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
 import kotlinx.coroutines.* // ktlint-disable no-wildcard-imports
+import tech.ula.R
 import tech.ula.model.daos.FilesystemDao
+import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.Filesystem
 import tech.ula.utils.FilesystemUtility
 import java.io.File
 import java.lang.Exception
 import kotlin.coroutines.CoroutineContext
+import tech.ula.model.entities.Session
 
 sealed class FilesystemExportStatus
 data class ExportUpdate(val details: String) : FilesystemExportStatus()
 object ExportSuccess : FilesystemExportStatus()
-data class ExportFailure(val reason: String) : FilesystemExportStatus()
+data class ExportFailure(val reason: Int) : FilesystemExportStatus()
 object ExportStarted : FilesystemExportStatus()
 
-class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private val filesystemUtility: FilesystemUtility) : ViewModel(), CoroutineScope {
+class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private val sessionDao: SessionDao, private val filesystemUtility: FilesystemUtility) : ViewModel(), CoroutineScope {
 
     private val job = Job()
     override val coroutineContext: CoroutineContext
@@ -42,8 +45,16 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
         return exportStatusLiveData
     }
 
+    private val activeSessions: LiveData<List<Session>> by lazy {
+        sessionDao.findActiveSessions()
+    }
+
     fun getAllFilesystems(): LiveData<List<Filesystem>> {
         return filesystems
+    }
+
+    fun getAllActiveSessions(): LiveData<List<Session>> {
+        return activeSessions
     }
 
     fun deleteFilesystemById(id: Long, coroutineScope: CoroutineScope = this) = coroutineScope.launch {
@@ -68,7 +79,7 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
             filesystemUtility.compressFilesystem(filesystem, localTempBackupFile, exportUpdateListener)
 
             if (!localTempBackupFile.exists()) {
-                exportStatusLiveData.postValue(ExportFailure("Exporting to local directory failed"))
+                exportStatusLiveData.postValue(ExportFailure(R.string.error_export_to_local_failed))
                 return@withContext
             }
 
@@ -76,21 +87,29 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
                 localTempBackupFile.copyTo(externalBackupFile)
                 localTempBackupFile.delete()
             } catch (e: Exception) {
-                exportStatusLiveData.postValue(ExportFailure("Exporting to external directory failed"))
+                exportStatusLiveData.postValue(ExportFailure(R.string.error_export_to_external_failed))
                 localTempBackupFile.delete()
                 return@withContext
             }
 
             when (externalBackupFile.exists() && externalBackupFile.length() > 0) {
                 true -> exportStatusLiveData.postValue(ExportSuccess)
-                false -> exportStatusLiveData.postValue(ExportFailure("Exporting to external directory failed, exported file has no data"))
+                false -> exportStatusLiveData.postValue(ExportFailure(R.string.error_export_to_external_failed_no_data))
             }
+        }
+    }
+
+    fun startExport(filesystem: Filesystem, activeSessions: List<Session>, filesDir: File, externalDestination: File) {
+        if (activeSessions.isEmpty()) {
+            compressFilesystemAndExportToStorage(filesystem, filesDir, externalDestination)
+        } else {
+            exportStatusLiveData.postValue(ExportFailure(R.string.deactivate_sessions))
         }
     }
 }
 
-class FilesystemListViewmodelFactory(private val filesystemDao: FilesystemDao, private val filesystemUtility: FilesystemUtility) : ViewModelProvider.NewInstanceFactory() {
+class FilesystemListViewmodelFactory(private val filesystemDao: FilesystemDao, private val sessionDao: SessionDao, private val filesystemUtility: FilesystemUtility) : ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        return FilesystemListViewModel(filesystemDao, filesystemUtility) as T
+        return FilesystemListViewModel(filesystemDao, sessionDao, filesystemUtility) as T
     }
 }

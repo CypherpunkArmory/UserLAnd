@@ -23,6 +23,8 @@ import tech.ula.utils.BusyboxExecutor
 import tech.ula.utils.DefaultPreferences
 import tech.ula.utils.FilesystemUtility
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
+import tech.ula.model.entities.Session
+import tech.ula.viewmodel.FilesystemListViewModel
 
 class FilesystemListFragment : Fragment() {
 
@@ -37,11 +39,14 @@ class FilesystemListFragment : Fragment() {
 
     private val externalStorageDir = Environment.getExternalStorageDirectory()
 
+    private lateinit var activeSessions: List<Session>
+
     private val filesystemListViewModel: FilesystemListViewModel by lazy {
         val filesystemDao = UlaDatabase.getInstance(activityContext).filesystemDao()
+        val sessionDao = UlaDatabase.getInstance(activityContext).sessionDao()
         val busyboxExecutor = BusyboxExecutor(activityContext.filesDir, externalStorageDir, DefaultPreferences(activityContext.defaultSharedPreferences))
         val filesystemUtility = FilesystemUtility(activityContext.filesDir.absolutePath, busyboxExecutor)
-        ViewModelProviders.of(this, FilesystemListViewmodelFactory(filesystemDao, filesystemUtility)).get(FilesystemListViewModel::class.java)
+        ViewModelProviders.of(this, FilesystemListViewmodelFactory(filesystemDao, sessionDao, filesystemUtility)).get(FilesystemListViewModel::class.java)
     }
 
     private val filesystemChangeObserver = Observer<List<Filesystem>> {
@@ -64,7 +69,7 @@ class FilesystemListFragment : Fragment() {
                 }
                 is ExportFailure -> {
                     val dialogBuilder = AlertDialog.Builder(activityContext)
-                    dialogBuilder.setMessage(getString(R.string.export_failure) + "\n${exportStatus.reason}").create().show()
+                    dialogBuilder.setMessage(getString(R.string.export_failure) + "\n" + getString(exportStatus.reason)).create().show()
                     activityContext.stopExportProgress()
                 }
                 is ExportStarted -> {
@@ -72,6 +77,10 @@ class FilesystemListFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private val activeSessionObserver = Observer<List<Session>> {
+        it?.let { sessions -> activeSessions = sessions }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -99,6 +108,7 @@ class FilesystemListFragment : Fragment() {
         activityContext = activity!! as MainActivity
         filesystemListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
         filesystemListViewModel.getExportStatusLiveData().observe(viewLifecycleOwner, filesystemExportStatusObserver)
+        filesystemListViewModel.getAllActiveSessions().observe(viewLifecycleOwner, activeSessionObserver)
         registerForContextMenu(list_filesystems)
     }
 
@@ -114,7 +124,7 @@ class FilesystemListFragment : Fragment() {
         return when (item.itemId) {
             R.id.menu_item_filesystem_edit -> editFilesystem(filesystem)
             R.id.menu_item_filesystem_delete -> deleteFilesystem(filesystem)
-            R.id.menu_item_filesystem_export -> exportFilesystem(filesystem)
+            R.id.menu_item_filesystem_export -> exportFilesystem(filesystem, activeSessions)
             else -> super.onContextItemSelected(item)
         }
     }
@@ -137,10 +147,9 @@ class FilesystemListFragment : Fragment() {
         return true
     }
 
-    private fun exportFilesystem(filesystem: Filesystem): Boolean {
+    private fun exportFilesystem(filesystem: Filesystem, activeSessions: List<Session>): Boolean {
         val externalDestination = Environment.getExternalStoragePublicDirectory("UserLAnd")
-        filesystemListViewModel.compressFilesystemAndExportToStorage(filesystem, activityContext.filesDir, externalDestination)
-
+        filesystemListViewModel.startExport(filesystem, activeSessions, activityContext.filesDir, externalDestination)
         return true
     }
 }
