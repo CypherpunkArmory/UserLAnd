@@ -15,6 +15,9 @@
 
     <!-- Buttons -->
     <string name="button_continue">Continue</string>
+    <string name="button_advanced_options_show">Show Advanced Options</string>
+    <string name="button_advanced_options_hide">Hide Advanced Options</string>
+    <string name="button_select_backup_import">Select backup file to import</string>
 
     <!-- Menus -->
     <string name="app_info">App Info</string>
@@ -22,6 +25,7 @@
     <string name="stop_session">Stop Session</string>
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
+    <string name="backup">Export</string>
     <string name="save">Save</string>
     <string name="add">Add</string>
     <string name="refresh">Refresh</string>
@@ -46,7 +50,11 @@
     <string name="error_vnc_password_invalid">VNC Password has invalid characters</string>
     <string name="error_username_invalid_characters">Characters in username must be 1 to 30 characters with lowercase letters and/or numbers.</string>
     <string name="error_username_in_blacklist">That username is possibly reserved by Linux and cannot be used as a filesystem username.</string>
-
+    <string name="error_filesystem_name_invalid_characters">Characters in filesystem name must be 1 to 50 characters without characters such as \"/:*\\|</string>
+    <string name="error_export_to_local_failed">Exporting to local directory failed</string>
+    <string name="error_export_to_external_failed">Exporting to external directory failed</string>
+    <string name="error_export_to_external_failed_no_data">Exporting to external directory failed, exported file has no data</string>
+    
     <!-- Illegal State Dialog -->
     <string name="illegal_state_message">%1$s \nThe app will now crash so that we can receive an error log. Feel free to also let us know on Github! We are working to resolve these issues.</string>
     <string name="illegal_state_title">UserLAnd has entered an illegal state!</string>
@@ -81,6 +89,8 @@
     <string name="prompt_service_type">Service Type:</string>
     <string name="prompt_client_type">Client Type:</string>
     <string name="prompt_app_connection_type_preference">Please select a connection type: </string>
+    <string name="prompt_select_backup">Select filesystem backup file</string>
+    <string name="prompt_install_file_manager">Please install a File Manager</string>
 
     <!-- Notification strings -->
     <string name="services_notification_channel_id">UserLAndServices</string>
@@ -101,6 +111,7 @@
     <string name="progress_verifying_assets">Verifying assets&#8230;</string>
     <string name="progress_starting">Starting service&#8230;</string>
     <string name="progress_clearing_support_files">Clearing all support files&#8230;</string>
+    <string name="progress_exporting_filesystem">Exporting filesystem</string>
 
     <!-- Preferences -->
     <string name="pref_app_category">App Preferences</string>
@@ -144,6 +155,11 @@
     <string name="general_error_title">Something unexpected happened!</string>
     <string name="filesystem_credentials_reasoning">We\'re creating a filesystem for your apps.\nPlease enter the relevant required information for us to use as defaults for this filesystem.</string>
     <string name="deactivate_sessions">All sessions need to be deactivated to continue this action.</string>
+    <string name="import_success">Successfully imported backup</string>
+    <string name="import_failure">Unable to import backup</string>
+    <string name="export_success">Successfully exported backup</string>
+    <string name="export_failure">Unable to export backup</string>
+    <string name="export_started">Export started, please wait</string>
 
     <!-- Clear support files alert -->
     <string name="alert_clear_support_files_title">Clear all support files?</string>
@@ -187,10 +203,14 @@
     <string name="custom_sessions">Custom Sessions</string>
     <string name="apps_sessions">Apps Sessions</string>
     <string name="info_xsdl_support">XSDL is not fully supported on \nAndroid 9.0 and above yet</string>
+    <string name="no_backup_selected">No filesystem import selected</string>
     
     <!-- Review request -->
     <string name="review_is_user_enjoying">Enjoying UserLAnd?</string>
     <string name="review_ask_for_rating">How about a rating on the Play Store, then?</string>
     <string name="review_ask_for_feedback">Would you mind giving us some feedback on Github?</string>
+
+    <!-- Advanced options -->
+    <string name="desc_import_backups_should_use_same_settings">Fill out the same: \n\n\u2022 username \n\u2022 password \n\u2022 VNC password \n\u2022 distribution \n\n as the backup to ensure smooth functionality</string>
   
 </resources>

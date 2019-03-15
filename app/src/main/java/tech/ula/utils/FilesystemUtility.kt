@@ -1,5 +1,7 @@
 package tech.ula.utils
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import java.io.File
@@ -40,7 +42,7 @@ class FilesystemUtility(
 
     fun extractFilesystem(filesystem: Filesystem, listener: (String) -> Any) {
         val filesystemDirName = "${filesystem.id}"
-        val command = "/support/extractFilesystem.sh"
+        val command = "/support/common/extractFilesystem.sh"
         val env = HashMap<String, String>()
         env["INITIAL_USERNAME"] = filesystem.defaultUsername
         env["INITIAL_PASSWORD"] = filesystem.defaultPassword
@@ -56,6 +58,29 @@ class FilesystemUtility(
         if (result is FailedExecution) {
             val err = result.reason
             logger.logRuntimeErrorForCommand(functionName = "extractFilesystem", command = command, err = err)
+        }
+    }
+
+    suspend fun compressFilesystem(
+        filesystem: Filesystem,
+        localDestinationFile: File,
+        listener: (String) -> Any
+    ) = withContext(Dispatchers.IO) {
+        val filesystemDirName = "${filesystem.id}"
+        val command = "/support/common/compressFilesystem.sh"
+        val env = HashMap<String, String>()
+        env["TAR_PATH"] = localDestinationFile.absolutePath
+
+        val result = busyboxExecutor.executeProotCommand(
+                command,
+                filesystemDirName,
+                commandShouldTerminate = true,
+                env = env,
+                listener = listener
+        )
+        if (result is FailedExecution) {
+            val err = result.reason
+            logger.logRuntimeErrorForCommand(functionName = "compressFilesystem", command = command, err = err)
         }
     }
 

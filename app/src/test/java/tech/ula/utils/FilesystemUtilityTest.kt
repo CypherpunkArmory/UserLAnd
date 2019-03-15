@@ -40,7 +40,7 @@ class FilesystemUtilityTest {
 
     @Test
     fun `Calling extract filesystem uses the appropriate command`() {
-        val command = "/support/extractFilesystem.sh"
+        val command = "/support/common/extractFilesystem.sh"
 
         val requiredFilesystemType = "testDist"
         val fakeArchitecture = "testArch"
@@ -49,7 +49,7 @@ class FilesystemUtilityTest {
                 defaultUsername = "username", defaultPassword = "password", defaultVncPassword = "vncpass")
         val filesystemDirName = "${filesystem.id}"
 
-        val defaultEnvironmentalVariables = hashMapOf<String, String>("INITIAL_USERNAME" to "username",
+        val defaultEnvironmentalVariables = hashMapOf("INITIAL_USERNAME" to "username",
                 "INITIAL_PASSWORD" to "password", "INITIAL_VNC_PASSWORD" to "vncpass")
         whenever(mockBusyboxExecutor.executeProotCommand(
                 eq(command),
@@ -57,10 +57,108 @@ class FilesystemUtilityTest {
                 eq(true),
                 eq(defaultEnvironmentalVariables),
                 eq(statelessListener),
-                anyOrNull()))
+                anyOrNull()
+        ))
                 .thenReturn(SuccessfulExecution)
 
         filesystemUtility.extractFilesystem(filesystem, statelessListener)
+        verify(mockBusyboxExecutor).executeProotCommand(
+                eq(command),
+                eq(filesystemDirName),
+                eq(true),
+                eq(defaultEnvironmentalVariables),
+                eq(statelessListener),
+                anyOrNull()
+        )
+    }
+
+    @Test
+    fun `extractFilesystem logs errors`() {
+        val command = "/support/common/extractFilesystem.sh"
+
+        val requiredFilesystemType = "testDist"
+        val fakeArchitecture = "testArch"
+        val filesystem = Filesystem(0, "apps",
+                archType = fakeArchitecture, distributionType = requiredFilesystemType, isAppsFilesystem = true,
+                defaultUsername = "username", defaultPassword = "password", defaultVncPassword = "vncpass")
+        val filesystemDirName = "${filesystem.id}"
+
+        val defaultEnvironmentalVariables = hashMapOf("INITIAL_USERNAME" to "username",
+                "INITIAL_PASSWORD" to "password", "INITIAL_VNC_PASSWORD" to "vncpass")
+
+        val failureReason = "reason"
+        whenever(mockBusyboxExecutor.executeProotCommand(
+                eq(command),
+                eq(filesystemDirName),
+                eq(true),
+                eq(defaultEnvironmentalVariables),
+                eq(statelessListener),
+                anyOrNull()
+        ))
+                .thenReturn(FailedExecution(failureReason))
+
+        filesystemUtility.extractFilesystem(filesystem, statelessListener)
+
+        verify(logger).logRuntimeErrorForCommand("extractFilesystem", command, failureReason)
+    }
+
+    @Test
+    fun `compressFilesystem uses correct command and environment`() {
+        val command = "/support/common/compressFilesystem.sh"
+        val filesystem = Filesystem(id = 0, name = "backup", distributionType = "distType")
+        val externalStorageDirectory = tempFolder.root
+
+        val destinationName = "rootfs.tar.gz"
+        val destinationPath = "${externalStorageDirectory.absolutePath}/$destinationName"
+        val expectedEnv = hashMapOf("TAR_PATH" to destinationPath)
+
+        whenever(mockBusyboxExecutor.executeProotCommand(
+                eq(command),
+                eq("${filesystem.id}"),
+                eq(true),
+                eq(expectedEnv),
+                eq(statelessListener),
+                anyOrNull()
+        ))
+                .thenReturn(SuccessfulExecution)
+
+        runBlocking { filesystemUtility.compressFilesystem(filesystem, File(destinationPath), statelessListener) }
+        verify(mockBusyboxExecutor).executeProotCommand(
+                eq(command),
+                eq("${filesystem.id}"),
+                eq(true),
+                eq(expectedEnv),
+                eq(statelessListener),
+                anyOrNull()
+        )
+    }
+
+    @Test
+    fun `compressFilesystem logs failures`() {
+        val command = "/support/common/compressFilesystem.sh"
+        val filesystem = Filesystem(id = 0, name = "backup", distributionType = "distType")
+        val externalStorageDirectory = tempFolder.root
+
+        val destinationName = "rootfs.tar.gz"
+        val destinationPath = "${externalStorageDirectory.absolutePath}/$destinationName"
+        val expectedEnv = hashMapOf("TAR_PATH" to destinationPath)
+
+        val failureReason = "reason"
+        whenever(mockBusyboxExecutor.executeProotCommand(
+                eq(command),
+                eq("${filesystem.id}"),
+                eq(true),
+                eq(expectedEnv),
+                eq(statelessListener),
+                anyOrNull()
+        ))
+                .thenReturn(FailedExecution(failureReason))
+
+        runBlocking {
+            filesystemUtility.compressFilesystem(filesystem, File(destinationPath), statelessListener)
+        }
+
+        verify(logger).logRuntimeErrorForCommand("compressFilesystem", command, failureReason)
     }
 
     @Test

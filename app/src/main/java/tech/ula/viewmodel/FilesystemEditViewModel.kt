@@ -1,38 +1,101 @@
 package tech.ula.viewmodel
 
-import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
-import android.database.sqlite.SQLiteConstraintException
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import android.arch.lifecycle.LiveData
+import android.arch.lifecycle.MutableLiveData
+import android.arch.lifecycle.ViewModel
+import android.arch.lifecycle.ViewModelProvider
+import android.content.ContentResolver
+import android.net.Uri
+import kotlinx.coroutines.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Filesystem
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.suspendCoroutine
-import kotlin.coroutines.resume
+import java.io.File
+import java.io.FileOutputStream
+import java.lang.Exception
+import kotlin.coroutines.CoroutineContext
 
-class FilesystemEditViewModel(application: Application) : AndroidViewModel(application) {
-    private val ulaDatabase: UlaDatabase by lazy {
-        UlaDatabase.getInstance(application)
+sealed class FilesystemImportStatus
+object ImportSuccess : FilesystemImportStatus()
+object UriUnselected : FilesystemImportStatus()
+data class ImportFailure(val reason: String) : FilesystemImportStatus()
+
+class FilesystemEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(), CoroutineScope {
+    private val job = Job()
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
+
+    override fun onCleared() {
+        job.cancel()
+        super.onCleared()
     }
 
-    suspend fun insertFilesystem(filesystem: Filesystem): Boolean {
-        lateinit var result: Continuation<Boolean>
-        GlobalScope.launch {
-            try {
-                ulaDatabase.filesystemDao().insertFilesystem(filesystem)
-                result.resume(true)
-            } catch (err: SQLiteConstraintException) {
-                result.resume(false)
-            }
+    private val importStatusLiveData = MutableLiveData<FilesystemImportStatus>()
+
+    var backupUri: Uri? = null
+
+    fun getImportStatusLiveData(): LiveData<FilesystemImportStatus> {
+        return importStatusLiveData
+    }
+
+    fun insertFilesystem(filesystem: Filesystem, coroutineScope: CoroutineScope = this) = coroutineScope.launch {
+        withContext(Dispatchers.IO) {
+            ulaDatabase.filesystemDao().insertFilesystem(filesystem)
         }
-        return suspendCoroutine { continuation -> result = continuation }
     }
 
-    fun updateFilesystem(filesystem: Filesystem) {
-        GlobalScope.launch {
+    fun insertFilesystemFromBackup(
+        contentResolver: ContentResolver,
+        filesystem: Filesystem,
+        filesDir: File,
+        coroutineScope: CoroutineScope = this
+    ) = coroutineScope.launch {
+        withContext(Dispatchers.IO) {
+            if (backupUri == null) {
+                importStatusLiveData.postValue(UriUnselected)
+                return@withContext
+            }
+
+            filesystem.isCreatedFromBackup = true
+            val id = ulaDatabase.filesystemDao().insertFilesystem(filesystem)
+
+            try {
+                val filesystemSupportDir = File("${filesDir.absolutePath}/$id/support")
+                filesystemSupportDir.mkdirs()
+                val destination = File("${filesystemSupportDir.absolutePath}/rootfs.tar.gz")
+
+                val inputStream = contentResolver.openInputStream(backupUri!!)
+                if (inputStream == null) {
+                    ulaDatabase.filesystemDao().deleteFilesystemById(id)
+                    importStatusLiveData.postValue(ImportFailure("Could not open input stream"))
+                    return@withContext
+                }
+
+                val streamOutput = FileOutputStream(destination)
+                inputStream.use { input ->
+                    streamOutput.use { fileOut ->
+                        input!!.copyTo(fileOut)
+                    }
+                }
+            } catch (e: Exception) {
+                ulaDatabase.filesystemDao().deleteFilesystemById(id)
+                importStatusLiveData.postValue(ImportFailure(e.toString()))
+            }
+
+            backupUri = null
+            importStatusLiveData.postValue(ImportSuccess)
+        }
+    }
+
+    fun updateFilesystem(filesystem: Filesystem, coroutineScope: CoroutineScope = this) = coroutineScope.launch {
+        withContext(Dispatchers.IO) {
             ulaDatabase.filesystemDao().updateFilesystem(filesystem)
             ulaDatabase.sessionDao().updateFilesystemNamesForAllSessions()
         }
+    }
+}
+
+class FilesystemEditViewmodelFactory(private val ulaDatabase: UlaDatabase) : ViewModelProvider.NewInstanceFactory() {
+    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        return FilesystemEditViewModel(ulaDatabase) as T
     }
 }
