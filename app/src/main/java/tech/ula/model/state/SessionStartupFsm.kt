@@ -157,10 +157,11 @@ class SessionStartupFsm(
             return
         }
 
-        val filesystemHasAlreadyBeenExtracted = filesystemUtility
-                .hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")
+        val filesystemDoesNotNeedExtraction = filesystemUtility
+                .hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}") ||
+                filesystem.isCreatedFromBackup
         val downloadRequirements = assetRepository
-                .generateDownloadRequirements(filesystem, assetLists, filesystemHasAlreadyBeenExtracted)
+                .generateDownloadRequirements(filesystem, assetLists, filesystemDoesNotNeedExtraction)
 
         if (downloadRequirements.isEmpty()) {
             state.postValue(NoDownloadsRequired)

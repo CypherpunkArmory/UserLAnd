@@ -37,7 +37,7 @@ class AssetRepository(
     suspend fun generateDownloadRequirements(
             filesystem: Filesystem,
             assetLists: HashMap<String, List<Asset>>,
-            filesystemHasAlreadyBeenExtracted: Boolean
+            filesystemDoesNotNeedExtraction: Boolean
     ): List<DownloadMetadata> {
         val downloadRequirements = mutableListOf<DownloadMetadata>()
         for (entry in assetLists) {
@@ -50,7 +50,7 @@ class AssetRepository(
             val downloadMetadata = DownloadMetadata(filename, versionCode, url, repo)
             downloadRequirements.add(downloadMetadata)
         }
-        if (!filesystemHasAlreadyBeenExtracted && rootFsDownloadRequired(filesystem)) {
+        if (!filesystemDoesNotNeedExtraction && rootFsDownloadRequired(filesystem)) {
             val repo = filesystem.distributionType
             val filename = "rootfs"
             val versionCode = githubApiClient.getLatestReleaseVersion(repo)
