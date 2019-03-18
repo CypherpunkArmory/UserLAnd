@@ -196,6 +196,7 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:3.13.1'
     implementation "com.squareup.moshi:moshi:$moshi_version"
     kapt "com.squareup.moshi:moshi-kotlin-codegen:$moshi_version"
+    implementation 'org.rauschig:jarchivelib:1.0.0'
 
     testImplementation 'junit:junit:4.12'
     testImplementation "org.mockito:mockito-core:$mockito_version"

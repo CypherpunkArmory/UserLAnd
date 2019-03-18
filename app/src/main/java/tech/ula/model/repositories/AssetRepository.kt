@@ -44,18 +44,18 @@ class AssetRepository(
             val (repo, list) = entry
             if (assetsArePresentInSupportDirectories(list) && lastDownloadedVersionIsUpToDate(repo))
                 continue
-            val filename = "assets"
+            val filename = "assets.tar.gz"
             val versionCode = githubApiClient.getLatestReleaseVersion(repo)
             val url = githubApiClient.getAssetEndpoint(filename, repo)
-            val downloadMetadata = DownloadMetadata(filename, versionCode, url, repo)
+            val downloadMetadata = DownloadMetadata(filename, repo, versionCode, url)
             downloadRequirements.add(downloadMetadata)
         }
         if (!filesystemDoesNotNeedExtraction && rootFsDownloadRequired(filesystem)) {
             val repo = filesystem.distributionType
-            val filename = "rootfs"
+            val filename = "rootfs.tar.gz"
             val versionCode = githubApiClient.getLatestReleaseVersion(repo)
             val url = githubApiClient.getAssetEndpoint(filename, repo)
-            val downloadMetadata = DownloadMetadata(filename, versionCode, url, repo)
+            val downloadMetadata = DownloadMetadata(filename, repo, versionCode, url)
             downloadRequirements.add(downloadMetadata)
         }
         return downloadRequirements

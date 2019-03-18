@@ -1,8 +1,14 @@
 package tech.ula.utils
 
+import org.kamranzafar.jtar.TarEntry
+import org.kamranzafar.jtar.TarInputStream
+import org.rauschig.jarchivelib.ArchiveFormat
+import org.rauschig.jarchivelib.ArchiverFactory
+import org.rauschig.jarchivelib.CompressionType
 import tech.ula.model.entities.Asset
 import tech.ula.model.repositories.DownloadMetadata
-import java.io.File
+import java.io.*
+import java.util.zip.GZIPInputStream
 
 sealed class AssetDownloadState
 object CacheSyncAttemptedWhileCacheIsEmpty : AssetDownloadState()
@@ -117,22 +123,41 @@ class DownloadUtility(
         val title = downloadManagerWrapper.getDownloadTitle(id)
         if (!title.containsUserland()) return
         val (_,repo, filename, version) = title.split("-", limit = 4)
-        if (filename == "rootfs") assetPreferences.setLatestDownloadFilesystemVersion(repo, version)
+        if (filename == "rootfs.tar.gz") assetPreferences.setLatestDownloadFilesystemVersion(repo, version)
         else assetPreferences.setLatestDownloadVersion(repo, version)
 
     }
 
-    @Throws(Exception::class)
-    fun moveAssetsToStagingDirectory() {
+    fun prepareDownloadsForUse() {
+        val stagingDirectory = File("${applicationFilesDir.path}/staging")
+        stagingDirectory.mkdirs()
         downloadDirectory.walkBottomUp()
                 .filter { it.name.containsUserland() }
                 .forEach {
-                    val delimitedContents = it.name.split("-", limit = 3)
-                    if (delimitedContents.size != 3) return@forEach
-                    val (_, filename) = delimitedContents
-                    val stagingDirectory = File("${applicationFilesDir.path}/$filename")
-                    it.copyTo(stagingDirectory, overwrite = true)
+                    val delimitedContents = it.name.split("-", limit = 4)
+                    val (_, directoryName, filename, _) = delimitedContents
+                    val target = File("${stagingDirectory.absolutePath}/$filename")
+                    it.copyTo(target, overwrite = true)
                     it.delete()
+
+                    if (filename !="rootfs.tar.gz") extractAsset(filename, directoryName)
+                    moveAssetsToCorrectSupportDirectories()
                 }
+    }
+
+    fun extractAsset(tarFilename: String, directoryName: String) {
+        val tarFile = File("${applicationFilesDir.path}/staging/$tarFilename")
+        val destination = File("${applicationFilesDir.path}/staging/$directoryName")
+
+        val archiver = ArchiverFactory.createArchiver(tarFile)
+        archiver.extract(tarFile, destination)
+    }
+
+    @Throws(Exception::class)
+    fun moveDownloadsToStagingDirectory() {
+    }
+
+    fun moveAssetsToCorrectSupportDirectories() {
+
     }
 }

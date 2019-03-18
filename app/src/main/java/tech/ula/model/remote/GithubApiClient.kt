@@ -34,7 +34,7 @@ class GithubApiClient(private val client: OkHttpClient = OkHttpClient()) {
             buildWrapper: BuildWrapper = BuildWrapper()
     ): String = withContext(Dispatchers.IO) {
         val result = latestResults[repo] ?: queryLatestRelease(repo)
-        val assetName = "${buildWrapper.getArchType()}-$assetType.tar.gz"
+        val assetName = "${buildWrapper.getArchType()}-$assetType"
 
         return@withContext result.assets.find { it.name == assetName }!!.downloadUrl
     }

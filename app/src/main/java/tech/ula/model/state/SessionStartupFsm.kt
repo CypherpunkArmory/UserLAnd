@@ -217,7 +217,7 @@ class SessionStartupFsm(
     private suspend fun handleCopyDownloadsToLocalDirectories() = withContext(Dispatchers.IO) {
         state.postValue(CopyingFilesToLocalDirectories)
         try {
-            downloadUtility.moveAssetsToStagingDirectory()
+            downloadUtility.prepareDownloadsForUse()
         } catch (err: Exception) {
             state.postValue(LocalDirectoryCopyFailed)
             return@withContext
