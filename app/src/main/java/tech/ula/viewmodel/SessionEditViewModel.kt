@@ -1,21 +1,23 @@
 package tech.ula.viewmodel
 
-import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
-import android.database.sqlite.SQLiteConstraintException
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import android.arch.lifecycle.ViewModel
+import android.arch.lifecycle.ViewModelProvider
+import kotlinx.coroutines.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.suspendCoroutine
-import kotlin.coroutines.resume
+import kotlin.coroutines.CoroutineContext
 
-class SessionEditViewModel(application: Application) : AndroidViewModel(application) {
-    private val ulaDatabase: UlaDatabase by lazy {
-        UlaDatabase.getInstance(application)
+class SessionEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(), CoroutineScope {
+
+    private val job = Job()
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
+
+    override fun onCleared() {
+        job.cancel()
+        super.onCleared()
     }
 
     private val filesystems: LiveData<List<Filesystem>> by lazy {
@@ -26,20 +28,21 @@ class SessionEditViewModel(application: Application) : AndroidViewModel(applicat
         return filesystems
     }
 
-    suspend fun insertSession(session: Session): Boolean {
-        lateinit var result: Continuation<Boolean>
-        GlobalScope.launch {
-            try {
-                ulaDatabase.sessionDao().insertSession(session)
-                result.resume(true)
-            } catch (err: SQLiteConstraintException) {
-                result.resume(false)
-            }
+    fun insertSession(session: Session, coroutineScope: CoroutineScope = this) = coroutineScope.launch {
+        withContext(Dispatchers.IO) {
+            ulaDatabase.sessionDao().insertSession(session)
         }
-        return suspendCoroutine { continuation -> result = continuation }
     }
 
-    fun updateSession(session: Session) {
-        GlobalScope.launch { ulaDatabase.sessionDao().updateSession(session) }
+    fun updateSession(session: Session, coroutineScope: CoroutineScope = this) = coroutineScope.launch {
+        withContext(Dispatchers.IO) {
+            ulaDatabase.sessionDao().updateSession(session)
+        }
+    }
+}
+
+class SessionEditViewmodelFactory(private val ulaDatabase: UlaDatabase) : ViewModelProvider.NewInstanceFactory() {
+    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        return SessionEditViewModel(ulaDatabase) as T
     }
 }

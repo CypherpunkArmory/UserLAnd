@@ -131,7 +131,7 @@ class SessionListFragment : Fragment() {
 
     private fun doSessionContextItemSelected(session: Session, item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.menu_item_session_kill_service -> stopService(session)
+            R.id.menu_item_session_stop_session -> stopService(session)
             R.id.menu_item_session_edit -> editSession(session)
             R.id.menu_item_session_delete -> deleteSession(session)
             else -> super.onContextItemSelected(item)

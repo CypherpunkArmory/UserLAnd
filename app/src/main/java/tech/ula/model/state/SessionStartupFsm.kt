@@ -149,8 +149,10 @@ class SessionStartupFsm(
             assetList.filter { asset ->
                 val needsUpdate = assetRepository.doesAssetNeedToUpdated(asset)
 
-                if (asset.isLarge && needsUpdate && filesystemUtility
-                                .hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")) {
+                // Rootfs tar files can be left of the download generation if the filesystem is
+                // being created from backup or has already been extracted.
+                if (asset.isLarge && needsUpdate && (filesystem.isCreatedFromBackup ||
+                        filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))) {
                     return@filter false
                 }
                 needsUpdate

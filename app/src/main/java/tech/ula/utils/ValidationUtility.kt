@@ -6,6 +6,21 @@ import java.util.regex.Pattern
 
 class ValidationUtility {
 
+    fun validateFilesystemName(filesystemName: String): CredentialValidationStatus {
+        return when {
+            filesystemName.isEmpty() ->
+                CredentialValidationStatus(false, R.string.error_filesystem_name)
+
+            !validateFilesystemNameCharacters(filesystemName) ->
+                CredentialValidationStatus(false, R.string.error_filesystem_name_invalid_characters)
+
+            filesystemName == "." || filesystemName == ".." ->
+                CredentialValidationStatus(false, R.string.error_filesystem_name_invalid_characters)
+
+            else -> CredentialValidationStatus(true)
+        }
+    }
+
     fun validateUsername(username: String, blacklistUsernames: Array<String>): CredentialValidationStatus {
         return when {
             username.isEmpty() ->
@@ -48,17 +63,22 @@ class ValidationUtility {
         }
     }
 
+    private fun validateFilesystemNameCharacters(filesystemName: String): Boolean {
+        val filesystemNameRegex = "([a-zA-Z0-9!@#$%^&()_+=,.?<>]{0,50})"
+
+        val compiledRegex = Pattern.compile(filesystemNameRegex)
+        val matcher = compiledRegex.matcher(filesystemName)
+        val hasValidCharacters = matcher.matches()
+        return hasValidCharacters
+    }
+
     private fun validateUsernameCharacters(username: String): Boolean {
         val usernameRegex = "([a-z_][a-z0-9_]{0,30})"
 
         val compiledRegex = Pattern.compile(usernameRegex)
         val matcher = compiledRegex.matcher(username)
         val hasValidCharacters = matcher.matches()
-
-        if (hasValidCharacters) {
-            return true
-        }
-        return false
+        return hasValidCharacters
     }
 
     private fun validatePasswordCharacters(password: String): Boolean {
@@ -69,8 +89,8 @@ class ValidationUtility {
 
         pattern = Pattern.compile(passwordRegex)
         matcher = pattern.matcher(password)
-
-        return matcher.matches()
+        val hasValidCharacters = matcher.matches()
+        return hasValidCharacters
     }
 }
 

@@ -304,6 +304,26 @@ class SessionStartupFsmTest {
     }
 
     @Test
+    fun `State is DownloadsRequired and largeDownloadRequired is false if a rootfs needs updating but the filesystem is being created from a backup`() {
+        sessionFsm.setState(AssetListsRetrievalSucceeded(assetListsWithLargeAsset))
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        val filesystemFromBackup = filesystem
+        filesystemFromBackup.isCreatedFromBackup = true
+
+        whenever(mockAssetRepository.doesAssetNeedToUpdated(asset))
+                .thenReturn(true)
+        whenever(mockAssetRepository.doesAssetNeedToUpdated(largeAsset))
+                .thenReturn(true)
+
+        runBlocking { sessionFsm.submitEvent(GenerateDownloads(filesystemFromBackup, assetListsWithLargeAsset), this) }
+
+        verify(mockFilesystemUtility, never()).hasFilesystemBeenSuccessfullyExtracted("${filesystemFromBackup.id}")
+        verify(mockStateObserver).onChanged(GeneratingDownloadRequirements)
+        verify(mockStateObserver).onChanged(DownloadsRequired(singleAssetList, largeDownloadRequired = false))
+    }
+
+    @Test
     fun `State is DownloadsRequired and includes false if downloads do not include rootfs`() {
         sessionFsm.setState(AssetListsRetrievalSucceeded(assetLists))
         sessionFsm.getState().observeForever(mockStateObserver)
