@@ -261,19 +261,6 @@ class BuildWrapper {
 }
 
 class ConnectionUtility {
-    fun httpsHostIsReachable(hostname: String): Boolean {
-        return try {
-            val sockaddr = InetSocketAddress(hostname, 443)
-            val sock = Socket()
-            val timeout = 2000
-
-            sock.connect(sockaddr, timeout)
-            true
-        } catch (err: IOException) {
-            false
-        }
-    }
-
     @Throws(Exception::class)
     fun getUrlInputStream(url: String): InputStream {
         val conn = URL(url).openConnection() as HttpURLConnection

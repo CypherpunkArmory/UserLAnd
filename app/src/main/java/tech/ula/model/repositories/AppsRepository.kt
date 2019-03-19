@@ -29,10 +29,6 @@ class AppsRepository(
     suspend fun refreshData() = withContext(Dispatchers.IO) {
         val appsList = mutableSetOf<String>()
         val distributionsList = mutableSetOf<String>()
-        if (!ConnectionUtility().httpsHostIsReachable("github.com")) {
-            refreshStatus.postValue(RefreshStatus.FAILED)
-            return@withContext
-        }
         refreshStatus.postValue(RefreshStatus.ACTIVE)
         try {
             remoteAppsSource.fetchAppsList().forEach {

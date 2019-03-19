@@ -13,7 +13,7 @@ import java.io.IOException
 class GithubApiClient(private val client: OkHttpClient = OkHttpClient()) {
     private val latestResults: HashMap<String, ReleasesResponse?> = hashMapOf()
 
-    // This function can be used to tune the release used for each asset type.
+    // This function can be used to tune the release used for each asset type for testing purposes.
     private fun getReleaseToUseForRepo(repo: String): String {
         return "latest"
 //        return when (repo) {
