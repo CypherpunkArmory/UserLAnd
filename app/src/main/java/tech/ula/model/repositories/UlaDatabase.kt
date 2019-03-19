@@ -15,7 +15,7 @@ import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
 
-@Database(entities = [Session::class, Filesystem::class, App::class], version = 6, exportSchema = true)
+@Database(entities = [Session::class, Filesystem::class, App::class], version = 7, exportSchema = true)
 abstract class UlaDatabase : RoomDatabase() {
 
     abstract fun sessionDao(): SessionDao
@@ -41,7 +41,8 @@ abstract class UlaDatabase : RoomDatabase() {
                                 Migration2To3(),
                                 Migration3To4(),
                                 Migration4To5(),
-                                Migration5To6()
+                                Migration5To6(),
+                                Migration6To7()
                         )
                         .addCallback(object : RoomDatabase.Callback() {
                             override fun onOpen(db: SupportSQLiteDatabase) {
@@ -127,5 +128,11 @@ class Migration4To5 : Migration(4, 5) {
 class Migration5To6 : Migration(5, 6) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE filesystem ADD COLUMN isCreatedFromBackup INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
+class Migration6To7 : Migration(6, 7) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE filesystem ADD COLUMN versionCodeUsed TEXT NOT NULL DEFAULT 'v0.0.0'")
     }
 }
