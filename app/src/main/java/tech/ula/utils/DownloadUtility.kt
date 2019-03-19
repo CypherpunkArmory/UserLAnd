@@ -78,7 +78,6 @@ class DownloadUtility(
         }
 
         completedDownloadIds.add(downloadId)
-        setMostRecentlyDownloadedVersion(downloadId)
         if (completedDownloadIds.size != enqueuedDownloadIds.size) {
             return CompletedDownloadsUpdate(completedDownloadIds.size, enqueuedDownloadIds.size)
         }
@@ -119,15 +118,6 @@ class DownloadUtility(
         }
     }
 
-    private fun setMostRecentlyDownloadedVersion(id: Long) {
-        val title = downloadManagerWrapper.getDownloadTitle(id)
-        if (!title.containsUserland()) return
-        val (_,repo, filename, version) = title.split("-", limit = 4)
-        if (filename == "rootfs.tar.gz") assetPreferences.setLatestDownloadFilesystemVersion(repo, version)
-        else assetPreferences.setLatestDownloadVersion(repo, version)
-
-    }
-
     suspend fun prepareDownloadsForUse() = withContext(Dispatchers.IO) {
         val stagingDirectory = File("${applicationFilesDir.path}/staging")
         stagingDirectory.mkdirs()
@@ -144,17 +134,18 @@ class DownloadUtility(
     }
 
     private suspend fun moveRootfsAssetInternal(rootFsFile: File) = withContext(Dispatchers.IO) {
-        val (_, repo, _, _) = rootFsFile.name.split("-", limit = 4)
+        val (_, repo, filename, version) = rootFsFile.name.split("-", limit = 4)
         val destinationDirectory = File("${applicationFilesDir.absolutePath}/$repo")
-        val target = File("${destinationDirectory.absolutePath}/rootfs.tar.gz")
+        val target = File("${destinationDirectory.absolutePath}/$filename")
 
         destinationDirectory.mkdirs()
         rootFsFile.copyTo(target, overwrite = true)
         rootFsFile.delete()
+        assetPreferences.setLatestDownloadFilesystemVersion(repo, version)
     }
 
     private suspend fun extractAsset(tarFile: File) = withContext(Dispatchers.IO) {
-        val (_, repo, filename, _) = tarFile.name.split("-", limit = 4)
+        val (_, repo, filename, version) = tarFile.name.split("-", limit = 4)
         val stagingDirectory = File("${applicationFilesDir.absolutePath}/staging")
         val stagingTarget = File("${stagingDirectory.absolutePath}/$filename")
         val destination = File("${applicationFilesDir.path}/$repo")
@@ -166,5 +157,6 @@ class DownloadUtility(
         val archiver = ArchiverFactory.createArchiver(stagingTarget)
         archiver.extract(stagingTarget, destination)
         stagingDirectory.deleteRecursively()
+        assetPreferences.setLatestDownloadVersion(repo, version)
     }
 }
