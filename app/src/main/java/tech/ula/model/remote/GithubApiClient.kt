@@ -13,11 +13,20 @@ import java.io.IOException
 class GithubApiClient(private val client: OkHttpClient = OkHttpClient()) {
     private val latestResults: HashMap<String, ReleasesResponse?> = hashMapOf()
 
+    // This function can be used to tune the release used for each asset type.
+    private fun getReleaseToUseForRepo(repo: String): String {
+        return "latest"
+//        return when (repo) {
+//            "support" -> "latest"
+//            "debian" -> "tags/:tag"
+//        }
+    }
+
     @Throws()
-    suspend fun getAssetsListDownloadUrl(repo: String): String = withContext(Dispatchers.IO) {
+    suspend fun getAssetsListDownloadUrl(repo: String, buildWrapper: BuildWrapper = BuildWrapper()): String = withContext(Dispatchers.IO) {
         val result = latestResults[repo] ?: queryLatestRelease(repo)
 
-        return@withContext result.assets.find { it.name == "assets.txt" }!!.downloadUrl
+        return@withContext result.assets.find { it.name == "${buildWrapper.getArchType()}-assets.txt" }!!.downloadUrl
     }
 
     @Throws()
@@ -42,7 +51,8 @@ class GithubApiClient(private val client: OkHttpClient = OkHttpClient()) {
     @Throws()
     // Query latest release data and memoize results.
     private suspend fun queryLatestRelease(repo: String): ReleasesResponse = withContext(Dispatchers.IO) {
-        val url = "https://api.github.com/repos/CypherpunkArmory/UserLAnd-Assets-$repo/releases/latest"
+        val releaseToUse = getReleaseToUseForRepo(repo)
+        val url = "https://api.github.com/repos/CypherpunkArmory/UserLAnd-Assets-$repo/releases/$releaseToUse"
         val moshi = Moshi.Builder().build()
         val adapter = moshi.adapter<ReleasesResponse>(ReleasesResponse::class.java)
         val request = Request.Builder()

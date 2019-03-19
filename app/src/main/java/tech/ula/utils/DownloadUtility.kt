@@ -157,6 +157,9 @@ class DownloadUtility(
         val archiver = ArchiverFactory.createArchiver(stagingTarget)
         archiver.extract(stagingTarget, destination)
         stagingDirectory.deleteRecursively()
+        for (file in destination.listFiles()) {
+            makePermissionsUsable(destination.absolutePath, file.name)
+        }
         assetPreferences.setLatestDownloadVersion(repo, version)
     }
 }

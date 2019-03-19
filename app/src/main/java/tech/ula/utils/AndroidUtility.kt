@@ -85,11 +85,6 @@ class DefaultPreferences(private val prefs: SharedPreferences) {
 }
 
 class AssetPreferences(private val prefs: SharedPreferences) {
-    private fun String.addTimestampPrefix(): String {
-        return "timestamp-" + this
-    }
-
-
 
     private val versionString = "version"
     private val rootfsString = "rootfs"
@@ -150,45 +145,19 @@ class AssetPreferences(private val prefs: SharedPreferences) {
         }
     }
 
-    fun getAssetLists(allAssetListTypes: List<Pair<String, String>>): List<List<Asset>> {
-        val assetLists = ArrayList<List<Asset>>()
-        allAssetListTypes.forEach {
-            (assetType, architectureType) ->
-            val allEntries = prefs.getStringSet("$assetType-$architectureType", setOf()) ?: setOf()
-            val assetList: List<Asset> = allEntries.map {
-                val (filename, remoteTimestamp) = it.split(regex = "\\-(?=[^.]*\$)".toRegex(), limit = 2)
-                Asset(filename, assetType, architectureType, remoteTimestamp.toLong())
-            }
-            assetLists.add(assetList)
-        }
-        return assetLists
-    }
-
     fun getCachedAssetList(assetType: String): List<Asset> {
         val entries = prefs.getStringSet(assetType, setOf()) ?: setOf()
         return entries.map { entry ->
-            val (filename, remoteTimestamp) = entry.split(regex = "\\-(?=[^.]*\$)".toRegex(), limit = 2)
-            Asset(filename, assetType, "", remoteTimestamp.toLong()) // TODO arch
+            Asset(entry, assetType)
         }
     }
 
-    fun setAssetList(assetType: String, architectureType: String, assetList: List<Asset>) {
+    fun setAssetList(assetType: String, assetList: List<Asset>) {
         val entries = assetList.map {
-            "${it.name}-${it.remoteTimestamp}"
+            it.name
         }.toSet()
         with(prefs.edit()) {
-            putStringSet("$assetType-$architectureType", entries)
-            apply()
-        }
-    }
-
-    fun getLastDistributionUpdate(distributionType: String): Long {
-        return prefs.getLong("$distributionType-lastUpdate", -1)
-    }
-
-    fun setLastDistributionUpdate(distributionType: String) {
-        with(prefs.edit()) {
-            putLong("$distributionType-lastUpdate", System.currentTimeMillis())
+            putStringSet(assetType, entries)
             apply()
         }
     }

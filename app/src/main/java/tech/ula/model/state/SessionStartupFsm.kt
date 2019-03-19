@@ -231,26 +231,27 @@ class SessionStartupFsm(
         val filesystemDirectoryName = "${filesystem.id}"
         val requiredAssets = assetRepository.getDistributionAssetsForExistingFilesystem(filesystem)
         val allAssetsArePresentOnFilesystem = filesystemUtility.areAllRequiredAssetsPresent(filesystemDirectoryName, requiredAssets)
-//        val filesystemAssetsNeedUpdating = filesystem.lastUpdated < assetRepository.getLastDistributionUpdate(filesystem.distributionType)
+        val lastDownloadedAssetVersion = assetRepository.getLatestDistributionVersion(filesystem.distributionType)
+        val filesystemAssetsNeedUpdating = filesystem.versionCodeUsed < lastDownloadedAssetVersion
 
-//        if (!allAssetsArePresentOnFilesystem || filesystemAssetsNeedUpdating) {
-//            if (!assetRepository.assetsArePresentInSupportDirectories(requiredAssets)) {
-//                state.postValue(AssetsAreMissingFromSupportDirectories)
-//                return@withContext
-//            }
-//
-//            try {
-//                filesystemUtility.copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType)
-//                filesystem.lastUpdated = timeUtility.getCurrentTimeMillis()
-//                filesystemDao.updateFilesystem(filesystem)
-//            } catch (err: Exception) {
-//                state.postValue(FilesystemAssetCopyFailed)
-//            }
-//
-//            if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
-//                filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
-//            }
-//        }
+        if (!allAssetsArePresentOnFilesystem || filesystemAssetsNeedUpdating) {
+            if (!assetRepository.assetsArePresentInSupportDirectories(requiredAssets)) {
+                state.postValue(AssetsAreMissingFromSupportDirectories)
+                return@withContext
+            }
+
+            try {
+                filesystemUtility.copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType)
+                filesystem.versionCodeUsed = lastDownloadedAssetVersion
+                filesystemDao.updateFilesystem(filesystem)
+            } catch (err: Exception) {
+                state.postValue(FilesystemAssetCopyFailed)
+            }
+
+            if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
+                filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
+            }
+        }
 
         state.postValue(FilesystemAssetVerificationSucceeded)
     }

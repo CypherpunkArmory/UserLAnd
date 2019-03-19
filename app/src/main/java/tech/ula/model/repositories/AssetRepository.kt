@@ -22,18 +22,6 @@ class AssetRepository(
     private val connectionUtility: ConnectionUtility = ConnectionUtility()
 ) {
 
-    private suspend fun lastDownloadedVersionIsUpToDate(repo: String): Boolean {
-        val latestCached = assetPreferences.getLatestDownloadVersion(repo)
-        val latestRemote = githubApiClient.getLatestReleaseVersion(repo)
-        return latestCached >= latestRemote
-    }
-
-    private suspend fun lastDownloadedFilesystemVersionIsUpToDate(repo: String): Boolean {
-        val latestCached = assetPreferences.getLatestDownloadFilesystemVersion(repo)
-        val latestRemote = githubApiClient.getLatestReleaseVersion(repo)
-        return latestCached > latestRemote
-    }
-
     suspend fun generateDownloadRequirements(
             filesystem: Filesystem,
             assetLists: HashMap<String, List<Asset>>,
@@ -61,20 +49,8 @@ class AssetRepository(
         return downloadRequirements
     }
 
-    private suspend fun rootFsDownloadRequired(filesystem: Filesystem): Boolean {
-        val rootFsFile = File("$applicationFilesDirPath/${filesystem.distributionType}/rootfs.tar.gz")
-        return !rootFsFile.exists() && !lastDownloadedFilesystemVersionIsUpToDate(filesystem.distributionType)
-    }
-
     fun getDistributionAssetsForExistingFilesystem(filesystem: Filesystem): List<Asset> {
-        val distributionType = filesystem.distributionType
-        val deviceArchitecture = filesystem.archType
-        val distributionAssetListTypes = listOf(
-                distributionType to "all",
-                distributionType to deviceArchitecture
-        )
-        val allAssets = assetPreferences.getAssetLists(distributionAssetListTypes)
-        return allAssets.flatten().filter { !(it.name.contains("rootfs.tar.gz")) }
+        return assetPreferences.getCachedAssetList(filesystem.distributionType)
     }
 
     fun assetsArePresentInSupportDirectories(assets: List<Asset>): Boolean {
@@ -85,12 +61,8 @@ class AssetRepository(
         return true
     }
 
-    fun getLastDistributionUpdate(distributionType: String): Long {
-        return assetPreferences.getLastDistributionUpdate(distributionType)
-    }
-
-    fun setLastDistributionUpdate(distributionType: String) {
-        assetPreferences.setLastDistributionUpdate(distributionType)
+    fun getLatestDistributionVersion(distributionType: String): String {
+        return assetPreferences.getLatestDownloadVersion(distributionType)
     }
 
     suspend fun getAllAssetLists(distributionType: String): HashMap<String, List<Asset>> {
@@ -98,7 +70,7 @@ class AssetRepository(
         listOf(distributionType, "support").forEach { repo ->
             try {
                 val list = fetchAssetList(repo)
-                assetPreferences.setAssetList(repo, "", list) // TODO arch type
+                assetPreferences.setAssetList(repo, list)
                 lists[repo] = list
             } catch (err: Exception) {
                 lists[repo] = assetPreferences.getCachedAssetList(repo)
@@ -116,14 +88,30 @@ class AssetRepository(
 
         val assetList = mutableListOf<Asset>()
         reader.forEachLine {
-            val (filename, timestamp) = it.split(" ")
+            val filename = it.substringBefore(' ')
             if (filename == "assets.txt") return@forEachLine
-            // TODO figure out what to do about architecture type. don't think we care about it
-            assetList.add(Asset(filename, assetType, architectureType = "", remoteTimestamp = timestamp.toLong()))
+            assetList.add(Asset(filename, assetType))
         }
 
         reader.close()
 
         return assetList
+    }
+
+    private suspend fun lastDownloadedVersionIsUpToDate(repo: String): Boolean {
+        val latestCached = assetPreferences.getLatestDownloadVersion(repo)
+        val latestRemote = githubApiClient.getLatestReleaseVersion(repo)
+        return latestCached >= latestRemote
+    }
+
+    private suspend fun lastDownloadedFilesystemVersionIsUpToDate(repo: String): Boolean {
+        val latestCached = assetPreferences.getLatestDownloadFilesystemVersion(repo)
+        val latestRemote = githubApiClient.getLatestReleaseVersion(repo)
+        return latestCached > latestRemote
+    }
+
+    private suspend fun rootFsDownloadRequired(filesystem: Filesystem): Boolean {
+        val rootFsFile = File("$applicationFilesDirPath/${filesystem.distributionType}/rootfs.tar.gz")
+        return !rootFsFile.exists() && !lastDownloadedFilesystemVersionIsUpToDate(filesystem.distributionType)
     }
 }
