@@ -221,7 +221,7 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
         viewPager.setAdapter(new PagerAdapter() {
             @Override
             public int getCount() {
-                return 2;
+                return 3;
             }
 
             @Override
@@ -237,6 +237,9 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
                 if (position == 0) {
                     layout = mExtraKeysView = (ExtraKeysView) inflater.inflate(R.layout.extra_keys_main, collection, false);
                     mExtraKeysView.reload(mSettings.mExtraKeys, ExtraKeysView.defaultCharDisplay);
+                } else if (position == 1) {
+                    layout = mExtraKeysView = (ExtraKeysView) inflater.inflate(R.layout.extra_keys_main, collection, false);
+                    mExtraKeysView.reload(mSettings.mExtraKeys2, ExtraKeysView.defaultCharDisplay);
                 } else {
                     layout = inflater.inflate(R.layout.extra_keys_right, collection, false);
                     final EditText editText = layout.findViewById(R.id.text_input);

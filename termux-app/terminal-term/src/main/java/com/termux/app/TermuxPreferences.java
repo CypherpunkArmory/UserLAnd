@@ -115,6 +115,7 @@ final class TermuxPreferences {
     }
     
     public String[][] mExtraKeys;
+    public String[][] mExtraKeys2;
 
     public void reloadFromProperties(Context context) {
         File propsFile = new File(TermuxService.HOME_PATH + "/.termux/termux.properties");
@@ -148,6 +149,7 @@ final class TermuxPreferences {
 
         try {
             JSONArray arr = new JSONArray(props.getProperty("extra-keys", "[['ESC', 'TAB', 'CTRL', 'ALT', '-', 'DOWN', 'UP']]"));
+            JSONArray secondArr = new JSONArray(props.getProperty("extra-keys", "[['TAB', 'HOME', 'END', 'PGUP', 'PGDN', 'LEFT', 'RIGHT']]"));
 
             mExtraKeys = new String[arr.length()][];
             for (int i = 0; i < arr.length(); i++) {
@@ -157,10 +159,21 @@ final class TermuxPreferences {
                     mExtraKeys[i][j] = line.getString(j);
                 }
             }
+
+            mExtraKeys2 = new String[secondArr.length()][];
+            for (int i = 0; i < secondArr.length(); i++) {
+                JSONArray line = secondArr.getJSONArray(i);
+                mExtraKeys2[i] = new String[line.length()];
+                for (int j = 0; j < line.length(); j++) {
+                    mExtraKeys2[i][j] = line.getString(j);
+                }
+            }
+
         } catch (JSONException e) {
             Toast.makeText(context, "Could not load the extra-keys property from the config: " + e.toString(), Toast.LENGTH_LONG).show();
             Log.e("termux", "Error loading props", e);
             mExtraKeys = new String[0][];
+            mExtraKeys2 = new String[0][];
         }
 
         mBackIsEscape = "escape".equals(props.getProperty("back-key", "back"));
