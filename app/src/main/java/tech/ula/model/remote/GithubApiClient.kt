@@ -40,6 +40,7 @@ class GithubApiClient(private val client: OkHttpClient = OkHttpClient()) {
     }
 
     @Throws()
+    // Query latest release data and memoize results.
     private suspend fun queryLatestRelease(repo: String): ReleasesResponse = withContext(Dispatchers.IO) {
         val url = "https://api.github.com/repos/CypherpunkArmory/UserLAnd-Assets-$repo/releases/latest"
         val moshi = Moshi.Builder().build()
@@ -51,7 +52,7 @@ class GithubApiClient(private val client: OkHttpClient = OkHttpClient()) {
         if (!response.isSuccessful) throw IOException("Unexpected code: $response")
 
         val result = adapter.fromJson(response.body()!!.source())!!
-        latestResults[repo] = result // Memoize results
+        latestResults[repo] = result
         return@withContext result
     }
 
