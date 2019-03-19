@@ -1,7 +1,7 @@
 package tech.ula.utils
 
-import org.kamranzafar.jtar.TarEntry
-import org.kamranzafar.jtar.TarInputStream
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.rauschig.jarchivelib.ArchiveFormat
 import org.rauschig.jarchivelib.ArchiverFactory
 import org.rauschig.jarchivelib.CompressionType
@@ -128,36 +128,43 @@ class DownloadUtility(
 
     }
 
-    fun prepareDownloadsForUse() {
+    suspend fun prepareDownloadsForUse() = withContext(Dispatchers.IO) {
         val stagingDirectory = File("${applicationFilesDir.path}/staging")
         stagingDirectory.mkdirs()
         downloadDirectory.walkBottomUp()
                 .filter { it.name.containsUserland() }
                 .forEach {
-                    val delimitedContents = it.name.split("-", limit = 4)
-                    val (_, directoryName, filename, _) = delimitedContents
-                    val target = File("${stagingDirectory.absolutePath}/$filename")
-                    it.copyTo(target, overwrite = true)
-                    it.delete()
-
-                    if (filename !="rootfs.tar.gz") extractAsset(filename, directoryName)
-                    moveAssetsToCorrectSupportDirectories()
+                    // Use so assets from distribution and support don't overwrite each other
+                    if (it.name.contains("rootfs.tar.gz")) {
+                        moveRootfsAssetInternal(it)
+                        return@forEach
+                    }
+                    extractAsset(it)
                 }
     }
 
-    fun extractAsset(tarFilename: String, directoryName: String) {
-        val tarFile = File("${applicationFilesDir.path}/staging/$tarFilename")
-        val destination = File("${applicationFilesDir.path}/staging/$directoryName")
+    private suspend fun moveRootfsAssetInternal(rootFsFile: File) = withContext(Dispatchers.IO) {
+        val (_, repo, _, _) = rootFsFile.name.split("-", limit = 4)
+        val destinationDirectory = File("${applicationFilesDir.absolutePath}/$repo")
+        val target = File("${destinationDirectory.absolutePath}/rootfs.tar.gz")
 
-        val archiver = ArchiverFactory.createArchiver(tarFile)
-        archiver.extract(tarFile, destination)
+        destinationDirectory.mkdirs()
+        rootFsFile.copyTo(target, overwrite = true)
+        rootFsFile.delete()
     }
 
-    @Throws(Exception::class)
-    fun moveDownloadsToStagingDirectory() {
-    }
+    private suspend fun extractAsset(tarFile: File) = withContext(Dispatchers.IO) {
+        val (_, repo, filename, _) = tarFile.name.split("-", limit = 4)
+        val stagingDirectory = File("${applicationFilesDir.absolutePath}/staging")
+        val stagingTarget = File("${stagingDirectory.absolutePath}/$filename")
+        val destination = File("${applicationFilesDir.path}/$repo")
 
-    fun moveAssetsToCorrectSupportDirectories() {
+        stagingDirectory.mkdirs()
+        tarFile.copyTo(stagingTarget, overwrite = true)
+        tarFile.delete()
 
+        val archiver = ArchiverFactory.createArchiver(stagingTarget)
+        archiver.extract(stagingTarget, destination)
+        stagingDirectory.deleteRecursively()
     }
 }

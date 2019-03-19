@@ -214,13 +214,13 @@ class SessionStartupFsm(
         }
     }
 
-    private suspend fun handleCopyDownloadsToLocalDirectories() = withContext(Dispatchers.IO) {
+    private suspend fun handleCopyDownloadsToLocalDirectories() {
         state.postValue(CopyingFilesToLocalDirectories)
         try {
             downloadUtility.prepareDownloadsForUse()
         } catch (err: Exception) {
             state.postValue(LocalDirectoryCopyFailed)
-            return@withContext
+            return
         }
         state.postValue(LocalDirectoryCopySucceeded)
     }
