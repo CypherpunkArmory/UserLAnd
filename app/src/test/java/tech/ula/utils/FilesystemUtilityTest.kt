@@ -19,15 +19,15 @@ class FilesystemUtilityTest {
 
     @get:Rule val tempFolder = TemporaryFolder()
 
-    lateinit var applicationFilesDirPath: String
+    private lateinit var applicationFilesDirPath: String
 
     @Mock lateinit var mockBusyboxExecutor: BusyboxExecutor
 
     @Mock lateinit var logger: LogUtility
 
-    val statelessListener: (line: String) -> Unit = { }
+    private val statelessListener: (line: String) -> Unit = { }
 
-    lateinit var filesystemUtility: FilesystemUtility
+    private lateinit var filesystemUtility: FilesystemUtility
 
     private val filesystemExtractionSuccess = ".success_filesystem_extraction"
     private val filesystemExtractionFailure = ".failure_filesystem_extraction"
@@ -179,10 +179,10 @@ class FilesystemUtilityTest {
         filesystemUtility.copyAssetsToFilesystem("target", "shared")
 
         assertTrue(targetDirectory.exists())
-        targetFiles.forEach {
-            assertTrue(it.exists())
+        targetFiles.forEach { file ->
+            assertTrue(file.exists())
             var output = ""
-            val proc = Runtime.getRuntime().exec("ls -l ${it.path}")
+            val proc = Runtime.getRuntime().exec("ls -l ${file.path}")
 
             proc.inputStream.bufferedReader(Charsets.UTF_8).forEachLine { output += it }
             val permissions = output.substring(0, 10)
@@ -237,8 +237,8 @@ class FilesystemUtilityTest {
     @Test
     fun onlySucceedsIfAllRequiredAssetsArePresent() {
         val assets = listOf(
-                Asset("name1", "dist1", "arch1", 0),
-                Asset("name2", "dist2", "arch2", 0))
+                Asset("name1", "dist1"),
+                Asset("name2", "dist2"))
 
         // Should fail if the directory doesn't exist
         assertFalse(filesystemUtility.areAllRequiredAssetsPresent("target", assets))
