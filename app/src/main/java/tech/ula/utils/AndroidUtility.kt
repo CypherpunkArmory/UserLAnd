@@ -21,11 +21,8 @@ import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
 import java.io.File
-import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
-import java.net.InetSocketAddress
-import java.net.Socket
 import java.net.URL
 
 fun makePermissionsUsable(containingDirectoryPath: String, filename: String) {
@@ -99,14 +96,14 @@ class AssetPreferences(private val prefs: SharedPreferences) {
     }
 
     fun setLatestDownloadVersion(repo: String, version: String) {
-        with (prefs.edit()) {
+        with(prefs.edit()) {
             putString("$repo-$versionString", version)
             apply()
         }
     }
 
     fun setLatestDownloadFilesystemVersion(repo: String, version: String) {
-        with (prefs.edit()) {
+        with(prefs.edit()) {
             putString("$repo-$rootfsString-$versionString", version)
             apply()
         }

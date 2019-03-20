@@ -4,7 +4,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.rauschig.jarchivelib.ArchiverFactory
 import tech.ula.model.repositories.DownloadMetadata
-import java.io.*
+import java.io.File
+import java.io.IOException
 
 sealed class AssetDownloadState
 object CacheSyncAttemptedWhileCacheIsEmpty : AssetDownloadState()

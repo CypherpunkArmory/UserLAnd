@@ -248,7 +248,6 @@ class SessionStartupFsmTest {
         sessionFsm.setState(SessionIsReadyForPreparation(inactiveSession, filesystem))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-
         runBlocking {
             whenever(mockAssetRepository.getAllAssetLists(filesystem.distributionType))
                     .thenReturn(assetLists)

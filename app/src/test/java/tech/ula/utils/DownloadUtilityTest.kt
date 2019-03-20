@@ -3,7 +3,6 @@ package tech.ula.utils
 import android.app.DownloadManager
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
-import kotlinx.coroutines.runBlocking
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
 import org.junit.Rule
@@ -13,10 +12,8 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.* // ktlint-disable no-wildcard-imports
 import org.mockito.junit.MockitoJUnitRunner
-import tech.ula.model.entities.Asset
 import tech.ula.model.repositories.DownloadMetadata
 import java.io.File
-import kotlin.text.Charsets.UTF_8
 
 @RunWith(MockitoJUnitRunner::class)
 class DownloadUtilityTest {
@@ -232,5 +229,4 @@ class DownloadUtilityTest {
         assertFalse(asset1DownloadsFile.exists())
         assertFalse(asset2DownloadsFile.exists())
     }
-
 }

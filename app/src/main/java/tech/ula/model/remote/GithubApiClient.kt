@@ -38,9 +38,9 @@ class GithubApiClient(private val client: OkHttpClient = OkHttpClient()) {
 
     @Throws()
     suspend fun getAssetEndpoint(
-            assetType: String,
-            repo: String,
-            buildWrapper: BuildWrapper = BuildWrapper()
+        assetType: String,
+        repo: String,
+        buildWrapper: BuildWrapper = BuildWrapper()
     ): String = withContext(Dispatchers.IO) {
         val result = latestResults[repo] ?: queryLatestRelease(repo)
         val assetName = "${buildWrapper.getArchType()}-$assetType"
@@ -68,16 +68,16 @@ class GithubApiClient(private val client: OkHttpClient = OkHttpClient()) {
 
     @JsonClass(generateAdapter = true)
     internal data class ReleasesResponse(
-            val url: String,
-            val name: String,
-            @Json(name = "tag_name") val tag: String,
-            val assets: List<GithubAsset>
+        val url: String,
+        val name: String,
+        @Json(name = "tag_name") val tag: String,
+        val assets: List<GithubAsset>
     )
 
     @JsonClass(generateAdapter = true)
     internal data class GithubAsset(
-            val url: String,
-            val name: String,
-            @Json(name = "browser_download_url") val downloadUrl: String
+        val url: String,
+        val name: String,
+        @Json(name = "browser_download_url") val downloadUrl: String
     )
 }

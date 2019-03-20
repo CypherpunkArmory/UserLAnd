@@ -26,9 +26,9 @@ class AssetRepository(
 ) {
 
     suspend fun generateDownloadRequirements(
-            filesystem: Filesystem,
-            assetLists: HashMap<String, List<Asset>>,
-            filesystemDoesNotNeedExtraction: Boolean
+        filesystem: Filesystem,
+        assetLists: HashMap<String, List<Asset>>,
+        filesystemDoesNotNeedExtraction: Boolean
     ): List<DownloadMetadata> {
         val downloadRequirements = mutableListOf<DownloadMetadata>()
         for (entry in assetLists) {

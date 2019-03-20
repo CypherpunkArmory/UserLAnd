@@ -9,7 +9,6 @@ import tech.ula.model.daos.AppsDao
 import tech.ula.model.entities.App
 import tech.ula.model.remote.RemoteAppsSource
 import tech.ula.utils.AppsPreferences
-import tech.ula.utils.ConnectionUtility
 
 class AppsRepository(
     private val appsDao: AppsDao,
