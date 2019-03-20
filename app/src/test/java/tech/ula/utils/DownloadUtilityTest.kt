@@ -33,6 +33,8 @@ class DownloadUtilityTest {
 
     private lateinit var downloadDirectory: File
 
+    private val userlandDownloadPrefix = "UserLAnd-"
+
     private val name1 = "name1"
     private val name2 = "name2"
     private val type1 = "type1"
@@ -52,6 +54,10 @@ class DownloadUtilityTest {
         downloadDirectory = tempFolder.newFolder("downloads")
         whenever(downloadManagerWrapper.getDownloadsDirectory())
                 .thenReturn(downloadDirectory)
+        whenever(downloadManagerWrapper.generateDownloadRequest(downloadMetadata1.url, "$userlandDownloadPrefix${downloadMetadata1.downloadTitle}"))
+                .thenReturn(requestReturn1)
+        whenever(downloadManagerWrapper.generateDownloadRequest(downloadMetadata2.url, "$userlandDownloadPrefix${downloadMetadata2.downloadTitle}"))
+                .thenReturn(requestReturn2)
 
         downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, applicationFilesDir = tempFolder.root)
     }
@@ -112,8 +118,6 @@ class DownloadUtilityTest {
                 .thenReturn(false)
         whenever(downloadManagerWrapper.downloadHasSucceeded(downloadId))
                 .thenReturn(true)
-        whenever(downloadManagerWrapper.getDownloadTitle(downloadId))
-                .thenReturn("title")
 
         val result = downloadUtility.syncStateWithCache()
 
@@ -137,8 +141,6 @@ class DownloadUtilityTest {
                 .thenReturn(false)
         whenever(downloadManagerWrapper.downloadHasSucceeded(1))
                 .thenReturn(false)
-        whenever(downloadManagerWrapper.getDownloadTitle(0))
-                .thenReturn("title")
 
         val result = downloadUtility.syncStateWithCache()
 
@@ -202,10 +204,6 @@ class DownloadUtilityTest {
                 .thenReturn(false)
         whenever(downloadManagerWrapper.downloadHasFailed(1))
                 .thenReturn(false)
-        whenever(downloadManagerWrapper.getDownloadTitle(0))
-                .thenReturn("userland-")
-        whenever(downloadManagerWrapper.getDownloadTitle(1))
-                .thenReturn("userland-")
 
         val result1 = downloadUtility.handleDownloadComplete(0)
         val result2 = downloadUtility.handleDownloadComplete(1)
@@ -222,8 +220,8 @@ class DownloadUtilityTest {
 
     @Test
     fun `Clears download directory of userland files`() {
-        val asset1DownloadsFile = File("${downloadDirectory.path}/${downloadMetadata1.downloadTitle}")
-        val asset2DownloadsFile = File("${downloadDirectory.path}/${downloadMetadata2.downloadTitle}")
+        val asset1DownloadsFile = File("${downloadDirectory.path}/$userlandDownloadPrefix${downloadMetadata1.downloadTitle}")
+        val asset2DownloadsFile = File("${downloadDirectory.path}/$userlandDownloadPrefix${downloadMetadata2.downloadTitle}")
         asset1DownloadsFile.createNewFile()
         asset2DownloadsFile.createNewFile()
         assertTrue(asset1DownloadsFile.exists())
@@ -235,63 +233,4 @@ class DownloadUtilityTest {
         assertFalse(asset2DownloadsFile.exists())
     }
 
-    @Test
-    fun deletesPreviousDownloads() {
-        tempFolder.newFolder("distType1")
-        tempFolder.newFolder("distType2")
-        val asset1File = File("${tempFolder.root.path}/distType1/name1")
-        val asset2File = File("${tempFolder.root.path}/distType2/name2")
-        asset1File.createNewFile()
-        asset2File.createNewFile()
-        assertTrue(asset1File.exists())
-        assertTrue(asset2File.exists())
-
-        val asset1DownloadsFile = File("${downloadDirectory.path}/${downloadMetadata1.downloadTitle}")
-        val asset2DownloadsFile = File("${downloadDirectory.path}/${downloadMetadata2.downloadTitle}")
-        asset1DownloadsFile.createNewFile()
-        asset2DownloadsFile.createNewFile()
-        assertTrue(asset1DownloadsFile.exists())
-        assertTrue(asset2DownloadsFile.exists())
-
-        downloadUtility.downloadRequirements(downloadList)
-
-        assertFalse(asset1File.exists())
-        assertFalse(asset2File.exists())
-        assertFalse(asset1DownloadsFile.exists())
-        assertFalse(asset2DownloadsFile.exists())
-    }
-
-    @Test
-    fun movesAssetsToCorrectLocationAndUpdatesPermissions() {
-        val asset1DownloadsFile = File("${downloadDirectory.path}/${downloadMetadata1.downloadTitle}")
-        val asset2DownloadsFile = File("${downloadDirectory.path}/${downloadMetadata2.downloadTitle}")
-        asset1DownloadsFile.createNewFile()
-        asset2DownloadsFile.createNewFile()
-
-        val asset1File = File("${tempFolder.root.path}/distType1/name1")
-        val asset2File = File("${tempFolder.root.path}/distType2/name2")
-        assertFalse(asset1File.exists())
-        assertFalse(asset2File.exists())
-
-        runBlocking { downloadUtility.prepareDownloadsForUse() }
-
-        assertFalse(asset1DownloadsFile.exists())
-        assertFalse(asset2DownloadsFile.exists())
-        assertTrue(asset1File.exists())
-        assertTrue(asset2File.exists())
-
-        var output = ""
-        val proc1 = Runtime.getRuntime().exec("ls -l ${asset1File.path}")
-
-        proc1.inputStream.bufferedReader(UTF_8).forEachLine { output += it }
-        val permissions1 = output.substring(0, 10)
-        assertTrue(permissions1 == "-rwxrwxrwx")
-
-        output = ""
-        val proc2 = Runtime.getRuntime().exec("ls -l ${asset2File.path}")
-
-        proc2.inputStream.bufferedReader(UTF_8).forEachLine { output += it }
-        val permissions2 = output.substring(0, 10)
-        assertTrue(permissions2 == "-rwxrwxrwx")
-    }
 }
