@@ -19,7 +19,6 @@ class SessionStartupFsm(
     private val assetRepository: AssetRepository,
     private val filesystemUtility: FilesystemUtility,
     private val downloadUtility: DownloadUtility,
-    private val timeUtility: TimeUtility = TimeUtility(),
     private val acraWrapper: AcraWrapper = AcraWrapper()
 ) {
 

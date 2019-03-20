@@ -13,7 +13,13 @@ import java.io.InputStreamReader
 import java.lang.IllegalStateException
 import kotlin.Exception
 
-data class DownloadMetadata(val filename: String, val assetType: String, val versionCode: String, val url: String)
+data class DownloadMetadata(
+    val filename: String,
+    val assetType: String,
+    val versionCode: String,
+    val url: String,
+    val downloadTitle: String = "$assetType-$filename-$versionCode"
+)
 
 class AssetRepository(
     private val applicationFilesDirPath: String,

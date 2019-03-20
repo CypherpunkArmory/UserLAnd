@@ -43,15 +43,13 @@ class SessionStartupFsmTest {
 
     @Mock lateinit var mockFilesystemUtility: FilesystemUtility
 
-    @Mock lateinit var mockTimeUtility: TimeUtility
-
     @Mock lateinit var mockStateObserver: Observer<SessionStartupState>
 
     @Mock lateinit var mockAcraWrapper: AcraWrapper
 
-    lateinit var activeSessionLiveData: MutableLiveData<List<Session>>
+    private lateinit var activeSessionLiveData: MutableLiveData<List<Session>>
 
-    lateinit var sessionFsm: SessionStartupFsm
+    private lateinit var sessionFsm: SessionStartupFsm
 
     // Test setup variables
     private val activeSession = Session(id = -1, name = "active", filesystemId = -1, active = true)
@@ -117,7 +115,7 @@ class SessionStartupFsmTest {
         whenever(mockUlaDatabase.filesystemDao()).thenReturn(mockFilesystemDao)
         whenever(mockFilesystemDao.getAllFilesystems()).thenReturn(filesystemLiveData)
 
-        sessionFsm = SessionStartupFsm(mockUlaDatabase, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility, mockTimeUtility, mockAcraWrapper)
+        sessionFsm = SessionStartupFsm(mockUlaDatabase, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility, mockAcraWrapper)
     }
 
     @After
@@ -432,7 +430,6 @@ class SessionStartupFsmTest {
     fun `State is LocalDirectoryCopyFailed if a problem arises`() {
         sessionFsm.setState(DownloadsHaveSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
-        whenever(mockDownloadUtility.findDownloadedDistributionType()).thenReturn("")
 
         runBlocking {
             whenever(mockDownloadUtility.prepareDownloadsForUse())

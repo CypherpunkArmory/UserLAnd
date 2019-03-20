@@ -2,13 +2,9 @@ package tech.ula.utils
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.rauschig.jarchivelib.ArchiveFormat
 import org.rauschig.jarchivelib.ArchiverFactory
-import org.rauschig.jarchivelib.CompressionType
-import tech.ula.model.entities.Asset
 import tech.ula.model.repositories.DownloadMetadata
 import java.io.*
-import java.util.zip.GZIPInputStream
 
 sealed class AssetDownloadState
 object CacheSyncAttemptedWhileCacheIsEmpty : AssetDownloadState()
@@ -20,8 +16,7 @@ data class AssetDownloadFailure(val reason: String) : AssetDownloadState()
 class DownloadUtility(
     private val assetPreferences: AssetPreferences,
     private val downloadManagerWrapper: DownloadManagerWrapper,
-    private val applicationFilesDir: File,
-    private val timeUtility: TimeUtility = TimeUtility()
+    private val applicationFilesDir: File
 ) {
     private val downloadDirectory = downloadManagerWrapper.getDownloadsDirectory()
 
@@ -61,7 +56,7 @@ class DownloadUtility(
         completedDownloadIds.clear()
 
         enqueuedDownloadIds.addAll(downloadRequirements.map { metadata ->
-            val destination = "$userlandDownloadPrefix${metadata.assetType}-${metadata.filename}-${metadata.versionCode}"
+            val destination = "$userlandDownloadPrefix${metadata.downloadTitle}"
             val request = downloadManagerWrapper.generateDownloadRequest(metadata.url, destination)
             downloadManagerWrapper.enqueue(request)
         })
@@ -95,16 +90,6 @@ class DownloadUtility(
 
     fun downloadIsForUserland(id: Long): Boolean {
         return enqueuedDownloadIds.contains(id)
-    }
-
-    fun findDownloadedDistributionType(): String {
-        downloadDirectory.listFiles()?.forEach { downloadedFile ->
-            if (downloadedFile.name.containsUserland() && !downloadedFile.name.contains("support")) {
-                val (_, distributionType, _) = downloadedFile.name.split("-", limit = 3)
-                return distributionType
-            }
-        }
-        return ""
     }
 
     private fun clearPreviousDownloadsFromDownloadsDirectory() {
