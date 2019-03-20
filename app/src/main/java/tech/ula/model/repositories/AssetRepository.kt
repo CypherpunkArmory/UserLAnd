@@ -1,16 +1,13 @@
 package tech.ula.model.repositories
 
-import android.arch.lifecycle.MutableLiveData
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.remote.GithubApiClient
 import tech.ula.utils.AssetPreferences
-import tech.ula.utils.BuildWrapper
 import tech.ula.utils.ConnectionUtility
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
-import java.lang.IllegalStateException
 import kotlin.Exception
 
 data class DownloadMetadata(
