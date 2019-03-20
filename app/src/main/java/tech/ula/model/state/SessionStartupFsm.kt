@@ -146,7 +146,7 @@ class SessionStartupFsm(
         state.postValue(GeneratingDownloadRequirements)
 
         // Asset lists should always only include distribution and "support"
-        if (assetLists.size > 2) {
+        if (assetLists.size != 2) {
             state.postValue(UnexpectedDownloadGenerationSize(assetLists.size, assetLists.keys))
             return
         }
@@ -159,15 +159,15 @@ class SessionStartupFsm(
         val filesystemDoesNotNeedExtraction = filesystemUtility
                 .hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}") ||
                 filesystem.isCreatedFromBackup
-        val downloadRequirements = assetRepository
-                .generateDownloadRequirements(filesystem, assetLists, filesystemDoesNotNeedExtraction)
+        val downloadRequirements = assetRepository.generateDownloadRequirements(
+                filesystem, assetLists, filesystemDoesNotNeedExtraction)
 
         if (downloadRequirements.isEmpty()) {
             state.postValue(NoDownloadsRequired)
             return
         }
 
-        val largeDownloadRequired = downloadRequirements.any { it.filename == "rootfs" }
+        val largeDownloadRequired = downloadRequirements.any { it.filename == "rootfs.tar.gz" }
         state.postValue(DownloadsRequired(downloadRequirements, largeDownloadRequired))
     }
 

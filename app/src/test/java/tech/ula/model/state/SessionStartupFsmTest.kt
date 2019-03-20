@@ -63,10 +63,10 @@ class SessionStartupFsmTest {
     private val assetType = "type"
     private val asset = Asset("asset", assetType)
     private val assetList = listOf(asset)
-    private val assetLists = hashMapOf(assetType to assetList)
+    private val assetLists = hashMapOf(assetType to assetList, "support" to assetList)
     private val downloadMetadata = listOf(DownloadMetadata(assetDownloadName, assetType, highVersionCode, url))
 
-    private val filesystem = Filesystem(id = -1)
+    private val filesystem =  Filesystem(id = -1, distributionType = assetType)
 
     private val incorrectTransitionEvent = SessionSelected(inactiveSession)
     private val incorrectTransitionState = RetrievingAssetLists
@@ -272,7 +272,137 @@ class SessionStartupFsmTest {
         verify(mockStateObserver).onChanged(AssetListsRetrievalFailed)
     }
 
-    // TODO download generation tests
+    @Test
+    fun `State is UnexpectedDownloadGenerationSize if asset lists include more than two lists`() {
+        sessionFsm.setState(AssetListsRetrievalSucceeded(assetLists))
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        val largerAssetLists = hashMapOf<String, List<Asset>>(
+                "1" to listOf(),
+                "2" to listOf(),
+                "3" to listOf()
+        )
+
+        runBlocking { sessionFsm.submitEvent(GenerateDownloads(filesystem, largerAssetLists), this) }
+
+        verify(mockStateObserver).onChanged(GeneratingDownloadRequirements)
+        verify(mockStateObserver).onChanged(UnexpectedDownloadGenerationSize(largerAssetLists.size, largerAssetLists.keys))
+    }
+
+    @Test
+    fun `State is UnexpectedDownloadGenerationSize if asset lists include less than two lists`() {
+        sessionFsm.setState(AssetListsRetrievalSucceeded(assetLists))
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        val smallerAssetLists = hashMapOf<String, List<Asset>>(
+                "1" to listOf()
+        )
+
+        runBlocking { sessionFsm.submitEvent(GenerateDownloads(filesystem, smallerAssetLists), this) }
+
+        verify(mockStateObserver).onChanged(GeneratingDownloadRequirements)
+        verify(mockStateObserver).onChanged(UnexpectedDownloadGenerationSize(smallerAssetLists.size, smallerAssetLists.keys))
+    }
+
+    @Test
+    fun `State is UnexpectedDownloadGenerationTypes if distribution is not included`() {
+        sessionFsm.setState(AssetListsRetrievalSucceeded(assetLists))
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        val wrongAssetLists = hashMapOf<String, List<Asset>>(
+                "wrongType" to listOf(),
+                "support" to listOf()
+        )
+
+        runBlocking { sessionFsm.submitEvent(GenerateDownloads(filesystem, wrongAssetLists), this) }
+
+        verify(mockStateObserver).onChanged(GeneratingDownloadRequirements)
+        verify(mockStateObserver).onChanged(UnexpectedDownloadGenerationTypes(filesystem.distributionType, wrongAssetLists.keys))
+    }
+
+    @Test
+    fun `handleGenerateDownloads finds that filesystemDoesNotNeedExtraction if the filesystem is extracted`() {
+        sessionFsm.setState(AssetListsRetrievalSucceeded(assetLists))
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        val filesystemDoesNotNeedExtraction = true
+        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
+                .thenReturn(true)
+
+        runBlocking {
+            whenever(mockAssetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemDoesNotNeedExtraction))
+                    .thenReturn(listOf())
+
+            sessionFsm.submitEvent(GenerateDownloads(filesystem, assetLists), this)
+        }
+
+        verify(mockStateObserver).onChanged(GeneratingDownloadRequirements)
+        verify(mockStateObserver).onChanged(NoDownloadsRequired)
+        verifyBlocking(mockAssetRepository) { generateDownloadRequirements(filesystem, assetLists, filesystemDoesNotNeedExtraction) }
+    }
+
+    @Test
+    fun `handleGenerateDownloads finds that filesystemDoesNotNeedExtraction if it is created from backup`() {
+        sessionFsm.setState(AssetListsRetrievalSucceeded(assetLists))
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        val filesystemDoesNotNeedExtraction = true
+        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
+                .thenReturn(false)
+        filesystem.isCreatedFromBackup = true
+
+        runBlocking {
+            whenever(mockAssetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemDoesNotNeedExtraction))
+                    .thenReturn(listOf())
+
+            sessionFsm.submitEvent(GenerateDownloads(filesystem, assetLists), this)
+        }
+
+        filesystem.isCreatedFromBackup = false // Reset state
+        verify(mockStateObserver).onChanged(GeneratingDownloadRequirements)
+        verify(mockStateObserver).onChanged(NoDownloadsRequired)
+        verifyBlocking(mockAssetRepository) { generateDownloadRequirements(filesystem, assetLists, filesystemDoesNotNeedExtraction) }
+    }
+
+    @Test
+    fun `State is DownloadsRequired and and largeDownloadRequired is false if no rootfs file is included in downloads`() {
+        sessionFsm.setState(AssetListsRetrievalSucceeded(assetLists))
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
+                .thenReturn(false)
+
+        runBlocking {
+            whenever(mockAssetRepository.generateDownloadRequirements(filesystem, assetLists, false))
+                    .thenReturn(downloadMetadata)
+
+            sessionFsm.submitEvent(GenerateDownloads(filesystem, assetLists), this)
+        }
+
+        verify(mockStateObserver).onChanged(GeneratingDownloadRequirements)
+        verify(mockStateObserver).onChanged(DownloadsRequired(downloadMetadata, false))
+    }
+
+    @Test
+    fun `State is DownloadsRequired and and largeDownloadRequired is true if rootfs file is included in downloads`() {
+        sessionFsm.setState(AssetListsRetrievalSucceeded(assetLists))
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
+                .thenReturn(false)
+
+        val metadata = listOf(DownloadMetadata("rootfs.tar.gz", assetType, highVersionCode, url))
+
+        runBlocking {
+            whenever(mockAssetRepository.generateDownloadRequirements(filesystem, assetLists, false))
+                    .thenReturn(metadata)
+
+            sessionFsm.submitEvent(GenerateDownloads(filesystem, assetLists), this)
+        }
+
+        verify(mockStateObserver).onChanged(GeneratingDownloadRequirements)
+        verify(mockStateObserver).onChanged(DownloadsRequired(metadata, true))
+    }
 
     @Test
     fun `State is DownloadsHaveSucceeded once downloads succeed`() {
