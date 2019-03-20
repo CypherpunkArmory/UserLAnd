@@ -2,6 +2,7 @@ package tech.ula.utils
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.rauschig.jarchivelib.Archiver
 import org.rauschig.jarchivelib.ArchiverFactory
 import tech.ula.model.repositories.DownloadMetadata
 import java.io.File
@@ -105,18 +106,17 @@ class DownloadUtility(
     }
 
     @Throws(IOException::class)
-    suspend fun prepareDownloadsForUse() = withContext(Dispatchers.IO) {
+    suspend fun prepareDownloadsForUse(archiverFactory: ArchiveFactoryWrapper = ArchiveFactoryWrapper()) = withContext(Dispatchers.IO) {
         val stagingDirectory = File("${applicationFilesDir.path}/staging")
         stagingDirectory.mkdirs()
         downloadDirectory.walkBottomUp()
                 .filter { it.name.containsUserland() }
                 .forEach {
-                    // Use so assets from distribution and support don't overwrite each other
                     if (it.name.contains("rootfs.tar.gz")) {
                         moveRootfsAssetInternal(it)
                         return@forEach
                     }
-                    extractAsset(it)
+                    extractAssets(it, stagingDirectory, archiverFactory)
                 }
     }
 
@@ -131,22 +131,26 @@ class DownloadUtility(
         assetPreferences.setLatestDownloadFilesystemVersion(repo, version)
     }
 
-    private suspend fun extractAsset(tarFile: File) = withContext(Dispatchers.IO) {
+    private suspend fun extractAssets(tarFile: File, stagingDirectory: File, archiverFactory: ArchiveFactoryWrapper) = withContext(Dispatchers.IO) {
         val (_, repo, filename, version) = tarFile.name.split("-", limit = 4)
-        val stagingDirectory = File("${applicationFilesDir.absolutePath}/staging")
         val stagingTarget = File("${stagingDirectory.absolutePath}/$filename")
         val destination = File("${applicationFilesDir.path}/$repo")
 
-        stagingDirectory.mkdirs()
         tarFile.copyTo(stagingTarget, overwrite = true)
         tarFile.delete()
 
-        val archiver = ArchiverFactory.createArchiver(stagingTarget)
+        val archiver = archiverFactory.createArchiver(stagingTarget)
         archiver.extract(stagingTarget, destination)
         stagingDirectory.deleteRecursively()
         for (file in destination.listFiles()) {
             makePermissionsUsable(destination.absolutePath, file.name)
         }
         assetPreferences.setLatestDownloadVersion(repo, version)
+    }
+}
+
+class ArchiveFactoryWrapper {
+    fun createArchiver(archiverType: File): Archiver {
+        return ArchiverFactory.createArchiver(archiverType)
     }
 }

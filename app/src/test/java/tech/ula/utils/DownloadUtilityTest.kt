@@ -3,6 +3,7 @@ package tech.ula.utils
 import android.app.DownloadManager
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
 import org.junit.Rule
@@ -12,6 +13,7 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.* // ktlint-disable no-wildcard-imports
 import org.mockito.junit.MockitoJUnitRunner
+import org.rauschig.jarchivelib.Archiver
 import tech.ula.model.repositories.DownloadMetadata
 import java.io.File
 
@@ -24,39 +26,58 @@ class DownloadUtilityTest {
 
     @Mock lateinit var downloadManagerWrapper: DownloadManagerWrapper
 
+    private lateinit var mockFilesDir: File
+
     @Mock lateinit var requestReturn1: DownloadManager.Request
 
     @Mock lateinit var requestReturn2: DownloadManager.Request
+
+    @Mock lateinit var mockArchiveFactoryWrapper: ArchiveFactoryWrapper
+
+    @Mock lateinit var mockArchiver: Archiver
 
     private lateinit var downloadDirectory: File
 
     private val userlandDownloadPrefix = "UserLAnd-"
 
-    private val name1 = "name1"
-    private val name2 = "name2"
+    private val rootfsName = "rootfs.tar.gz"
+    private val assetsName = "assets.tar.gz"
     private val type1 = "type1"
     private val type2 = "type2"
     private val url1 = "url1"
     private val url2 = "url2"
     private val version = "v0"
 
-    private val downloadMetadata1 = DownloadMetadata(name1, type1, version, url1)
-    private val downloadMetadata2 = DownloadMetadata(name2, type2, version, url2)
+    private val downloadMetadata1 = DownloadMetadata(rootfsName, type1, version, url1)
+    private val downloadMetadata2 = DownloadMetadata(assetsName, type2, version, url2)
     private val downloadList = listOf(downloadMetadata1, downloadMetadata2)
+
+    private val destination1 = "$userlandDownloadPrefix${downloadMetadata1.downloadTitle}"
+    private val destination2 = "$userlandDownloadPrefix${downloadMetadata2.downloadTitle}"
 
     private lateinit var downloadUtility: DownloadUtility
 
+    private fun setupDownloadState() {
+        whenever(downloadManagerWrapper.enqueue(requestReturn1))
+                .thenReturn(0)
+        whenever(downloadManagerWrapper.enqueue(requestReturn2))
+                .thenReturn(1)
+
+        downloadUtility.downloadRequirements(downloadList)
+    }
+
     @Before
     fun setup() {
+        mockFilesDir = tempFolder.root
         downloadDirectory = tempFolder.newFolder("downloads")
         whenever(downloadManagerWrapper.getDownloadsDirectory())
                 .thenReturn(downloadDirectory)
-        whenever(downloadManagerWrapper.generateDownloadRequest(downloadMetadata1.url, "$userlandDownloadPrefix${downloadMetadata1.downloadTitle}"))
+        whenever(downloadManagerWrapper.generateDownloadRequest(downloadMetadata1.url, destination1))
                 .thenReturn(requestReturn1)
-        whenever(downloadManagerWrapper.generateDownloadRequest(downloadMetadata2.url, "$userlandDownloadPrefix${downloadMetadata2.downloadTitle}"))
+        whenever(downloadManagerWrapper.generateDownloadRequest(downloadMetadata2.url, destination2))
                 .thenReturn(requestReturn2)
 
-        downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, applicationFilesDir = tempFolder.root)
+        downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, mockFilesDir)
     }
 
     @Test
@@ -156,18 +177,13 @@ class DownloadUtilityTest {
 
         downloadUtility.downloadRequirements(downloadList)
 
+        verify(downloadManagerWrapper).generateDownloadRequest(url1, destination1)
+        verify(downloadManagerWrapper).generateDownloadRequest(url2, destination2)
+        verify(downloadManagerWrapper).enqueue(requestReturn1)
+        verify(downloadManagerWrapper).enqueue(requestReturn2)
         verify(assetPreferences).clearEnqueuedDownloadsCache()
         verify(assetPreferences).setDownloadsAreInProgress(true)
         verify(assetPreferences).setEnqueuedDownloads(setOf(0, 1))
-    }
-
-    private fun setupDownloadState() {
-        whenever(downloadManagerWrapper.enqueue(requestReturn1))
-                .thenReturn(0)
-        whenever(downloadManagerWrapper.enqueue(requestReturn2))
-                .thenReturn(1)
-
-        downloadUtility.downloadRequirements(downloadList)
     }
 
     @Test
@@ -228,5 +244,89 @@ class DownloadUtilityTest {
 
         assertFalse(asset1DownloadsFile.exists())
         assertFalse(asset2DownloadsFile.exists())
+    }
+
+    @Test
+    fun `prepareDownloadsForUse creates staging directory`() {
+        val stagingDirectory = File("${mockFilesDir.absolutePath}/staging")
+
+        assertFalse(stagingDirectory.exists())
+        assertFalse(stagingDirectory.isDirectory)
+
+        runBlocking { downloadUtility.prepareDownloadsForUse() }
+
+        assertTrue(stagingDirectory.exists())
+        assertTrue(stagingDirectory.isDirectory)
+    }
+
+    @Test
+    fun `prepareDownloadsForUse moves rootfs files internal`() {
+        val downloadedRootfs = File("${downloadDirectory.absolutePath}/$userlandDownloadPrefix${downloadMetadata1.downloadTitle}")
+        downloadedRootfs.createNewFile()
+
+        val destinationDirectory = File("${mockFilesDir.absolutePath}/$type1")
+        val destinationFile = File("${destinationDirectory.absolutePath}/$rootfsName")
+
+        assertFalse(destinationDirectory.exists())
+        assertFalse(destinationFile.exists())
+
+        runBlocking { downloadUtility.prepareDownloadsForUse(mockArchiveFactoryWrapper) }
+
+        assertFalse(downloadedRootfs.exists())
+
+        assertTrue(destinationDirectory.exists())
+        assertTrue(destinationFile.exists())
+        verify(assetPreferences).setLatestDownloadFilesystemVersion(type1, version)
+    }
+
+    @Test
+    fun `prepareDownloadsForUse overwrites stale rootfs files`() {
+        val expectedText = "expected"
+        val downloadedRootfs = File("${downloadDirectory.absolutePath}/$userlandDownloadPrefix${downloadMetadata1.downloadTitle}")
+        downloadedRootfs.createNewFile()
+        downloadedRootfs.writeText(expectedText)
+
+        val destinationDirectory = File("${mockFilesDir.absolutePath}/$type1")
+        val destinationFile = File("${destinationDirectory.absolutePath}/$rootfsName")
+        destinationDirectory.mkdirs()
+        destinationFile.createNewFile()
+        destinationFile.writeText("original")
+
+        runBlocking { downloadUtility.prepareDownloadsForUse(mockArchiveFactoryWrapper) }
+
+        assertFalse(downloadedRootfs.exists())
+
+        assertTrue(destinationDirectory.exists())
+        assertTrue(destinationFile.exists())
+        verify(assetPreferences).setLatestDownloadFilesystemVersion(type1, version)
+
+        val text = destinationFile.readText()
+        assertEquals(expectedText, text)
+    }
+
+    @Test
+    fun `prepareDownloadsForUse extracts assets tar files`() {
+        val downloadedAssets = File("${downloadDirectory.absolutePath}/$userlandDownloadPrefix${downloadMetadata2.downloadTitle}")
+        downloadedAssets.createNewFile()
+        assertTrue(downloadedAssets.exists())
+
+        val stagingDirectory = File("${mockFilesDir.absolutePath}/staging")
+        val stagingTarget = File("${stagingDirectory.absolutePath}/$assetsName")
+        val destination = File("${mockFilesDir.absolutePath}/$type2")
+
+        whenever(mockArchiveFactoryWrapper.createArchiver(stagingTarget))
+                .thenReturn(mockArchiver)
+        whenever(mockArchiver.extract(stagingTarget, destination))
+                .then {
+                    destination.mkdirs()
+                    File("${destination.absolutePath}/test").createNewFile()
+                }
+
+        runBlocking { downloadUtility.prepareDownloadsForUse(mockArchiveFactoryWrapper) }
+
+        assertFalse(downloadedAssets.exists())
+        verify(mockArchiver).extract(stagingTarget, destination)
+        assertFalse(stagingDirectory.exists())
+        verify(assetPreferences).setLatestDownloadVersion(type2, version)
     }
 }
