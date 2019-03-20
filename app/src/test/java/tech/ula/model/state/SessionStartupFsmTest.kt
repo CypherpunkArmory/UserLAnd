@@ -22,6 +22,7 @@ import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import java.io.IOException
 import kotlin.Exception
 
 @RunWith(MockitoJUnitRunner::class)
@@ -56,13 +57,14 @@ class SessionStartupFsmTest {
     private val inactiveSession = Session(id = -1, name = "inactive", filesystemId = -1, active = false)
 
     private val assetDownloadName = "arm-assets.tar.gz"
-    private val versionCode = "v0.0.0"
+    private val lowVersionCode = "v0.0.0"
+    private val highVersionCode = "v1.0.0"
     private val url = "https://test.com"
     private val assetType = "type"
     private val asset = Asset("asset", assetType)
     private val assetList = listOf(asset)
     private val assetLists = hashMapOf(assetType to assetList)
-    private val downloadMetadata = listOf(DownloadMetadata(assetDownloadName, assetType, versionCode, url))
+    private val downloadMetadata = listOf(DownloadMetadata(assetDownloadName, assetType, highVersionCode, url))
 
     private val filesystem = Filesystem(id = -1)
 
@@ -120,6 +122,7 @@ class SessionStartupFsmTest {
 
     @After
     fun teardown() {
+        filesystem.versionCodeUsed = ""
         activeSessionLiveData = MutableLiveData()
     }
 
@@ -262,8 +265,9 @@ class SessionStartupFsmTest {
 
         runBlocking {
             whenever(mockAssetRepository.getAllAssetLists(filesystem.distributionType))
-                    .thenReturn(hashMapOf())
-            sessionFsm.submitEvent(RetrieveAssetLists(filesystem), this) }
+                    .thenReturn(hashMapOf(filesystem.distributionType to listOf()))
+            sessionFsm.submitEvent(RetrieveAssetLists(filesystem), this)
+        }
 
         verify(mockStateObserver).onChanged(RetrievingAssetLists)
         verify(mockStateObserver).onChanged(AssetListsRetrievalFailed)
@@ -433,7 +437,7 @@ class SessionStartupFsmTest {
 
         runBlocking {
             whenever(mockDownloadUtility.prepareDownloadsForUse())
-                    .thenThrow(Exception())
+                    .thenThrow(IOException())
             sessionFsm.submitEvent(CopyDownloadsToLocalStorage, this)
         }
 
@@ -446,13 +450,13 @@ class SessionStartupFsmTest {
         sessionFsm.setState(LocalDirectoryCopySucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        filesystem.versionCodeUsed = "v1.0.0"
+        filesystem.versionCodeUsed = highVersionCode
         whenever(mockAssetRepository.getDistributionAssetsForExistingFilesystem(filesystem))
                 .thenReturn(assetList)
         whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", assetList))
                 .thenReturn(true)
         whenever(mockAssetRepository.getLatestDistributionVersion(filesystem.distributionType))
-                .thenReturn("v0.0.0")
+                .thenReturn(lowVersionCode)
 
         runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem), this) }
 
@@ -485,13 +489,13 @@ class SessionStartupFsmTest {
         sessionFsm.setState(LocalDirectoryCopySucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        filesystem.versionCodeUsed = "v0.0.0"
+        filesystem.versionCodeUsed = lowVersionCode
         whenever(mockAssetRepository.getDistributionAssetsForExistingFilesystem(filesystem))
                 .thenReturn(assetList)
         whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", assetList))
                 .thenReturn(true)
         whenever(mockAssetRepository.getLatestDistributionVersion(filesystem.distributionType))
-                .thenReturn("v1.0.0")
+                .thenReturn(highVersionCode)
         whenever(mockAssetRepository.assetsArePresentInSupportDirectories(assetList))
                 .thenReturn(false)
 
@@ -515,14 +519,14 @@ class SessionStartupFsmTest {
         whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
                 .thenReturn(false)
 
-        filesystem.versionCodeUsed = "v0.0.0"
+        filesystem.versionCodeUsed = lowVersionCode
         whenever(mockAssetRepository.getLatestDistributionVersion(filesystem.distributionType))
-                .thenReturn("v1.0.0")
+                .thenReturn(highVersionCode)
 
         runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem), this) }
 
         val updatedFilesystem = filesystem
-        updatedFilesystem.versionCodeUsed = "v1.0.0"
+        updatedFilesystem.versionCodeUsed = highVersionCode
         verify(mockFilesystemUtility).copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType)
         verify(mockFilesystemDao).updateFilesystem(updatedFilesystem)
         verify(mockFilesystemUtility, never()).removeRootfsFilesFromFilesystem("${filesystem.id}")
@@ -544,14 +548,14 @@ class SessionStartupFsmTest {
         whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
                 .thenReturn(true)
 
-        filesystem.versionCodeUsed = "v0.0.0"
+        filesystem.versionCodeUsed = lowVersionCode
         whenever(mockAssetRepository.getLatestDistributionVersion(filesystem.distributionType))
-                .thenReturn("v1.0.0")
+                .thenReturn(highVersionCode)
 
         runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem), this) }
 
         val updatedFilesystem = filesystem
-        updatedFilesystem.versionCodeUsed = "v1.0.0"
+        updatedFilesystem.versionCodeUsed = highVersionCode
         verify(mockFilesystemUtility).copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType)
         verify(mockFilesystemDao).updateFilesystem(updatedFilesystem)
         verify(mockFilesystemUtility).removeRootfsFilesFromFilesystem("${filesystem.id}")
@@ -568,9 +572,13 @@ class SessionStartupFsmTest {
                 .thenReturn(assetList)
         whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", assetList))
                 .thenReturn(false)
+
+        filesystem.versionCodeUsed = highVersionCode
+        whenever(mockAssetRepository.getLatestDistributionVersion(filesystem.distributionType))
+                .thenReturn(lowVersionCode)
+
         whenever(mockAssetRepository.assetsArePresentInSupportDirectories(assetList))
                 .thenReturn(true)
-
         whenever(mockFilesystemUtility.copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType))
                 .thenThrow(Exception::class.java)
 

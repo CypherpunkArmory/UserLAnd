@@ -103,6 +103,7 @@ class DownloadUtility(
         }
     }
 
+    @Throws(IOException::class)
     suspend fun prepareDownloadsForUse() = withContext(Dispatchers.IO) {
         val stagingDirectory = File("${applicationFilesDir.path}/staging")
         stagingDirectory.mkdirs()
