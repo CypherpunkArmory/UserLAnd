@@ -10,7 +10,10 @@ import okhttp3.Request
 import tech.ula.utils.BuildWrapper
 import java.io.IOException
 
-class GithubApiClient(private val client: OkHttpClient = OkHttpClient()) {
+class GithubApiClient(
+        private val client: OkHttpClient = OkHttpClient(),
+        private val buildWrapper: BuildWrapper = BuildWrapper()
+) {
     private val latestResults: HashMap<String, ReleasesResponse?> = hashMapOf()
 
     // This function can be used to tune the release used for each asset type for testing purposes.
@@ -22,8 +25,8 @@ class GithubApiClient(private val client: OkHttpClient = OkHttpClient()) {
 //        }
     }
 
-    @Throws()
-    suspend fun getAssetsListDownloadUrl(repo: String, buildWrapper: BuildWrapper = BuildWrapper()): String = withContext(Dispatchers.IO) {
+    @Throws(IOException::class)
+    suspend fun getAssetsListDownloadUrl(repo: String): String = withContext(Dispatchers.IO) {
         val result = latestResults[repo] ?: queryLatestRelease(repo)
 
         return@withContext result.assets.find { it.name == "${buildWrapper.getArchType()}-assets.txt" }!!.downloadUrl
@@ -37,11 +40,7 @@ class GithubApiClient(private val client: OkHttpClient = OkHttpClient()) {
     }
 
     @Throws()
-    suspend fun getAssetEndpoint(
-        assetType: String,
-        repo: String,
-        buildWrapper: BuildWrapper = BuildWrapper()
-    ): String = withContext(Dispatchers.IO) {
+    suspend fun getAssetEndpoint(assetType: String, repo: String): String = withContext(Dispatchers.IO) {
         val result = latestResults[repo] ?: queryLatestRelease(repo)
         val assetName = "${buildWrapper.getArchType()}-$assetType"
 
