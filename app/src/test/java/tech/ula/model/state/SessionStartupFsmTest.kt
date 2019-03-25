@@ -321,16 +321,16 @@ class SessionStartupFsmTest {
     }
 
     @Test
-    fun `handleGenerateDownloads finds that filesystemDoesNotNeedExtraction if the filesystem is extracted`() {
+    fun `handleGenerateDownloads finds that filesystemNeedsExtraction is false if the filesystem is extracted`() {
         sessionFsm.setState(AssetListsRetrievalSucceeded(assetLists))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        val filesystemDoesNotNeedExtraction = true
+        val filesysteNeedsExtraction = false
         whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
                 .thenReturn(true)
 
         runBlocking {
-            whenever(mockAssetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemDoesNotNeedExtraction))
+            whenever(mockAssetRepository.generateDownloadRequirements(filesystem, assetLists, filesysteNeedsExtraction))
                     .thenReturn(listOf())
 
             sessionFsm.submitEvent(GenerateDownloads(filesystem, assetLists), this)
@@ -338,21 +338,21 @@ class SessionStartupFsmTest {
 
         verify(mockStateObserver).onChanged(GeneratingDownloadRequirements)
         verify(mockStateObserver).onChanged(NoDownloadsRequired)
-        verifyBlocking(mockAssetRepository) { generateDownloadRequirements(filesystem, assetLists, filesystemDoesNotNeedExtraction) }
+        verifyBlocking(mockAssetRepository) { generateDownloadRequirements(filesystem, assetLists, filesysteNeedsExtraction) }
     }
 
     @Test
-    fun `handleGenerateDownloads finds that filesystemDoesNotNeedExtraction if it is created from backup`() {
+    fun `handleGenerateDownloads finds that filesystemNeedsExtraction is false if it is created from backup`() {
         sessionFsm.setState(AssetListsRetrievalSucceeded(assetLists))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        val filesystemDoesNotNeedExtraction = true
+        val filesystemNeedsExtraction = false
         whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
                 .thenReturn(false)
         filesystem.isCreatedFromBackup = true
 
         runBlocking {
-            whenever(mockAssetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemDoesNotNeedExtraction))
+            whenever(mockAssetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemNeedsExtraction))
                     .thenReturn(listOf())
 
             sessionFsm.submitEvent(GenerateDownloads(filesystem, assetLists), this)
@@ -361,7 +361,7 @@ class SessionStartupFsmTest {
         filesystem.isCreatedFromBackup = false // Reset state
         verify(mockStateObserver).onChanged(GeneratingDownloadRequirements)
         verify(mockStateObserver).onChanged(NoDownloadsRequired)
-        verifyBlocking(mockAssetRepository) { generateDownloadRequirements(filesystem, assetLists, filesystemDoesNotNeedExtraction) }
+        verifyBlocking(mockAssetRepository) { generateDownloadRequirements(filesystem, assetLists, filesystemNeedsExtraction) }
     }
 
     @Test
@@ -370,7 +370,7 @@ class SessionStartupFsmTest {
         sessionFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
-                .thenReturn(false)
+                .thenReturn(true)
 
         runBlocking {
             whenever(mockAssetRepository.generateDownloadRequirements(filesystem, assetLists, false))
@@ -394,7 +394,7 @@ class SessionStartupFsmTest {
         val metadata = listOf(DownloadMetadata("rootfs.tar.gz", assetType, highVersionCode, url))
 
         runBlocking {
-            whenever(mockAssetRepository.generateDownloadRequirements(filesystem, assetLists, false))
+            whenever(mockAssetRepository.generateDownloadRequirements(filesystem, assetLists, true))
                     .thenReturn(metadata)
 
             sessionFsm.submitEvent(GenerateDownloads(filesystem, assetLists), this)
@@ -554,7 +554,7 @@ class SessionStartupFsmTest {
 
         runBlocking { sessionFsm.submitEvent(CopyDownloadsToLocalStorage, this) }
 
-        verifyBlocking(mockDownloadUtility) { prepareDownloadsForUse() }
+        verifyBlocking(mockDownloadUtility) { prepareDownloadsForUse(anyOrNull()) }
         verify(mockStateObserver).onChanged(CopyingFilesToLocalDirectories)
         verify(mockStateObserver).onChanged(LocalDirectoryCopySucceeded)
     }
@@ -565,7 +565,7 @@ class SessionStartupFsmTest {
         sessionFsm.getState().observeForever(mockStateObserver)
 
         runBlocking {
-            whenever(mockDownloadUtility.prepareDownloadsForUse())
+            whenever(mockDownloadUtility.prepareDownloadsForUse(anyOrNull()))
                     .thenThrow(IOException())
             sessionFsm.submitEvent(CopyDownloadsToLocalStorage, this)
         }

@@ -103,7 +103,7 @@ class AssetRepositoryTest {
     @Test
     fun `generateDownloadRequirements does not include assets already present if they are up to date`() {
         val supportAssetDirectory = File("$applicationFilesDirPath/$supportRepo")
-        val supportAssetFile = File("${supportAssetDirectory.absolutePath}/$assetName")
+        val supportAssetFile = File("${supportAssetDirectory.absolutePath}/${supportAsset.name}")
         supportAssetDirectory.mkdirs()
         supportAssetFile.createNewFile()
 
