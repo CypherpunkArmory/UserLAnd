@@ -2,7 +2,7 @@ package tech.ula.model.repositories
 
 import com.nhaarman.mockitokotlin2.* // ktlint-disable no-wildcard-imports
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.*
+import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -64,7 +64,6 @@ class AssetRepositoryTest {
             whenever(mockGithubApiClient.getLatestReleaseVersion(repo))
                     .thenReturn(remoteVersion)
         }
-
     }
 
     private fun stubApiVersionAndUrl(repo: String, versionCode: String, url: String) {
@@ -205,7 +204,6 @@ class AssetRepositoryTest {
         stubAssetDoesNotNeedDownloading(distAsset, repo)
         val filesystemNeedsExtraction = true
 
-
         val result = runBlocking {
             assetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemNeedsExtraction)
         }
@@ -301,7 +299,6 @@ class AssetRepositoryTest {
         val supportAssetFile = File("${supportDir.absolutePath}/${supportAsset.name}")
         val distDir = File("$applicationFilesDirPath/$distRepo")
         val distAssetFile = File("${distDir.absolutePath}/${distAsset.name}")
-
 
         supportDir.mkdirs()
         distDir.mkdirs()

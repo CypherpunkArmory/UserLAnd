@@ -17,8 +17,8 @@ class UrlProvider {
 }
 
 class GithubApiClient(
-        private val buildWrapper: BuildWrapper = BuildWrapper(),
-        private val urlProvider: UrlProvider = UrlProvider()
+    private val buildWrapper: BuildWrapper = BuildWrapper(),
+    private val urlProvider: UrlProvider = UrlProvider()
 ) {
     private val client = OkHttpClient()
     private val latestResults: HashMap<String, ReleasesResponse?> = hashMapOf()

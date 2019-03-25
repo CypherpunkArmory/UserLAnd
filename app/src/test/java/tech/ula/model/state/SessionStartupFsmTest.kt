@@ -66,7 +66,7 @@ class SessionStartupFsmTest {
     private val assetLists = hashMapOf(assetType to assetList, "support" to assetList)
     private val downloadMetadata = listOf(DownloadMetadata(assetDownloadName, assetType, highVersionCode, url))
 
-    private val filesystem =  Filesystem(id = -1, distributionType = assetType)
+    private val filesystem = Filesystem(id = -1, distributionType = assetType)
 
     private val incorrectTransitionEvent = SessionSelected(inactiveSession)
     private val incorrectTransitionState = RetrievingAssetLists

@@ -1,20 +1,14 @@
 package tech.ula.model.remote
 
-import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.runBlocking
-import okhttp3.Call
-import okhttp3.OkHttpClient
-import okhttp3.Response
-import okhttp3.ResponseBody
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import okio.BufferedSource
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -81,7 +75,7 @@ class GithubApiClientTest {
     fun setup() {
         whenever(mockBuildWrapper.getArchType()).thenReturn(testArch)
 
-        githubApiClient = GithubApiClient(buildWrapper =  mockBuildWrapper, urlProvider =  mockUrlProvider)
+        githubApiClient = GithubApiClient(buildWrapper = mockBuildWrapper, urlProvider = mockUrlProvider)
     }
 
     @After
