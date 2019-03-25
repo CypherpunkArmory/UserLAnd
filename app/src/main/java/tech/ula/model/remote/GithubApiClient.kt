@@ -10,10 +10,17 @@ import okhttp3.Request
 import tech.ula.utils.BuildWrapper
 import java.io.IOException
 
+class UrlProvider {
+    fun getBaseUrl(): String {
+        return "https://api.github.com"
+    }
+}
+
 class GithubApiClient(
-        private val client: OkHttpClient = OkHttpClient(),
-        private val buildWrapper: BuildWrapper = BuildWrapper()
+        private val buildWrapper: BuildWrapper = BuildWrapper(),
+        private val urlProvider: UrlProvider = UrlProvider()
 ) {
+    private val client = OkHttpClient()
     private val latestResults: HashMap<String, ReleasesResponse?> = hashMapOf()
 
     // This function can be used to tune the release used for each asset type for testing purposes.
@@ -32,14 +39,14 @@ class GithubApiClient(
         return@withContext result.assets.find { it.name == "${buildWrapper.getArchType()}-assets.txt" }!!.downloadUrl
     }
 
-    @Throws()
+    @Throws(IOException::class)
     suspend fun getLatestReleaseVersion(repo: String): String = withContext(Dispatchers.IO) {
         val result = latestResults[repo] ?: queryLatestRelease(repo)
 
         return@withContext result.tag
     }
 
-    @Throws()
+    @Throws(IOException::class)
     suspend fun getAssetEndpoint(assetType: String, repo: String): String = withContext(Dispatchers.IO) {
         val result = latestResults[repo] ?: queryLatestRelease(repo)
         val assetName = "${buildWrapper.getArchType()}-$assetType"
@@ -47,11 +54,12 @@ class GithubApiClient(
         return@withContext result.assets.find { it.name == assetName }!!.downloadUrl
     }
 
-    @Throws()
     // Query latest release data and memoize results.
+    @Throws(IOException::class)
     private suspend fun queryLatestRelease(repo: String): ReleasesResponse = withContext(Dispatchers.IO) {
         val releaseToUse = getReleaseToUseForRepo(repo)
-        val url = "https://api.github.com/repos/CypherpunkArmory/UserLAnd-Assets-$repo/releases/$releaseToUse"
+        val base = urlProvider.getBaseUrl()
+        val url = base + "repos/CypherpunkArmory/UserLAnd-Assets-$repo/releases/$releaseToUse"
         val moshi = Moshi.Builder().build()
         val adapter = moshi.adapter<ReleasesResponse>(ReleasesResponse::class.java)
         val request = Request.Builder()
