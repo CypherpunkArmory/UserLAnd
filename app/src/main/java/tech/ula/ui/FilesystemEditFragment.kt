@@ -117,11 +117,14 @@ class FilesystemEditFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupTextInputs()
-        setupImportButton()
-        setupAdvancedOptionButton()
 
         if (editExisting) {
+            btn_show_advanced_options.visibility = View.GONE
             spinner_filesystem_type.isEnabled = false
+        }
+        else {
+            setupImportButton()
+            setupAdvancedOptionButton()
         }
         spinner_filesystem_type.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
 
