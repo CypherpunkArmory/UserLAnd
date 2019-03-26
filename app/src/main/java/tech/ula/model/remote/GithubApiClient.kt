@@ -12,7 +12,7 @@ import java.io.IOException
 
 class UrlProvider {
     fun getBaseUrl(): String {
-        return "https://api.github.com"
+        return "https://api.github.com/"
     }
 }
 
