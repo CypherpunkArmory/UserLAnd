@@ -1,7 +1,12 @@
 package tech.ula.utils
 
-import tech.ula.model.entities.Asset
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.rauschig.jarchivelib.Archiver
+import org.rauschig.jarchivelib.ArchiverFactory
+import tech.ula.model.repositories.DownloadMetadata
 import java.io.File
+import java.io.IOException
 
 sealed class AssetDownloadState
 object CacheSyncAttemptedWhileCacheIsEmpty : AssetDownloadState()
@@ -13,8 +18,7 @@ data class AssetDownloadFailure(val reason: String) : AssetDownloadState()
 class DownloadUtility(
     private val assetPreferences: AssetPreferences,
     private val downloadManagerWrapper: DownloadManagerWrapper,
-    private val applicationFilesDir: File,
-    private val timeUtility: TimeUtility = TimeUtility()
+    private val applicationFilesDir: File
 ) {
     private val downloadDirectory = downloadManagerWrapper.getDownloadsDirectory()
 
@@ -47,11 +51,17 @@ class DownloadUtility(
         return CompletedDownloadsUpdate(completedDownloadIds.size, enqueuedDownloadIds.size)
     }
 
-    fun downloadRequirements(assetList: List<Asset>) {
+    fun downloadRequirements(downloadRequirements: List<DownloadMetadata>) {
         clearPreviousDownloadsFromDownloadsDirectory()
         assetPreferences.clearEnqueuedDownloadsCache()
+        enqueuedDownloadIds.clear()
+        completedDownloadIds.clear()
 
-        enqueuedDownloadIds.addAll(assetList.map { download(it) })
+        enqueuedDownloadIds.addAll(downloadRequirements.map { metadata ->
+            val destination = "$userlandDownloadPrefix${metadata.downloadTitle}"
+            val request = downloadManagerWrapper.generateDownloadRequest(metadata.url, destination)
+            downloadManagerWrapper.enqueue(request)
+        })
         assetPreferences.setDownloadsAreInProgress(inProgress = true)
         assetPreferences.setEnqueuedDownloads(enqueuedDownloadIds)
     }
@@ -65,7 +75,6 @@ class DownloadUtility(
         }
 
         completedDownloadIds.add(downloadId)
-        setTimestampForDownloadedFile(downloadId)
         if (completedDownloadIds.size != enqueuedDownloadIds.size) {
             return CompletedDownloadsUpdate(completedDownloadIds.size, enqueuedDownloadIds.size)
         }
@@ -85,27 +94,6 @@ class DownloadUtility(
         return enqueuedDownloadIds.contains(id)
     }
 
-    fun findDownloadedDistributionType(): String {
-        downloadDirectory.listFiles()?.forEach { downloadedFile ->
-            if (downloadedFile.name.containsUserland() && !downloadedFile.name.contains("support")) {
-                val (_, distributionType, _) = downloadedFile.name.split("-", limit = 3)
-                return distributionType
-            }
-        }
-        return ""
-    }
-
-    private fun download(asset: Asset): Long {
-        val branch = getBranchToDownloadAssetsFrom(asset.distributionType)
-        val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-" +
-                "${asset.distributionType}/raw/$branch/assets/" +
-                "${asset.architectureType}/${asset.name}"
-        val destination = asset.concatenatedName
-        val request = downloadManagerWrapper.generateDownloadRequest(url, destination)
-        deletePreviousDownloadFromLocalDirectory(asset)
-        return downloadManagerWrapper.enqueue(request)
-    }
-
     private fun clearPreviousDownloadsFromDownloadsDirectory() {
         val downloadDirectoryFiles = downloadDirectory.listFiles()
         downloadDirectoryFiles?.let {
@@ -117,34 +105,52 @@ class DownloadUtility(
         }
     }
 
-    private fun deletePreviousDownloadFromLocalDirectory(asset: Asset) {
-        val localFile = File(applicationFilesDir, asset.pathName)
-
-        if (localFile.exists())
-            localFile.delete()
-    }
-
-    private fun setTimestampForDownloadedFile(id: Long) {
-        val titleName = downloadManagerWrapper.getDownloadTitle(id)
-        if (!titleName.containsUserland()) return
-        // Title should be asset.concatenatedName
-        val currentTimeSeconds = timeUtility.getCurrentTimeSeconds()
-        assetPreferences.setLastUpdatedTimestampForAssetUsingConcatenatedName(titleName, currentTimeSeconds)
-    }
-
-    @Throws(Exception::class)
-    fun moveAssetsToCorrectLocalDirectory() {
+    @Throws(IOException::class)
+    suspend fun prepareDownloadsForUse(archiverFactory: ArchiveFactoryWrapper = ArchiveFactoryWrapper()) = withContext(Dispatchers.IO) {
+        val stagingDirectory = File("${applicationFilesDir.path}/staging")
+        stagingDirectory.mkdirs()
         downloadDirectory.walkBottomUp()
                 .filter { it.name.containsUserland() }
                 .forEach {
-                    val delimitedContents = it.name.split("-", limit = 3)
-                    if (delimitedContents.size != 3) return@forEach
-                    val (_, directory, filename) = delimitedContents
-                    val containingDirectory = File("${applicationFilesDir.path}/$directory")
-                    val targetDestination = File("${containingDirectory.path}/$filename")
-                    it.copyTo(targetDestination, overwrite = true)
-                    makePermissionsUsable(containingDirectory.path, filename)
-                    it.delete()
+                    if (it.name.contains("rootfs.tar.gz")) {
+                        moveRootfsAssetInternal(it)
+                        return@forEach
+                    }
+                    extractAssets(it, stagingDirectory, archiverFactory)
                 }
+    }
+
+    private suspend fun moveRootfsAssetInternal(rootFsFile: File) = withContext(Dispatchers.IO) {
+        val (_, repo, filename, version) = rootFsFile.name.split("-", limit = 4)
+        val destinationDirectory = File("${applicationFilesDir.absolutePath}/$repo")
+        val target = File("${destinationDirectory.absolutePath}/$filename")
+
+        destinationDirectory.mkdirs()
+        rootFsFile.copyTo(target, overwrite = true)
+        rootFsFile.delete()
+        assetPreferences.setLatestDownloadFilesystemVersion(repo, version)
+    }
+
+    private suspend fun extractAssets(tarFile: File, stagingDirectory: File, archiverFactory: ArchiveFactoryWrapper) = withContext(Dispatchers.IO) {
+        val (_, repo, filename, version) = tarFile.name.split("-", limit = 4)
+        val stagingTarget = File("${stagingDirectory.absolutePath}/$filename")
+        val destination = File("${applicationFilesDir.path}/$repo")
+
+        tarFile.copyTo(stagingTarget, overwrite = true)
+        tarFile.delete()
+
+        val archiver = archiverFactory.createArchiver(stagingTarget)
+        archiver.extract(stagingTarget, destination)
+        stagingDirectory.deleteRecursively()
+        for (file in destination.listFiles()) {
+            makePermissionsUsable(destination.absolutePath, file.name)
+        }
+        assetPreferences.setLatestDownloadVersion(repo, version)
+    }
+}
+
+class ArchiveFactoryWrapper {
+    fun createArchiver(archiverType: File): Archiver {
+        return ArchiverFactory.createArchiver(archiverType)
     }
 }

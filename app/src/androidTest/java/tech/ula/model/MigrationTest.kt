@@ -111,6 +111,14 @@ class MigrationTest {
         helper.runMigrationsAndValidate(TEST_DB, 6, true, Migration5To6())
     }
 
+    @Test
+    @Throws(IOException::class)
+    fun migrate6To7() {
+        helper.createDatabase(TEST_DB, 6)
+
+        helper.runMigrationsAndValidate(TEST_DB, 7, true, Migration6To7())
+    }
+
     private fun getMigratedDatabase(): UlaDatabase {
         val db = Room.databaseBuilder(InstrumentationRegistry.getTargetContext(),
                 UlaDatabase::class.java, TEST_DB)
@@ -119,7 +127,8 @@ class MigrationTest {
                         Migration2To3(),
                         Migration3To4(),
                         Migration4To5(),
-                        Migration5To6())
+                        Migration5To6(),
+                        Migration6To7())
                 .build()
 
         helper.closeWhenFinished(db)

@@ -16,6 +16,7 @@ import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
+import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.SshTypePreference
 import tech.ula.utils.AssetFileClearer
@@ -45,7 +46,11 @@ class MainActivityViewModelTest {
     private val unselectedSession = Session(id = -1, name = "UNSELECTED", filesystemId = -1)
     private val unselectedFilesystem = Filesystem(id = -1, name = "UNSELECTED")
 
-    private val asset = Asset(name = "asset", architectureType = "arch", distributionType = "dist", remoteTimestamp = 0)
+    private val asset = Asset(name = "asset", type = "dist")
+    private val assetList = hashMapOf("dist" to listOf(asset))
+
+    private val downloadMetadata = DownloadMetadata("asset", "type", "v0", "url")
+    private val downloadList = listOf(downloadMetadata)
 
     private lateinit var appsStartupStateLiveData: MutableLiveData<AppsStartupState>
 
@@ -238,12 +243,10 @@ class MainActivityViewModelTest {
 
     @Test
     fun `Submits DownloadAssets event`() {
-        val downloads = listOf(asset)
-
-        mainActivityViewModel.startAssetDownloads(downloads)
+        mainActivityViewModel.startAssetDownloads(downloadList)
 
         runBlocking {
-            verify(mockSessionStartupFsm).submitEvent(DownloadAssets(downloads), mainActivityViewModel)
+            verify(mockSessionStartupFsm).submitEvent(DownloadAssets(downloadList), mainActivityViewModel)
         }
     }
 
@@ -485,8 +488,7 @@ class MainActivityViewModelTest {
 
     @Test
     fun `Posts NoSessionsSelectedWhenTransitionNecessary if AssetRetrievalSucceeded state is observed while no selections have been made`() {
-        val assetLists = listOf(listOf(asset))
-        sessionStartupStateLiveData.postValue(AssetListsRetrievalSucceeded(assetLists))
+        sessionStartupStateLiveData.postValue(AssetListsRetrievalSucceeded(assetList))
 
         verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
     }
@@ -495,11 +497,10 @@ class MainActivityViewModelTest {
     fun `Submits GenerateDownload event if asset list retrieval success observed`() {
         makeSessionSelections()
 
-        val assetLists = listOf(listOf(asset))
-        sessionStartupStateLiveData.postValue(AssetListsRetrievalSucceeded(assetLists))
+        sessionStartupStateLiveData.postValue(AssetListsRetrievalSucceeded(assetList))
 
         runBlocking {
-            verify(mockSessionStartupFsm).submitEvent(GenerateDownloads(selectedFilesystem, assetLists), mainActivityViewModel)
+            verify(mockSessionStartupFsm).submitEvent(GenerateDownloads(selectedFilesystem, assetList), mainActivityViewModel)
         }
     }
 
@@ -525,21 +526,19 @@ class MainActivityViewModelTest {
     fun `Posts LargeDownloadRequired if downloads are required and include a large one`() {
         makeSessionSelections()
 
-        val downloads = listOf(asset)
-        sessionStartupStateLiveData.postValue(DownloadsRequired(downloads, largeDownloadRequired = true))
+        sessionStartupStateLiveData.postValue(DownloadsRequired(downloadList, largeDownloadRequired = true))
 
-        verify(mockStateObserver).onChanged(LargeDownloadRequired(downloads))
+        verify(mockStateObserver).onChanged(LargeDownloadRequired(downloadList))
     }
 
     @Test
     fun `Submits DownloadAssets event if downloads are required but do not include a large one`() {
         makeSessionSelections()
 
-        val downloads = listOf(asset)
-        sessionStartupStateLiveData.postValue(DownloadsRequired(downloads, largeDownloadRequired = false))
+        sessionStartupStateLiveData.postValue(DownloadsRequired(downloadList, largeDownloadRequired = false))
 
         runBlocking {
-            verify(mockSessionStartupFsm).submitEvent(DownloadAssets(downloads), mainActivityViewModel)
+            verify(mockSessionStartupFsm).submitEvent(DownloadAssets(downloadList), mainActivityViewModel)
         }
     }
 
