@@ -294,8 +294,8 @@ class AssetRepositoryTest {
     }
 
     @Test
-    fun `assetsArePresentInSupportDirectories correctly reports existence`() {
-        val assetList = listOf(supportAsset, distAsset)
+    fun `assetsArePresentInSupportDirectories correctly reports existence, skipping rootfs files`() {
+        val assetList = listOf(supportAsset, distAsset, Asset("rootfs.tar.gz", distAsset.type))
 
         val supportDir = File("$applicationFilesDirPath/$supportRepo")
         val supportAssetFile = File("${supportDir.absolutePath}/${supportAsset.name}")
