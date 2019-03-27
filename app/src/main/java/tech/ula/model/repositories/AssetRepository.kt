@@ -66,7 +66,7 @@ class AssetRepository(
 
     fun assetsArePresentInSupportDirectories(assets: List<Asset>): Boolean {
         for (asset in assets) {
-            if (asset.name.contains("rootfs.tar.gz")) continue  
+            if (asset.name.contains("rootfs.tar.gz")) continue
             val assetFile = File("$applicationFilesDirPath/${asset.pathName}")
             if (!assetFile.exists()) return false
         }
