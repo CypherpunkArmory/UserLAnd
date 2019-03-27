@@ -268,15 +268,17 @@ class AssetRepositoryTest {
     }
 
     @Test
-    fun `getDistributionAssetsForExistingFilesystem propagates to AssetPreferences`() {
-        val assetList = listOf(distAsset)
+    fun `getDistributionAssetsForExistingFilesystem propagates to AssetPreferences, and removes rootfs from list`() {
+        val rootFsAsset = Asset("rootfs.tar.gz", distAsset.type)
+        val assetList = listOf(distAsset, rootFsAsset)
         whenever(mockAssetPreferences.getCachedAssetList(filesystem.distributionType))
                 .thenReturn(assetList)
 
         val result = assetRepository.getDistributionAssetsForExistingFilesystem(filesystem)
 
+        val expectedResult = assetList.minus(rootFsAsset)
         verify(mockAssetPreferences).getCachedAssetList(filesystem.distributionType)
-        assertEquals(assetList, result)
+        assertEquals(expectedResult, result)
     }
 
     @Test
