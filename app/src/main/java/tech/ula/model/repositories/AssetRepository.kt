@@ -56,7 +56,8 @@ class AssetRepository(
     }
 
     fun getDistributionAssetsForExistingFilesystem(filesystem: Filesystem): List<Asset> {
-        return assetPreferences.getCachedAssetList(filesystem.distributionType)
+        val assets = assetPreferences.getCachedAssetList(filesystem.distributionType)
+        return assets.filter { !it.name.contains("rootfs") }
     }
 
     fun getLatestDistributionVersion(distributionType: String): String {
@@ -65,6 +66,7 @@ class AssetRepository(
 
     fun assetsArePresentInSupportDirectories(assets: List<Asset>): Boolean {
         for (asset in assets) {
+            if (asset.name.contains("rootfs.tar.gz")) continue
             val assetFile = File("$applicationFilesDirPath/${asset.pathName}")
             if (!assetFile.exists()) return false
         }

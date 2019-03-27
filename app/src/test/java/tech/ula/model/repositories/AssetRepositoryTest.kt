@@ -268,15 +268,17 @@ class AssetRepositoryTest {
     }
 
     @Test
-    fun `getDistributionAssetsForExistingFilesystem propagates to AssetPreferences`() {
-        val assetList = listOf(distAsset)
+    fun `getDistributionAssetsForExistingFilesystem propagates to AssetPreferences, and removes rootfs from list`() {
+        val rootFsAsset = Asset("rootfs.tar.gz", distAsset.type)
+        val assetList = listOf(distAsset, rootFsAsset)
         whenever(mockAssetPreferences.getCachedAssetList(filesystem.distributionType))
                 .thenReturn(assetList)
 
         val result = assetRepository.getDistributionAssetsForExistingFilesystem(filesystem)
 
+        val expectedResult = assetList.minus(rootFsAsset)
         verify(mockAssetPreferences).getCachedAssetList(filesystem.distributionType)
-        assertEquals(assetList, result)
+        assertEquals(expectedResult, result)
     }
 
     @Test
@@ -292,8 +294,8 @@ class AssetRepositoryTest {
     }
 
     @Test
-    fun `assetsArePresentInSupportDirectories correctly reports existence`() {
-        val assetList = listOf(supportAsset, distAsset)
+    fun `assetsArePresentInSupportDirectories correctly reports existence, skipping rootfs files`() {
+        val assetList = listOf(supportAsset, distAsset, Asset("rootfs.tar.gz", distAsset.type))
 
         val supportDir = File("$applicationFilesDirPath/$supportRepo")
         val supportAssetFile = File("${supportDir.absolutePath}/${supportAsset.name}")

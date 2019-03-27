@@ -126,6 +126,15 @@ class DownloadUtility(
         val target = File("${destinationDirectory.absolutePath}/$filename")
 
         destinationDirectory.mkdirs()
+
+        // Clear old rootfs parts if they exist
+        val directoryFiles = destinationDirectory.listFiles()
+        directoryFiles?.let {
+            for (file in directoryFiles) {
+                if (file.name.contains("rootfs.tar.gz.part")) file.delete()
+            }
+        }
+
         rootFsFile.copyTo(target, overwrite = true)
         rootFsFile.delete()
         assetPreferences.setLatestDownloadFilesystemVersion(repo, version)
