@@ -280,6 +280,31 @@ class DownloadUtilityTest {
     }
 
     @Test
+    fun `prepareDownloadsForUse deletes old rootfs part files`() {
+        val downloadedRootfs = File("${downloadDirectory.absolutePath}/$userlandDownloadPrefix${downloadMetadata1.downloadTitle}")
+        downloadedRootfs.createNewFile()
+
+        val destinationDirectory = File("${mockFilesDir.absolutePath}/$type1")
+        val destinationFile = File("${destinationDirectory.absolutePath}/$rootfsName")
+        val rootfsPartFile1 = File("${destinationDirectory.absolutePath}/rootfs.tar.gz.part00")
+        val rootFsPartFile2 = File("${destinationDirectory.absolutePath}/rootfs.tar.gz.part01")
+
+        destinationDirectory.mkdirs()
+        rootfsPartFile1.createNewFile()
+        rootFsPartFile2.createNewFile()
+
+        runBlocking { downloadUtility.prepareDownloadsForUse(mockArchiveFactoryWrapper) }
+
+        assertFalse(downloadedRootfs.exists())
+
+        assertTrue(destinationDirectory.exists())
+        assertTrue(destinationFile.exists())
+        assertFalse(rootfsPartFile1.exists())
+        assertFalse(rootFsPartFile2.exists())
+        verify(assetPreferences).setLatestDownloadFilesystemVersion(type1, version)
+    }
+
+    @Test
     fun `prepareDownloadsForUse overwrites stale rootfs files`() {
         val expectedText = "expected"
         val downloadedRootfs = File("${downloadDirectory.absolutePath}/$userlandDownloadPrefix${downloadMetadata1.downloadTitle}")
