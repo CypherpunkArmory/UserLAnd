@@ -56,7 +56,8 @@ class AssetRepository(
     }
 
     fun getDistributionAssetsForExistingFilesystem(filesystem: Filesystem): List<Asset> {
-        return assetPreferences.getCachedAssetList(filesystem.distributionType)
+        val assets = assetPreferences.getCachedAssetList(filesystem.distributionType)
+        return assets.filter { !it.name.contains("rootfs") }
     }
 
     fun getLatestDistributionVersion(distributionType: String): String {
