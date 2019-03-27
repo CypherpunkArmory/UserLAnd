@@ -121,8 +121,7 @@ class FilesystemEditFragment : Fragment() {
         if (editExisting) {
             btn_show_advanced_options.visibility = View.GONE
             spinner_filesystem_type.isEnabled = false
-        }
-        else {
+        } else {
             setupImportButton()
             setupAdvancedOptionButton()
         }
