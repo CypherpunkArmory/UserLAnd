@@ -15,7 +15,6 @@
 
     <!-- Buttons -->
     <string name="button_continue">استمرار</string>
-
     <string name="button_advanced_options_show">اظهار الاعدادات المتقدمة</string>
     <string name="button_advanced_options_hide">اخفاء الاعدادات المتقدمة</string>
     <string name="button_select_backup_import">حدد ملف النسخة الاحتياطية للستيراد</string>
@@ -23,16 +22,10 @@
     <!-- Menus -->
     <string name="app_info">معلومات التطبيق</string>
     <string name="stop_app">ايقاف التطبيق</string>
-
     <string name="stop_session">قتل الخدمة</string>               <!-- We know this says name="kill_service" but it is really stopping a session. -->
     <string name="edit">تعديل</string>
     <string name="delete">حذف</string>
     <string name="backup">استخراج</string>
-
-    <string name="stop_session">قتل الخدمة</string>
-    <string name="edit">تعديل</string>
-    <string name="delete">حذف</string>
-
     <string name="save">حفظ</string>
     <string name="add">اضافة</string>
     <string name="refresh">انعاش</string>
