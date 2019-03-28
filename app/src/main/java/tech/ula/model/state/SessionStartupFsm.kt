@@ -256,23 +256,25 @@ class SessionStartupFsm(
         state.postValue(FilesystemAssetVerificationSucceeded)
     }
 
-    private suspend fun handleExtractFilesystem(filesystem: Filesystem) = withContext(Dispatchers.IO) {
+    private suspend fun handleExtractFilesystem(filesystem: Filesystem) {
         val filesystemDirectoryName = "${filesystem.id}"
 
         if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
             state.postValue(ExtractionHasCompletedSuccessfully)
-            return@withContext
+            return
         }
 
-        // TODO test
-        filesystemUtility.extractFilesystem(filesystem, extractionLogger)
+        val result = filesystemUtility.extractFilesystem(filesystem, extractionLogger)
+        if (result is FailedExecution) {
+            state.postValue(ExtractionFailed(result.reason))
+        }
 
         if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
             state.postValue(ExtractionHasCompletedSuccessfully)
-            return@withContext
+            return
         }
 
-        state.postValue(ExtractionFailed)
+        state.postValue(ExtractionFailed(reason = "Unknown reason."))
     }
 }
 
@@ -320,7 +322,7 @@ object FilesystemAssetCopyFailed : AssetVerificationState()
 sealed class ExtractionState : SessionStartupState()
 data class ExtractingFilesystem(val extractionTarget: String) : ExtractionState()
 object ExtractionHasCompletedSuccessfully : ExtractionState()
-object ExtractionFailed : ExtractionState()
+data class ExtractionFailed(val reason: String) : ExtractionState()
 
 sealed class SessionStartupEvent
 data class SessionSelected(val session: Session) : SessionStartupEvent()

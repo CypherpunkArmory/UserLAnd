@@ -40,7 +40,10 @@ class FilesystemUtility(
         }
     }
 
-    fun extractFilesystem(filesystem: Filesystem, listener: (String) -> Any) {
+    suspend fun extractFilesystem(
+            filesystem: Filesystem,
+            listener: (String) -> Any
+    ): ExecutionResult = withContext(Dispatchers.IO) {
         val filesystemDirName = "${filesystem.id}"
         val command = "/support/common/extractFilesystem.sh"
         val env = HashMap<String, String>()
@@ -48,17 +51,13 @@ class FilesystemUtility(
         env["INITIAL_PASSWORD"] = filesystem.defaultPassword
         env["INITIAL_VNC_PASSWORD"] = filesystem.defaultVncPassword
 
-        val result = busyboxExecutor.executeProotCommand(
+        return@withContext busyboxExecutor.executeProotCommand(
             command,
             filesystemDirName,
             commandShouldTerminate = true,
             env = env,
             listener = listener
         )
-        if (result is FailedExecution) {
-            val err = result.reason
-            logger.logRuntimeErrorForCommand(functionName = "extractFilesystem", command = command, err = err)
-        }
     }
 
     suspend fun compressFilesystem(
@@ -71,17 +70,13 @@ class FilesystemUtility(
         val env = HashMap<String, String>()
         env["TAR_PATH"] = localDestinationFile.absolutePath
 
-        val result = busyboxExecutor.executeProotCommand(
+        return@withContext busyboxExecutor.executeProotCommand(
                 command,
                 filesystemDirName,
                 commandShouldTerminate = true,
                 env = env,
                 listener = listener
         )
-        if (result is FailedExecution) {
-            val err = result.reason
-            logger.logRuntimeErrorForCommand(functionName = "compressFilesystem", command = command, err = err)
-        }
     }
 
     fun isExtractionComplete(targetDirectoryName: String): Boolean {
