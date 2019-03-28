@@ -326,7 +326,19 @@ class DownloadManagerWrapper(private val downloadManager: DownloadManager) {
         val cursor = generateCursor(query)
         if (cursor.moveToFirst()) {
             val status: Int = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_REASON))
-            return "Reason: $status"
+            return "Reason: " + when (status) {
+                in 100..500 -> "Http Error: $status"
+                1008 -> "Cannot resume download."
+                1007 -> "No external devices found."
+                1009 -> "Destination already exists."
+                1001 -> "Unknown file error."
+                1004 -> "HTTP data processing error."
+                1006 -> "Insufficient external storage space."
+                1005 -> "Too many redirects."
+                1002 -> "Unhandled HTTP response code."
+                1000 -> "Unknown error."
+                else -> "Unknown failure reason."
+            }
         }
         return "No known reason for failure."
     }
