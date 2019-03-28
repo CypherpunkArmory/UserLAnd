@@ -267,6 +267,7 @@ class SessionStartupFsm(
         val result = filesystemUtility.extractFilesystem(filesystem, extractionLogger)
         if (result is FailedExecution) {
             state.postValue(ExtractionFailed(result.reason))
+            return
         }
 
         if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {

@@ -41,8 +41,8 @@ class FilesystemUtility(
     }
 
     suspend fun extractFilesystem(
-            filesystem: Filesystem,
-            listener: (String) -> Any
+        filesystem: Filesystem,
+        listener: (String) -> Any
     ): ExecutionResult = withContext(Dispatchers.IO) {
         val filesystemDirName = "${filesystem.id}"
         val command = "/support/common/extractFilesystem.sh"
