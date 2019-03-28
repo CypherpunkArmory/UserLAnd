@@ -85,7 +85,7 @@
     <string name="prompt_service_type">نوع الخدمة:</string>
     <string name="prompt_client_type">نوع العميل:</string>
     <string name="prompt_app_connection_type_preference">يرجى تحديد نوع الاتصال: </string>
-    <string name="prompt_select_backup">حدد ملف النسخ الاحتياطي لنظام الملفاتe</string>
+    <string name="prompt_select_backup">حدد ملف النسخة الاحتياطية لنظام الملفات</string>
     <string name="prompt_install_file_manager">الرجاء تثبيت مدير الملفات</string>
 
     <!-- Notification strings -->
