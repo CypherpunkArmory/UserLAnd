@@ -1,5 +1,7 @@
 package tech.ula.utils
 
+import com.nhaarman.mockitokotlin2.* // ktlint-disable no-wildcard-imports
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
 import org.junit.Rule
@@ -7,7 +9,6 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
@@ -16,20 +17,17 @@ import java.io.File
 @RunWith(MockitoJUnitRunner::class)
 class FilesystemUtilityTest {
 
-    @get:Rule
-    val tempFolder = TemporaryFolder()
+    @get:Rule val tempFolder = TemporaryFolder()
 
-    lateinit var applicationFilesDirPath: String
+    private lateinit var applicationFilesDirPath: String
 
-    @Mock
-    lateinit var execUtility: ExecUtility
+    @Mock lateinit var mockBusyboxExecutor: BusyboxExecutor
 
-    @Mock
-    lateinit var logger: LogUtility
+    @Mock lateinit var logger: LogUtility
 
-    val statelessListener: (line: String) -> Unit = { }
+    private val statelessListener: (line: String) -> Unit = { }
 
-    lateinit var filesystemUtility: FilesystemUtility
+    private lateinit var filesystemUtility: FilesystemUtility
 
     private val filesystemExtractionSuccess = ".success_filesystem_extraction"
     private val filesystemExtractionFailure = ".failure_filesystem_extraction"
@@ -37,26 +35,130 @@ class FilesystemUtilityTest {
     @Before
     fun setup() {
         applicationFilesDirPath = tempFolder.root.path
-        filesystemUtility = FilesystemUtility(applicationFilesDirPath, execUtility, logger)
+        filesystemUtility = FilesystemUtility(applicationFilesDirPath, mockBusyboxExecutor, logger)
     }
 
     @Test
-    fun extractFilesystemIsCalledWithCorrectArguments() {
-        val command = "../support/execInProot.sh /support/extractFilesystem.sh"
+    fun `Calling extract filesystem uses the appropriate command`() {
+        val command = "/support/common/extractFilesystem.sh"
 
         val requiredFilesystemType = "testDist"
         val fakeArchitecture = "testArch"
         val filesystem = Filesystem(0, "apps",
                 archType = fakeArchitecture, distributionType = requiredFilesystemType, isAppsFilesystem = true,
                 defaultUsername = "username", defaultPassword = "password", defaultVncPassword = "vncpass")
-        val targetDirectoryName = "${filesystem.id}"
+        val filesystemDirName = "${filesystem.id}"
 
-        val defaultEnvironmentalVariables = hashMapOf<String, String>("INITIAL_USERNAME" to "username",
+        val defaultEnvironmentalVariables = hashMapOf("INITIAL_USERNAME" to "username",
                 "INITIAL_PASSWORD" to "password", "INITIAL_VNC_PASSWORD" to "vncpass")
+        whenever(mockBusyboxExecutor.executeProotCommand(
+                eq(command),
+                eq(filesystemDirName),
+                eq(true),
+                eq(defaultEnvironmentalVariables),
+                eq(statelessListener),
+                anyOrNull()
+        ))
+                .thenReturn(SuccessfulExecution)
 
         filesystemUtility.extractFilesystem(filesystem, statelessListener)
-        verify(execUtility).wrapWithBusyboxAndExecute(targetDirectoryName, command, statelessListener,
-                environmentVars = defaultEnvironmentalVariables)
+        verify(mockBusyboxExecutor).executeProotCommand(
+                eq(command),
+                eq(filesystemDirName),
+                eq(true),
+                eq(defaultEnvironmentalVariables),
+                eq(statelessListener),
+                anyOrNull()
+        )
+    }
+
+    @Test
+    fun `extractFilesystem logs errors`() {
+        val command = "/support/common/extractFilesystem.sh"
+
+        val requiredFilesystemType = "testDist"
+        val fakeArchitecture = "testArch"
+        val filesystem = Filesystem(0, "apps",
+                archType = fakeArchitecture, distributionType = requiredFilesystemType, isAppsFilesystem = true,
+                defaultUsername = "username", defaultPassword = "password", defaultVncPassword = "vncpass")
+        val filesystemDirName = "${filesystem.id}"
+
+        val defaultEnvironmentalVariables = hashMapOf("INITIAL_USERNAME" to "username",
+                "INITIAL_PASSWORD" to "password", "INITIAL_VNC_PASSWORD" to "vncpass")
+
+        val failureReason = "reason"
+        whenever(mockBusyboxExecutor.executeProotCommand(
+                eq(command),
+                eq(filesystemDirName),
+                eq(true),
+                eq(defaultEnvironmentalVariables),
+                eq(statelessListener),
+                anyOrNull()
+        ))
+                .thenReturn(FailedExecution(failureReason))
+
+        filesystemUtility.extractFilesystem(filesystem, statelessListener)
+
+        verify(logger).logRuntimeErrorForCommand("extractFilesystem", command, failureReason)
+    }
+
+    @Test
+    fun `compressFilesystem uses correct command and environment`() {
+        val command = "/support/common/compressFilesystem.sh"
+        val filesystem = Filesystem(id = 0, name = "backup", distributionType = "distType")
+        val externalStorageDirectory = tempFolder.root
+
+        val destinationName = "rootfs.tar.gz"
+        val destinationPath = "${externalStorageDirectory.absolutePath}/$destinationName"
+        val expectedEnv = hashMapOf("TAR_PATH" to destinationPath)
+
+        whenever(mockBusyboxExecutor.executeProotCommand(
+                eq(command),
+                eq("${filesystem.id}"),
+                eq(true),
+                eq(expectedEnv),
+                eq(statelessListener),
+                anyOrNull()
+        ))
+                .thenReturn(SuccessfulExecution)
+
+        runBlocking { filesystemUtility.compressFilesystem(filesystem, File(destinationPath), statelessListener) }
+        verify(mockBusyboxExecutor).executeProotCommand(
+                eq(command),
+                eq("${filesystem.id}"),
+                eq(true),
+                eq(expectedEnv),
+                eq(statelessListener),
+                anyOrNull()
+        )
+    }
+
+    @Test
+    fun `compressFilesystem logs failures`() {
+        val command = "/support/common/compressFilesystem.sh"
+        val filesystem = Filesystem(id = 0, name = "backup", distributionType = "distType")
+        val externalStorageDirectory = tempFolder.root
+
+        val destinationName = "rootfs.tar.gz"
+        val destinationPath = "${externalStorageDirectory.absolutePath}/$destinationName"
+        val expectedEnv = hashMapOf("TAR_PATH" to destinationPath)
+
+        val failureReason = "reason"
+        whenever(mockBusyboxExecutor.executeProotCommand(
+                eq(command),
+                eq("${filesystem.id}"),
+                eq(true),
+                eq(expectedEnv),
+                eq(statelessListener),
+                anyOrNull()
+        ))
+                .thenReturn(FailedExecution(failureReason))
+
+        runBlocking {
+            filesystemUtility.compressFilesystem(filesystem, File(destinationPath), statelessListener)
+        }
+
+        verify(logger).logRuntimeErrorForCommand("compressFilesystem", command, failureReason)
     }
 
     @Test
@@ -77,10 +179,10 @@ class FilesystemUtilityTest {
         filesystemUtility.copyAssetsToFilesystem("target", "shared")
 
         assertTrue(targetDirectory.exists())
-        targetFiles.forEach {
-            assertTrue(it.exists())
+        targetFiles.forEach { file ->
+            assertTrue(file.exists())
             var output = ""
-            val proc = Runtime.getRuntime().exec("ls -l ${it.path}")
+            val proc = Runtime.getRuntime().exec("ls -l ${file.path}")
 
             proc.inputStream.bufferedReader(Charsets.UTF_8).forEachLine { output += it }
             val permissions = output.substring(0, 10)
@@ -135,8 +237,8 @@ class FilesystemUtilityTest {
     @Test
     fun onlySucceedsIfAllRequiredAssetsArePresent() {
         val assets = listOf(
-                Asset("name1", "dist1", "arch1", 0),
-                Asset("name2", "dist2", "arch2", 0))
+                Asset("name1", "dist1"),
+                Asset("name2", "dist2"))
 
         // Should fail if the directory doesn't exist
         assertFalse(filesystemUtility.areAllRequiredAssetsPresent("target", assets))
@@ -168,20 +270,54 @@ class FilesystemUtilityTest {
     }
 
     @Test
-    fun deletesAFilesystem() {
-        val filesystemId = 0L
-        val filesystemRoot = tempFolder.newFolder(filesystemId.toString())
-        val files = ArrayList<File>()
-        for (i in 0..10) {
-            files.add(File("${filesystemRoot.path}/$i"))
+    fun `Exits early if deleteFilesystem called on a path that does not exist`() {
+        val testFile = File("${tempFolder.root.path}/100")
+        assertFalse(testFile.exists())
+
+        runBlocking {
+            filesystemUtility.deleteFilesystem(100)
+            verify(mockBusyboxExecutor, never()).recursivelyDelete(any())
         }
+    }
 
-        files.forEach { it.createNewFile() }
-        files.forEach { assertTrue(it.exists()) }
+    @Test
+    fun `Exits early if deleteFilesystem called on a path that is not a directory`() {
+        val testFile = File("${tempFolder.root.path}/100")
+        testFile.createNewFile()
+        assertTrue(testFile.exists())
 
-        filesystemUtility.deleteFilesystem(filesystemId)
-        Thread.sleep(500)
+        runBlocking {
+            filesystemUtility.deleteFilesystem(100)
+            verify(mockBusyboxExecutor, never()).recursivelyDelete(any())
+        }
+    }
 
-        files.forEach { assertFalse(it.exists()) }
+    @Test
+    fun `Calling deleteFilesystem issues recursivelyDelete to busyboxExecutor`() {
+        val testDir = File("${tempFolder.root.path}/100")
+        testDir.mkdirs()
+        assertTrue(testDir.exists() && testDir.isDirectory)
+
+        runBlocking {
+            whenever(mockBusyboxExecutor.recursivelyDelete(testDir.absolutePath))
+                    .thenReturn(SuccessfulExecution)
+            filesystemUtility.deleteFilesystem(100)
+            verify(mockBusyboxExecutor).recursivelyDelete(testDir.absolutePath)
+        }
+    }
+
+    @Test
+    fun `Log erros when deleteFilesystem fails`() {
+        val testDir = File("${tempFolder.root.path}/100")
+        testDir.mkdirs()
+        assertTrue(testDir.exists() && testDir.isDirectory)
+
+        runBlocking {
+            whenever(mockBusyboxExecutor.recursivelyDelete(testDir.absolutePath))
+                    .thenReturn(FailedExecution(""))
+            filesystemUtility.deleteFilesystem(100)
+            verify(mockBusyboxExecutor).recursivelyDelete(testDir.absolutePath)
+            verify(logger).e("FilesystemUtility", "Failed to delete filesystem: 100")
+        }
     }
 }

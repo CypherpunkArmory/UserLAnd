@@ -22,10 +22,12 @@ import android.os.Environment
 import android.support.design.widget.TextInputEditText
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
+import android.util.DisplayMetrics
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.animation.AlphaAnimation
 import android.widget.Button
 import android.widget.RadioButton
@@ -44,7 +46,6 @@ import kotlinx.coroutines.launch
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.find
 import tech.ula.model.entities.App
-import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.UlaDatabase
@@ -59,9 +60,11 @@ import org.acra.config.CoreConfigurationBuilder
 import org.acra.config.HttpSenderConfigurationBuilder
 import org.acra.data.StringFormat
 import org.acra.sender.HttpSender
+import tech.ula.ui.FilesystemListFragment
+import tech.ula.model.repositories.DownloadMetadata
 import kotlin.IllegalStateException
 
-class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection {
+class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection, FilesystemListFragment.ExportFilesystem {
 
     private val permissionRequestCode: Int by lazy {
         getString(R.string.permission_request_code).toInt()
@@ -119,8 +122,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val assetPreferences = AssetPreferences(this.getSharedPreferences("assetLists", Context.MODE_PRIVATE))
         val assetRepository = AssetRepository(filesDir.path, assetPreferences)
 
-        val execUtility = ExecUtility(filesDir.path, Environment.getExternalStorageDirectory().absolutePath, DefaultPreferences(defaultSharedPreferences))
-        val filesystemUtility = FilesystemUtility(filesDir.path, execUtility)
+        val busyboxExecutor = BusyboxExecutor(filesDir, Environment.getExternalStorageDirectory(), DefaultPreferences(defaultSharedPreferences))
+        val filesystemUtility = FilesystemUtility(filesDir.path, busyboxExecutor)
 
         val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val downloadManagerWrapper = DownloadManagerWrapper(downloadManager)
@@ -316,13 +319,26 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         // TODO: Alert user when defaulting to VNC
         if (session.serviceType == "xsdl" && Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
             session.serviceType = "vnc"
-            startSession(session)
-        } else if (session.serviceType == "xsdl") {
-            viewModel.lastSelectedSession = session
-            sendXsdlIntentToSetDisplayNumberAndExpectResult()
-        } else {
-            startSession(session)
         }
+
+        when (session.serviceType) {
+            "xsdl" -> {
+                viewModel.lastSelectedSession = session
+                sendXsdlIntentToSetDisplayNumberAndExpectResult()
+            }
+            "vnc" -> {
+                getDeviceDimensions(session)
+                startSession(session)
+            }
+            else -> startSession(session)
+        }
+    }
+
+    private fun getDeviceDimensions(session: Session) {
+        val deviceDimensions = DeviceDimensions()
+        val windowManager = applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        deviceDimensions.getDeviceDimensions(windowManager, DisplayMetrics())
+        session.geometry = deviceDimensions.getGeometry()
     }
 
     private fun startSession(session: Session) {
@@ -391,10 +407,10 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             }
             is LargeDownloadRequired -> {
                 if (wifiIsEnabled()) {
-                    viewModel.startAssetDownloads(state.requiredDownloads)
+                    viewModel.startAssetDownloads(state.downloadRequirements)
                     return
                 }
-                displayNetworkChoicesDialog(state.requiredDownloads)
+                displayNetworkChoicesDialog(state.downloadRequirements)
             }
             is ActiveSessionsMustBeDeactivated -> {
                 displayGenericErrorDialog(this, R.string.general_error_title, R.string.deactivate_sessions)
@@ -506,8 +522,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     private fun handleClearSupportFiles() {
         val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
+        val busyboxExecutor = BusyboxExecutor(this.filesDir, Environment.getExternalStorageDirectory(), DefaultPreferences(defaultSharedPreferences))
         val assetDirectoryNames = appsPreferences.getDistributionsList().plus("support")
-        val assetFileClearer = AssetFileClearer(this.filesDir, assetDirectoryNames)
+        val assetFileClearer = AssetFileClearer(this.filesDir, assetDirectoryNames, busyboxExecutor)
         CoroutineScope(Dispatchers.Main).launch { viewModel.handleClearSupportFiles(assetFileClearer) }
     }
 
@@ -591,6 +608,15 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         }
     }
 
+    override fun updateExportProgress(details: String) {
+        val step = getString(R.string.progress_exporting_filesystem)
+        updateProgressBar(step, details)
+    }
+
+    override fun stopExportProgress() {
+        killProgressBar()
+    }
+
     private fun updateProgressBar(step: String, details: String) {
         if (!currentFragmentDisplaysProgressDialog) return
 
@@ -628,7 +654,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         return false
     }
 
-    private fun displayNetworkChoicesDialog(downloadsToContinue: List<Asset>) {
+    private fun displayNetworkChoicesDialog(downloadsToContinue: List<DownloadMetadata>) {
         val builder = AlertDialog.Builder(this)
         builder.setMessage(R.string.alert_wifi_disabled_message)
                 .setTitle(R.string.alert_wifi_disabled_title)
@@ -703,6 +729,11 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
                 val xsdlSupportedText = customDialog.findViewById<TextView>(R.id.text_xsdl_version_supported_description)
                 xsdlSupportedText.visibility = View.VISIBLE
+            }
+
+            if (!viewModel.lastSelectedApp.supportsCli) {
+                sshTypePreference.isEnabled = false
+                sshTypePreference.alpha = 0.5f
             }
 
             customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {

@@ -2,109 +2,123 @@ package tech.ula.model.repositories
 
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
+import tech.ula.model.remote.GithubApiClient
 import tech.ula.utils.AssetPreferences
 import tech.ula.utils.ConnectionUtility
-import tech.ula.utils.getBranchToDownloadAssetsFrom
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
-import java.lang.Exception
+import kotlin.Exception
+
+data class DownloadMetadata(
+    val filename: String,
+    val assetType: String,
+    val versionCode: String,
+    val url: String,
+    val downloadTitle: String = "$assetType-$filename-$versionCode"
+)
 
 class AssetRepository(
     private val applicationFilesDirPath: String,
     private val assetPreferences: AssetPreferences,
+    private val githubApiClient: GithubApiClient = GithubApiClient(),
     private val connectionUtility: ConnectionUtility = ConnectionUtility()
 ) {
 
-    fun doesAssetNeedToUpdated(asset: Asset): Boolean {
-        val assetFile = File("$applicationFilesDirPath/${asset.pathName}")
-
-        if (!assetFile.exists()) return true
-
-        val localTimestamp = assetPreferences.getLastUpdatedTimestampForAsset(asset)
-        return localTimestamp < asset.remoteTimestamp
+    @Throws(IllegalStateException::class)
+    suspend fun generateDownloadRequirements(
+        filesystem: Filesystem,
+        assetLists: HashMap<String, List<Asset>>,
+        filesystemNeedsExtraction: Boolean
+    ): List<DownloadMetadata> {
+        val downloadRequirements = mutableListOf<DownloadMetadata>()
+        for (entry in assetLists) {
+            val (repo, list) = entry
+            // Empty lists should not have propagated this deeply.
+            if (list.isEmpty()) throw IllegalStateException()
+            if (assetsArePresentInSupportDirectories(list) && lastDownloadedVersionIsUpToDate(repo))
+                continue
+            val filename = "assets.tar.gz"
+            val versionCode = githubApiClient.getLatestReleaseVersion(repo)
+            val url = githubApiClient.getAssetEndpoint(filename, repo)
+            val downloadMetadata = DownloadMetadata(filename, repo, versionCode, url)
+            downloadRequirements.add(downloadMetadata)
+        }
+        if (filesystemNeedsExtraction && rootFsDownloadRequired(filesystem)) {
+            val repo = filesystem.distributionType
+            val filename = "rootfs.tar.gz"
+            val versionCode = githubApiClient.getLatestReleaseVersion(repo)
+            val url = githubApiClient.getAssetEndpoint(filename, repo)
+            val downloadMetadata = DownloadMetadata(filename, repo, versionCode, url)
+            downloadRequirements.add(downloadMetadata)
+        }
+        return downloadRequirements
     }
 
     fun getDistributionAssetsForExistingFilesystem(filesystem: Filesystem): List<Asset> {
-        val distributionType = filesystem.distributionType
-        val deviceArchitecture = filesystem.archType
-        val distributionAssetListTypes = listOf(
-                distributionType to "all",
-                distributionType to deviceArchitecture
-        )
-        val allAssets = assetPreferences.getAssetLists(distributionAssetListTypes)
-        return allAssets.flatten().filter { !(it.name.contains("rootfs.tar.gz")) }
+        val assets = assetPreferences.getCachedAssetList(filesystem.distributionType)
+        return assets.filter { !it.name.contains("rootfs") }
     }
 
-    fun getLastDistributionUpdate(distributionType: String): Long {
-        return assetPreferences.getLastDistributionUpdate(distributionType)
-    }
-
-    fun setLastDistributionUpdate(distributionType: String) {
-        assetPreferences.setLastDistributionUpdate(distributionType)
+    fun getLatestDistributionVersion(distributionType: String): String {
+        return assetPreferences.getLatestDownloadVersion(distributionType)
     }
 
     fun assetsArePresentInSupportDirectories(assets: List<Asset>): Boolean {
         for (asset in assets) {
+            if (asset.name.contains("rootfs.tar.gz")) continue
             val assetFile = File("$applicationFilesDirPath/${asset.pathName}")
             if (!assetFile.exists()) return false
         }
         return true
     }
 
-    fun getAllAssetLists(distributionType: String, deviceArchitecture: String): List<List<Asset>> {
-        val allAssetListTypes = listOf(
-                "support" to "all",
-                "support" to deviceArchitecture,
-                distributionType to "all",
-                distributionType to deviceArchitecture
-        )
-
-        if (!connectionUtility.httpsHostIsReachable("github.com")) return getCachedAssetLists(allAssetListTypes)
-        return retrieveAllRemoteAssetLists(allAssetListTypes)
-    }
-
-    private fun getCachedAssetLists(allAssetListTypes: List<Pair<String, String>>): List<List<Asset>> {
-        return assetPreferences.getAssetLists(allAssetListTypes)
-    }
-
-    @Throws
-    private fun retrieveAllRemoteAssetLists(allAssetListTypes: List<Pair<String, String>>): List<List<Asset>> {
-        val allAssetLists = ArrayList<List<Asset>>()
-        allAssetListTypes.forEach {
-            (assetType, architectureType) ->
-            val assetList = try {
-                retrieveAndParseAssetList(assetType, architectureType)
+    suspend fun getAllAssetLists(distributionType: String): HashMap<String, List<Asset>> {
+        val lists = hashMapOf<String, List<Asset>>()
+        listOf(distributionType, "support").forEach { repo ->
+            try {
+                val list = fetchAssetList(repo)
+                assetPreferences.setAssetList(repo, list)
+                lists[repo] = list
             } catch (err: Exception) {
-                emptyList<Asset>()
+                lists[repo] = assetPreferences.getCachedAssetList(repo)
             }
-            allAssetLists.add(assetList)
-            assetPreferences.setAssetList(assetType, architectureType, assetList)
         }
-        return allAssetLists.toList()
+        return lists
     }
 
-    @Throws
-    private fun retrieveAndParseAssetList(
-        assetType: String,
-        architectureType: String
-    ): List<Asset> {
-        val assetList = ArrayList<Asset>()
+    private suspend fun fetchAssetList(assetType: String): List<Asset> {
+        val downloadUrl = githubApiClient.getAssetsListDownloadUrl(assetType)
 
-        val branch = getBranchToDownloadAssetsFrom(assetType)
-        val url = "https://github.com/CypherpunkArmory/UserLAnd-Assets-" +
-                "$assetType/raw/$branch/assets/$architectureType/assets.txt"
+        val inputStream = connectionUtility.getUrlInputStream(downloadUrl)
+        val reader = BufferedReader(InputStreamReader(inputStream))
 
-        val reader = BufferedReader(InputStreamReader(connectionUtility.getUrlInputStream(url)))
-
+        val assetList = mutableListOf<Asset>()
         reader.forEachLine {
-            val (filename, timestampAsString) = it.split(" ")
+            val filename = it.substringBefore(' ')
             if (filename == "assets.txt") return@forEachLine
-            val remoteTimestamp = timestampAsString.toLong()
-            assetList.add(Asset(filename, assetType, architectureType, remoteTimestamp))
+            assetList.add(Asset(filename, assetType))
         }
 
         reader.close()
-        return assetList.toList()
+
+        return assetList
+    }
+
+    private suspend fun lastDownloadedVersionIsUpToDate(repo: String): Boolean {
+        val latestCached = assetPreferences.getLatestDownloadVersion(repo)
+        val latestRemote = githubApiClient.getLatestReleaseVersion(repo)
+        return latestCached >= latestRemote
+    }
+
+    private suspend fun lastDownloadedFilesystemVersionIsUpToDate(repo: String): Boolean {
+        val latestCached = assetPreferences.getLatestDownloadFilesystemVersion(repo)
+        val latestRemote = githubApiClient.getLatestReleaseVersion(repo)
+        return latestCached >= latestRemote
+    }
+
+    private suspend fun rootFsDownloadRequired(filesystem: Filesystem): Boolean {
+        val rootFsFile = File("$applicationFilesDirPath/${filesystem.distributionType}/rootfs.tar.gz")
+        return !rootFsFile.exists() || !lastDownloadedFilesystemVersionIsUpToDate(filesystem.distributionType)
     }
 }

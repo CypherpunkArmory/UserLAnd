@@ -2,7 +2,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <item
-        android:id="@+id/menu_item_session_kill_service"
-        android:title="@string/kill_service" />
+        android:id="@+id/menu_item_session_stop_session"
+        android:title="@string/stop_session" />
 
 </menu>

@@ -15,10 +15,7 @@ import org.junit.runner.RunWith
 import tech.ula.blockingObserve
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.model.repositories.Migration1To2
-import tech.ula.model.repositories.Migration2To3
-import tech.ula.model.repositories.Migration3To4
-import tech.ula.model.repositories.UlaDatabase
+import tech.ula.model.repositories.* // ktlint-disable no-wildcard-imports
 import java.io.IOException
 
 @RunWith(AndroidJUnit4::class)
@@ -42,7 +39,7 @@ class MigrationTest {
 
         db.close()
 
-        helper.runMigrationsAndValidate(TEST_DB, 2, true, Migration1To2(), Migration2To3(), Migration3To4())
+        helper.runMigrationsAndValidate(TEST_DB, 2, true, Migration1To2(), Migration2To3(), Migration3To4(), Migration4To5())
     }
 
     @Test
@@ -98,10 +95,40 @@ class MigrationTest {
         helper.runMigrationsAndValidate(TEST_DB, 4, true, Migration3To4())
     }
 
+    @Test
+    @Throws(IOException::class)
+    fun migrate4To5() {
+        helper.createDatabase(TEST_DB, 4)
+
+        helper.runMigrationsAndValidate(TEST_DB, 5, true, Migration4To5())
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun migrate5To6() {
+        helper.createDatabase(TEST_DB, 5)
+
+        helper.runMigrationsAndValidate(TEST_DB, 6, true, Migration5To6())
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun migrate6To7() {
+        helper.createDatabase(TEST_DB, 6)
+
+        helper.runMigrationsAndValidate(TEST_DB, 7, true, Migration6To7())
+    }
+
     private fun getMigratedDatabase(): UlaDatabase {
         val db = Room.databaseBuilder(InstrumentationRegistry.getTargetContext(),
                 UlaDatabase::class.java, TEST_DB)
-                .addMigrations(Migration1To2(), Migration2To3(), Migration3To4())
+                .addMigrations(
+                        Migration1To2(),
+                        Migration2To3(),
+                        Migration3To4(),
+                        Migration4To5(),
+                        Migration5To6(),
+                        Migration6To7())
                 .build()
 
         helper.closeWhenFinished(db)

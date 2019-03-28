@@ -2,7 +2,7 @@
     <string name="app_name">UserLAnd</string>
     <string name="welcome">مرحبا بكم في Userland!</string>
     <string name="permission_request_code">1000</string>
-
+  
     <!-- Labels -->
     <string name="apps">التطبيقات</string>                               <!-- This is a button, so the word used should be short! -->
     <string name="sessions">الجلسات</string>
@@ -15,6 +15,7 @@
 
     <!-- Buttons -->
     <string name="button_continue">استمرار</string>
+
     <string name="button_advanced_options_show">اظهار الاعدادات المتقدمة</string>
     <string name="button_advanced_options_hide">اخفاء الاعدادات المتقدمة</string>
     <string name="button_select_backup_import">حدد ملف النسخة الاحتياطية للستيراد</string>
@@ -22,10 +23,16 @@
     <!-- Menus -->
     <string name="app_info">معلومات التطبيق</string>
     <string name="stop_app">ايقاف التطبيق</string>
+
     <string name="stop_session">قتل الخدمة</string>               <!-- We know this says name="kill_service" but it is really stopping a session. -->
     <string name="edit">تعديل</string>
     <string name="delete">حذف</string>
     <string name="backup">استخراج</string>
+
+    <string name="stop_session">قتل الخدمة</string>
+    <string name="edit">تعديل</string>
+    <string name="delete">حذف</string>
+
     <string name="save">حفظ</string>
     <string name="add">اضافة</string>
     <string name="refresh">انعاش</string>
@@ -58,18 +65,14 @@
     <!-- Illegal State Dialog -->
     <string name="illegal_state_message">%1$s \n سيتم الآن تعطل التطبيق بحيث يمكننا استلام سجل أخطاء. لا تتردد أيضًا في إخبارنا على جيثب! نحن نعمل على حل هذه القضايا.</string>
     <string name="illegal_state_title">لقد دخل UserLAnd حالة غير قانونية!</string>
-
     <string name="illegal_state_transition">انتقال الحالة السيئة:%1$s</string>
-
     <string name="illegal_state_too_many_selections_when_permissions_granted">تم اختيار كل من الجلسة والتطبيق عند منح الأذونات.</string>
     <string name="illegal_state_no_selections_when_permissions_granted">لم يتم تحديد جلسة أو تطبيق عند منح الأذونات.</string>
-
     <string name="illegal_state_no_filesystem_selected_when_credentials_selected">تم إرسال بيانات الاعتماد نظام الملفات، ولكن لم يتم تحديدها.</string>
     <string name="illegal_state_no_app_selected_when_preference_submitted">تم إرسال تفضيل التطبيق ، ولكن لم يتم اختيار واحد.</string>
     <string name="illegal_state_no_app_selected_when_preparation_started">جارٍ محاولة بدء إعداد التطبيق ، ولكن لم يتم تحديد أي تطبيق.</string>
     <string name="illegal_state_error_fetching_app_database_entries">لا يمكن جلب إدخالات قاعدة بيانات التطبيقات.</string>
     <string name="illegal_state_error_copying_app_script">لا يمكن نسخ البرنامج النصي للتطبيق.</string>
-
     <string name="illegal_state_no_session_selected_when_preparation_started">محاولة التعامل مع إعداد الجلسة قبل اختيار واحد.</string>
     <string name="illegal_state_error_fetching_asset_lists">فشل في استرداد قوائم الأصول.</string>
     <string name="illegal_state_downloads_did_not_complete_successfully">فشلت التنزيلات بسبب:%1$s.</string>

@@ -14,16 +14,15 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.support.v4.content.ContextCompat
+import android.util.DisplayMetrics
+import android.view.WindowManager
 import org.acra.ACRA
 import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
 import java.io.File
-import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
-import java.net.InetSocketAddress
-import java.net.Socket
 import java.net.URL
 
 fun makePermissionsUsable(containingDirectoryPath: String, filename: String) {
@@ -83,17 +82,29 @@ class DefaultPreferences(private val prefs: SharedPreferences) {
 }
 
 class AssetPreferences(private val prefs: SharedPreferences) {
-    private fun String.addTimestampPrefix(): String {
-        return "timestamp-" + this
+
+    private val versionString = "version"
+    private val rootfsString = "rootfs"
+
+    private val lowestVersion = "v0.0.0"
+    fun getLatestDownloadVersion(repo: String): String {
+        return prefs.getString("$repo-$versionString", lowestVersion) ?: lowestVersion
     }
 
-    fun getLastUpdatedTimestampForAsset(asset: Asset): Long {
-        return prefs.getLong(asset.concatenatedName.addTimestampPrefix(), -1)
+    fun getLatestDownloadFilesystemVersion(repo: String): String {
+        return prefs.getString("$repo-$rootfsString-$versionString", lowestVersion) ?: lowestVersion
     }
 
-    fun setLastUpdatedTimestampForAssetUsingConcatenatedName(assetConcatenatedName: String, currentTimeSeconds: Long) {
+    fun setLatestDownloadVersion(repo: String, version: String) {
         with(prefs.edit()) {
-            putLong(assetConcatenatedName.addTimestampPrefix(), currentTimeSeconds)
+            putString("$repo-$versionString", version)
+            apply()
+        }
+    }
+
+    fun setLatestDownloadFilesystemVersion(repo: String, version: String) {
+        with(prefs.edit()) {
+            putString("$repo-$rootfsString-$versionString", version)
             apply()
         }
     }
@@ -131,37 +142,19 @@ class AssetPreferences(private val prefs: SharedPreferences) {
         }
     }
 
-    fun getAssetLists(allAssetListTypes: List<Pair<String, String>>): List<List<Asset>> {
-        val assetLists = ArrayList<List<Asset>>()
-        allAssetListTypes.forEach {
-            (assetType, architectureType) ->
-            val allEntries = prefs.getStringSet("$assetType-$architectureType", setOf()) ?: setOf()
-            val assetList: List<Asset> = allEntries.map {
-                val (filename, remoteTimestamp) = it.split(regex = "\\-(?=[^.]*\$)".toRegex(), limit = 2)
-                Asset(filename, assetType, architectureType, remoteTimestamp.toLong())
-            }
-            assetLists.add(assetList)
+    fun getCachedAssetList(assetType: String): List<Asset> {
+        val entries = prefs.getStringSet(assetType, setOf()) ?: setOf()
+        return entries.map { entry ->
+            Asset(entry, assetType)
         }
-        return assetLists
     }
 
-    fun setAssetList(assetType: String, architectureType: String, assetList: List<Asset>) {
+    fun setAssetList(assetType: String, assetList: List<Asset>) {
         val entries = assetList.map {
-            "${it.name}-${it.remoteTimestamp}"
+            it.name
         }.toSet()
         with(prefs.edit()) {
-            putStringSet("$assetType-$architectureType", entries)
-            apply()
-        }
-    }
-
-    fun getLastDistributionUpdate(distributionType: String): Long {
-        return prefs.getLong("$distributionType-lastUpdate", -1)
-    }
-
-    fun setLastDistributionUpdate(distributionType: String) {
-        with(prefs.edit()) {
-            putLong("$distributionType-lastUpdate", System.currentTimeMillis())
+            putStringSet(assetType, entries)
             apply()
         }
     }
@@ -211,7 +204,7 @@ class AppsPreferences(private val prefs: SharedPreferences) {
         return when {
             pref.toLowerCase() == "ssh" || (app.supportsCli && !app.supportsGui) -> SshTypePreference
             pref.toLowerCase() == "xsdl" -> XsdlTypePreference
-            pref.toLowerCase() == "vnc" || (!app.supportsCli && app.supportsGui) -> VncTypePreference
+            pref.toLowerCase() == "vnc" -> VncTypePreference
             else -> PreferenceHasNotBeenSelected
         }
     }
@@ -265,19 +258,6 @@ class BuildWrapper {
 }
 
 class ConnectionUtility {
-    fun httpsHostIsReachable(hostname: String): Boolean {
-        return try {
-            val sockaddr = InetSocketAddress(hostname, 443)
-            val sock = Socket()
-            val timeout = 2000
-
-            sock.connect(sockaddr, timeout)
-            true
-        } catch (err: IOException) {
-            false
-        }
-    }
-
     @Throws(Exception::class)
     fun getUrlInputStream(url: String): InputStream {
         val conn = URL(url).openConnection() as HttpURLConnection
@@ -395,6 +375,24 @@ class TimeUtility {
 class AcraWrapper {
     fun putCustomString(key: String, value: String) {
         ACRA.getErrorReporter().putCustomData(key, value)
+    }
+}
+
+class DeviceDimensions {
+    private var width = 720
+    private var height = 1480
+
+    fun getDeviceDimensions(windowManager: WindowManager, displayMetrics: DisplayMetrics) {
+        windowManager.defaultDisplay.getMetrics(displayMetrics)
+        width = displayMetrics.widthPixels
+        height = displayMetrics.heightPixels
+    }
+
+    fun getGeometry(): String {
+        return when (height > width) {
+            true -> "${height}x$width"
+            false -> "${width}x$height"
+        }
     }
 }
 
