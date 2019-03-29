@@ -148,6 +148,40 @@ class FilesystemEditViewModelTest {
     }
 
     @Test
+    fun `insertFilesystemFromBackup sets isAppsFilesystem if filesystem name is 'apps'`() {
+        val filesystem = Filesystem(id = 0, name = "apps")
+        whenever(mockFilesystemDao.insertFilesystem(filesystem)).thenReturn(1)
+
+        val filesDir = tempFolder.root
+
+        val backupText = "this is test text"
+        val backupSourceFile = tempFolder.newFile("backupFile")
+        backupSourceFile.writeText(backupText)
+
+        val filesystemSupportDir = tempFolder.newFolder("1", "support")
+        val expectedBackupTargetFile = File("${filesystemSupportDir.absolutePath}/rootfs.tar.gz")
+
+        whenever(mockContentResolver.openInputStream(mockBackupUri))
+                .thenReturn(backupSourceFile.inputStream())
+
+        filesystemEditViewModel.backupUri = mockBackupUri
+        filesystemEditViewModel.getImportStatusLiveData().observeForever(mockObserver)
+        runBlocking {
+            filesystemEditViewModel.insertFilesystemFromBackup(mockContentResolver, filesystem, filesDir, this)
+        }
+
+        filesystem.isAppsFilesystem = true
+        filesystem.isCreatedFromBackup = true
+        verify(mockFilesystemDao).insertFilesystem(filesystem)
+
+        val readBackupText = expectedBackupTargetFile.readText()
+        assertTrue(expectedBackupTargetFile.exists())
+        assertEquals(backupText, readBackupText)
+        verify(mockObserver).onChanged(ImportSuccess)
+        assertEquals(null, filesystemEditViewModel.backupUri)
+    }
+
+    @Test
     fun `updateFilesystem delegates to model and also delegates that sessionDao should update all session names`() {
         val filesystem = Filesystem(id = 0, name = "test")
 

@@ -20,16 +20,20 @@ class FilesystemUtility(
     }
 
     @Throws(Exception::class)
-    fun copyAssetsToFilesystem(targetFilesystemName: String, distributionType: String) {
+    fun copyAssetsToFilesystem(filesystem: Filesystem) {
+        val distributionType = filesystem.distributionType
+        val targetFilesystemName = "${filesystem.id}"
         val sharedDirectory = File("$applicationFilesDirPath/$distributionType")
         val targetDirectory = File("$applicationFilesDirPath/$targetFilesystemName/support")
         if (!targetDirectory.exists()) targetDirectory.mkdirs()
-        sharedDirectory.copyRecursively(targetDirectory, overwrite = true)
-        targetDirectory.walkBottomUp().forEach {
-            if (it.name == "support") {
-                return
+        val files = sharedDirectory.listFiles()
+        files?.let {
+            for (file in files) {
+                if (file.name.contains("rootfs") && filesystem.isCreatedFromBackup) continue
+                val targetFile = File("${targetDirectory.absolutePath}/${file.name}")
+                file.copyTo(targetFile, overwrite = true)
+                makePermissionsUsable(targetDirectory.absolutePath, file.name)
             }
-            makePermissionsUsable(targetDirectory.path, it.name)
         }
     }
 

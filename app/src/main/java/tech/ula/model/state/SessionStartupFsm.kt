@@ -241,11 +241,12 @@ class SessionStartupFsm(
             }
 
             try {
-                filesystemUtility.copyAssetsToFilesystem("${filesystem.id}", filesystem.distributionType)
+                filesystemUtility.copyAssetsToFilesystem(filesystem)
                 filesystem.versionCodeUsed = lastDownloadedAssetVersion
                 filesystemDao.updateFilesystem(filesystem)
             } catch (err: Exception) {
                 state.postValue(FilesystemAssetCopyFailed)
+                return@withContext
             }
 
             if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
