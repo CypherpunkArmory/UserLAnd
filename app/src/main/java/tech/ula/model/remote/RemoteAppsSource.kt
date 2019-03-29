@@ -11,7 +11,6 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStreamReader
 import java.net.URL
-import javax.net.ssl.SSLHandshakeException
 
 interface RemoteAppsSource {
     fun getHostname(): String
@@ -26,9 +25,9 @@ interface RemoteAppsSource {
 }
 
 class GithubAppsFetcher(
-        private val applicationFilesDir: String,
-        private val connectionUtility: ConnectionUtility = ConnectionUtility(),
-        private val acraWrapper: AcraWrapper = AcraWrapper()
+    private val applicationFilesDir: String,
+    private val connectionUtility: ConnectionUtility = ConnectionUtility(),
+    private val acraWrapper: AcraWrapper = AcraWrapper()
 ) : RemoteAppsSource {
 
     // Allows destructing of the list of application elements
