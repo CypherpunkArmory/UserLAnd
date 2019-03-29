@@ -388,6 +388,14 @@ class AcraWrapper {
     fun putCustomString(key: String, value: String) {
         ACRA.getErrorReporter().putCustomData(key, value)
     }
+    @Throws(Exception::class)
+    fun logAndThrow(err: Exception) {
+        val key = "Exception thrown"
+        val topOfStackTrace = err.stackTrace.first()
+        val value = "${topOfStackTrace.fileName}: ${topOfStackTrace.lineNumber}"
+        ACRA.getErrorReporter().putCustomData(key, value)
+        throw err
+    }
 }
 
 class DeviceDimensions {

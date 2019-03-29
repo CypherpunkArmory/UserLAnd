@@ -3,6 +3,7 @@ package tech.ula.model.repositories
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.remote.GithubApiClient
+import tech.ula.utils.AcraWrapper
 import tech.ula.utils.AssetPreferences
 import tech.ula.utils.ConnectionUtility
 import java.io.BufferedReader
@@ -22,7 +23,8 @@ class AssetRepository(
     private val applicationFilesDirPath: String,
     private val assetPreferences: AssetPreferences,
     private val githubApiClient: GithubApiClient = GithubApiClient(),
-    private val connectionUtility: ConnectionUtility = ConnectionUtility()
+    private val connectionUtility: ConnectionUtility = ConnectionUtility(),
+    private val acraWrapper: AcraWrapper = AcraWrapper()
 ) {
 
     @Throws(IllegalStateException::class)
@@ -35,7 +37,7 @@ class AssetRepository(
         for (entry in assetLists) {
             val (repo, list) = entry
             // Empty lists should not have propagated this deeply.
-            if (list.isEmpty()) throw IllegalStateException()
+            if (list.isEmpty()) acraWrapper.logAndThrow(IllegalStateException())
             if (assetsArePresentInSupportDirectories(list) && lastDownloadedVersionIsUpToDate(repo))
                 continue
             val filename = "assets.tar.gz"

@@ -13,10 +13,12 @@ import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.remote.GithubApiClient
+import tech.ula.utils.AcraWrapper
 import tech.ula.utils.AssetPreferences
 import tech.ula.utils.ConnectionUtility
 import java.io.File
 import java.io.IOException
+import java.lang.IllegalStateException
 
 @RunWith(MockitoJUnitRunner::class)
 class AssetRepositoryTest {
@@ -30,6 +32,8 @@ class AssetRepositoryTest {
     @Mock lateinit var mockGithubApiClient: GithubApiClient
 
     @Mock lateinit var mockConnectionUtility: ConnectionUtility
+
+    @Mock lateinit var mockAcraWrapper: AcraWrapper
 
     private lateinit var assetRepository: AssetRepository
 
@@ -97,7 +101,21 @@ class AssetRepositoryTest {
     fun setup() {
         applicationFilesDirPath = tempFolder.root.absolutePath
 
-        assetRepository = AssetRepository(applicationFilesDirPath, mockAssetPreferences, mockGithubApiClient, mockConnectionUtility)
+        assetRepository = AssetRepository(applicationFilesDirPath, mockAssetPreferences, mockGithubApiClient, mockConnectionUtility, mockAcraWrapper)
+    }
+
+    @Test(expected = IllegalStateException::class)
+    fun `generateDownloadRequirements logs and throws and exception if sent an empty asset list`() {
+        val assetLists = hashMapOf(supportRepo to listOf<Asset>())
+        val exception = IllegalStateException()
+        whenever(mockAcraWrapper.logAndThrow(any()))
+                .thenThrow(exception)
+
+        runBlocking {
+            assetRepository.generateDownloadRequirements(filesystem, assetLists, true)
+        }
+
+        verify(mockAcraWrapper).logAndThrow(exception)
     }
 
     @Test
