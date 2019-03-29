@@ -51,6 +51,7 @@
     <string name="error_username_invalid_characters">Characters in username must be 1 to 30 characters with lowercase letters and/or numbers.</string>
     <string name="error_username_in_blacklist">That username is possibly reserved by Linux and cannot be used as a filesystem username.</string>
     <string name="error_filesystem_name_invalid_characters">Characters in filesystem name must be 1 to 50 characters without characters such as \"/:*\\|</string>
+    <string name="error_export_execution_failure">Exporting failed. Reason: %1$s</string>
     <string name="error_export_to_local_failed">Exporting to local directory failed.</string>
     <string name="error_export_to_external_failed">Exporting to external directory failed. A backup with the same name may already exist.</string>
     <string name="error_export_to_external_failed_no_data">Exporting to external directory failed, exported file has no data.</string>
@@ -78,7 +79,7 @@
     <string name="illegal_state_empty_download_cache_access">The downloads cache was empty when access was attempted.</string>
     <string name="illegal_state_download_cache_access_in_incorrect_state">The downloads cache was accessed while in a state which does not support that.</string>
     <string name="illegal_state_failed_to_copy_assets_to_filesystem">Failed to copy assets to filesystem. Try clearing support files.</string>
-    <string name="illegal_state_failed_to_extract_filesystem">Failed to extract filesystem. Try clearing support files.</string>
+    <string name="illegal_state_failed_to_extract_filesystem">Failed to extract filesystem. Try clearing support files. Failure reason: %1$s</string>
     <string name="illegal_state_failed_to_clear_support_files">Failed to clear support files.</string>
 
     <!-- Misc illegal state -->

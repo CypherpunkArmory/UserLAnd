@@ -723,8 +723,8 @@ class MainActivityViewModelTest {
     fun `Posts IllegalState when extraction failure is observed`() {
         makeSessionSelections()
 
-        sessionStartupStateLiveData.postValue(ExtractionFailed)
+        sessionStartupStateLiveData.postValue(ExtractionFailed("reason"))
 
-        verify(mockStateObserver).onChanged(FailedToExtractFilesystem)
+        verify(mockStateObserver).onChanged(FailedToExtractFilesystem("reason"))
     }
 }

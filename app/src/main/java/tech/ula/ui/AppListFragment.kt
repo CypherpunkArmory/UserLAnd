@@ -183,7 +183,7 @@ class AppListFragment : Fragment(),
         val serviceIntent = Intent(activityContext, ServerService::class.java)
                 .putExtra("type", "stopApp")
                 .putExtra("app", app)
-        activityContext.startService(serviceIntent)
+        activityContext.startForegroundService(serviceIntent)
         return true
     }
 

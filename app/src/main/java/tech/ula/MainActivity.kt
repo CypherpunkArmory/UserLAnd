@@ -470,7 +470,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 getString(R.string.illegal_state_failed_to_copy_assets_to_filesystem)
             }
             is FailedToExtractFilesystem -> {
-                getString(R.string.illegal_state_failed_to_extract_filesystem)
+                getString(R.string.illegal_state_failed_to_extract_filesystem, state.reason)
             }
             is FailedToClearSupportFiles -> {
                 getString(R.string.illegal_state_failed_to_clear_support_files)

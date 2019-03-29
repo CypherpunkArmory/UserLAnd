@@ -344,7 +344,7 @@ class MainActivityViewModel(
                 state.postValue(SessionCanBeStarted(lastSelectedSession))
                 resetStartupState()
             } }
-            is ExtractionFailed -> state.postValue(FailedToExtractFilesystem)
+            is ExtractionFailed -> state.postValue(FailedToExtractFilesystem(newState.reason))
         }
     }
 
@@ -409,7 +409,7 @@ object DownloadCacheAccessedInAnIncorrectState : IllegalState()
 object FailedToCopyAssetsToLocalStorage : IllegalState()
 object AssetsHaveNotBeenDownloaded : IllegalState()
 object FailedToCopyAssetsToFilesystem : IllegalState()
-object FailedToExtractFilesystem : IllegalState()
+data class FailedToExtractFilesystem(val reason: String) : IllegalState()
 object FailedToClearSupportFiles : IllegalState()
 
 sealed class UserInputRequiredState : State()

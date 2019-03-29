@@ -61,7 +61,9 @@ class FilesystemUtilityTest {
         ))
                 .thenReturn(SuccessfulExecution)
 
-        filesystemUtility.extractFilesystem(filesystem, statelessListener)
+        val result = runBlocking {
+            filesystemUtility.extractFilesystem(filesystem, statelessListener)
+        }
         verify(mockBusyboxExecutor).executeProotCommand(
                 eq(command),
                 eq(filesystemDirName),
@@ -70,6 +72,7 @@ class FilesystemUtilityTest {
                 eq(statelessListener),
                 anyOrNull()
         )
+        assertTrue(result is SuccessfulExecution)
     }
 
     @Test
@@ -97,9 +100,9 @@ class FilesystemUtilityTest {
         ))
                 .thenReturn(FailedExecution(failureReason))
 
-        filesystemUtility.extractFilesystem(filesystem, statelessListener)
+        val result = runBlocking { filesystemUtility.extractFilesystem(filesystem, statelessListener) }
 
-        verify(logger).logRuntimeErrorForCommand("extractFilesystem", command, failureReason)
+        assertEquals(FailedExecution(failureReason), result)
     }
 
     @Test
@@ -122,7 +125,9 @@ class FilesystemUtilityTest {
         ))
                 .thenReturn(SuccessfulExecution)
 
-        runBlocking { filesystemUtility.compressFilesystem(filesystem, File(destinationPath), statelessListener) }
+        val result = runBlocking {
+            filesystemUtility.compressFilesystem(filesystem, File(destinationPath), statelessListener)
+        }
         verify(mockBusyboxExecutor).executeProotCommand(
                 eq(command),
                 eq("${filesystem.id}"),
@@ -131,6 +136,7 @@ class FilesystemUtilityTest {
                 eq(statelessListener),
                 anyOrNull()
         )
+        assertTrue(result is SuccessfulExecution)
     }
 
     @Test
@@ -154,11 +160,10 @@ class FilesystemUtilityTest {
         ))
                 .thenReturn(FailedExecution(failureReason))
 
-        runBlocking {
+        val result = runBlocking {
             filesystemUtility.compressFilesystem(filesystem, File(destinationPath), statelessListener)
         }
-
-        verify(logger).logRuntimeErrorForCommand("compressFilesystem", command, failureReason)
+        assertEquals(FailedExecution(failureReason), result)
     }
 
     @Test

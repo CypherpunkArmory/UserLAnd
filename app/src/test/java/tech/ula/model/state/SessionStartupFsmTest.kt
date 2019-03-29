@@ -104,7 +104,7 @@ class SessionStartupFsmTest {
             FilesystemAssetCopyFailed,
             ExtractingFilesystem("test"),
             ExtractionHasCompletedSuccessfully,
-            ExtractionFailed
+            ExtractionFailed("reason")
     )
 
     @Before
@@ -736,6 +736,10 @@ class SessionStartupFsmTest {
         sessionFsm.setState(FilesystemAssetVerificationSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
 
+        runBlocking {
+            whenever(mockFilesystemUtility.extractFilesystem(eq(filesystem), anyOrNull()))
+                    .thenReturn(SuccessfulExecution)
+        }
         whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
                 .thenReturn(false)
                 .thenReturn(true)
@@ -747,16 +751,36 @@ class SessionStartupFsmTest {
     }
 
     @Test
-    fun `State is ExtractionFailed if extraction fails`() {
+    fun `State is ExtractionFailed and propagates reason for failure`() {
         sessionFsm.setState(FilesystemAssetVerificationSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
 
+        val reason = "reason"
+        runBlocking {
+            whenever(mockFilesystemUtility.extractFilesystem(eq(filesystem), anyOrNull()))
+                    .thenReturn(FailedExecution(reason))
+        }
+
+        runBlocking { sessionFsm.submitEvent(ExtractFilesystem(filesystem), this) }
+
+        verify(mockStateObserver).onChanged(ExtractionFailed(reason))
+    }
+
+    @Test
+    fun `State is ExtractionFailed if extraction reportedly succeeds but status file is not created`() {
+        sessionFsm.setState(FilesystemAssetVerificationSucceeded)
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        runBlocking {
+            whenever(mockFilesystemUtility.extractFilesystem(eq(filesystem), anyOrNull()))
+                    .thenReturn(SuccessfulExecution)
+        }
         whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
                 .thenReturn(false)
                 .thenReturn(false)
 
         runBlocking { sessionFsm.submitEvent(ExtractFilesystem(filesystem), this) }
 
-        verify(mockStateObserver).onChanged(ExtractionFailed)
+        verify(mockStateObserver).onChanged(ExtractionFailed("Unknown reason."))
     }
 }

@@ -69,7 +69,12 @@ class FilesystemListFragment : Fragment() {
                 }
                 is ExportFailure -> {
                     val dialogBuilder = AlertDialog.Builder(activityContext)
-                    dialogBuilder.setMessage(getString(R.string.export_failure) + "\n" + getString(exportStatus.reason)).create().show()
+                    val reason = if (exportStatus.reason == R.string.error_export_execution_failure) {
+                        getString(exportStatus.reason, exportStatus.details)
+                    } else {
+                        getString(exportStatus.reason)
+                    }
+                    dialogBuilder.setMessage(getString(R.string.export_failure) + "\n" + reason).create().show()
                     activityContext.stopExportProgress()
                 }
                 is ExportStarted -> {
