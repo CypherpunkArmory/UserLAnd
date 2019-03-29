@@ -162,13 +162,16 @@ class FilesystemUtilityTest {
     }
 
     @Test
-    fun copiesDistributionAssetsToCorrectFilesystem() {
-        val filenames = listOf("asset1", "asset2", "asset3", "asset4")
+    fun `copyAssetsToFilesystem copies to the right directory, including rootfs files if filesystem is not from backup`() {
+        val filesystem = Filesystem(id = 0, distributionType = "dist", isCreatedFromBackup = false)
+        val targetDirectoryName = "${filesystem.id}"
+        val distType = filesystem.distributionType
+        val filenames = listOf("asset1", "asset2", "asset3", "asset4", "rootfs.tar.gz")
 
-        val targetDirectory = File("${tempFolder.root.path}/target/support")
+        val targetDirectory = File("${tempFolder.root.path}/$targetDirectoryName/support")
         val targetFiles = filenames.map { File("${targetDirectory.path}/$it") }
 
-        val sharedDirectory = tempFolder.newFolder("shared")
+        val sharedDirectory = tempFolder.newFolder(distType)
         val sharedFiles = filenames.map { File("${sharedDirectory.path}/$it") }
         sharedFiles.forEach { it.createNewFile() }
 
@@ -176,10 +179,46 @@ class FilesystemUtilityTest {
         targetFiles.forEach { assertFalse(it.exists()) }
         sharedFiles.forEach { assertTrue(it.exists()) }
 
-        filesystemUtility.copyAssetsToFilesystem("target", "shared")
+        filesystemUtility.copyAssetsToFilesystem(filesystem)
 
         assertTrue(targetDirectory.exists())
         targetFiles.forEach { file ->
+            assertTrue(file.exists())
+            var output = ""
+            val proc = Runtime.getRuntime().exec("ls -l ${file.path}")
+
+            proc.inputStream.bufferedReader(Charsets.UTF_8).forEachLine { output += it }
+            val permissions = output.substring(0, 10)
+            assertTrue(permissions == "-rwxrwxrwx")
+        }
+    }
+
+    @Test
+    fun `copyAssetsToFilesystem copies to the right directory, excluding rootfs files if filesystem is from backup`() {
+        val filesystem = Filesystem(id = 0, distributionType = "dist", isCreatedFromBackup = true)
+        val targetDirectoryName = "${filesystem.id}"
+        val distType = filesystem.distributionType
+        val filenames = listOf("asset1", "asset2", "asset3", "asset4", "rootfs.tar.gz")
+
+        val targetDirectory = File("${tempFolder.root.path}/$targetDirectoryName/support")
+        val targetFiles = filenames.map { File("${targetDirectory.path}/$it") }
+
+        val sharedDirectory = tempFolder.newFolder(distType)
+        val sharedFiles = filenames.map { File("${sharedDirectory.path}/$it") }
+        sharedFiles.forEach { it.createNewFile() }
+
+        assertFalse(targetDirectory.exists())
+        targetFiles.forEach { assertFalse(it.exists()) }
+        sharedFiles.forEach { assertTrue(it.exists()) }
+
+        filesystemUtility.copyAssetsToFilesystem(filesystem)
+
+        assertTrue(targetDirectory.exists())
+        targetFiles.forEach { file ->
+            if (file.name == "rootfs.tar.gz") {
+                assertFalse(file.exists())
+                return@forEach
+            }
             assertTrue(file.exists())
             var output = ""
             val proc = Runtime.getRuntime().exec("ls -l ${file.path}")
