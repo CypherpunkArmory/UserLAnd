@@ -13,6 +13,7 @@ import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import java.io.File
+import java.io.IOException
 
 @RunWith(MockitoJUnitRunner::class)
 class FilesystemUtilityTest {
@@ -23,7 +24,7 @@ class FilesystemUtilityTest {
 
     @Mock lateinit var mockBusyboxExecutor: BusyboxExecutor
 
-    @Mock lateinit var logger: LogUtility
+    @Mock lateinit var mockAcraWrapper: AcraWrapper
 
     private val statelessListener: (line: String) -> Unit = { }
 
@@ -35,7 +36,7 @@ class FilesystemUtilityTest {
     @Before
     fun setup() {
         applicationFilesDirPath = tempFolder.root.path
-        filesystemUtility = FilesystemUtility(applicationFilesDirPath, mockBusyboxExecutor, logger)
+        filesystemUtility = FilesystemUtility(applicationFilesDirPath, mockBusyboxExecutor, mockAcraWrapper)
     }
 
     @Test
@@ -350,18 +351,57 @@ class FilesystemUtilityTest {
         }
     }
 
-    @Test
-    fun `Log erros when deleteFilesystem fails`() {
+    @Test(expected = IOException::class)
+    fun `Log errors when deleteFilesystem fails`() {
         val testDir = File("${tempFolder.root.path}/100")
         testDir.mkdirs()
         assertTrue(testDir.exists() && testDir.isDirectory)
+        whenever(mockAcraWrapper.logAndThrow(any()))
+                .thenThrow(IOException())
 
         runBlocking {
             whenever(mockBusyboxExecutor.recursivelyDelete(testDir.absolutePath))
                     .thenReturn(FailedExecution(""))
             filesystemUtility.deleteFilesystem(100)
-            verify(mockBusyboxExecutor).recursivelyDelete(testDir.absolutePath)
-            verify(logger).e("FilesystemUtility", "Failed to delete filesystem: 100")
         }
+        verifyBlocking(mockBusyboxExecutor) { recursivelyDelete(testDir.absolutePath) }
+        verify(mockAcraWrapper).logAndThrow(IOException())
+    }
+
+    @Test
+    fun `moveAppScript moves the script to right location`() {
+        val sourceAppName = "firefox"
+        val sourceAppContents = "hello there"
+        val sourceAppScriptDir = File("${tempFolder.root.absolutePath}/apps/$sourceAppName")
+        val sourceAppScriptFile = File("${sourceAppScriptDir.absolutePath}/$sourceAppName.sh")
+        sourceAppScriptDir.mkdirs()
+        sourceAppScriptFile.createNewFile()
+        sourceAppScriptFile.writeText(sourceAppContents)
+
+        val targetAppScriptName = "zzzzzzzzzzzzzzzz.sh"
+        val filesystem = Filesystem(id = 5, name = "apps")
+        val filesystemProfileDDir = File("${tempFolder.root.absolutePath}/${filesystem.id}/etc/profile.d")
+        val targetAppLocation = File("${filesystemProfileDDir.absolutePath}/$targetAppScriptName")
+        assertFalse(filesystemProfileDDir.exists())
+
+        filesystemUtility.moveAppScriptToRequiredLocation(sourceAppName, filesystem)
+
+        assertTrue(targetAppLocation.exists())
+        assertEquals(sourceAppContents, targetAppLocation.readText())
+    }
+
+    @Test(expected = IOException::class)
+    fun `moveAppScript logs and throws exception on error`() {
+        val filesystem = Filesystem(id = 5, name = "apps")
+        val sourceAppName = "firefox"
+        val sourceAppScriptDir = File("${tempFolder.root.absolutePath}/apps/$sourceAppName")
+        sourceAppScriptDir.mkdirs()
+
+        whenever(mockAcraWrapper.logAndThrow(any()))
+                .thenThrow(IOException())
+
+        filesystemUtility.moveAppScriptToRequiredLocation(sourceAppName, filesystem)
+
+        verify(mockAcraWrapper).logAndThrow(IOException())
     }
 }

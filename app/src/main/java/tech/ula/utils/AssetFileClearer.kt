@@ -8,11 +8,12 @@ import java.lang.Exception
 class AssetFileClearer(
     private val filesDir: File,
     private val assetDirectoryNames: Set<String>,
-    private val busyboxExecutor: BusyboxExecutor
+    private val busyboxExecutor: BusyboxExecutor,
+    private val acraWrapper: AcraWrapper = AcraWrapper()
 ) {
     @Throws(Exception::class)
     suspend fun clearAllSupportAssets() {
-        if (!filesDir.exists()) throw FileNotFoundException()
+        if (!filesDir.exists()) acraWrapper.logAndThrow(FileNotFoundException())
         clearFilesystemSupportAssets()
         clearTopLevelAssets(assetDirectoryNames)
     }
@@ -26,13 +27,13 @@ class AssetFileClearer(
             // Removing the support directory must happen last since it contains busybox
             if (file.name == supportDirName) continue
             if (busyboxExecutor.recursivelyDelete(file.absolutePath) !is SuccessfulExecution) {
-                throw IOException()
+                acraWrapper.logAndThrow(IOException())
             }
         }
         val supportDir = File("${filesDir.absolutePath}/$supportDirName")
         if (supportDir.exists()) {
             if (busyboxExecutor.recursivelyDelete(supportDir.absolutePath) !is SuccessfulExecution) {
-                throw IOException()
+                acraWrapper.logAndThrow(IOException())
             }
         }
     }
@@ -50,7 +51,7 @@ class AssetFileClearer(
                 if (supportFile.isDirectory || supportFile.name.first() == '.') continue
                 // Use deleteRecursively to match functionality above
                 if (busyboxExecutor.recursivelyDelete(supportFile.path) !is SuccessfulExecution) {
-                    throw IOException()
+                    acraWrapper.logAndThrow(IOException())
                 }
             }
         }

@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import tech.ula.utils.AcraWrapper
 import tech.ula.utils.BuildWrapper
 import java.io.IOException
 
@@ -18,7 +19,8 @@ class UrlProvider {
 
 class GithubApiClient(
     private val buildWrapper: BuildWrapper = BuildWrapper(),
-    private val urlProvider: UrlProvider = UrlProvider()
+    private val urlProvider: UrlProvider = UrlProvider(),
+    private val acraWrapper: AcraWrapper = AcraWrapper()
 ) {
     private val client = OkHttpClient()
     private val latestResults: HashMap<String, ReleasesResponse?> = hashMapOf()
@@ -66,7 +68,7 @@ class GithubApiClient(
                 .url(url)
                 .build()
         val response = client.newCall(request).execute()
-        if (!response.isSuccessful) throw IOException("Unexpected code: $response")
+        if (!response.isSuccessful) acraWrapper.logAndThrow(IOException("Unexpected code: $response"))
 
         val result = adapter.fromJson(response.body()!!.source())!!
         latestResults[repo] = result

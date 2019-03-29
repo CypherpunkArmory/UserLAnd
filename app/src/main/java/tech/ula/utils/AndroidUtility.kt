@@ -234,10 +234,11 @@ class BuildWrapper {
                 .filter {
                     isSupported(it)
                 }
-        if (supportedABIS.size == 1 && supportedABIS[0] == "") {
-            throw Exception("No supported ABI!")
+        return if (supportedABIS.size == 1 && supportedABIS[0] == "") {
+            AcraWrapper().logAndThrow(IllegalStateException("No supported ABI!"))
+            error("never reached, ignore return type")
         } else {
-            return supportedABIS[0]
+            supportedABIS[0]
         }
     }
 
@@ -290,15 +291,6 @@ class DownloadManagerWrapper(private val downloadManager: DownloadManager) {
 
     private fun generateCursor(query: DownloadManager.Query): Cursor {
         return downloadManager.query(query)
-    }
-
-    fun getDownloadTitle(id: Long): String {
-        val query = generateQuery(id)
-        val cursor = generateCursor(query)
-        if (cursor.moveToFirst()) {
-            return cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_TITLE))
-        }
-        return ""
     }
 
     fun downloadHasSucceeded(id: Long): Boolean {
@@ -374,19 +366,17 @@ class LocalFileLocator(private val applicationFilesDir: String, private val reso
     }
 }
 
-class TimeUtility {
-    fun getCurrentTimeSeconds(): Long {
-        return currentTimeSeconds()
-    }
-
-    fun getCurrentTimeMillis(): Long {
-        return System.currentTimeMillis()
-    }
-}
-
 class AcraWrapper {
     fun putCustomString(key: String, value: String) {
         ACRA.getErrorReporter().putCustomData(key, value)
+    }
+    @Throws(Exception::class)
+    fun logAndThrow(err: Exception) {
+        val topOfStackTrace = err.stackTrace.first()
+        val key = "Exception: ${topOfStackTrace.fileName}"
+        val value = "${topOfStackTrace.lineNumber}"
+        ACRA.getErrorReporter().putCustomData(key, value)
+        throw err
     }
 }
 

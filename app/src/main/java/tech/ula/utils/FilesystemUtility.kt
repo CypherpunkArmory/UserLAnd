@@ -5,11 +5,12 @@ import kotlinx.coroutines.withContext
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import java.io.File
+import java.io.IOException
 
 class FilesystemUtility(
     private val applicationFilesDirPath: String,
     private val busyboxExecutor: BusyboxExecutor,
-    private val logger: LogUtility = LogUtility()
+    private val acraWrapper: AcraWrapper = AcraWrapper()
 ) {
 
     private val filesystemExtractionSuccess = ".success_filesystem_extraction"
@@ -108,16 +109,17 @@ class FilesystemUtility(
         }
     }
 
+    @Throws(IOException::class)
     suspend fun deleteFilesystem(filesystemId: Long) {
         val filesystemDirectory = File("$applicationFilesDirPath/$filesystemId")
         if (!filesystemDirectory.exists() || !filesystemDirectory.isDirectory) return
         val result = busyboxExecutor.recursivelyDelete(filesystemDirectory.absolutePath)
         if (result is FailedExecution) {
-            logger.e("FilesystemUtility", "Failed to delete filesystem: $filesystemId")
+            acraWrapper.logAndThrow(IOException())
         }
     }
 
-    @Throws(Exception::class)
+    @Throws(IOException::class)
     fun moveAppScriptToRequiredLocation(appName: String, appFilesystem: Filesystem) {
         // Profile.d scripts execute in alphabetical order.
         val fileNameToForceAppScriptToExecuteLast = "zzzzzzzzzzzzzzzz.sh"
@@ -125,11 +127,11 @@ class FilesystemUtility(
         val appFilesystemProfileDDir = File("$applicationFilesDirPath/${appFilesystem.id}/etc/profile.d")
         val appScriptProfileDTarget = File("$appFilesystemProfileDDir/$fileNameToForceAppScriptToExecuteLast")
 
-        appFilesystemProfileDDir.mkdirs()
-        appScriptSource.copyTo(appScriptProfileDTarget, overwrite = true)
-
-        appScriptProfileDTarget.apply {
-            if (!exists()) throw NoSuchFileException(this)
+        try {
+            appFilesystemProfileDDir.mkdirs()
+            appScriptSource.copyTo(appScriptProfileDTarget, overwrite = true)
+        } catch (err: Exception) {
+            acraWrapper.logAndThrow(IOException())
         }
     }
 }
