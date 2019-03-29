@@ -1,5 +1,6 @@
 package tech.ula.model.remote
 
+import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
@@ -15,6 +16,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
+import tech.ula.utils.AcraWrapper
 import tech.ula.utils.BuildWrapper
 import java.io.IOException
 
@@ -27,9 +29,11 @@ class GithubApiClientTest {
 
     @Mock lateinit var mockUrlProvider: UrlProvider
 
+    @Mock lateinit var mockAcraWrapper: AcraWrapper
+
     private val moshi = Moshi.Builder().build()
 
-    lateinit var githubApiClient: GithubApiClient
+    private lateinit var githubApiClient: GithubApiClient
 
     private val testRepo = "repo"
     private val testReleaseToUse = "latest"
@@ -75,7 +79,7 @@ class GithubApiClientTest {
     fun setup() {
         whenever(mockBuildWrapper.getArchType()).thenReturn(testArch)
 
-        githubApiClient = GithubApiClient(buildWrapper = mockBuildWrapper, urlProvider = mockUrlProvider)
+        githubApiClient = GithubApiClient(mockBuildWrapper, mockUrlProvider, mockAcraWrapper)
     }
 
     @After
@@ -83,7 +87,7 @@ class GithubApiClientTest {
         server.shutdown()
     }
 
-    fun stubBaseUrl() {
+    private fun stubBaseUrl() {
         val url = server.url("/")
         whenever(mockUrlProvider.getBaseUrl()).thenReturn("${url.url()}")
     }
@@ -136,8 +140,12 @@ class GithubApiClientTest {
         response.setResponseCode(500)
         server.enqueue(response)
         stubBaseUrl()
+        whenever(mockAcraWrapper.logAndThrow(any()))
+                .thenThrow(IOException())
 
         runBlocking { githubApiClient.getAssetsListDownloadUrl(testRepo) }
+
+        verify(mockAcraWrapper.logAndThrow(IOException()))
     }
 
     @Test
@@ -177,8 +185,12 @@ class GithubApiClientTest {
         response.setResponseCode(500)
         server.enqueue(response)
         stubBaseUrl()
+        whenever(mockAcraWrapper.logAndThrow(any()))
+                .thenThrow(IOException())
 
         runBlocking { githubApiClient.getLatestReleaseVersion(testRepo) }
+
+        verify(mockAcraWrapper.logAndThrow(IOException()))
     }
 
     @Test
@@ -218,8 +230,12 @@ class GithubApiClientTest {
         response.setResponseCode(500)
         server.enqueue(response)
         stubBaseUrl()
+        whenever(mockAcraWrapper.logAndThrow(any()))
+                .thenThrow(IOException())
 
         runBlocking { githubApiClient.getAssetEndpoint(testAssetType, testRepo) }
+
+        verify(mockAcraWrapper).logAndThrow(IOException())
     }
 
     @Test

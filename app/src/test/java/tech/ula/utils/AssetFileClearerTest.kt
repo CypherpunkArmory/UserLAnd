@@ -23,6 +23,8 @@ class AssetFileClearerTest {
 
     @Mock lateinit var busyboxExecutor: BusyboxExecutor
 
+    @Mock lateinit var mockAcraWrapper: AcraWrapper
+
     lateinit var filesDir: File
     lateinit var supportDir: File
     lateinit var debianDir: File
@@ -50,7 +52,7 @@ class AssetFileClearerTest {
     fun setup() {
         createTestFiles()
 
-        assetFileClearer = AssetFileClearer(filesDir, assetDirectoryNames, busyboxExecutor)
+        assetFileClearer = AssetFileClearer(filesDir, assetDirectoryNames, busyboxExecutor, mockAcraWrapper)
     }
 
     fun createTestFiles() {
@@ -77,8 +79,12 @@ class AssetFileClearerTest {
     @Test(expected = FileNotFoundException::class)
     fun `Throws FileNotFoundException if files directory does not exist`() {
         filesDir.deleteRecursively()
+        whenever(mockAcraWrapper.logAndThrow(any()))
+                .thenThrow(FileNotFoundException())
 
         runBlocking { assetFileClearer.clearAllSupportAssets() }
+
+        verify(mockAcraWrapper.logAndThrow(FileNotFoundException()))
     }
 
     @Test

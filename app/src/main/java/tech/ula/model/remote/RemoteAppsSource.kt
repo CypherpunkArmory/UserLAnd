@@ -3,10 +3,12 @@ package tech.ula.model.remote
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import tech.ula.model.entities.App
+import tech.ula.utils.AcraWrapper
 import tech.ula.utils.ConnectionUtility
 import tech.ula.utils.getBranchToDownloadAssetsFrom
 import java.io.BufferedReader
 import java.io.File
+import java.io.IOException
 import java.io.InputStreamReader
 import java.net.URL
 import javax.net.ssl.SSLHandshakeException
@@ -23,7 +25,11 @@ interface RemoteAppsSource {
     suspend fun fetchAppScript(app: App)
 }
 
-class GithubAppsFetcher(private val applicationFilesDir: String, private val connectionUtility: ConnectionUtility = ConnectionUtility()) : RemoteAppsSource {
+class GithubAppsFetcher(
+        private val applicationFilesDir: String,
+        private val connectionUtility: ConnectionUtility = ConnectionUtility(),
+        private val acraWrapper: AcraWrapper = AcraWrapper()
+) : RemoteAppsSource {
 
     // Allows destructing of the list of application elements
     operator fun <T> List<T>.component6() = get(5)
@@ -37,7 +43,7 @@ class GithubAppsFetcher(private val applicationFilesDir: String, private val con
 
     override fun getHostname(): String { return hostname }
 
-    @Throws
+    @Throws(IOException::class)
     override suspend fun fetchAppsList(): List<App> {
         val appsList = ArrayList<App>()
 
@@ -54,15 +60,12 @@ class GithubAppsFetcher(private val applicationFilesDir: String, private val con
             }
             reader.close()
             appsList.toList()
-        } catch (err: SSLHandshakeException) {
-            protocol = "http"
-            fetchAppsList()
         } catch (err: Exception) {
-            throw object : Exception("Error getting apps list") {}
+            acraWrapper.logAndThrow(IOException("Error getting apps list"))
+            listOf() // Never reaches here
         }
     }
 
-    @Throws
     override suspend fun fetchAppIcon(app: App) {
         val directoryAndFilename = "${app.name}/${app.name}.png"
         val url = "$protocol$baseUrl/$directoryAndFilename"
@@ -87,7 +90,6 @@ class GithubAppsFetcher(private val applicationFilesDir: String, private val con
         file.writeText(contents)
     }
 
-    @Throws
     override suspend fun fetchAppScript(app: App) {
         val directoryAndFilename = "${app.name}/${app.name}.sh"
         val url = "$protocol$baseUrl/$directoryAndFilename"
