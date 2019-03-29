@@ -236,7 +236,7 @@ class BuildWrapper {
                 }
         return if (supportedABIS.size == 1 && supportedABIS[0] == "") {
             AcraWrapper().logAndThrow(IllegalStateException("No supported ABI!"))
-            "" // never reached
+            error("never reached, ignore return type")
         } else {
             supportedABIS[0]
         }
