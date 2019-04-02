@@ -13,6 +13,7 @@ import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import java.net.UnknownHostException
 
 class SessionStartupFsm(
     ulaDatabase: UlaDatabase,
@@ -130,9 +131,7 @@ class SessionStartupFsm(
     private suspend fun handleRetrieveAssetLists(filesystem: Filesystem) {
         state.postValue(RetrievingAssetLists)
 
-        val assetLists = withContext(Dispatchers.IO) {
-            assetRepository.getAllAssetLists(filesystem.distributionType)
-        }
+        val assetLists = assetRepository.getAllAssetLists(filesystem.distributionType)
 
         if (assetLists.values.any { it.isEmpty() }) {
             state.postValue(AssetListsRetrievalFailed)
@@ -160,8 +159,12 @@ class SessionStartupFsm(
                 !filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}") &&
                 !filesystem.isCreatedFromBackup
 
-        val downloadRequirements = assetRepository.generateDownloadRequirements(
-                filesystem, assetLists, filesystemNeedsExtraction)
+        val downloadRequirements = try {
+            assetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemNeedsExtraction)
+        } catch (err: UnknownHostException) {
+            state.postValue(RemoteUnreachableForGeneration)
+            return
+        }
 
         if (downloadRequirements.isEmpty()) {
             state.postValue(NoDownloadsRequired)
@@ -301,6 +304,7 @@ data class DownloadsRequired(val downloadsRequired: List<DownloadMetadata>, val 
 object NoDownloadsRequired : DownloadRequirementsGenerationState()
 data class UnexpectedDownloadGenerationSize(val size: Int, val listNames: Set<String>) : DownloadRequirementsGenerationState()
 data class UnexpectedDownloadGenerationTypes(val expectedDistribution: String, val listNames: Set<String>) : DownloadRequirementsGenerationState()
+object RemoteUnreachableForGeneration : DownloadRequirementsGenerationState()
 
 // Downloading asset states
 sealed class DownloadingAssetsState : SessionStartupState()

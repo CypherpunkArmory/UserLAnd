@@ -60,8 +60,9 @@ class GithubAppsFetcher(
             reader.close()
             appsList.toList()
         } catch (err: Exception) {
-            acraWrapper.logAndThrow(IOException("Error getting apps list"))
-            error("Not reached, ignore return type")
+            val exception = IOException("Error getting apps list")
+            acraWrapper.logException(exception)
+            throw exception
         }
     }
 

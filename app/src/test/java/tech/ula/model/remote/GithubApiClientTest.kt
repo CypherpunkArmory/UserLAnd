@@ -1,6 +1,5 @@
 package tech.ula.model.remote
 
-import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
@@ -140,12 +139,10 @@ class GithubApiClientTest {
         response.setResponseCode(500)
         server.enqueue(response)
         stubBaseUrl()
-        whenever(mockAcraWrapper.logAndThrow(any()))
-                .thenThrow(IOException())
 
         runBlocking { githubApiClient.getAssetsListDownloadUrl(testRepo) }
 
-        verify(mockAcraWrapper.logAndThrow(IOException()))
+        verify(mockAcraWrapper.logException(IOException()))
     }
 
     @Test
@@ -185,12 +182,10 @@ class GithubApiClientTest {
         response.setResponseCode(500)
         server.enqueue(response)
         stubBaseUrl()
-        whenever(mockAcraWrapper.logAndThrow(any()))
-                .thenThrow(IOException())
 
         runBlocking { githubApiClient.getLatestReleaseVersion(testRepo) }
 
-        verify(mockAcraWrapper.logAndThrow(IOException()))
+        verify(mockAcraWrapper.logException(IOException()))
     }
 
     @Test
@@ -230,12 +225,10 @@ class GithubApiClientTest {
         response.setResponseCode(500)
         server.enqueue(response)
         stubBaseUrl()
-        whenever(mockAcraWrapper.logAndThrow(any()))
-                .thenThrow(IOException())
 
         runBlocking { githubApiClient.getAssetEndpoint(testAssetType, testRepo) }
 
-        verify(mockAcraWrapper).logAndThrow(IOException())
+        verify(mockAcraWrapper).logException(IOException())
     }
 
     @Test

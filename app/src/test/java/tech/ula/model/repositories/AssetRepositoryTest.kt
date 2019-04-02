@@ -107,15 +107,12 @@ class AssetRepositoryTest {
     @Test(expected = IllegalStateException::class)
     fun `generateDownloadRequirements logs and throws and exception if sent an empty asset list`() {
         val assetLists = hashMapOf(supportRepo to listOf<Asset>())
-        val exception = IllegalStateException()
-        whenever(mockAcraWrapper.logAndThrow(any()))
-                .thenThrow(exception)
 
         runBlocking {
             assetRepository.generateDownloadRequirements(filesystem, assetLists, true)
         }
 
-        verify(mockAcraWrapper).logAndThrow(exception)
+        verify(mockAcraWrapper).logException(IOException())
     }
 
     @Test

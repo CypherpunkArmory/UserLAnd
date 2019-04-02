@@ -10,6 +10,7 @@ import okhttp3.Request
 import tech.ula.utils.AcraWrapper
 import tech.ula.utils.BuildWrapper
 import java.io.IOException
+import java.net.UnknownHostException
 
 class UrlProvider {
     fun getBaseUrl(): String {
@@ -57,7 +58,7 @@ class GithubApiClient(
     }
 
     // Query latest release data and memoize results.
-    @Throws(IOException::class)
+    @Throws(IOException::class, UnknownHostException::class)
     private suspend fun queryLatestRelease(repo: String): ReleasesResponse = withContext(Dispatchers.IO) {
         val releaseToUse = getReleaseToUseForRepo(repo)
         val base = urlProvider.getBaseUrl()
@@ -67,8 +68,17 @@ class GithubApiClient(
         val request = Request.Builder()
                 .url(url)
                 .build()
-        val response = client.newCall(request).execute()
-        if (!response.isSuccessful) acraWrapper.logAndThrow(IOException("Unexpected code: $response"))
+        val response = try {
+            client.newCall(request).execute()
+        } catch (err: UnknownHostException) {
+            acraWrapper.logException(err)
+            throw err
+        }
+        if (!response.isSuccessful) {
+            val err = IOException("Unexpected code: $response")
+            acraWrapper.logException(err)
+            throw err
+        }
 
         val result = adapter.fromJson(response.body()!!.source())!!
         latestResults[repo] = result

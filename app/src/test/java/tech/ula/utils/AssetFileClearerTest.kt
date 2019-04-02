@@ -79,12 +79,10 @@ class AssetFileClearerTest {
     @Test(expected = FileNotFoundException::class)
     fun `Throws FileNotFoundException if files directory does not exist`() {
         filesDir.deleteRecursively()
-        whenever(mockAcraWrapper.logAndThrow(any()))
-                .thenThrow(FileNotFoundException())
 
         runBlocking { assetFileClearer.clearAllSupportAssets() }
 
-        verify(mockAcraWrapper.logAndThrow(FileNotFoundException()))
+        verify(mockAcraWrapper.logException(FileNotFoundException()))
     }
 
     @Test
