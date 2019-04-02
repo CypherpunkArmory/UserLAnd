@@ -159,10 +159,7 @@
 
     <!-- Clear support files alert -->
     <string name="alert_clear_support_files_title">مسح كل ملفات الدعم؟</string>
-    <string name="alert_clear_support_files_message">
-        سيؤدي ذلك إلى حذف جميع ملفات الدعم. هذا لن يؤثر على أي شيء قمت بإنشائه على الخاص بك
-                نظام الملفات. سيؤدي ذلك إلى تنزيل مواد العرض مرة أخرى في المرة التالية التي يتم فيها تشغيل جلسة أو تطبيق.
-    </string>
+    <string name="alert_clear_support_files_message">سيؤدي ذلك الى حذف جميع ملفات الدعم.\nهذا لن يؤثر على اي شئ قمت باشائه على\nنظام الملفات الخاص بك. سيؤدي ذلك الى\nتنزيل كل مواد العرض مرة اخرى في المرة\nالتالية التي يتم فيها تشغيل جلسة او تطبيق</string>
     <string name="alert_clear_support_files_clear_button">مسح</string>
 
     <!-- Play service error alerts -->
