@@ -7,6 +7,7 @@ import android.arch.lifecycle.ViewModelProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
@@ -279,10 +280,13 @@ class MainActivityViewModel(
         return when (newState) {
             is GeneratingDownloadRequirements -> state.postValue(CheckingForAssetsUpdates)
             is UnexpectedDownloadGenerationSize -> {
-                // TODO post illegal state
+                state.postValue(ErrorGeneratingDownloads(R.string.illegal_state_unexpected_generation_size))
             }
             is UnexpectedDownloadGenerationTypes -> {
-                // TODO post illegal state
+                state.postValue(ErrorGeneratingDownloads(R.string.illegal_state_unexpected_generation_type))
+            }
+            is RemoteUnreachableForGeneration -> {
+                state.postValue(ErrorGeneratingDownloads(R.string.illegal_state_remote_unreachable_during_generation))
             }
             is DownloadsRequired -> {
                 if (newState.largeDownloadRequired) {
@@ -396,13 +400,16 @@ sealed class IllegalState : State()
 data class IllegalStateTransition(val transition: String) : IllegalState()
 object TooManySelectionsMadeWhenPermissionsGranted : IllegalState()
 object NoSelectionsMadeWhenPermissionsGranted : IllegalState()
+
 object NoFilesystemSelectedWhenCredentialsSubmitted : IllegalState()
 object NoAppSelectedWhenPreferenceSubmitted : IllegalState()
 object NoAppSelectedWhenTransitionNecessary : IllegalState()
 object ErrorFetchingAppDatabaseEntries : IllegalState()
 object ErrorCopyingAppScript : IllegalState()
+
 object NoSessionSelectedWhenTransitionNecessary : IllegalState()
 object ErrorFetchingAssetLists : IllegalState()
+data class ErrorGeneratingDownloads(val errorId: Int) : IllegalState()
 data class DownloadsDidNotCompleteSuccessfully(val reason: String) : IllegalState()
 object DownloadCacheAccessedWhileEmpty : IllegalState()
 object DownloadCacheAccessedInAnIncorrectState : IllegalState()

@@ -451,6 +451,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             is ErrorFetchingAssetLists -> {
                 getString(R.string.illegal_state_error_fetching_asset_lists)
             }
+            is ErrorGeneratingDownloads -> {
+                getString(state.errorId)
+            }
             is DownloadsDidNotCompleteSuccessfully -> {
                 getString(R.string.illegal_state_downloads_did_not_complete_successfully, state.reason)
             }

@@ -115,7 +115,9 @@ class FilesystemUtility(
         if (!filesystemDirectory.exists() || !filesystemDirectory.isDirectory) return
         val result = busyboxExecutor.recursivelyDelete(filesystemDirectory.absolutePath)
         if (result is FailedExecution) {
-            acraWrapper.logAndThrow(IOException())
+            val err = IOException()
+            acraWrapper.logException(err)
+            throw err
         }
     }
 
@@ -131,7 +133,9 @@ class FilesystemUtility(
             appFilesystemProfileDDir.mkdirs()
             appScriptSource.copyTo(appScriptProfileDTarget, overwrite = true)
         } catch (err: Exception) {
-            acraWrapper.logAndThrow(IOException())
+            val exception = IOException()
+            acraWrapper.logException(exception)
+            throw exception
         }
     }
 }

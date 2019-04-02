@@ -1,5 +1,7 @@
 package tech.ula.model.repositories
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.remote.GithubApiClient
@@ -9,6 +11,7 @@ import tech.ula.utils.ConnectionUtility
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
+import java.net.UnknownHostException
 import kotlin.Exception
 
 data class DownloadMetadata(
@@ -27,7 +30,7 @@ class AssetRepository(
     private val acraWrapper: AcraWrapper = AcraWrapper()
 ) {
 
-    @Throws(IllegalStateException::class)
+    @Throws(IllegalStateException::class, UnknownHostException::class)
     suspend fun generateDownloadRequirements(
         filesystem: Filesystem,
         assetLists: HashMap<String, List<Asset>>,
@@ -37,7 +40,11 @@ class AssetRepository(
         for (entry in assetLists) {
             val (repo, list) = entry
             // Empty lists should not have propagated this deeply.
-            if (list.isEmpty()) acraWrapper.logAndThrow(IllegalStateException())
+            if (list.isEmpty()) {
+                val err = java.lang.IllegalStateException()
+                acraWrapper.logException(err)
+                throw err
+            }
             if (assetsArePresentInSupportDirectories(list) && lastDownloadedVersionIsUpToDate(repo))
                 continue
             val filename = "assets.tar.gz"
@@ -75,6 +82,7 @@ class AssetRepository(
         return true
     }
 
+    @Throws(UnknownHostException::class)
     suspend fun getAllAssetLists(distributionType: String): HashMap<String, List<Asset>> {
         val lists = hashMapOf<String, List<Asset>>()
         listOf(distributionType, "support").forEach { repo ->
@@ -89,7 +97,7 @@ class AssetRepository(
         return lists
     }
 
-    private suspend fun fetchAssetList(assetType: String): List<Asset> {
+    private suspend fun fetchAssetList(assetType: String): List<Asset> = withContext(Dispatchers.IO) {
         val downloadUrl = githubApiClient.getAssetsListDownloadUrl(assetType)
 
         val inputStream = connectionUtility.getUrlInputStream(downloadUrl)
@@ -104,7 +112,7 @@ class AssetRepository(
 
         reader.close()
 
-        return assetList
+        return@withContext assetList
     }
 
     private suspend fun lastDownloadedVersionIsUpToDate(repo: String): Boolean {

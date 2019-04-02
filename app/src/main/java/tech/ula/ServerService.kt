@@ -198,7 +198,9 @@ class ServerService : Service() {
     private fun cleanUpFilesystem(filesystemId: Long) {
         // TODO This could potentially be handled by the main activity (viewmodel) now
         if (filesystemId == (-1).toLong()) {
-            AcraWrapper().logAndThrow(IllegalStateException("Did not receive filesystemId"))
+            val exception = IllegalStateException("Did not receive filesystemId")
+            AcraWrapper().logException(exception)
+            throw exception
         }
 
         activeSessions.values.filter { it.filesystemId == filesystemId }

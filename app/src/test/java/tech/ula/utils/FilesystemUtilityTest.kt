@@ -356,8 +356,6 @@ class FilesystemUtilityTest {
         val testDir = File("${tempFolder.root.path}/100")
         testDir.mkdirs()
         assertTrue(testDir.exists() && testDir.isDirectory)
-        whenever(mockAcraWrapper.logAndThrow(any()))
-                .thenThrow(IOException())
 
         runBlocking {
             whenever(mockBusyboxExecutor.recursivelyDelete(testDir.absolutePath))
@@ -365,7 +363,7 @@ class FilesystemUtilityTest {
             filesystemUtility.deleteFilesystem(100)
         }
         verifyBlocking(mockBusyboxExecutor) { recursivelyDelete(testDir.absolutePath) }
-        verify(mockAcraWrapper).logAndThrow(IOException())
+        verify(mockAcraWrapper).logException(IOException())
     }
 
     @Test
@@ -397,11 +395,8 @@ class FilesystemUtilityTest {
         val sourceAppScriptDir = File("${tempFolder.root.absolutePath}/apps/$sourceAppName")
         sourceAppScriptDir.mkdirs()
 
-        whenever(mockAcraWrapper.logAndThrow(any()))
-                .thenThrow(IOException())
-
         filesystemUtility.moveAppScriptToRequiredLocation(sourceAppName, filesystem)
 
-        verify(mockAcraWrapper).logAndThrow(IOException())
+        verify(mockAcraWrapper).logException(IOException())
     }
 }

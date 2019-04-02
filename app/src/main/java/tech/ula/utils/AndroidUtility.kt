@@ -235,8 +235,9 @@ class BuildWrapper {
                     isSupported(it)
                 }
         return if (supportedABIS.size == 1 && supportedABIS[0] == "") {
-            AcraWrapper().logAndThrow(IllegalStateException("No supported ABI!"))
-            error("never reached, ignore return type")
+            val exception = IllegalStateException("No supported ABI!")
+            AcraWrapper().logException(exception)
+            throw exception
         } else {
             supportedABIS[0]
         }
@@ -370,13 +371,13 @@ class AcraWrapper {
     fun putCustomString(key: String, value: String) {
         ACRA.getErrorReporter().putCustomData(key, value)
     }
-    @Throws(Exception::class)
-    fun logAndThrow(err: Exception) {
+
+    fun logException(err: Exception): Exception {
         val topOfStackTrace = err.stackTrace.first()
         val key = "Exception: ${topOfStackTrace.fileName}"
         val value = "${topOfStackTrace.lineNumber}"
         ACRA.getErrorReporter().putCustomData(key, value)
-        throw err
+        return err
     }
 }
 
