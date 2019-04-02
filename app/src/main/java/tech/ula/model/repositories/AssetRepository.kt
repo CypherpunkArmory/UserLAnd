@@ -1,5 +1,7 @@
 package tech.ula.model.repositories
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.remote.GithubApiClient
@@ -95,7 +97,7 @@ class AssetRepository(
         return lists
     }
 
-    private suspend fun fetchAssetList(assetType: String): List<Asset> {
+    private suspend fun fetchAssetList(assetType: String): List<Asset> = withContext(Dispatchers.IO) {
         val downloadUrl = githubApiClient.getAssetsListDownloadUrl(assetType)
 
         val inputStream = connectionUtility.getUrlInputStream(downloadUrl)
@@ -110,7 +112,7 @@ class AssetRepository(
 
         reader.close()
 
-        return assetList
+        return@withContext assetList
     }
 
     private suspend fun lastDownloadedVersionIsUpToDate(repo: String): Boolean {
