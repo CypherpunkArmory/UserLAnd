@@ -22,7 +22,7 @@
     <!-- Menus -->
     <string name="app_info">معلومات التطبيق</string>
     <string name="stop_app">ايقاف التطبيق</string>
-    <string name="stop_session">قتل الخدمة</string>               <!-- We know this says name="kill_service" but it is really stopping a session. -->
+    <string name="stop_session">ايقاف الخدمة</string>               
     <string name="edit">تعديل</string>
     <string name="delete">حذف</string>
     <string name="backup">استخراج</string>
