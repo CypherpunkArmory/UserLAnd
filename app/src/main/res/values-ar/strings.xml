@@ -36,7 +36,7 @@
     <string name="hint_session_name">اسم الجلسة</string>
     <string name="hint_username">اسم المستخدم</string>
     <string name="hint_password">كلمة السر</string>
-    <string name="hint_vnc_password">VNC كلمة السر</string>
+    <string name="hint_vnc_password">\u200FVNC كلمة السر</string>
     
     <!-- Errors -->
     <string name="error_session_name">يجب عليك تقديم اسم جلسة</string>
