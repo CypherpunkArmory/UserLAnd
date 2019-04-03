@@ -24,8 +24,8 @@ android {
         applicationId "tech.ula"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 53
-        versionName "2.4.0"
+        versionCode 57
+        versionName "2.5.3"
         
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -173,6 +173,8 @@ task jacocoCoverageReportForCi(type: JacocoReport, dependsOn: ['testDebugUnitTes
 
 dependencies {
     def acra_version = '5.2.1'
+    def moshi_version = '1.8.0'
+    def okhttp_version = '3.13.1'
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':terminal-term')
@@ -192,12 +194,17 @@ dependencies {
     implementation "com.android.support:preference-v7:$support_library_version"
     ktlint "com.github.shyiko:ktlint:0.29.0"
     implementation "ch.acra:acra-http:$acra_version"
+    implementation "com.squareup.okhttp3:okhttp:$okhttp_version"
+    implementation "com.squareup.moshi:moshi:$moshi_version"
+    kapt "com.squareup.moshi:moshi-kotlin-codegen:$moshi_version"
+    implementation 'org.rauschig:jarchivelib:0.8.0' // v1.0.0 breaks all sdk versions < 26 https://github.com/thrau/jarchivelib/issues/75
 
     testImplementation 'junit:junit:4.12'
     testImplementation "org.mockito:mockito-core:$mockito_version"
     testImplementation "org.mockito:mockito-inline:$mockito_version"
     testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:$mockito_kotlin_version"
     testImplementation "android.arch.core:core-testing:$core_testing_version"
+    testImplementation "com.squareup.okhttp3:mockwebserver:$okhttp_version"
     androidTestImplementation "android.arch.core:core-testing:$core_testing_version"
     androidTestImplementation "com.android.support.test.espresso:espresso-core:$espresso_version"
     androidTestImplementation "com.android.support.test.espresso:espresso-intents:$espresso_version"

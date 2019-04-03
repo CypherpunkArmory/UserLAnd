@@ -14,11 +14,12 @@ import java.io.File
 import java.lang.Exception
 import kotlin.coroutines.CoroutineContext
 import tech.ula.model.entities.Session
+import tech.ula.utils.FailedExecution
 
 sealed class FilesystemExportStatus
 data class ExportUpdate(val details: String) : FilesystemExportStatus()
 object ExportSuccess : FilesystemExportStatus()
-data class ExportFailure(val reason: Int) : FilesystemExportStatus()
+data class ExportFailure(val reason: Int, val details: String = "") : FilesystemExportStatus()
 object ExportStarted : FilesystemExportStatus()
 
 class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private val sessionDao: SessionDao, private val filesystemUtility: FilesystemUtility) : ViewModel(), CoroutineScope {
@@ -76,7 +77,10 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
             val localTempBackupFile = File("${filesDir.path}/rootfs.tar.gz")
             if (!externalStorageDirectory.exists()) externalStorageDirectory.mkdirs()
 
-            filesystemUtility.compressFilesystem(filesystem, localTempBackupFile, exportUpdateListener)
+            val result = filesystemUtility.compressFilesystem(filesystem, localTempBackupFile, exportUpdateListener)
+            if (result is FailedExecution) {
+                exportStatusLiveData.postValue(ExportFailure(R.string.error_export_execution_failure, result.reason))
+            }
 
             if (!localTempBackupFile.exists()) {
                 exportStatusLiveData.postValue(ExportFailure(R.string.error_export_to_local_failed))

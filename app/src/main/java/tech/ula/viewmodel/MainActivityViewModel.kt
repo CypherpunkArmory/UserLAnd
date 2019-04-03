@@ -7,10 +7,11 @@ import android.arch.lifecycle.ViewModelProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import tech.ula.R
 import tech.ula.model.entities.App
-import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
+import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.AppServiceTypePreference
 import tech.ula.utils.AssetFileClearer
@@ -148,8 +149,8 @@ class MainActivityViewModel(
     }
 
     // Exposed so that downloads can be continued from activity
-    fun startAssetDownloads(requiredDownloads: List<Asset>) {
-        submitSessionStartupEvent(DownloadAssets(requiredDownloads))
+    fun startAssetDownloads(downloadRequirements: List<DownloadMetadata>) {
+        submitSessionStartupEvent(DownloadAssets(downloadRequirements))
     }
 
     suspend fun handleClearSupportFiles(assetFileClearer: AssetFileClearer) {
@@ -278,11 +279,20 @@ class MainActivityViewModel(
     private fun handleDownloadRequirementsGenerationState(newState: DownloadRequirementsGenerationState) {
         return when (newState) {
             is GeneratingDownloadRequirements -> state.postValue(CheckingForAssetsUpdates)
+            is UnexpectedDownloadGenerationSize -> {
+                state.postValue(ErrorGeneratingDownloads(R.string.illegal_state_unexpected_generation_size))
+            }
+            is UnexpectedDownloadGenerationTypes -> {
+                state.postValue(ErrorGeneratingDownloads(R.string.illegal_state_unexpected_generation_type))
+            }
+            is RemoteUnreachableForGeneration -> {
+                state.postValue(ErrorGeneratingDownloads(R.string.illegal_state_remote_unreachable_during_generation))
+            }
             is DownloadsRequired -> {
                 if (newState.largeDownloadRequired) {
-                    state.postValue(LargeDownloadRequired(newState.requiredDownloads))
+                    state.postValue(LargeDownloadRequired(newState.downloadsRequired))
                 } else {
-                    startAssetDownloads(newState.requiredDownloads)
+                    startAssetDownloads(newState.downloadsRequired)
                 }
             }
             is NoDownloadsRequired -> { doTransitionIfRequirementsAreSelected {
@@ -338,7 +348,7 @@ class MainActivityViewModel(
                 state.postValue(SessionCanBeStarted(lastSelectedSession))
                 resetStartupState()
             } }
-            is ExtractionFailed -> state.postValue(FailedToExtractFilesystem)
+            is ExtractionFailed -> state.postValue(FailedToExtractFilesystem(newState.reason))
         }
     }
 
@@ -390,26 +400,29 @@ sealed class IllegalState : State()
 data class IllegalStateTransition(val transition: String) : IllegalState()
 object TooManySelectionsMadeWhenPermissionsGranted : IllegalState()
 object NoSelectionsMadeWhenPermissionsGranted : IllegalState()
+
 object NoFilesystemSelectedWhenCredentialsSubmitted : IllegalState()
 object NoAppSelectedWhenPreferenceSubmitted : IllegalState()
 object NoAppSelectedWhenTransitionNecessary : IllegalState()
 object ErrorFetchingAppDatabaseEntries : IllegalState()
 object ErrorCopyingAppScript : IllegalState()
+
 object NoSessionSelectedWhenTransitionNecessary : IllegalState()
 object ErrorFetchingAssetLists : IllegalState()
+data class ErrorGeneratingDownloads(val errorId: Int) : IllegalState()
 data class DownloadsDidNotCompleteSuccessfully(val reason: String) : IllegalState()
 object DownloadCacheAccessedWhileEmpty : IllegalState()
 object DownloadCacheAccessedInAnIncorrectState : IllegalState()
 object FailedToCopyAssetsToLocalStorage : IllegalState()
 object AssetsHaveNotBeenDownloaded : IllegalState()
 object FailedToCopyAssetsToFilesystem : IllegalState()
-object FailedToExtractFilesystem : IllegalState()
+data class FailedToExtractFilesystem(val reason: String) : IllegalState()
 object FailedToClearSupportFiles : IllegalState()
 
 sealed class UserInputRequiredState : State()
 object FilesystemCredentialsRequired : UserInputRequiredState()
 object AppServiceTypePreferenceRequired : UserInputRequiredState()
-data class LargeDownloadRequired(val requiredDownloads: List<Asset>) : UserInputRequiredState()
+data class LargeDownloadRequired(val downloadRequirements: List<DownloadMetadata>) : UserInputRequiredState()
 object ActiveSessionsMustBeDeactivated : UserInputRequiredState()
 
 sealed class ProgressBarUpdateState : State()

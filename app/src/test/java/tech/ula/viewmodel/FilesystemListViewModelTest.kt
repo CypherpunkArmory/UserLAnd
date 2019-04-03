@@ -18,7 +18,9 @@ import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
+import tech.ula.utils.FailedExecution
 import tech.ula.utils.FilesystemUtility
+import tech.ula.utils.SuccessfulExecution
 import java.io.File
 
 @RunWith(MockitoJUnitRunner::class)
@@ -100,6 +102,30 @@ class FilesystemListViewModelTest {
     }
 
     @Test
+    fun `compressFilesystem posts ExportFailure if there is an error in execution`() {
+        val filesystem = Filesystem(id = 0, name = filesystemName, distributionType = filesystemType)
+        val filesDir = tempFolder.newFolder("files")
+        val externalDir = tempFolder.newFolder("external")
+        val expectedLocalBackupFile = File("${filesDir.absolutePath}/$rootfsString")
+
+        assertFalse(expectedLocalBackupFile.exists())
+        filesystemListViewModel.getExportStatusLiveData().observeForever(mockExportObserver)
+        val failureDetails = "details"
+        runBlocking {
+            whenever(mockFilesystemUtility.compressFilesystem(eq(filesystem), eq(expectedLocalBackupFile), anyOrNull()))
+                    .thenReturn(FailedExecution(failureDetails))
+        }
+
+        runBlocking {
+            filesystemListViewModel.compressFilesystemAndExportToStorage(filesystem, filesDir, externalDir, this)
+        }
+
+        verify(mockExportObserver).onChanged(ExportStarted)
+        verifyBlocking(mockFilesystemUtility) { compressFilesystem(eq(filesystem), eq(expectedLocalBackupFile), anyOrNull()) }
+        verify(mockExportObserver).onChanged(ExportFailure(R.string.error_export_execution_failure, failureDetails))
+    }
+
+    @Test
     fun `compressFilesystem posts ExportFailure if the local backup is not created`() {
         val filesystem = Filesystem(id = 0, name = filesystemName, distributionType = filesystemType)
         val filesDir = tempFolder.newFolder("files")
@@ -109,12 +135,17 @@ class FilesystemListViewModelTest {
         assertFalse(expectedLocalBackupFile.exists())
         filesystemListViewModel.getExportStatusLiveData().observeForever(mockExportObserver)
         runBlocking {
+            whenever(mockFilesystemUtility.compressFilesystem(eq(filesystem), eq(expectedLocalBackupFile), anyOrNull()))
+                    .thenReturn(SuccessfulExecution)
+        }
+
+        runBlocking {
             filesystemListViewModel.compressFilesystemAndExportToStorage(filesystem, filesDir, externalDir, this)
         }
 
         verify(mockExportObserver).onChanged(ExportStarted)
         verifyBlocking(mockFilesystemUtility) { compressFilesystem(eq(filesystem), eq(expectedLocalBackupFile), anyOrNull()) }
-        verify(mockExportObserver).onChanged(ExportFailure(R.string.error_export_to_local_failed))
+        verify(mockExportObserver).onChanged(ExportFailure(R.string.error_export_to_local_failed, ""))
     }
 
     @Test
@@ -128,8 +159,12 @@ class FilesystemListViewModelTest {
 
         val expectedExternalBackupFile = File("${externalDir.absolutePath}/$expectedBackupName")
         expectedExternalBackupFile.createNewFile()
-
         filesystemListViewModel.getExportStatusLiveData().observeForever(mockExportObserver)
+        runBlocking {
+            whenever(mockFilesystemUtility.compressFilesystem(eq(filesystem), eq(expectedLocalBackupFile), anyOrNull()))
+                    .thenReturn(SuccessfulExecution)
+        }
+
         runBlocking {
             filesystemListViewModel.compressFilesystemAndExportToStorage(filesystem, filesDir, externalDir, this)
         }
@@ -137,7 +172,7 @@ class FilesystemListViewModelTest {
         verify(mockExportObserver).onChanged(ExportStarted)
         assertFalse(expectedLocalBackupFile.exists())
         verifyBlocking(mockFilesystemUtility) { compressFilesystem(eq(filesystem), eq(expectedLocalBackupFile), anyOrNull()) }
-        verify(mockExportObserver).onChanged(ExportFailure(R.string.error_export_to_external_failed))
+        verify(mockExportObserver).onChanged(ExportFailure(R.string.error_export_to_external_failed, ""))
     }
 
     @Test
@@ -154,6 +189,6 @@ class FilesystemListViewModelTest {
             filesystemListViewModel.startExport(filesystem, activeSessions, externalDir, filesDir)
         }
 
-        verify(mockExportObserver).onChanged(ExportFailure(R.string.deactivate_sessions))
+        verify(mockExportObserver).onChanged(ExportFailure(R.string.deactivate_sessions, ""))
     }
 }

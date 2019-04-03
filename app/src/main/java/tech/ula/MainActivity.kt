@@ -46,7 +46,6 @@ import kotlinx.coroutines.launch
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.find
 import tech.ula.model.entities.App
-import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.UlaDatabase
@@ -62,6 +61,7 @@ import org.acra.config.HttpSenderConfigurationBuilder
 import org.acra.data.StringFormat
 import org.acra.sender.HttpSender
 import tech.ula.ui.FilesystemListFragment
+import tech.ula.model.repositories.DownloadMetadata
 import kotlin.IllegalStateException
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection, FilesystemListFragment.ExportFilesystem {
@@ -407,10 +407,10 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             }
             is LargeDownloadRequired -> {
                 if (wifiIsEnabled()) {
-                    viewModel.startAssetDownloads(state.requiredDownloads)
+                    viewModel.startAssetDownloads(state.downloadRequirements)
                     return
                 }
-                displayNetworkChoicesDialog(state.requiredDownloads)
+                displayNetworkChoicesDialog(state.downloadRequirements)
             }
             is ActiveSessionsMustBeDeactivated -> {
                 displayGenericErrorDialog(this, R.string.general_error_title, R.string.deactivate_sessions)
@@ -451,6 +451,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             is ErrorFetchingAssetLists -> {
                 getString(R.string.illegal_state_error_fetching_asset_lists)
             }
+            is ErrorGeneratingDownloads -> {
+                getString(state.errorId)
+            }
             is DownloadsDidNotCompleteSuccessfully -> {
                 getString(R.string.illegal_state_downloads_did_not_complete_successfully, state.reason)
             }
@@ -470,7 +473,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 getString(R.string.illegal_state_failed_to_copy_assets_to_filesystem)
             }
             is FailedToExtractFilesystem -> {
-                getString(R.string.illegal_state_failed_to_extract_filesystem)
+                getString(R.string.illegal_state_failed_to_extract_filesystem, state.reason)
             }
             is FailedToClearSupportFiles -> {
                 getString(R.string.illegal_state_failed_to_clear_support_files)
@@ -654,7 +657,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         return false
     }
 
-    private fun displayNetworkChoicesDialog(downloadsToContinue: List<Asset>) {
+    private fun displayNetworkChoicesDialog(downloadsToContinue: List<DownloadMetadata>) {
         val builder = AlertDialog.Builder(this)
         builder.setMessage(R.string.alert_wifi_disabled_message)
                 .setTitle(R.string.alert_wifi_disabled_title)

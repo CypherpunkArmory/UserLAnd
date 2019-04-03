@@ -21,6 +21,7 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import java.io.IOException
 
 @RunWith(MockitoJUnitRunner::class)
 class AppsStartupFsmTest {
@@ -341,7 +342,7 @@ class AppsStartupFsmTest {
         appsFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockFilesystemUtility.moveAppScriptToRequiredLocation(app.name, appsFilesystem))
-                .thenThrow(Exception())
+                .thenThrow(IOException())
 
         runBlocking { appsFsm.submitEvent(CopyAppScriptToFilesystem(app, appsFilesystem), this) }
 
