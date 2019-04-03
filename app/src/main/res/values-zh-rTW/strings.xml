@@ -15,13 +15,17 @@
 
     <!-- Buttons -->
     <string name="button_continue">繼續</string>
+    <string name="button_advanced_options_show">顯示進階選項</string>
+    <string name="button_advanced_options_hide">隱藏進階選項</string>
+    <string name="button_select_backup_import">選取要匯入的備份檔案</string>
 
     <!-- Menus -->
     <string name="app_info">應用程式資訊</string>
     <string name="stop_app">停止應用程式</string>
-    <string name="kill_service">砍除服務</string>               <!-- We know this says name="kill_service" but it is really stopping a session. -->
+    <string name="stop_session">停止工作階段</string>
     <string name="edit">編輯</string>
     <string name="delete">刪除</string>
+    <string name="backup">匯出</string>
     <string name="save">儲存</string>
     <string name="add">新增</string>
     <string name="refresh">重新整理</string>
@@ -46,9 +50,14 @@
     <string name="error_vnc_password_invalid">VNC 密碼有無效的字元</string>
     <string name="error_username_invalid_characters">使用者名字必須是1到30個字元的小寫字母或數字。</string>
     <string name="error_username_in_blacklist">使用者名稱可能被 Linux 保留，不能用於檔案系統的使用者名稱。</string>
+    <string name="error_filesystem_name_invalid_characters">檔案系統名稱必須在1到50個字元間，且不能有如 \"/:*\\| 等符號</string>
+    <string name="error_export_execution_failure">匯出失敗。理由：%1$s</string>
+    <string name="error_export_to_local_failed">匯出到本機目錄失敗。</string>
+    <string name="error_export_to_external_failed">匯出到外部目錄失敗。可能已存在相同名稱的備份。</string>
+    <string name="error_export_to_external_failed_no_data">匯出到外部目錄失敗，已匯出的檔案沒有資料。</string>
 
     <!-- Illegal State Dialog -->
-    <string name="illegal_state_message">%1$s \n應用程式現在將會當掉，這樣我們就可以接受到錯誤紀錄。歡迎在 GitHub 上告訴我們！我們正在努力解決這些問題。</string>
+    <string name="illegal_state_message">%1$s \n應用程式現在將會當掉，這樣我們就可以接收到錯誤紀錄。歡迎在 GitHub 上告訴我們！我們正在努力解決這些問題。</string>
     <string name="illegal_state_title">UserLAnd 已進入違規狀態！</string>
 
     <string name="illegal_state_transition">狀態轉換不良：%1$s</string>
@@ -64,13 +73,25 @@
 
     <string name="illegal_state_no_session_selected_when_preparation_started">嘗試在選取前處理工作階段準備事宜。</string>
     <string name="illegal_state_error_fetching_asset_lists">擷取資源清單失敗。</string>
+    
+    <string name="illegal_state_unexpected_generation_size">
+        生成下載需求時發現非預期的大小。
+    </string>
+    <string name="illegal_state_unexpected_generation_type">
+        生成下載需求時發現非預期的類型。
+    </string>
+    <string name="illegal_state_remote_unreachable_during_generation">
+        生成下載需求時無法連線到遠端主機。請確定您的網路
+        連線夠穩定，然後再試一次。
+    </string>
+    
     <string name="illegal_state_downloads_did_not_complete_successfully">下載失敗，因為：%1$s。</string>
     <string name="illegal_state_failed_to_copy_assets_to_local">複製資源至本機儲存空間失敗。嘗試清除支援檔案。</string>
     <string name="illegal_state_assets_have_not_been_downloaded">資源必須複製到您的檔案系統，但看起來它們還沒被下載。嘗試清除支援檔案。</string>
     <string name="illegal_state_empty_download_cache_access">試圖存取時，下載快取被清空。</string>
     <string name="illegal_state_download_cache_access_in_incorrect_state">下載快取在不支援的狀態時被存取。</string>
     <string name="illegal_state_failed_to_copy_assets_to_filesystem">複製資源到檔案系統失敗。</string>
-    <string name="illegal_state_failed_to_extract_filesystem">解壓縮檔案系統失敗。嘗試清除支援檔案。</string>
+    <string name="illegal_state_failed_to_extract_filesystem">解壓縮檔案系統失敗。嘗試清除支援檔案。失敗理由：%1$s</string>
     <string name="illegal_state_failed_to_clear_support_files">清除支援檔案失敗。</string>
 
     <!-- Misc illegal state -->
@@ -81,6 +102,8 @@
     <string name="prompt_service_type">服務類型：</string>
     <string name="prompt_client_type">客戶端類型：</string>
     <string name="prompt_app_connection_type_preference">請選取連線類型：</string>
+    <string name="prompt_select_backup">選取檔案系統備份檔</string>
+    <string name="prompt_install_file_manager">請安裝檔案管理員</string>
 
     <!-- Notification strings -->
     <string name="services_notification_channel_id">UserLAndServices</string>
@@ -101,6 +124,7 @@
     <string name="progress_verifying_assets">正在驗證資源&#8230;</string>
     <string name="progress_starting">正在開始服務&#8230;</string>
     <string name="progress_clearing_support_files">正在清除所有支援檔案&#8230;</string>
+    <string name="progress_exporting_filesystem">正在匯出檔案系統</string>
 
     <!-- Preferences -->
     <string name="pref_app_category">應用程式偏好設定</string>
@@ -144,6 +168,11 @@
     <string name="general_error_title">發生了預料之外的錯誤！</string>
     <string name="filesystem_credentials_reasoning">我們正在為您的應用程式建立檔案系統。\n請輸入相關的必要資訊，以讓我們將此做為檔案系統的預設值。</string>
     <string name="deactivate_sessions">必須停用所有工作階段才能繼續此動作。</string>
+    <string name="import_success">成功匯入備份</string>
+    <string name="import_failure">無法匯入備份</string>
+    <string name="export_success">成功匯出備份</string>
+    <string name="export_failure">匯出備份失敗</string>
+    <string name="export_started">匯出已開始，請稍候</string>
 
     <!-- Clear support files alert -->
     <string name="alert_clear_support_files_title">清除所有支援檔案？</string>
@@ -187,10 +216,14 @@
     <string name="custom_sessions">自訂工作階段</string>
     <string name="apps_sessions">應用程式工作階段</string>
     <string name="info_xsdl_support">XSDL 尚未完整支援\nAndroid 9.0 或更新的版本</string>
+    <string name="no_backup_selected">未選擇要匯入的檔案系統</string>
     
     <!-- Review request -->
     <string name="review_is_user_enjoying">正在享受 UserLAnd？</string>
     <string name="review_ask_for_rating">可以在 Play 上為我們評分嗎？</string>
     <string name="review_ask_for_feedback">您介意在 GitHub 上給我們一些回饋嗎？</string>
+    
+    <!-- Advanced options -->
+    <string name="desc_import_backups_should_use_same_settings">填入相同的東西：\n\n\u2022 使用者名稱 \n\u2022 密碼 \n\u2022 VNC 密碼 \n\u2022 散佈版 \n\n 作為備份以確保功能運作順暢</string>
   
 </resources>
