@@ -175,6 +175,7 @@ dependencies {
     def acra_version = '5.2.1'
     def moshi_version = '1.8.0'
     def okhttp_version = '3.13.1'
+    def navigation_version = '1.0.0'
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':terminal-term')
