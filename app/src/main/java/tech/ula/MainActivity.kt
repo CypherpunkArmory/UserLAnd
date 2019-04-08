@@ -146,7 +146,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
         setNavStartDestination()
 
-        navController.addOnNavigatedListener { _, destination ->
+        navController.addOnDestinationChangedListener { _, destination, _ ->
             currentFragmentDisplaysProgressDialog =
                     destination.label == getString(R.string.sessions) ||
                     destination.label == getString(R.string.apps) ||
