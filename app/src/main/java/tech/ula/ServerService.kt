@@ -100,8 +100,8 @@ class ServerService : Service() {
         }
     }
 
-    private fun updateSession(session: Session) {
-        doAsync { UlaDatabase.getInstance(this@ServerService).sessionDao().updateSession(session) }
+    private fun updateSession(session: Session) = CoroutineScope(Dispatchers.Default).launch {
+        UlaDatabase.getInstance(this@ServerService).sessionDao().updateSession(session)
     }
 
     private fun killSession(session: Session) {
