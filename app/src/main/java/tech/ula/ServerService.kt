@@ -12,7 +12,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.defaultSharedPreferences
-import org.jetbrains.anko.doAsync
 import tech.ula.model.entities.App
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Session
@@ -100,8 +99,8 @@ class ServerService : Service() {
         }
     }
 
-    private fun updateSession(session: Session) {
-        doAsync { UlaDatabase.getInstance(this@ServerService).sessionDao().updateSession(session) }
+    private fun updateSession(session: Session) = CoroutineScope(Dispatchers.Default).launch {
+        UlaDatabase.getInstance(this@ServerService).sessionDao().updateSession(session)
     }
 
     private fun killSession(session: Session) {
