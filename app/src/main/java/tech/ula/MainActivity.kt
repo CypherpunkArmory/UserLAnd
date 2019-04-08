@@ -152,6 +152,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                     destination.label == getString(R.string.apps) ||
                     destination.label == getString(R.string.filesystems)
             if (!currentFragmentDisplaysProgressDialog) killProgressBar()
+            else if (progressBarIsVisible) displayProgressBar()
         }
 
         setupWithNavController(bottom_nav_view, navController)
@@ -620,7 +621,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         killProgressBar()
     }
 
-    private fun updateProgressBar(step: String, details: String) {
+    private fun displayProgressBar() {
         if (!currentFragmentDisplaysProgressDialog) return
 
         if (!progressBarIsVisible) {
@@ -633,6 +634,10 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             layout_progress.isClickable = true
             progressBarIsVisible = true
         }
+    }
+
+    private fun updateProgressBar(step: String, details: String) {
+        displayProgressBar()
 
         text_session_list_progress_step.text = step
         text_session_list_progress_details.text = details
