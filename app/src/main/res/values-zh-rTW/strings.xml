@@ -12,7 +12,7 @@
         <string name="button_continue">繼續</string>
         <string name="app_info">程式資訊</string>
         <string name="stop_app">停止程式</string>
-        <string name="kill_service">停止服務</string>
+        <string name="stop_session">停止服務</string>
         <string name="edit">編輯</string>
         <string name="delete">刪除</string>
         <string name="save">儲存</string>
