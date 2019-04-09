@@ -1,13 +1,16 @@
 package tech.ula.utils
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import java.io.File
+import java.io.IOException
 
 class FilesystemUtility(
     private val applicationFilesDirPath: String,
     private val busyboxExecutor: BusyboxExecutor,
-    private val logger: LogUtility = LogUtility()
+    private val acraWrapper: AcraWrapper = AcraWrapper()
 ) {
 
     private val filesystemExtractionSuccess = ".success_filesystem_extraction"
@@ -18,16 +21,20 @@ class FilesystemUtility(
     }
 
     @Throws(Exception::class)
-    fun copyAssetsToFilesystem(targetFilesystemName: String, distributionType: String) {
+    fun copyAssetsToFilesystem(filesystem: Filesystem) {
+        val distributionType = filesystem.distributionType
+        val targetFilesystemName = "${filesystem.id}"
         val sharedDirectory = File("$applicationFilesDirPath/$distributionType")
         val targetDirectory = File("$applicationFilesDirPath/$targetFilesystemName/support")
         if (!targetDirectory.exists()) targetDirectory.mkdirs()
-        sharedDirectory.copyRecursively(targetDirectory, overwrite = true)
-        targetDirectory.walkBottomUp().forEach {
-            if (it.name == "support") {
-                return
+        val files = sharedDirectory.listFiles()
+        files?.let {
+            for (file in files) {
+                if (file.name.contains("rootfs") && filesystem.isCreatedFromBackup) continue
+                val targetFile = File("${targetDirectory.absolutePath}/${file.name}")
+                file.copyTo(targetFile, overwrite = true)
+                makePermissionsUsable(targetDirectory.absolutePath, file.name)
             }
-            makePermissionsUsable(targetDirectory.path, it.name)
         }
     }
 
@@ -38,25 +45,43 @@ class FilesystemUtility(
         }
     }
 
-    fun extractFilesystem(filesystem: Filesystem, listener: (String) -> Any) {
+    suspend fun extractFilesystem(
+        filesystem: Filesystem,
+        listener: (String) -> Any
+    ): ExecutionResult = withContext(Dispatchers.IO) {
         val filesystemDirName = "${filesystem.id}"
-        val command = "/support/extractFilesystem.sh"
+        val command = "/support/common/extractFilesystem.sh"
         val env = HashMap<String, String>()
         env["INITIAL_USERNAME"] = filesystem.defaultUsername
         env["INITIAL_PASSWORD"] = filesystem.defaultPassword
         env["INITIAL_VNC_PASSWORD"] = filesystem.defaultVncPassword
 
-        val result = busyboxExecutor.executeProotCommand(
+        return@withContext busyboxExecutor.executeProotCommand(
             command,
             filesystemDirName,
             commandShouldTerminate = true,
             env = env,
             listener = listener
         )
-        if (result is FailedExecution) {
-            val err = result.reason
-            logger.logRuntimeErrorForCommand(functionName = "extractFilesystem", command = command, err = err)
-        }
+    }
+
+    suspend fun compressFilesystem(
+        filesystem: Filesystem,
+        localDestinationFile: File,
+        listener: (String) -> Any
+    ) = withContext(Dispatchers.IO) {
+        val filesystemDirName = "${filesystem.id}"
+        val command = "/support/common/compressFilesystem.sh"
+        val env = HashMap<String, String>()
+        env["TAR_PATH"] = localDestinationFile.absolutePath
+
+        return@withContext busyboxExecutor.executeProotCommand(
+                command,
+                filesystemDirName,
+                commandShouldTerminate = true,
+                env = env,
+                listener = listener
+        )
     }
 
     fun isExtractionComplete(targetDirectoryName: String): Boolean {
@@ -84,16 +109,19 @@ class FilesystemUtility(
         }
     }
 
+    @Throws(IOException::class)
     suspend fun deleteFilesystem(filesystemId: Long) {
         val filesystemDirectory = File("$applicationFilesDirPath/$filesystemId")
         if (!filesystemDirectory.exists() || !filesystemDirectory.isDirectory) return
         val result = busyboxExecutor.recursivelyDelete(filesystemDirectory.absolutePath)
         if (result is FailedExecution) {
-            logger.e("FilesystemUtility", "Failed to delete filesystem: $filesystemId")
+            val err = IOException()
+            acraWrapper.logException(err)
+            throw err
         }
     }
 
-    @Throws(Exception::class)
+    @Throws(IOException::class)
     fun moveAppScriptToRequiredLocation(appName: String, appFilesystem: Filesystem) {
         // Profile.d scripts execute in alphabetical order.
         val fileNameToForceAppScriptToExecuteLast = "zzzzzzzzzzzzzzzz.sh"
@@ -101,11 +129,13 @@ class FilesystemUtility(
         val appFilesystemProfileDDir = File("$applicationFilesDirPath/${appFilesystem.id}/etc/profile.d")
         val appScriptProfileDTarget = File("$appFilesystemProfileDDir/$fileNameToForceAppScriptToExecuteLast")
 
-        appFilesystemProfileDDir.mkdirs()
-        appScriptSource.copyTo(appScriptProfileDTarget, overwrite = true)
-
-        appScriptProfileDTarget.apply {
-            if (!exists()) throw NoSuchFileException(this)
+        try {
+            appFilesystemProfileDDir.mkdirs()
+            appScriptSource.copyTo(appScriptProfileDTarget, overwrite = true)
+        } catch (err: Exception) {
+            val exception = IOException()
+            acraWrapper.logException(exception)
+            throw exception
         }
     }
 }

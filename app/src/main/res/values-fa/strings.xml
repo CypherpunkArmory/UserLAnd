@@ -19,7 +19,7 @@
     <!-- Menus -->
     <string name="app_info">اطلاعات کاره</string>
     <string name="stop_app">توقف کاره</string>
-    <string name="kill_service">توقف خدمت</string>
+    <string name="stop_session">توقف خدمت</string>
     <string name="edit">ویرایش</string>
     <string name="delete">پاک‌کردن</string>
     <string name="save">ذخیره‌کردن</string>

@@ -146,8 +146,10 @@ final class TermuxPreferences {
                 break;
         }
 
+
         try {
-            JSONArray arr = new JSONArray(props.getProperty("extra-keys", "[['ESC', 'TAB', 'CTRL', 'ALT', '-', 'DOWN', 'UP']]"));
+            String keys = "[['ESC', '/', '-', 'HOME', 'UP', 'END', 'PGUP'], ['TAB', 'CTRL', 'ALT', 'LEFT', 'DOWN', 'RIGHT', 'PGDN']]";
+            JSONArray arr = new JSONArray(props.getProperty("extra-keys", keys));
 
             mExtraKeys = new String[arr.length()][];
             for (int i = 0; i < arr.length(); i++) {
@@ -157,6 +159,7 @@ final class TermuxPreferences {
                     mExtraKeys[i][j] = line.getString(j);
                 }
             }
+
         } catch (JSONException e) {
             Toast.makeText(context, "Could not load the extra-keys property from the config: " + e.toString(), Toast.LENGTH_LONG).show();
             Log.e("termux", "Error loading props", e);

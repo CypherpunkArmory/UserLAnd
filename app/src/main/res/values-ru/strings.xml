@@ -19,7 +19,7 @@
     <!-- Menus -->
     <string name="app_info">Информация о приложении</string>
     <string name="stop_app">Остановить приложение</string>
-    <string name="kill_service">Прервать службу</string>
+    <string name="stop_session">Прервать службу</string>
     <string name="edit">Изменить</string>
     <string name="delete">Удалить</string>
     <string name="save">Сохранить</string>

@@ -13,21 +13,22 @@ import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import java.io.File
+import java.io.IOException
 
 @RunWith(MockitoJUnitRunner::class)
 class FilesystemUtilityTest {
 
     @get:Rule val tempFolder = TemporaryFolder()
 
-    lateinit var applicationFilesDirPath: String
+    private lateinit var applicationFilesDirPath: String
 
     @Mock lateinit var mockBusyboxExecutor: BusyboxExecutor
 
-    @Mock lateinit var logger: LogUtility
+    @Mock lateinit var mockAcraWrapper: AcraWrapper
 
-    val statelessListener: (line: String) -> Unit = { }
+    private val statelessListener: (line: String) -> Unit = { }
 
-    lateinit var filesystemUtility: FilesystemUtility
+    private lateinit var filesystemUtility: FilesystemUtility
 
     private val filesystemExtractionSuccess = ".success_filesystem_extraction"
     private val filesystemExtractionFailure = ".failure_filesystem_extraction"
@@ -35,12 +36,12 @@ class FilesystemUtilityTest {
     @Before
     fun setup() {
         applicationFilesDirPath = tempFolder.root.path
-        filesystemUtility = FilesystemUtility(applicationFilesDirPath, mockBusyboxExecutor, logger)
+        filesystemUtility = FilesystemUtility(applicationFilesDirPath, mockBusyboxExecutor, mockAcraWrapper)
     }
 
     @Test
     fun `Calling extract filesystem uses the appropriate command`() {
-        val command = "/support/extractFilesystem.sh"
+        val command = "/support/common/extractFilesystem.sh"
 
         val requiredFilesystemType = "testDist"
         val fakeArchitecture = "testArch"
@@ -49,7 +50,7 @@ class FilesystemUtilityTest {
                 defaultUsername = "username", defaultPassword = "password", defaultVncPassword = "vncpass")
         val filesystemDirName = "${filesystem.id}"
 
-        val defaultEnvironmentalVariables = hashMapOf<String, String>("INITIAL_USERNAME" to "username",
+        val defaultEnvironmentalVariables = hashMapOf("INITIAL_USERNAME" to "username",
                 "INITIAL_PASSWORD" to "password", "INITIAL_VNC_PASSWORD" to "vncpass")
         whenever(mockBusyboxExecutor.executeProotCommand(
                 eq(command),
@@ -57,20 +58,126 @@ class FilesystemUtilityTest {
                 eq(true),
                 eq(defaultEnvironmentalVariables),
                 eq(statelessListener),
-                anyOrNull()))
+                anyOrNull()
+        ))
                 .thenReturn(SuccessfulExecution)
 
-        filesystemUtility.extractFilesystem(filesystem, statelessListener)
+        val result = runBlocking {
+            filesystemUtility.extractFilesystem(filesystem, statelessListener)
+        }
+        verify(mockBusyboxExecutor).executeProotCommand(
+                eq(command),
+                eq(filesystemDirName),
+                eq(true),
+                eq(defaultEnvironmentalVariables),
+                eq(statelessListener),
+                anyOrNull()
+        )
+        assertTrue(result is SuccessfulExecution)
     }
 
     @Test
-    fun copiesDistributionAssetsToCorrectFilesystem() {
-        val filenames = listOf("asset1", "asset2", "asset3", "asset4")
+    fun `extractFilesystem logs errors`() {
+        val command = "/support/common/extractFilesystem.sh"
 
-        val targetDirectory = File("${tempFolder.root.path}/target/support")
+        val requiredFilesystemType = "testDist"
+        val fakeArchitecture = "testArch"
+        val filesystem = Filesystem(0, "apps",
+                archType = fakeArchitecture, distributionType = requiredFilesystemType, isAppsFilesystem = true,
+                defaultUsername = "username", defaultPassword = "password", defaultVncPassword = "vncpass")
+        val filesystemDirName = "${filesystem.id}"
+
+        val defaultEnvironmentalVariables = hashMapOf("INITIAL_USERNAME" to "username",
+                "INITIAL_PASSWORD" to "password", "INITIAL_VNC_PASSWORD" to "vncpass")
+
+        val failureReason = "reason"
+        whenever(mockBusyboxExecutor.executeProotCommand(
+                eq(command),
+                eq(filesystemDirName),
+                eq(true),
+                eq(defaultEnvironmentalVariables),
+                eq(statelessListener),
+                anyOrNull()
+        ))
+                .thenReturn(FailedExecution(failureReason))
+
+        val result = runBlocking { filesystemUtility.extractFilesystem(filesystem, statelessListener) }
+
+        assertEquals(FailedExecution(failureReason), result)
+    }
+
+    @Test
+    fun `compressFilesystem uses correct command and environment`() {
+        val command = "/support/common/compressFilesystem.sh"
+        val filesystem = Filesystem(id = 0, name = "backup", distributionType = "distType")
+        val externalStorageDirectory = tempFolder.root
+
+        val destinationName = "rootfs.tar.gz"
+        val destinationPath = "${externalStorageDirectory.absolutePath}/$destinationName"
+        val expectedEnv = hashMapOf("TAR_PATH" to destinationPath)
+
+        whenever(mockBusyboxExecutor.executeProotCommand(
+                eq(command),
+                eq("${filesystem.id}"),
+                eq(true),
+                eq(expectedEnv),
+                eq(statelessListener),
+                anyOrNull()
+        ))
+                .thenReturn(SuccessfulExecution)
+
+        val result = runBlocking {
+            filesystemUtility.compressFilesystem(filesystem, File(destinationPath), statelessListener)
+        }
+        verify(mockBusyboxExecutor).executeProotCommand(
+                eq(command),
+                eq("${filesystem.id}"),
+                eq(true),
+                eq(expectedEnv),
+                eq(statelessListener),
+                anyOrNull()
+        )
+        assertTrue(result is SuccessfulExecution)
+    }
+
+    @Test
+    fun `compressFilesystem logs failures`() {
+        val command = "/support/common/compressFilesystem.sh"
+        val filesystem = Filesystem(id = 0, name = "backup", distributionType = "distType")
+        val externalStorageDirectory = tempFolder.root
+
+        val destinationName = "rootfs.tar.gz"
+        val destinationPath = "${externalStorageDirectory.absolutePath}/$destinationName"
+        val expectedEnv = hashMapOf("TAR_PATH" to destinationPath)
+
+        val failureReason = "reason"
+        whenever(mockBusyboxExecutor.executeProotCommand(
+                eq(command),
+                eq("${filesystem.id}"),
+                eq(true),
+                eq(expectedEnv),
+                eq(statelessListener),
+                anyOrNull()
+        ))
+                .thenReturn(FailedExecution(failureReason))
+
+        val result = runBlocking {
+            filesystemUtility.compressFilesystem(filesystem, File(destinationPath), statelessListener)
+        }
+        assertEquals(FailedExecution(failureReason), result)
+    }
+
+    @Test
+    fun `copyAssetsToFilesystem copies to the right directory, including rootfs files if filesystem is not from backup`() {
+        val filesystem = Filesystem(id = 0, distributionType = "dist", isCreatedFromBackup = false)
+        val targetDirectoryName = "${filesystem.id}"
+        val distType = filesystem.distributionType
+        val filenames = listOf("asset1", "asset2", "asset3", "asset4", "rootfs.tar.gz")
+
+        val targetDirectory = File("${tempFolder.root.path}/$targetDirectoryName/support")
         val targetFiles = filenames.map { File("${targetDirectory.path}/$it") }
 
-        val sharedDirectory = tempFolder.newFolder("shared")
+        val sharedDirectory = tempFolder.newFolder(distType)
         val sharedFiles = filenames.map { File("${sharedDirectory.path}/$it") }
         sharedFiles.forEach { it.createNewFile() }
 
@@ -78,13 +185,49 @@ class FilesystemUtilityTest {
         targetFiles.forEach { assertFalse(it.exists()) }
         sharedFiles.forEach { assertTrue(it.exists()) }
 
-        filesystemUtility.copyAssetsToFilesystem("target", "shared")
+        filesystemUtility.copyAssetsToFilesystem(filesystem)
 
         assertTrue(targetDirectory.exists())
-        targetFiles.forEach {
-            assertTrue(it.exists())
+        targetFiles.forEach { file ->
+            assertTrue(file.exists())
             var output = ""
-            val proc = Runtime.getRuntime().exec("ls -l ${it.path}")
+            val proc = Runtime.getRuntime().exec("ls -l ${file.path}")
+
+            proc.inputStream.bufferedReader(Charsets.UTF_8).forEachLine { output += it }
+            val permissions = output.substring(0, 10)
+            assertTrue(permissions == "-rwxrwxrwx")
+        }
+    }
+
+    @Test
+    fun `copyAssetsToFilesystem copies to the right directory, excluding rootfs files if filesystem is from backup`() {
+        val filesystem = Filesystem(id = 0, distributionType = "dist", isCreatedFromBackup = true)
+        val targetDirectoryName = "${filesystem.id}"
+        val distType = filesystem.distributionType
+        val filenames = listOf("asset1", "asset2", "asset3", "asset4", "rootfs.tar.gz")
+
+        val targetDirectory = File("${tempFolder.root.path}/$targetDirectoryName/support")
+        val targetFiles = filenames.map { File("${targetDirectory.path}/$it") }
+
+        val sharedDirectory = tempFolder.newFolder(distType)
+        val sharedFiles = filenames.map { File("${sharedDirectory.path}/$it") }
+        sharedFiles.forEach { it.createNewFile() }
+
+        assertFalse(targetDirectory.exists())
+        targetFiles.forEach { assertFalse(it.exists()) }
+        sharedFiles.forEach { assertTrue(it.exists()) }
+
+        filesystemUtility.copyAssetsToFilesystem(filesystem)
+
+        assertTrue(targetDirectory.exists())
+        targetFiles.forEach { file ->
+            if (file.name == "rootfs.tar.gz") {
+                assertFalse(file.exists())
+                return@forEach
+            }
+            assertTrue(file.exists())
+            var output = ""
+            val proc = Runtime.getRuntime().exec("ls -l ${file.path}")
 
             proc.inputStream.bufferedReader(Charsets.UTF_8).forEachLine { output += it }
             val permissions = output.substring(0, 10)
@@ -139,8 +282,8 @@ class FilesystemUtilityTest {
     @Test
     fun onlySucceedsIfAllRequiredAssetsArePresent() {
         val assets = listOf(
-                Asset("name1", "dist1", "arch1", 0),
-                Asset("name2", "dist2", "arch2", 0))
+                Asset("name1", "dist1"),
+                Asset("name2", "dist2"))
 
         // Should fail if the directory doesn't exist
         assertFalse(filesystemUtility.areAllRequiredAssetsPresent("target", assets))
@@ -208,8 +351,8 @@ class FilesystemUtilityTest {
         }
     }
 
-    @Test
-    fun `Log erros when deleteFilesystem fails`() {
+    @Test(expected = IOException::class)
+    fun `Log errors when deleteFilesystem fails`() {
         val testDir = File("${tempFolder.root.path}/100")
         testDir.mkdirs()
         assertTrue(testDir.exists() && testDir.isDirectory)
@@ -218,8 +361,42 @@ class FilesystemUtilityTest {
             whenever(mockBusyboxExecutor.recursivelyDelete(testDir.absolutePath))
                     .thenReturn(FailedExecution(""))
             filesystemUtility.deleteFilesystem(100)
-            verify(mockBusyboxExecutor).recursivelyDelete(testDir.absolutePath)
-            verify(logger).e("FilesystemUtility", "Failed to delete filesystem: 100")
         }
+        verifyBlocking(mockBusyboxExecutor) { recursivelyDelete(testDir.absolutePath) }
+        verify(mockAcraWrapper).logException(IOException())
+    }
+
+    @Test
+    fun `moveAppScript moves the script to right location`() {
+        val sourceAppName = "firefox"
+        val sourceAppContents = "hello there"
+        val sourceAppScriptDir = File("${tempFolder.root.absolutePath}/apps/$sourceAppName")
+        val sourceAppScriptFile = File("${sourceAppScriptDir.absolutePath}/$sourceAppName.sh")
+        sourceAppScriptDir.mkdirs()
+        sourceAppScriptFile.createNewFile()
+        sourceAppScriptFile.writeText(sourceAppContents)
+
+        val targetAppScriptName = "zzzzzzzzzzzzzzzz.sh"
+        val filesystem = Filesystem(id = 5, name = "apps")
+        val filesystemProfileDDir = File("${tempFolder.root.absolutePath}/${filesystem.id}/etc/profile.d")
+        val targetAppLocation = File("${filesystemProfileDDir.absolutePath}/$targetAppScriptName")
+        assertFalse(filesystemProfileDDir.exists())
+
+        filesystemUtility.moveAppScriptToRequiredLocation(sourceAppName, filesystem)
+
+        assertTrue(targetAppLocation.exists())
+        assertEquals(sourceAppContents, targetAppLocation.readText())
+    }
+
+    @Test(expected = IOException::class)
+    fun `moveAppScript logs and throws exception on error`() {
+        val filesystem = Filesystem(id = 5, name = "apps")
+        val sourceAppName = "firefox"
+        val sourceAppScriptDir = File("${tempFolder.root.absolutePath}/apps/$sourceAppName")
+        sourceAppScriptDir.mkdirs()
+
+        filesystemUtility.moveAppScriptToRequiredLocation(sourceAppName, filesystem)
+
+        verify(mockAcraWrapper).logException(IOException())
     }
 }
