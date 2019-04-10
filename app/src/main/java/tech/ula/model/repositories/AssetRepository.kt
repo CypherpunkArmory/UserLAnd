@@ -41,21 +41,41 @@ class AssetRepository(
             val (repo, list) = entry
             // Empty lists should not have propagated this deeply.
             if (list.isEmpty()) {
-                val err = java.lang.IllegalStateException()
+                val err = IllegalStateException()
                 acraWrapper.logException(err)
                 throw err
             }
-            if (assetsArePresentInSupportDirectories(list) && lastDownloadedVersionIsUpToDate(repo))
-                continue
+            if (assetsArePresentInSupportDirectories(list)) {
+                try {
+                    if (lastDownloadedVersionIsUpToDate(repo)) {
+                        continue
+                    }
+                } catch (err: UnknownHostException) {
+                    // If assets are present but the network is unreachable, don't bother trying
+                    // to find updates.
+                    break
+                }
+            }
             val filename = "assets.tar.gz"
             val versionCode = githubApiClient.getLatestReleaseVersion(repo)
             val url = githubApiClient.getAssetEndpoint(filename, repo)
             val downloadMetadata = DownloadMetadata(filename, repo, versionCode, url)
             downloadRequirements.add(downloadMetadata)
         }
-        if (filesystemNeedsExtraction && rootFsDownloadRequired(filesystem)) {
+        if (filesystemNeedsExtraction) {
             val repo = filesystem.distributionType
             val filename = "rootfs.tar.gz"
+
+            val rootFsIsDownloaded = File("$applicationFilesDirPath/$repo/$filename").exists()
+            val rootFsIsUpToDate = try {
+                lastDownloadedFilesystemVersionIsUpToDate(repo)
+            } catch (err: UnknownHostException) {
+                // Allows usage of existing rootfs files in case of failing network connectivity.
+                true
+            }
+            if (rootFsIsDownloaded && rootFsIsUpToDate) return downloadRequirements
+
+            // If the rootfs is not downloaded, network failures will still propagate.
             val versionCode = githubApiClient.getLatestReleaseVersion(repo)
             val url = githubApiClient.getAssetEndpoint(filename, repo)
             val downloadMetadata = DownloadMetadata(filename, repo, versionCode, url)
@@ -125,10 +145,5 @@ class AssetRepository(
         val latestCached = assetPreferences.getLatestDownloadFilesystemVersion(repo)
         val latestRemote = githubApiClient.getLatestReleaseVersion(repo)
         return latestCached >= latestRemote
-    }
-
-    private suspend fun rootFsDownloadRequired(filesystem: Filesystem): Boolean {
-        val rootFsFile = File("$applicationFilesDirPath/${filesystem.distributionType}/rootfs.tar.gz")
-        return !rootFsFile.exists() || !lastDownloadedFilesystemVersionIsUpToDate(filesystem.distributionType)
     }
 }
