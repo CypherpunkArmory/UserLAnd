@@ -19,6 +19,7 @@ import tech.ula.utils.ConnectionUtility
 import java.io.File
 import java.io.IOException
 import java.lang.IllegalStateException
+import java.net.UnknownHostException
 
 @RunWith(MockitoJUnitRunner::class)
 class AssetRepositoryTest {
@@ -136,6 +137,44 @@ class AssetRepositoryTest {
     }
 
     @Test
+    fun `generateDownloadRequirements does not include assets already present if the network is unreachable`() {
+        val supportAssetDirectory = File("$applicationFilesDirPath/$supportRepo")
+        val supportAssetFile = File("${supportAssetDirectory.absolutePath}/${supportAsset.name}")
+        supportAssetDirectory.mkdirs()
+        supportAssetFile.createNewFile()
+
+        whenever(mockAssetPreferences.getLatestDownloadVersion(supportRepo))
+                .thenReturn(lowVersion)
+        runBlocking {
+            whenever(mockGithubApiClient.getLatestReleaseVersion(supportRepo))
+                    .thenThrow(UnknownHostException())
+        }
+
+        val assetLists = hashMapOf(supportRepo to listOf(supportAsset))
+        val filesystemNeedsExtraction = false
+        val result = runBlocking {
+            assetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemNeedsExtraction)
+        }
+
+        assertTrue(result.isEmpty())
+    }
+
+    @Test(expected = UnknownHostException::class)
+    fun `generateDownloadRequirements throws UnknownHostException if assets are not present and the network is unreachable`() {
+        runBlocking {
+            whenever(mockGithubApiClient.getLatestReleaseVersion(supportRepo))
+                    .thenThrow(UnknownHostException())
+        }
+
+        val assetLists = hashMapOf(supportRepo to listOf(supportAsset))
+        val filesystemNeedsExtraction = false
+
+        runBlocking {
+            assetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemNeedsExtraction)
+        }
+    }
+
+    @Test
     fun `generateDownloadRequirements includes assets that are present if version is out of date`() {
         val supportAssetDirectory = File("$applicationFilesDirPath/$supportRepo")
         val supportAssetFile = File("${supportAssetDirectory.absolutePath}/$assetName")
@@ -224,6 +263,58 @@ class AssetRepositoryTest {
         }
 
         assertTrue(result.isEmpty())
+    }
+
+    @Test
+    fun `generateDownloadRequirements does not include rootfs if filesystem needs extraction, there is a local version available, and the network is unreachable`() {
+        val repo = filesystem.distributionType
+        val distDirectory = File("$applicationFilesDirPath/$repo")
+        val assetFile = File("$distDirectory/${distAsset.name}")
+        val rootfsFile = File("$distDirectory/$rootFsTarName")
+        distDirectory.mkdirs()
+        rootfsFile.createNewFile()
+        assetFile.createNewFile()
+
+        whenever(mockAssetPreferences.getLatestDownloadVersion(repo))
+                .thenReturn(lowVersion)
+        runBlocking {
+            whenever(mockGithubApiClient.getLatestReleaseVersion(repo))
+                    .thenThrow(UnknownHostException())
+                    .thenThrow(UnknownHostException())
+        }
+
+        val assetLists = hashMapOf(repo to listOf(distAsset))
+        val filesystemNeedsExtraction = true
+
+        val result = runBlocking {
+            assetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemNeedsExtraction)
+        }
+
+        assertTrue(result.isEmpty())
+    }
+
+    @Test(expected = UnknownHostException::class)
+    fun `generateDownloadRequirements throws UnknownHostException if rootfs files need to be downloaded and the network is unreachable`() {
+        val repo = filesystem.distributionType
+        val distDirectory = File("$applicationFilesDirPath/$repo")
+        val assetFile = File("$distDirectory/${distAsset.name}")
+        distDirectory.mkdirs()
+        assetFile.createNewFile()
+
+        whenever(mockAssetPreferences.getLatestDownloadVersion(repo))
+                .thenReturn(lowVersion)
+        runBlocking {
+            whenever(mockGithubApiClient.getLatestReleaseVersion(repo))
+                    .thenThrow(UnknownHostException())
+                    .thenThrow(UnknownHostException())
+        }
+
+        val assetLists = hashMapOf(repo to listOf(distAsset))
+        val filesystemNeedsExtraction = true
+
+        runBlocking {
+            assetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemNeedsExtraction)
+        }
     }
 
     @Test
