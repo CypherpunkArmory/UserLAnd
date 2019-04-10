@@ -15,11 +15,14 @@
 
     <!-- Buttons -->
     <string name="button_continue">Continuar</string>
+    <string name="button_advanced_options_show">Mostrar opciones avanzadas</string>
+    <string name="button_advanced_options_hide">Ocultar opciones avanzadas</string>
+    <string name="button_select_backup_import">Elije el archivo de respaldo a importar</string>
 
     <!-- Menus -->
     <string name="app_info">Información de Aplicación</string>
-    <string name="stop_app">Parar Aplicación</string>
-    <string name="stop_session">Parar Sesión</string>
+    <string name="stop_app">Detener Aplicación</string>
+    <string name="stop_session">Detener Sesión</string>
     <string name="edit">Editar</string>
     <string name="delete">Borrar</string>
     <string name="save">Guardar</string>
@@ -39,11 +42,19 @@
     <string name="error_filesystem_name">Debes especificar un nombre de sistema de archivos</string>
     <string name="error_username">Debes especificar un nombre de usuario</string>
     <string name="error_empty_field">¡Todos los campos deben ser rellenados!</string>
-    <string name="error_app_description_not_found">No se ha encontrado la descripción de esta aplicación. Prueba a actualizar la lista.</string>
+    <string name="error_app_description_not_found">No se ha encontrado la descripción de esta aplicación. Prueba actualizando la lista.</string>
     <string name="error_vnc_password_length_incorrect">¡La contraseña de VNC debe tener entre 6 y 8 caracteres!</string>
     <string name="error_username_invalid">El nombre de usuario contiene caracteres inválidos.</string>
     <string name="error_password_invalid">La contraseña contiene caracteres inválidos.</string>
     <string name="error_vnc_password_invalid">La contraseña de VNC contiene caracteres inválidos.</string>
+    <string name="error_username_invalid_characters">La longitud del nombre de usuario deben ser de entre 1 y 30 caracteres y solo contener minúsculas y/o números</string>
+    <string name="error_username_in_blacklist">Este nombre de usuario puede estar reservado por Linux y no puede ser usado como nombre de usuario para el sistema de archivos.</string>
+    <string name="error_filesystem_name_invalid_characters">La longitud de el nombre del sistema de archivos debe ser entre 1 y 50 caracteres excluyendo caracteres como \"/:*\\|</string>
+    <string name="error_export_execution_failure">La exportación falló, Razón: %1$s</string>
+    <string name="error_export_to_local_failed">La exportación al directorio local falló.</string>
+    <string name="error_export_to_external_failed">La exportación al directorio externo falló. Un respaldo con el mismo nombre ya existe.</string>
+    <string name="error_export_to_external_failed_no_data">La exportación al directorio externo falló, el archivo a exportar no tiene datos.</string>
+
 
     <!-- Illegal State Dialog -->
     <string name="illegal_state_message">%1$s \nPor favor, reinicia la app y contacta a un desarrollador.</string>
@@ -52,12 +63,12 @@
     <string name="illegal_state_transition">Mala transición de estado: %1$s</string>
 
     <string name="illegal_state_too_many_selections_when_permissions_granted">Tanto una sesión como una aplicación fueron seleccionadas cuando los permisos fueron concedidos.</string>
-    <string name="illegal_state_no_selections_when_permissions_granted">Ni una sesión ni una aplicación fueron seleccionadas cuando los permisos fueron concedidos.</string>
+    <string name="illegal_state_no_selections_when_permissions_granted">Ninguna sesión ó aplicación fueron seleccionadas cuando los permisos fueron concedidos.</string>
 
     <string name="illegal_state_no_filesystem_selected_when_credentials_selected">Las credenciales fueron guardadas para un sistema de archivos, pero ningún sistema de archivos fue seleccionado.</string>
     <string name="illegal_state_no_app_selected_when_preference_submitted">Los ajustes de la Aplicación fueron guardados, pero ninguna app fue seleccionada.</string>
     <string name="illegal_state_no_app_selected_when_preparation_started">Intentando iniciar la preparación de la aplicación, pero ninguna app fue seleccionada.</string>
-    <string name="illegal_state_error_fetching_app_database_entries">No se pudo obtener acceso a la base de datos de las aplicaciones.</string> <!-- I'm not sure if this translation is correct. -->
+    <string name="illegal_state_error_fetching_app_database_entries">No se pudieron obtener las las entradas de las bases de datos de las aplicaciones.</string> <!-- I'm not sure if this translation is correct. --> <!-- What about this -->
     <string name="illegal_state_error_copying_app_script">No se pudo copiar el script de la aplicación.</string>
 
     <string name="illegal_state_no_session_selected_when_preparation_started">Está intentando iniciar la preparación de la sesión sin haber seleccionado una anteriormente.</string>
@@ -111,7 +122,7 @@
     <string name="pref_proot_delete_debug_file_title">Borrar Registro de Depuración</string>
 
     <!-- Help Activity -->
-    <string name="github_message">¿Has encontrado bugs o quieres solicitar una función? Nuestra página de GitHub es el mejor lugar para obtener una respuesta rápida.</string>
+    <string name="github_message">¿Encontraste un bug? ó ¿Quieres sugerir una nueva función? Nuestra página de GitHub es el mejor lugar para obtener una respuesta rápida.</string>
     <string name="supported_services">Servidores soportados actualmente:</string>
     <string name="terminology">Terminología:</string>
     <string name="desc_apps_title">Aplicaciones:</string>
