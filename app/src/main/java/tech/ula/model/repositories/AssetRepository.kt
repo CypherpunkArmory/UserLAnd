@@ -1,6 +1,5 @@
 package tech.ula.model.repositories
 
-import android.accounts.NetworkErrorException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import tech.ula.model.entities.Asset
