@@ -68,7 +68,7 @@
     <string name="illegal_state_no_filesystem_selected_when_credentials_selected">Las credenciales fueron guardadas para un sistema de archivos, pero ningún sistema de archivos fue seleccionado.</string>
     <string name="illegal_state_no_app_selected_when_preference_submitted">Los ajustes de la Aplicación fueron guardados, pero ninguna app fue seleccionada.</string>
     <string name="illegal_state_no_app_selected_when_preparation_started">Intentando iniciar la preparación de la aplicación, pero ninguna app fue seleccionada.</string>
-    <string name="illegal_state_error_fetching_app_database_entries">No se pudieron obtener las las entradas de las bases de datos de las aplicaciones.</string> <!-- I'm not sure if this translation is correct. --> <!-- What about this -->
+    <string name="illegal_state_error_fetching_app_database_entries">No se pudieron obtener las entradas de las bases de datos de las aplicaciones.</string>
     <string name="illegal_state_error_copying_app_script">No se pudo copiar el script de la aplicación.</string>
 
     <string name="illegal_state_no_session_selected_when_preparation_started">Está intentando iniciar la preparación de la sesión sin haber seleccionado una anteriormente.</string>
