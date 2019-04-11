@@ -2,7 +2,7 @@
     <string name="app_name">UserLAnd</string>
     <string name="welcome">مرحبا بكم في Userland!</string>
     <string name="permission_request_code">1000</string>
-
+  
     <!-- Labels -->
     <string name="apps">التطبيقات</string>                               <!-- This is a button, so the word used should be short! -->
     <string name="sessions">الجلسات</string>
@@ -15,13 +15,17 @@
 
     <!-- Buttons -->
     <string name="button_continue">استمرار</string>
+    <string name="button_advanced_options_show">اظهار الاعدادات المتقدمة</string>
+    <string name="button_advanced_options_hide">اخفاء الاعدادات المتقدمة</string>
+    <string name="button_select_backup_import">حدد ملف النسخة الاحتياطية للستيراد</string>
 
     <!-- Menus -->
     <string name="app_info">معلومات التطبيق</string>
     <string name="stop_app">ايقاف التطبيق</string>
-    <string name="stop_session">قتل الخدمة</string>
+    <string name="stop_session">ايقاف الخدمة</string>               
     <string name="edit">تعديل</string>
     <string name="delete">حذف</string>
+    <string name="backup">استخراج</string>
     <string name="save">حفظ</string>
     <string name="add">اضافة</string>
     <string name="refresh">انعاش</string>
@@ -32,7 +36,7 @@
     <string name="hint_session_name">اسم الجلسة</string>
     <string name="hint_username">اسم المستخدم</string>
     <string name="hint_password">كلمة السر</string>
-    <string name="hint_vnc_password">VNC كلمة السر</string>
+    <string name="hint_vnc_password">\u200FVNC كلمة السر</string>
     
     <!-- Errors -->
     <string name="error_session_name">يجب عليك تقديم اسم جلسة</string>
@@ -46,22 +50,22 @@
     <string name="error_vnc_password_invalid">كلمة السر VNC تحتوي  أحرف غير صالحة</string>
     <string name="error_username_invalid_characters">يجب أن تتكون الأحرف في اسم المستخدم من 1 إلى 30 حرفًا بأحرف و / أو أرقام صغيرة.</string>
     <string name="error_username_in_blacklist">ربما يتم حجز اسم المستخدم هذا بواسطة Linux ولا يمكن استخدامه كاسم مستخدم لنظام الملفات</string>
+    <string name="error_filesystem_name_invalid_characters">يجب أن تكون الأحرف في اسم نظام الملفات من 1 إلى 50 حرفًا دون أحرف مثل \ "/: * \\ |</string>
+    <string name="error_export_to_local_failed">فشل التصدير إلى الدليل المحلي.</string>
+    <string name="error_export_to_external_failed">فشل التصدير إلى الدليل الخارجي. قد توجد نسخة احتياطية بنفس الاسم بالفعل.</string>
+    <string name="error_export_to_external_failed_no_data">أخفق التصدير إلى الدليل الخارجي ، لا يحتوي الملف المصدر على بيانات.</string>
 
     <!-- Illegal State Dialog -->
     <string name="illegal_state_message">%1$s \n سيتم الآن تعطل التطبيق بحيث يمكننا استلام سجل أخطاء. لا تتردد أيضًا في إخبارنا على جيثب! نحن نعمل على حل هذه القضايا.</string>
     <string name="illegal_state_title">لقد دخل UserLAnd حالة غير قانونية!</string>
-
     <string name="illegal_state_transition">انتقال الحالة السيئة:%1$s</string>
-
     <string name="illegal_state_too_many_selections_when_permissions_granted">تم اختيار كل من الجلسة والتطبيق عند منح الأذونات.</string>
     <string name="illegal_state_no_selections_when_permissions_granted">لم يتم تحديد جلسة أو تطبيق عند منح الأذونات.</string>
-
     <string name="illegal_state_no_filesystem_selected_when_credentials_selected">تم إرسال بيانات الاعتماد نظام الملفات، ولكن لم يتم تحديدها.</string>
     <string name="illegal_state_no_app_selected_when_preference_submitted">تم إرسال تفضيل التطبيق ، ولكن لم يتم اختيار واحد.</string>
     <string name="illegal_state_no_app_selected_when_preparation_started">جارٍ محاولة بدء إعداد التطبيق ، ولكن لم يتم تحديد أي تطبيق.</string>
     <string name="illegal_state_error_fetching_app_database_entries">لا يمكن جلب إدخالات قاعدة بيانات التطبيقات.</string>
     <string name="illegal_state_error_copying_app_script">لا يمكن نسخ البرنامج النصي للتطبيق.</string>
-
     <string name="illegal_state_no_session_selected_when_preparation_started">محاولة التعامل مع إعداد الجلسة قبل اختيار واحد.</string>
     <string name="illegal_state_error_fetching_asset_lists">فشل في استرداد قوائم الأصول.</string>
     <string name="illegal_state_downloads_did_not_complete_successfully">فشلت التنزيلات بسبب:%1$s.</string>
@@ -81,6 +85,8 @@
     <string name="prompt_service_type">نوع الخدمة:</string>
     <string name="prompt_client_type">نوع العميل:</string>
     <string name="prompt_app_connection_type_preference">يرجى تحديد نوع الاتصال: </string>
+    <string name="prompt_select_backup">حدد ملف النسخة الاحتياطية لنظام الملفات</string>
+    <string name="prompt_install_file_manager">الرجاء تثبيت مدير الملفات</string>
 
     <!-- Notification strings -->
     <string name="services_notification_channel_id">UserLAnd خدمات</string>
@@ -101,6 +107,7 @@
     <string name="progress_verifying_assets">التحقق من الأصول &#8230;</string>
     <string name="progress_starting">بدء الخدمة &#8230;</string>
     <string name="progress_clearing_support_files">مسح جميع ملفات الدعم &#8230;</string>
+    <string name="progress_exporting_filesystem">يستخرج ملفات النظام</string>
 
     <!-- Preferences -->
     <string name="pref_app_category">تفضيلات التطبيق</string>
@@ -144,13 +151,15 @@
     <string name="general_error_title">حدث شيء غير متوقع!</string>
     <string name="filesystem_credentials_reasoning">نحن بصدد إنشاء نظام ملفات لتطبيقاتك. \n الرجاء إدخال المعلومات المطلوبة ذات الصلة لكي نستخدمها كإعدادات افتراضية لنظام الملفات هذا.</string>
     <string name="deactivate_sessions">يجب إلغاء تنشيط جميع الجلسات لمتابعة هذا الإجراء.</string>
+    <string name="import_success">تم استيراد النسخ الاحتياطي بنجاح</string>
+    <string name="import_failure">غير قادر على استيراد النسخ الاحتياطي</string>
+    <string name="export_success">تم تصدير النسخة الاحتياطية بنجاح</string>
+    <string name="export_failure">غير قادر على تصدير النسخ الاحتياطي</string>
+    <string name="export_started">بدأ التصدير ، يرجى الانتظار</string>
 
     <!-- Clear support files alert -->
     <string name="alert_clear_support_files_title">مسح كل ملفات الدعم؟</string>
-    <string name="alert_clear_support_files_message">
-        سيؤدي ذلك إلى حذف جميع ملفات الدعم. هذا لن يؤثر على أي شيء قمت بإنشائه على الخاص بك
-                نظام الملفات. سيؤدي ذلك إلى تنزيل مواد العرض مرة أخرى في المرة التالية التي يتم فيها تشغيل جلسة أو تطبيق.
-    </string>
+    <string name="alert_clear_support_files_message">سيؤدي ذلك الى حذف جميع ملفات الدعم.\nهذا لن يؤثر على اي شئ قمت باشائه على\nنظام الملفات الخاص بك. سيؤدي ذلك الى\nتنزيل كل مواد العرض مرة اخرى في المرة\nالتالية التي يتم فيها تشغيل جلسة او تطبيق</string>
     <string name="alert_clear_support_files_clear_button">مسح</string>
 
     <!-- Play service error alerts -->
@@ -187,10 +196,14 @@
     <string name="custom_sessions">جلسات مخصصة</string>
     <string name="apps_sessions">جلسات التطبيقات</string>
     <string name="info_xsdl_support">XSDL غير مدعوم بشكل كامل على \nAndroid 9.0 ما بعد</string>
+    <string name="no_backup_selected">لم يتم تحديد نظام استيراد الملفات</string>
 
     <!-- Review request -->
     <string name="review_is_user_enjoying">تتمتع UserLAnd؟</string>
     <string name="review_ask_for_rating">ماذا عن التقييم على متجر Play ، إذن؟</string>
     <string name="review_ask_for_feedback">هل تمانع في إعطائنا بعض التعليقات على Github؟</string>
 
+    <!-- Advanced options -->
+    <string name="desc_import_backups_should_use_same_settings">املأ نفسه: \n\n\u2022 اسم المستخدم \n\u2022 كلمة المرور \n\u2022 كلمة مرور VNC \n\u2022 التوزيع \n\n كنسخة احتياطية لضمان الأداء الوظيفي السلس</string>
+  
 </resources>
