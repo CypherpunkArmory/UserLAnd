@@ -194,6 +194,10 @@
     <!-- Network unavailable alert -->
     <string name="alert_network_required_for_refresh">Refreshing apps requires an available or stronger network connection.</string>
 
+    <!-- Storage capacity low alert -->
+    <string name="alert_storage_low_title">Low storage capacity</string>
+    <string name="alert_storage_low_message">To ensure smooth functionality of a filesystem in UserLAnd, ensure there is at least 1 GB of free space.</string>
+
     <!-- Wifi alert -->
     <string name="alert_wifi_disabled_title">No wifi!</string>
     <string name="alert_wifi_disabled_message">A large asset (~80mb) needs to be downloaded.</string>
