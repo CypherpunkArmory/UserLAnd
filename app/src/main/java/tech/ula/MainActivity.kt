@@ -288,7 +288,14 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             viewModel.waitForPermissions(appToContinue = app)
             return
         }
-        viewModel.submitAppSelection(app)
+
+        if (getAvailableStorageInMB() < 1000) {
+            displayGenericErrorDialog(this, R.string.alert_storage_low_title, R.string.alert_storage_low_message, R.string.button_continue) {
+                viewModel.submitAppSelection(app)
+            }
+        } else {
+            viewModel.submitAppSelection(app)
+        }
     }
 
     override fun sessionHasBeenSelected(session: Session) {
@@ -297,7 +304,14 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             viewModel.waitForPermissions(sessionToContinue = session)
             return
         }
-        viewModel.submitSessionSelection(session)
+
+        if (getAvailableStorageInMB() < 1000) {
+            displayGenericErrorDialog(this, R.string.alert_storage_low_title, R.string.alert_storage_low_message, R.string.button_continue) {
+                viewModel.submitSessionSelection(session)
+            }
+        } else {
+            viewModel.submitSessionSelection(session)
+        }
     }
 
     private fun handleStateUpdate(newState: State) {
