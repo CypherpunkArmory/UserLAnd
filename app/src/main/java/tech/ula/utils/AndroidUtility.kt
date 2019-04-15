@@ -13,6 +13,7 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.os.StatFs
 import android.support.v4.content.ContextCompat
 import android.util.DisplayMetrics
 import android.view.WindowManager
@@ -64,6 +65,13 @@ fun getBranchToDownloadAssetsFrom(assetType: String): String {
         "apps" -> "master"
         else -> "master"
     }
+}
+
+fun getAvailableStorageInMB(): Long {
+    val bytesInMB = 1048576
+    val stat = StatFs(Environment.getExternalStorageDirectory().path)
+    val bytesAvailable = stat.blockSizeLong * stat.availableBlocksLong
+    return bytesAvailable / bytesInMB
 }
 
 class DefaultPreferences(private val prefs: SharedPreferences) {
