@@ -47,12 +47,13 @@ fun arePermissionsGranted(context: Context): Boolean {
                     Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
 }
 
-fun displayGenericErrorDialog(activity: Activity, titleId: Int, messageId: Int) {
+fun displayGenericErrorDialog(activity: Activity, titleId: Int, messageId: Int, callback: (() -> Unit)? = null) {
     AlertDialog.Builder(activity)
             .setTitle(titleId)
             .setMessage(messageId)
             .setPositiveButton(R.string.button_ok) {
                 dialog, _ ->
+                callback?.let { it() }
                 dialog.dismiss()
             }
             .create().show()
