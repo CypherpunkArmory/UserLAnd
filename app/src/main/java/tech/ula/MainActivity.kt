@@ -400,6 +400,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private fun handleUserInputState(state: UserInputRequiredState) {
         acraWrapper.putCustomString("Last handled user input state", "$state")
         return when (state) {
+            is LowStorageAcknowledgementRequired -> {
+                displayLowStorageDialog()
+            }
             is FilesystemCredentialsRequired -> {
                 getCredentials()
             }
@@ -478,6 +481,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             }
             is FailedToClearSupportFiles -> {
                 getString(R.string.illegal_state_failed_to_clear_support_files)
+            }
+            is InsufficientAvailableStorage -> {
+                getString(R.string.illegal_state_insufficient_storage)
             }
         }
         displayIllegalStateDialog(reason)
@@ -592,6 +598,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             is CopyingDownloads -> {
                 val step = getString(R.string.progress_copying_downloads)
                 updateProgressBar(step, "")
+            }
+            is VerifyingAvailableStorage -> {
+                killProgressBar()
             }
             is FilesystemExtractionStep -> {
                 val step = getString(R.string.progress_setting_up_filesystem)
@@ -716,6 +725,12 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             viewModel.handleUserInputCancelled()
         }
         customDialog.show()
+    }
+
+    private fun displayLowStorageDialog() {
+        displayGenericErrorDialog(this, R.string.alert_storage_low_title, R.string.alert_storage_low_message) {
+            viewModel.lowAvailableStorageAcknowledged()
+        }
     }
 
     private fun getServiceTypePreference() {

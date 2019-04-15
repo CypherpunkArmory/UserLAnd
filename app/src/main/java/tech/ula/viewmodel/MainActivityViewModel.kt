@@ -136,6 +136,10 @@ class MainActivityViewModel(
         submitAppsStartupEvent(SubmitAppsFilesystemCredentials(lastSelectedFilesystem, username, password, vncPassword))
     }
 
+    fun lowAvailableStorageAcknowledged() {
+        submitSessionStartupEvent(VerifyAvailableStorageComplete)
+    }
+
     fun submitAppServicePreference(preference: AppServiceTypePreference) {
         if (lastSelectedApp == unselectedApp) {
             state.postValue(NoAppSelectedWhenPreferenceSubmitted)
@@ -263,6 +267,9 @@ class MainActivityViewModel(
             is ExtractionState -> {
                 handleExtractionState(newState)
             }
+            is StorageVerificationState -> {
+                handleStorageVerificationState(newState)
+            }
         }
     }
 
@@ -334,10 +341,21 @@ class MainActivityViewModel(
         return when (newState) {
             is VerifyingFilesystemAssets -> state.postValue(VerifyingFilesystem)
             is FilesystemAssetVerificationSucceeded -> { doTransitionIfRequirementsAreSelected {
-                    submitSessionStartupEvent(ExtractFilesystem(lastSelectedFilesystem))
+                    submitSessionStartupEvent(VerifyAvailableStorage)
             } }
             is AssetsAreMissingFromSupportDirectories -> state.postValue(AssetsHaveNotBeenDownloaded)
             is FilesystemAssetCopyFailed -> state.postValue(FailedToCopyAssetsToFilesystem)
+        }
+    }
+
+    private fun handleStorageVerificationState(newState: StorageVerificationState) {
+        return when (newState) {
+            is VerifyingSufficientStorage -> state.postValue(VerifyingAvailableStorage)
+            is VerifyingSufficientStorageFailed -> state.postValue(InsufficientAvailableStorage)
+            is LowAvailableStorage -> state.postValue(LowStorageAcknowledgementRequired)
+            is StorageVerificationComplete -> { doTransitionIfRequirementsAreSelected {
+                submitSessionStartupEvent(ExtractFilesystem(lastSelectedFilesystem))
+            } }
         }
     }
 
@@ -418,9 +436,11 @@ object AssetsHaveNotBeenDownloaded : IllegalState()
 object FailedToCopyAssetsToFilesystem : IllegalState()
 data class FailedToExtractFilesystem(val reason: String) : IllegalState()
 object FailedToClearSupportFiles : IllegalState()
+object InsufficientAvailableStorage : IllegalState()
 
 sealed class UserInputRequiredState : State()
 object FilesystemCredentialsRequired : UserInputRequiredState()
+object LowStorageAcknowledgementRequired : UserInputRequiredState()
 object AppServiceTypePreferenceRequired : UserInputRequiredState()
 data class LargeDownloadRequired(val downloadRequirements: List<DownloadMetadata>) : UserInputRequiredState()
 object ActiveSessionsMustBeDeactivated : UserInputRequiredState()
@@ -432,6 +452,7 @@ object CheckingForAssetsUpdates : ProgressBarUpdateState()
 data class DownloadProgress(val numComplete: Int, val numTotal: Int) : ProgressBarUpdateState()
 object CopyingDownloads : ProgressBarUpdateState()
 object VerifyingFilesystem : ProgressBarUpdateState()
+object VerifyingAvailableStorage : ProgressBarUpdateState()
 data class FilesystemExtractionStep(val extractionTarget: String) : ProgressBarUpdateState()
 object ClearingSupportFiles : ProgressBarUpdateState()
 object ProgressBarOperationComplete : ProgressBarUpdateState()
