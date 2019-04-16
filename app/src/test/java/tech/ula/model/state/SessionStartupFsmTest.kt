@@ -722,7 +722,7 @@ class SessionStartupFsmTest {
 
     @Test
     fun `Exits early if filesystem is already extracted`() {
-        sessionFsm.setState(FilesystemAssetVerificationSucceeded)
+        sessionFsm.setState(StorageVerificationComplete)
         sessionFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
