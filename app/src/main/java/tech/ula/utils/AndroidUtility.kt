@@ -68,12 +68,11 @@ fun getBranchToDownloadAssetsFrom(assetType: String): String {
     }
 }
 
-class StorageUtility(statFs: StatFs) {
-    private val stat = statFs
+class StorageUtility(private val statFs: StatFs) {
 
     fun getAvailableStorageInMB(): Long {
         val bytesInMB = 1048576
-        val bytesAvailable = stat.blockSizeLong * stat.availableBlocksLong
+        val bytesAvailable = statFs.blockSizeLong * statFs.availableBlocksLong
         return bytesAvailable / bytesInMB
     }
 }
