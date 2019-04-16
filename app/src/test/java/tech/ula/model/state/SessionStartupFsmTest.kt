@@ -747,7 +747,7 @@ class SessionStartupFsmTest {
     }
 
     @Test
-    fun `State is not  if device has greater than 1GB of storage after VerifyingAvailableStorage`() {
+    fun `State is not VerifyingSufficientStorageFailed or LowAvailableStorage if device has greater than 1GB of storage after VerifyingAvailableStorage`() {
         sessionFsm.setState(FilesystemAssetVerificationSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
 
@@ -756,6 +756,7 @@ class SessionStartupFsmTest {
 
         verify(mockStateObserver).onChanged(VerifyingSufficientStorage)
         verify(mockStateObserver, never()).onChanged(VerifyingSufficientStorageFailed)
+        verify(mockStateObserver, never()).onChanged(LowAvailableStorage)
     }
 
     @Test
