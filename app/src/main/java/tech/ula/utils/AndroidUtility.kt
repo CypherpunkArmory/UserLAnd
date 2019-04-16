@@ -53,7 +53,7 @@ fun displayGenericErrorDialog(activity: Activity, titleId: Int, messageId: Int, 
             .setMessage(messageId)
             .setPositiveButton(R.string.button_ok) {
                 dialog, _ ->
-                callback?.let { it() }
+                callback()
                 dialog.dismiss()
             }
             .create().show()
