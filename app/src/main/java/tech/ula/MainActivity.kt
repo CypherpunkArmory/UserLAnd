@@ -599,6 +599,10 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 val step = getString(R.string.progress_copying_downloads)
                 updateProgressBar(step, "")
             }
+            is VerifyingFilesystem -> {
+                val step = getString(R.string.progress_verifying_assets)
+                updateProgressBar(step, "")
+            }
             is VerifyingAvailableStorage -> {
                 val step = getString(R.string.progress_verifying_sufficient_storage)
                 updateProgressBar(step, "")
@@ -607,10 +611,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 val step = getString(R.string.progress_setting_up_filesystem)
                 val details = getString(R.string.progress_extraction_details, state.extractionTarget)
                 updateProgressBar(step, details)
-            }
-            is VerifyingFilesystem -> {
-                val step = getString(R.string.progress_verifying_assets)
-                updateProgressBar(step, "")
             }
             is ClearingSupportFiles -> {
                 val step = getString(R.string.progress_clearing_support_files)
