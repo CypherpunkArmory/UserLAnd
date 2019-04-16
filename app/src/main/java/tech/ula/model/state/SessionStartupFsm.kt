@@ -20,6 +20,7 @@ class SessionStartupFsm(
     private val assetRepository: AssetRepository,
     private val filesystemUtility: FilesystemUtility,
     private val downloadUtility: DownloadUtility,
+    private val storageUtility: StorageUtility,
     private val acraWrapper: AcraWrapper = AcraWrapper()
 ) {
 
@@ -266,9 +267,8 @@ class SessionStartupFsm(
 
     private fun handleVerifyAvailableStorage() {
         state.postValue(VerifyingSufficientStorage)
-        val availableStorage: Long = getAvailableStorageInMB()
 
-        when (availableStorage) {
+        when (storageUtility.getAvailableStorageInMB()) {
             in 0..250 -> state.postValue(VerifyingSufficientStorageFailed)
             in 251..1000 -> state.postValue(LowAvailableStorage)
             else -> state.postValue(StorageVerificationComplete)

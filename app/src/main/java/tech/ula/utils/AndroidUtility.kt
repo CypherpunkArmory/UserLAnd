@@ -68,11 +68,14 @@ fun getBranchToDownloadAssetsFrom(assetType: String): String {
     }
 }
 
-fun getAvailableStorageInMB(): Long {
-    val bytesInMB = 1048576
-    val stat = StatFs(Environment.getExternalStorageDirectory().path)
-    val bytesAvailable = stat.blockSizeLong * stat.availableBlocksLong
-    return bytesAvailable / bytesInMB
+class StorageUtility(statFs: StatFs) {
+    private val stat = statFs
+
+    fun getAvailableStorageInMB(): Long {
+        val bytesInMB = 1048576
+        val bytesAvailable = stat.blockSizeLong * stat.availableBlocksLong
+        return bytesAvailable / bytesInMB
+    }
 }
 
 class DefaultPreferences(private val prefs: SharedPreferences) {
