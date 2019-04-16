@@ -151,7 +151,10 @@ class SessionStartupFsmTest {
                     event is SyncDownloadState -> assertTrue(result)
                     event is CopyDownloadsToLocalStorage && state is DownloadsHaveSucceeded -> assertTrue(result)
                     event is VerifyFilesystemAssets && (state is NoDownloadsRequired || state is LocalDirectoryCopySucceeded) -> assertTrue(result)
-                    event is ExtractFilesystem && state is FilesystemAssetVerificationSucceeded -> assertTrue(result)
+
+                    event is VerifyAvailableStorage && state is FilesystemAssetVerificationSucceeded -> assertTrue(result)
+                    event is VerifyAvailableStorageComplete && (state is VerifyingSufficientStorage || state is LowAvailableStorage) -> assertTrue(result)
+                    event is ExtractFilesystem && state is StorageVerificationComplete -> assertTrue(result)
                     event is ResetSessionState -> assertTrue(result)
                     else -> assertFalse(result)
                 }
@@ -733,7 +736,7 @@ class SessionStartupFsmTest {
 
     @Test
     fun `State is ExtractionSucceeded if extraction succeeds`() {
-        sessionFsm.setState(FilesystemAssetVerificationSucceeded)
+        sessionFsm.setState(StorageVerificationComplete)
         sessionFsm.getState().observeForever(mockStateObserver)
 
         runBlocking {
@@ -752,7 +755,7 @@ class SessionStartupFsmTest {
 
     @Test
     fun `State is ExtractionFailed and propagates reason for failure`() {
-        sessionFsm.setState(FilesystemAssetVerificationSucceeded)
+        sessionFsm.setState(StorageVerificationComplete)
         sessionFsm.getState().observeForever(mockStateObserver)
 
         val reason = "reason"
@@ -768,7 +771,7 @@ class SessionStartupFsmTest {
 
     @Test
     fun `State is ExtractionFailed if extraction reportedly succeeds but status file is not created`() {
-        sessionFsm.setState(FilesystemAssetVerificationSucceeded)
+        sessionFsm.setState(StorageVerificationComplete)
         sessionFsm.getState().observeForever(mockStateObserver)
 
         runBlocking {
