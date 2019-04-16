@@ -48,6 +48,8 @@ class SessionStartupFsmTest {
 
     @Mock lateinit var mockAcraWrapper: AcraWrapper
 
+    @Mock lateinit var mockStorageUtility: StorageUtility
+
     private lateinit var activeSessionLiveData: MutableLiveData<List<Session>>
 
     private lateinit var sessionFsm: SessionStartupFsm
@@ -117,7 +119,7 @@ class SessionStartupFsmTest {
         whenever(mockUlaDatabase.filesystemDao()).thenReturn(mockFilesystemDao)
         whenever(mockFilesystemDao.getAllFilesystems()).thenReturn(filesystemLiveData)
 
-        sessionFsm = SessionStartupFsm(mockUlaDatabase, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility, mockAcraWrapper)
+        sessionFsm = SessionStartupFsm(mockUlaDatabase, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility, mockStorageUtility, mockAcraWrapper)
     }
 
     @After
@@ -718,6 +720,42 @@ class SessionStartupFsmTest {
 
         verify(mockStateObserver).onChanged(VerifyingFilesystemAssets)
         verify(mockStateObserver).onChanged(FilesystemAssetCopyFailed)
+    }
+
+    @Test
+    fun `State is LowAvailableStorage if device has between 250Mb and 1GB of storage`() {
+        sessionFsm.setState(FilesystemAssetVerificationSucceeded)
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockStorageUtility.getAvailableStorageInMB()).thenReturn(300)
+        runBlocking { sessionFsm.submitEvent(VerifyAvailableStorage, this) }
+
+        verify(mockStateObserver).onChanged(VerifyingSufficientStorage)
+        verify(mockStateObserver).onChanged(LowAvailableStorage)
+    }
+
+    @Test
+    fun `State is VerifyingSufficientStorageFailed if device has between 0MB and 250MB of storage`() {
+        sessionFsm.setState(FilesystemAssetVerificationSucceeded)
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockStorageUtility.getAvailableStorageInMB()).thenReturn(150)
+        runBlocking { sessionFsm.submitEvent(VerifyAvailableStorage, this) }
+
+        verify(mockStateObserver).onChanged(VerifyingSufficientStorage)
+        verify(mockStateObserver).onChanged(VerifyingSufficientStorageFailed)
+    }
+
+    @Test
+    fun `State is not  if device has greater than 1GB of storage after VerifyingAvailableStorage`() {
+        sessionFsm.setState(FilesystemAssetVerificationSucceeded)
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockStorageUtility.getAvailableStorageInMB()).thenReturn(1001)
+        runBlocking { sessionFsm.submitEvent(VerifyAvailableStorage, this) }
+
+        verify(mockStateObserver).onChanged(VerifyingSufficientStorage)
+        verify(mockStateObserver, never()).onChanged(VerifyingSufficientStorageFailed)
     }
 
     @Test
