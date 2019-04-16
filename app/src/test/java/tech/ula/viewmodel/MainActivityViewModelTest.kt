@@ -669,10 +669,10 @@ class MainActivityViewModelTest {
     }
 
     @Test
-    fun `Submits ExtractFilesystem when observing StorageVerificationComplete`() {
+    fun `Submits ExtractFilesystem when observing StorageVerificationCompletedSuccessfully`() {
         makeSessionSelections()
 
-        sessionStartupStateLiveData.postValue(StorageVerificationComplete)
+        sessionStartupStateLiveData.postValue(StorageVerificationCompletedSuccessfully)
 
         runBlocking {
             verify(mockSessionStartupFsm).submitEvent(ExtractFilesystem(selectedFilesystem), mainActivityViewModel)

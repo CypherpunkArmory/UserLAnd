@@ -86,7 +86,7 @@ class SessionStartupFsm(
             is VerifyFilesystemAssets -> currentState is NoDownloadsRequired || currentState is LocalDirectoryCopySucceeded
             is VerifyAvailableStorage -> currentState is FilesystemAssetVerificationSucceeded
             is VerifyAvailableStorageComplete -> currentState is VerifyingSufficientStorage || currentState is LowAvailableStorage
-            is ExtractFilesystem -> currentState is StorageVerificationComplete
+            is ExtractFilesystem -> currentState is StorageVerificationCompletedSuccessfully
             is ResetSessionState -> true
         }
     }
@@ -271,12 +271,12 @@ class SessionStartupFsm(
         when (storageUtility.getAvailableStorageInMB()) {
             in 0..250 -> state.postValue(VerifyingSufficientStorageFailed)
             in 251..1000 -> state.postValue(LowAvailableStorage)
-            else -> state.postValue(StorageVerificationComplete)
+            else -> state.postValue(StorageVerificationCompletedSuccessfully)
         }
     }
 
     private fun handleVerifyAvailableStorageComplete() {
-        state.postValue(StorageVerificationComplete)
+        state.postValue(StorageVerificationCompletedSuccessfully)
     }
 
     private suspend fun handleExtractFilesystem(filesystem: Filesystem) {
@@ -353,7 +353,7 @@ sealed class StorageVerificationState : SessionStartupState()
 object VerifyingSufficientStorage : StorageVerificationState()
 object VerifyingSufficientStorageFailed : StorageVerificationState()
 object LowAvailableStorage : StorageVerificationState()
-object StorageVerificationComplete : StorageVerificationState()
+object StorageVerificationCompletedSuccessfully : StorageVerificationState()
 
 sealed class SessionStartupEvent
 data class SessionSelected(val session: Session) : SessionStartupEvent()

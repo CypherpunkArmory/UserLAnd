@@ -156,7 +156,7 @@ class SessionStartupFsmTest {
 
                     event is VerifyAvailableStorage && state is FilesystemAssetVerificationSucceeded -> assertTrue(result)
                     event is VerifyAvailableStorageComplete && (state is VerifyingSufficientStorage || state is LowAvailableStorage) -> assertTrue(result)
-                    event is ExtractFilesystem && state is StorageVerificationComplete -> assertTrue(result)
+                    event is ExtractFilesystem && state is StorageVerificationCompletedSuccessfully -> assertTrue(result)
                     event is ResetSessionState -> assertTrue(result)
                     else -> assertFalse(result)
                 }
@@ -760,7 +760,7 @@ class SessionStartupFsmTest {
 
     @Test
     fun `Exits early if filesystem is already extracted`() {
-        sessionFsm.setState(StorageVerificationComplete)
+        sessionFsm.setState(StorageVerificationCompletedSuccessfully)
         sessionFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
@@ -774,7 +774,7 @@ class SessionStartupFsmTest {
 
     @Test
     fun `State is ExtractionSucceeded if extraction succeeds`() {
-        sessionFsm.setState(StorageVerificationComplete)
+        sessionFsm.setState(StorageVerificationCompletedSuccessfully)
         sessionFsm.getState().observeForever(mockStateObserver)
 
         runBlocking {
@@ -793,7 +793,7 @@ class SessionStartupFsmTest {
 
     @Test
     fun `State is ExtractionFailed and propagates reason for failure`() {
-        sessionFsm.setState(StorageVerificationComplete)
+        sessionFsm.setState(StorageVerificationCompletedSuccessfully)
         sessionFsm.getState().observeForever(mockStateObserver)
 
         val reason = "reason"
@@ -809,7 +809,7 @@ class SessionStartupFsmTest {
 
     @Test
     fun `State is ExtractionFailed if extraction reportedly succeeds but status file is not created`() {
-        sessionFsm.setState(StorageVerificationComplete)
+        sessionFsm.setState(StorageVerificationCompletedSuccessfully)
         sessionFsm.getState().observeForever(mockStateObserver)
 
         runBlocking {

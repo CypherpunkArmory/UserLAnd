@@ -353,7 +353,7 @@ class MainActivityViewModel(
             is VerifyingSufficientStorage -> state.postValue(VerifyingAvailableStorage)
             is VerifyingSufficientStorageFailed -> state.postValue(InsufficientAvailableStorage)
             is LowAvailableStorage -> state.postValue(LowStorageAcknowledgementRequired)
-            is StorageVerificationComplete -> { doTransitionIfRequirementsAreSelected {
+            is StorageVerificationCompletedSuccessfully -> { doTransitionIfRequirementsAreSelected {
                 submitSessionStartupEvent(ExtractFilesystem(lastSelectedFilesystem))
             } }
         }
