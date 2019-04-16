@@ -19,6 +19,7 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.StatFs
 import android.support.design.widget.TextInputEditText
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
@@ -124,6 +125,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
         val busyboxExecutor = BusyboxExecutor(filesDir, Environment.getExternalStorageDirectory(), DefaultPreferences(defaultSharedPreferences))
         val filesystemUtility = FilesystemUtility(filesDir.path, busyboxExecutor)
+        val storageUtility = StorageUtility(StatFs(Environment.getExternalStorageDirectory().path))
 
         val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val downloadManagerWrapper = DownloadManagerWrapper(downloadManager)
@@ -132,7 +134,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
 
         val appsStartupFsm = AppsStartupFsm(ulaDatabase, appsPreferences, filesystemUtility)
-        val sessionStartupFsm = SessionStartupFsm(ulaDatabase, assetRepository, filesystemUtility, downloadUtility)
+        val sessionStartupFsm = SessionStartupFsm(ulaDatabase, assetRepository, filesystemUtility, downloadUtility, storageUtility)
         ViewModelProviders.of(this, MainActivityViewModelFactory(appsStartupFsm, sessionStartupFsm))
                 .get(MainActivityViewModel::class.java)
     }
