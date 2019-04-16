@@ -120,6 +120,7 @@
     <string name="progress_downloading">Downloading required assets&#8230;</string>
     <string name="progress_downloading_out_of">%1$d out of %2$d complete</string>
     <string name="progress_copying_downloads">Copying downloaded files to local storage&#8230;</string>
+    <string name="progress_verifying_sufficient_storage">Verifying sufficient storage available</string>
     <string name="progress_setting_up_filesystem">Setting up filesystem&#8230;</string>
     <string name="progress_extraction_details">Extracting: %1$s</string>
     <string name="progress_verifying_assets">Verifying assets&#8230;</string>

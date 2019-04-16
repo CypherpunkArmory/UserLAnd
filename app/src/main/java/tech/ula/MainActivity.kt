@@ -600,7 +600,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 updateProgressBar(step, "")
             }
             is VerifyingAvailableStorage -> {
-                killProgressBar()
+                val step = getString(R.string.progress_verifying_sufficient_storage)
+                updateProgressBar(step, "")
             }
             is FilesystemExtractionStep -> {
                 val step = getString(R.string.progress_setting_up_filesystem)
