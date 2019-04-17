@@ -3,10 +3,6 @@ package tech.ula.utils
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MediatorLiveData
 
-fun currentTimeSeconds(): Long {
-    return System.currentTimeMillis() / 1000
-}
-
 fun <A, B> zipLiveData(a: LiveData<A>, b: LiveData<B>): LiveData<Pair<A, B>> {
     return MediatorLiveData<Pair<A, B>>().apply {
         var lastA: A? = null

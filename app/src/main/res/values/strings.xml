@@ -57,7 +57,7 @@
     <string name="error_export_to_external_failed_no_data">Exporting to external directory failed, exported file has no data.</string>
     
     <!-- Illegal State Dialog -->
-    <string name="illegal_state_message">%1$s \nThe app will now crash so that we can receive an error log. Feel free to also let us know on Github! We are working to resolve these issues.</string>
+    <string name="illegal_state_github_message">%1$s \nThe app will now crash so that we can receive an error log. Feel free to also let us know on Github! We are working to resolve these issues.</string>
     <string name="illegal_state_title">UserLAnd has entered an illegal state!</string>
 
     <string name="illegal_state_transition">Bad state transition: %1$s</string>
