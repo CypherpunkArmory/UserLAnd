@@ -390,6 +390,10 @@ class AcraWrapper {
         ACRA.getErrorReporter().putCustomData(key, value)
         return err
     }
+
+    fun silentlySendIllegalStateReport() {
+        ACRA.getErrorReporter().handleSilentException(IllegalStateException())
+    }
 }
 
 class DeviceDimensions {

@@ -63,7 +63,6 @@ import org.acra.data.StringFormat
 import org.acra.sender.HttpSender
 import tech.ula.ui.FilesystemListFragment
 import tech.ula.model.repositories.DownloadMetadata
-import kotlin.IllegalStateException
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection, FilesystemListFragment.ExportFilesystem {
 
@@ -425,70 +424,18 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleIllegalState(state: IllegalState) {
-        acraWrapper.putCustomString("Last handled illegal state", "$state")
-        val reason: String = when (state) {
-            is IllegalStateTransition -> {
-                getString(R.string.illegal_state_transition, state.transition)
-            }
-            is TooManySelectionsMadeWhenPermissionsGranted -> {
-                getString(R.string.illegal_state_too_many_selections_when_permissions_granted)
-            }
-            is NoSelectionsMadeWhenPermissionsGranted -> {
-                getString(R.string.illegal_state_no_selections_when_permissions_granted)
-            }
-            is NoFilesystemSelectedWhenCredentialsSubmitted -> {
-                getString(R.string.illegal_state_no_filesystem_selected_when_credentials_selected)
-            }
-            is NoAppSelectedWhenPreferenceSubmitted -> {
-                getString(R.string.illegal_state_no_app_selected_when_preference_submitted)
-            }
-            is NoAppSelectedWhenTransitionNecessary -> {
-                getString(R.string.illegal_state_no_app_selected_when_preparation_started)
-            }
-            is ErrorFetchingAppDatabaseEntries -> {
-                getString(R.string.illegal_state_error_fetching_app_database_entries)
-            }
-            is ErrorCopyingAppScript -> {
-                getString(R.string.illegal_state_error_copying_app_script)
-            }
-            is NoSessionSelectedWhenTransitionNecessary -> {
-                getString(R.string.illegal_state_no_session_selected_when_preparation_started)
-            }
-            is ErrorFetchingAssetLists -> {
-                getString(R.string.illegal_state_error_fetching_asset_lists)
-            }
-            is ErrorGeneratingDownloads -> {
-                getString(state.errorId)
-            }
-            is DownloadsDidNotCompleteSuccessfully -> {
-                getString(R.string.illegal_state_downloads_did_not_complete_successfully, state.reason)
-            }
-            is FailedToCopyAssetsToLocalStorage -> {
-                getString(R.string.illegal_state_failed_to_copy_assets_to_local)
-            }
-            is AssetsHaveNotBeenDownloaded -> {
-                getString(R.string.illegal_state_assets_have_not_been_downloaded)
-            }
-            is DownloadCacheAccessedWhileEmpty -> {
-                getString(R.string.illegal_state_empty_download_cache_access)
-            }
-            is DownloadCacheAccessedInAnIncorrectState -> {
-                getString(R.string.illegal_state_download_cache_access_in_incorrect_state)
-            }
-            is FailedToCopyAssetsToFilesystem -> {
-                getString(R.string.illegal_state_failed_to_copy_assets_to_filesystem)
-            }
-            is FailedToExtractFilesystem -> {
-                getString(R.string.illegal_state_failed_to_extract_filesystem, state.reason)
-            }
-            is FailedToClearSupportFiles -> {
-                getString(R.string.illegal_state_failed_to_clear_support_files)
-            }
-            is InsufficientAvailableStorage -> {
-                getString(R.string.illegal_state_insufficient_storage)
-            }
-        }
-        displayIllegalStateDialog(reason)
+        val localizationData = IllegalStateHandler().logAndGetResourceId(state)
+        val stateDescription = getString(localizationData.resId, *localizationData.formatStrings)
+        val displayMessage = getString(R.string.illegal_state_message, stateDescription)
+
+        AlertDialog.Builder(this)
+                .setMessage(displayMessage)
+                .setTitle(R.string.illegal_state_title)
+                .setPositiveButton(R.string.button_ok) {
+                    dialog, _ ->
+                    dialog.dismiss()
+                }
+                .create().show()
     }
 
     // TODO sealed classes?
@@ -502,20 +449,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 displayGenericErrorDialog(this, R.string.alert_need_client_app_title,
                     R.string.alert_need_client_app_message)
         }
-    }
-
-    private fun displayIllegalStateDialog(reason: String) {
-        val message = getString(R.string.illegal_state_message, reason)
-        AlertDialog.Builder(this)
-                .setMessage(message)
-                .setTitle(R.string.illegal_state_title)
-                .setPositiveButton(R.string.button_ok) {
-                    dialog, _ ->
-                    dialog.dismiss()
-                    acraWrapper.putCustomString("Illegal State Crash Reason", reason)
-                    throw IllegalStateException(reason)
-                }
-                .create().show()
     }
 
     private fun displayClearSupportFilesDialog() {
