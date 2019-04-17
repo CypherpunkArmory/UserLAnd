@@ -19,6 +19,7 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.StatFs
 import android.support.design.widget.TextInputEditText
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
@@ -124,6 +125,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
         val busyboxExecutor = BusyboxExecutor(filesDir, Environment.getExternalStorageDirectory(), DefaultPreferences(defaultSharedPreferences))
         val filesystemUtility = FilesystemUtility(filesDir.path, busyboxExecutor)
+        val storageUtility = StorageUtility(StatFs(Environment.getExternalStorageDirectory().path))
 
         val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val downloadManagerWrapper = DownloadManagerWrapper(downloadManager)
@@ -132,7 +134,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
 
         val appsStartupFsm = AppsStartupFsm(ulaDatabase, appsPreferences, filesystemUtility)
-        val sessionStartupFsm = SessionStartupFsm(ulaDatabase, assetRepository, filesystemUtility, downloadUtility)
+        val sessionStartupFsm = SessionStartupFsm(ulaDatabase, assetRepository, filesystemUtility, downloadUtility, storageUtility)
         ViewModelProviders.of(this, MainActivityViewModelFactory(appsStartupFsm, sessionStartupFsm))
                 .get(MainActivityViewModel::class.java)
     }
@@ -400,6 +402,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private fun handleUserInputState(state: UserInputRequiredState) {
         acraWrapper.putCustomString("Last handled user input state", "$state")
         return when (state) {
+            is LowStorageAcknowledgementRequired -> {
+                displayLowStorageDialog()
+            }
             is FilesystemCredentialsRequired -> {
                 getCredentials()
             }
@@ -478,6 +483,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             }
             is FailedToClearSupportFiles -> {
                 getString(R.string.illegal_state_failed_to_clear_support_files)
+            }
+            is InsufficientAvailableStorage -> {
+                getString(R.string.illegal_state_insufficient_storage)
             }
         }
         displayIllegalStateDialog(reason)
@@ -593,14 +601,18 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 val step = getString(R.string.progress_copying_downloads)
                 updateProgressBar(step, "")
             }
+            is VerifyingFilesystem -> {
+                val step = getString(R.string.progress_verifying_assets)
+                updateProgressBar(step, "")
+            }
+            is VerifyingAvailableStorage -> {
+                val step = getString(R.string.progress_verifying_sufficient_storage)
+                updateProgressBar(step, "")
+            }
             is FilesystemExtractionStep -> {
                 val step = getString(R.string.progress_setting_up_filesystem)
                 val details = getString(R.string.progress_extraction_details, state.extractionTarget)
                 updateProgressBar(step, details)
-            }
-            is VerifyingFilesystem -> {
-                val step = getString(R.string.progress_verifying_assets)
-                updateProgressBar(step, "")
             }
             is ClearingSupportFiles -> {
                 val step = getString(R.string.progress_clearing_support_files)
@@ -716,6 +728,12 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             viewModel.handleUserInputCancelled()
         }
         customDialog.show()
+    }
+
+    private fun displayLowStorageDialog() {
+        displayGenericErrorDialog(this, R.string.alert_storage_low_title, R.string.alert_storage_low_message) {
+            viewModel.lowAvailableStorageAcknowledged()
+        }
     }
 
     private fun getServiceTypePreference() {

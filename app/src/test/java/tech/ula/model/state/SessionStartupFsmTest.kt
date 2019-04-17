@@ -48,6 +48,8 @@ class SessionStartupFsmTest {
 
     @Mock lateinit var mockAcraWrapper: AcraWrapper
 
+    @Mock lateinit var mockStorageUtility: StorageUtility
+
     private lateinit var activeSessionLiveData: MutableLiveData<List<Session>>
 
     private lateinit var sessionFsm: SessionStartupFsm
@@ -117,7 +119,7 @@ class SessionStartupFsmTest {
         whenever(mockUlaDatabase.filesystemDao()).thenReturn(mockFilesystemDao)
         whenever(mockFilesystemDao.getAllFilesystems()).thenReturn(filesystemLiveData)
 
-        sessionFsm = SessionStartupFsm(mockUlaDatabase, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility, mockAcraWrapper)
+        sessionFsm = SessionStartupFsm(mockUlaDatabase, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility, mockStorageUtility, mockAcraWrapper)
     }
 
     @After
@@ -151,7 +153,10 @@ class SessionStartupFsmTest {
                     event is SyncDownloadState -> assertTrue(result)
                     event is CopyDownloadsToLocalStorage && state is DownloadsHaveSucceeded -> assertTrue(result)
                     event is VerifyFilesystemAssets && (state is NoDownloadsRequired || state is LocalDirectoryCopySucceeded) -> assertTrue(result)
-                    event is ExtractFilesystem && state is FilesystemAssetVerificationSucceeded -> assertTrue(result)
+
+                    event is VerifyAvailableStorage && state is FilesystemAssetVerificationSucceeded -> assertTrue(result)
+                    event is VerifyAvailableStorageComplete && (state is VerifyingSufficientStorage || state is LowAvailableStorage) -> assertTrue(result)
+                    event is ExtractFilesystem && state is StorageVerificationCompletedSuccessfully -> assertTrue(result)
                     event is ResetSessionState -> assertTrue(result)
                     else -> assertFalse(result)
                 }
@@ -718,8 +723,45 @@ class SessionStartupFsmTest {
     }
 
     @Test
-    fun `Exits early if filesystem is already extracted`() {
+    fun `State is LowAvailableStorage if device has between 250Mb and 1GB of storage`() {
         sessionFsm.setState(FilesystemAssetVerificationSucceeded)
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockStorageUtility.getAvailableStorageInMB()).thenReturn(300)
+        runBlocking { sessionFsm.submitEvent(VerifyAvailableStorage, this) }
+
+        verify(mockStateObserver).onChanged(VerifyingSufficientStorage)
+        verify(mockStateObserver).onChanged(LowAvailableStorage)
+    }
+
+    @Test
+    fun `State is VerifyingSufficientStorageFailed if device has between 0MB and 250MB of storage`() {
+        sessionFsm.setState(FilesystemAssetVerificationSucceeded)
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockStorageUtility.getAvailableStorageInMB()).thenReturn(150)
+        runBlocking { sessionFsm.submitEvent(VerifyAvailableStorage, this) }
+
+        verify(mockStateObserver).onChanged(VerifyingSufficientStorage)
+        verify(mockStateObserver).onChanged(VerifyingSufficientStorageFailed)
+    }
+
+    @Test
+    fun `State is not VerifyingSufficientStorageFailed or LowAvailableStorage if device has greater than 1GB of storage after VerifyingAvailableStorage`() {
+        sessionFsm.setState(FilesystemAssetVerificationSucceeded)
+        sessionFsm.getState().observeForever(mockStateObserver)
+
+        whenever(mockStorageUtility.getAvailableStorageInMB()).thenReturn(1001)
+        runBlocking { sessionFsm.submitEvent(VerifyAvailableStorage, this) }
+
+        verify(mockStateObserver).onChanged(VerifyingSufficientStorage)
+        verify(mockStateObserver, never()).onChanged(VerifyingSufficientStorageFailed)
+        verify(mockStateObserver, never()).onChanged(LowAvailableStorage)
+    }
+
+    @Test
+    fun `Exits early if filesystem is already extracted`() {
+        sessionFsm.setState(StorageVerificationCompletedSuccessfully)
         sessionFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
@@ -733,7 +775,7 @@ class SessionStartupFsmTest {
 
     @Test
     fun `State is ExtractionSucceeded if extraction succeeds`() {
-        sessionFsm.setState(FilesystemAssetVerificationSucceeded)
+        sessionFsm.setState(StorageVerificationCompletedSuccessfully)
         sessionFsm.getState().observeForever(mockStateObserver)
 
         runBlocking {
@@ -752,7 +794,7 @@ class SessionStartupFsmTest {
 
     @Test
     fun `State is ExtractionFailed and propagates reason for failure`() {
-        sessionFsm.setState(FilesystemAssetVerificationSucceeded)
+        sessionFsm.setState(StorageVerificationCompletedSuccessfully)
         sessionFsm.getState().observeForever(mockStateObserver)
 
         val reason = "reason"
@@ -768,7 +810,7 @@ class SessionStartupFsmTest {
 
     @Test
     fun `State is ExtractionFailed if extraction reportedly succeeds but status file is not created`() {
-        sessionFsm.setState(FilesystemAssetVerificationSucceeded)
+        sessionFsm.setState(StorageVerificationCompletedSuccessfully)
         sessionFsm.getState().observeForever(mockStateObserver)
 
         runBlocking {
