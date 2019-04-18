@@ -46,7 +46,6 @@
     <string name="error_vnc_password_invalid">Пароль VNC содержит недопустимые знаки</string>
 
     <!-- Illegal State Dialog -->
-    <string name="illegal_state_message">%1$s \nСейчас приложение отправит журнал ошибок и завершит работу. Также вы можете сообщить о проблеме на Github! Мы что-нибудь придумаем.</string>
     <string name="illegal_state_title">Приложение UserLAnd перешло в некорректное состояние!</string>
 
     <string name="illegal_state_transition">Переход в некорректное состояние: %1$s</string>
