@@ -13,6 +13,7 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.os.StatFs
 import android.support.v4.content.ContextCompat
 import android.util.DisplayMetrics
 import android.view.WindowManager
@@ -46,12 +47,13 @@ fun arePermissionsGranted(context: Context): Boolean {
                     Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
 }
 
-fun displayGenericErrorDialog(activity: Activity, titleId: Int, messageId: Int) {
+fun displayGenericErrorDialog(activity: Activity, titleId: Int, messageId: Int, callback: (() -> Unit) = {}) {
     AlertDialog.Builder(activity)
             .setTitle(titleId)
             .setMessage(messageId)
             .setPositiveButton(R.string.button_ok) {
                 dialog, _ ->
+                callback()
                 dialog.dismiss()
             }
             .create().show()
@@ -63,6 +65,15 @@ fun getBranchToDownloadAssetsFrom(assetType: String): String {
         "support" -> "staging"
         "apps" -> "master"
         else -> "master"
+    }
+}
+
+class StorageUtility(private val statFs: StatFs) {
+
+    fun getAvailableStorageInMB(): Long {
+        val bytesInMB = 1048576
+        val bytesAvailable = statFs.blockSizeLong * statFs.availableBlocksLong
+        return bytesAvailable / bytesInMB
     }
 }
 
@@ -378,6 +389,10 @@ class AcraWrapper {
         val value = "${topOfStackTrace.lineNumber}"
         ACRA.getErrorReporter().putCustomData(key, value)
         return err
+    }
+
+    fun silentlySendIllegalStateReport() {
+        ACRA.getErrorReporter().handleSilentException(IllegalStateException())
     }
 }
 

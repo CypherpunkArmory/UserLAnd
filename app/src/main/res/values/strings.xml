@@ -57,7 +57,7 @@
     <string name="error_export_to_external_failed_no_data">Exporting to external directory failed, exported file has no data.</string>
     
     <!-- Illegal State Dialog -->
-    <string name="illegal_state_message">%1$s \nThe app will now crash so that we can receive an error log. Feel free to also let us know on Github! We are working to resolve these issues.</string>
+    <string name="illegal_state_github_message">%1$s \nThe app will now crash so that we can receive an error log. Feel free to also let us know on Github! We are working to resolve these issues.</string>
     <string name="illegal_state_title">UserLAnd has entered an illegal state!</string>
 
     <string name="illegal_state_transition">Bad state transition: %1$s</string>
@@ -93,6 +93,7 @@
     <string name="illegal_state_failed_to_copy_assets_to_filesystem">Failed to copy assets to filesystem. Try clearing support files.</string>
     <string name="illegal_state_failed_to_extract_filesystem">Failed to extract filesystem. Try clearing support files. Failure reason: %1$s</string>
     <string name="illegal_state_failed_to_clear_support_files">Failed to clear support files.</string>
+    <string name="illegal_state_insufficient_storage">Failed to detect sufficient storage.  Try increasing the available storage on your device to at least 250 MB.</string>
 
     <!-- Misc illegal state -->
     <string name="illegal_state_unhandled_session_service_type">Trying to start a session with an unknown service type.</string>
@@ -119,6 +120,7 @@
     <string name="progress_downloading">Downloading required assets&#8230;</string>
     <string name="progress_downloading_out_of">%1$d out of %2$d complete</string>
     <string name="progress_copying_downloads">Copying downloaded files to local storage&#8230;</string>
+    <string name="progress_verifying_sufficient_storage">Verifying sufficient storage available&#8230;</string>
     <string name="progress_setting_up_filesystem">Setting up filesystem&#8230;</string>
     <string name="progress_extraction_details">Extracting: %1$s</string>
     <string name="progress_verifying_assets">Verifying assets&#8230;</string>
@@ -193,6 +195,10 @@
 
     <!-- Network unavailable alert -->
     <string name="alert_network_required_for_refresh">Refreshing apps requires an available or stronger network connection.</string>
+
+    <!-- Storage capacity low alert -->
+    <string name="alert_storage_low_title">Low storage capacity</string>
+    <string name="alert_storage_low_message">To ensure smooth functionality of a filesystem in UserLAnd, ensure there is at least 1 GB of free space.</string>
 
     <!-- Wifi alert -->
     <string name="alert_wifi_disabled_title">No wifi!</string>

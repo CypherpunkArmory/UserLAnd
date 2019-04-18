@@ -20,6 +20,7 @@ class SessionStartupFsm(
     private val assetRepository: AssetRepository,
     private val filesystemUtility: FilesystemUtility,
     private val downloadUtility: DownloadUtility,
+    private val storageUtility: StorageUtility,
     private val acraWrapper: AcraWrapper = AcraWrapper()
 ) {
 
@@ -83,7 +84,9 @@ class SessionStartupFsm(
             }
             is CopyDownloadsToLocalStorage -> currentState is DownloadsHaveSucceeded
             is VerifyFilesystemAssets -> currentState is NoDownloadsRequired || currentState is LocalDirectoryCopySucceeded
-            is ExtractFilesystem -> currentState is FilesystemAssetVerificationSucceeded
+            is VerifyAvailableStorage -> currentState is FilesystemAssetVerificationSucceeded
+            is VerifyAvailableStorageComplete -> currentState is VerifyingSufficientStorage || currentState is LowAvailableStorage
+            is ExtractFilesystem -> currentState is StorageVerificationCompletedSuccessfully
             is ResetSessionState -> true
         }
     }
@@ -104,6 +107,8 @@ class SessionStartupFsm(
             is SyncDownloadState -> { handleSyncDownloadState() }
             is CopyDownloadsToLocalStorage -> { handleCopyDownloadsToLocalDirectories() }
             is VerifyFilesystemAssets -> { handleVerifyFilesystemAssets(event.filesystem) }
+            is VerifyAvailableStorage -> { handleVerifyAvailableStorage() }
+            is VerifyAvailableStorageComplete -> { handleVerifyAvailableStorageComplete() }
             is ExtractFilesystem -> { handleExtractFilesystem(event.filesystem) }
             is ResetSessionState -> { state.postValue(WaitingForSessionSelection) }
         }
@@ -260,6 +265,20 @@ class SessionStartupFsm(
         state.postValue(FilesystemAssetVerificationSucceeded)
     }
 
+    private fun handleVerifyAvailableStorage() {
+        state.postValue(VerifyingSufficientStorage)
+
+        when (storageUtility.getAvailableStorageInMB()) {
+            in 0..250 -> state.postValue(VerifyingSufficientStorageFailed)
+            in 251..1000 -> state.postValue(LowAvailableStorage)
+            else -> state.postValue(StorageVerificationCompletedSuccessfully)
+        }
+    }
+
+    private fun handleVerifyAvailableStorageComplete() {
+        state.postValue(StorageVerificationCompletedSuccessfully)
+    }
+
     private suspend fun handleExtractFilesystem(filesystem: Filesystem) {
         val filesystemDirectoryName = "${filesystem.id}"
 
@@ -330,6 +349,12 @@ data class ExtractingFilesystem(val extractionTarget: String) : ExtractionState(
 object ExtractionHasCompletedSuccessfully : ExtractionState()
 data class ExtractionFailed(val reason: String) : ExtractionState()
 
+sealed class StorageVerificationState : SessionStartupState()
+object VerifyingSufficientStorage : StorageVerificationState()
+object VerifyingSufficientStorageFailed : StorageVerificationState()
+object LowAvailableStorage : StorageVerificationState()
+object StorageVerificationCompletedSuccessfully : StorageVerificationState()
+
 sealed class SessionStartupEvent
 data class SessionSelected(val session: Session) : SessionStartupEvent()
 data class RetrieveAssetLists(val filesystem: Filesystem) : SessionStartupEvent()
@@ -339,5 +364,7 @@ data class AssetDownloadComplete(val downloadAssetId: Long) : SessionStartupEven
 object SyncDownloadState : SessionStartupEvent()
 object CopyDownloadsToLocalStorage : SessionStartupEvent()
 data class VerifyFilesystemAssets(val filesystem: Filesystem) : SessionStartupEvent()
+object VerifyAvailableStorage : SessionStartupEvent()
+object VerifyAvailableStorageComplete : SessionStartupEvent()
 data class ExtractFilesystem(val filesystem: Filesystem) : SessionStartupEvent()
 object ResetSessionState : SessionStartupEvent()
