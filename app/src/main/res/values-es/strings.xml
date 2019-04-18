@@ -57,7 +57,6 @@
 
 
     <!-- Illegal State Dialog -->
-    <string name="illegal_state_message">%1$s \nPor favor, reinicia la app y contacta a un desarrollador.</string>
     <string name="illegal_state_title">¡UserLAnd ha entrado en un estado ilegal!</string>
 
     <string name="illegal_state_transition">Mala transición de estado: %1$s</string>
