@@ -56,7 +56,6 @@
     <string name="error_export_to_external_failed_no_data">أخفق التصدير إلى الدليل الخارجي ، لا يحتوي الملف المصدر على بيانات.</string>
 
     <!-- Illegal State Dialog -->
-    <string name="illegal_state_message">%1$s \n سيتم الآن تعطل التطبيق بحيث يمكننا استلام سجل أخطاء. لا تتردد أيضًا في إخبارنا على جيثب! نحن نعمل على حل هذه القضايا.</string>
     <string name="illegal_state_title">لقد دخل UserLAnd حالة غير قانونية!</string>
     <string name="illegal_state_transition">انتقال الحالة السيئة:%1$s</string>
     <string name="illegal_state_too_many_selections_when_permissions_granted">تم اختيار كل من الجلسة والتطبيق عند منح الأذونات.</string>

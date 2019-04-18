@@ -57,7 +57,6 @@
     <string name="error_export_to_external_failed_no_data">匯出到外部目錄失敗，已匯出的檔案沒有資料。</string>
 
     <!-- Illegal State Dialog -->
-    <string name="illegal_state_message">%1$s \n應用程式現在將會當掉，這樣我們就可以接收到錯誤紀錄。歡迎在 GitHub 上告訴我們！我們正在努力解決這些問題。</string>
     <string name="illegal_state_title">UserLAnd 已進入違規狀態！</string>
 
     <string name="illegal_state_transition">狀態轉換不良：%1$s</string>
