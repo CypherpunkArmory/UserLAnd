@@ -5,6 +5,8 @@ import android.annotation.TargetApi
 import android.app.AlertDialog
 import android.app.Application
 import android.app.DownloadManager
+import android.arch.lifecycle.LifecycleOwner
+import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.BroadcastReceiver
@@ -56,6 +58,7 @@ import tech.ula.ui.SessionListFragment
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import kotlinx.android.synthetic.main.dia_app_select_client.*
+import kotlinx.android.synthetic.main.frag_session_list.*
 import org.acra.ACRA
 import org.acra.config.CoreConfigurationBuilder
 import org.acra.config.HttpSenderConfigurationBuilder
@@ -63,6 +66,7 @@ import org.acra.data.StringFormat
 import org.acra.sender.HttpSender
 import tech.ula.ui.FilesystemListFragment
 import tech.ula.model.repositories.DownloadMetadata
+import tech.ula.ui.SessionListAdapter
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection, FilesystemListFragment.ExportFilesystem {
 
@@ -157,12 +161,35 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         }
 
         setupWithNavController(bottom_nav_view, navController)
-
         userFeedbackUtility.incrementNumberOfTimesOpened()
         if (userFeedbackUtility.askingForFeedbackIsAppropriate())
             setupReviewRequestUI()
 
         viewModel.getState().observe(this, stateObserver)
+        val autostart = intent.getBooleanExtra("autostart", false)
+        if (autostart){
+            val ulaDatabase : UlaDatabase = UlaDatabase.getInstance(this)
+            ulaDatabase.sessionDao().getAllSessions().observeOnce(this, Observer{ t ->
+                if (t != null) {
+                    for (session in t){
+                        if (session.startOnBoot && !session.active) {
+                            Toast.makeText(this@MainActivity, "Starting '${session.name}' session...",Toast.LENGTH_SHORT).show()
+                            startSession(session, false)
+                        }
+                    }
+                }
+                finish()
+            })
+        }
+    }
+
+    fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observer<T>) {
+        observe(lifecycleOwner, object : Observer<T> {
+            override fun onChanged(t: T?) {
+                observer.onChanged(t)
+                removeObserver(this)
+            }
+        })
     }
 
     private fun startAcra() {
@@ -276,10 +303,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     override fun onStop() {
         super.onStop()
-
         acraWrapper.putCustomString("Last call to onStop", "${System.currentTimeMillis()}")
-        LocalBroadcastManager.getInstance(this)
-                .unregisterReceiver(serverServiceBroadcastReceiver)
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(serverServiceBroadcastReceiver)
         unregisterReceiver(downloadBroadcastReceiver)
     }
 
@@ -343,10 +368,11 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         session.geometry = deviceDimensions.getGeometry()
     }
 
-    private fun startSession(session: Session) {
+    private fun startSession(session: Session, autoStartClient : Boolean = true) {
         val serviceIntent = Intent(this, ServerService::class.java)
                 .putExtra("type", "start")
                 .putExtra("session", session)
+                .putExtra("autoStartClient", autoStartClient)
         startService(serviceIntent)
     }
 
