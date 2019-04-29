@@ -58,7 +58,7 @@
     
     <!-- Illegal State Dialog -->
     <string name="illegal_state_github_message">%1$s \nO aplicativo irá falhar agora para que possamos receber um log de erros. Sinta-se à vontade para também nos informar sobre o Github! Estamos trabalhando para resolver esses problemas.</string>
-    <string name="illegal_state_title"UserLAnd entrou em um estado ilegal!</string>
+    <string name="illegal_state_title">UserLAnd entrou em um estado ilegal!</string>
 
     <string name="illegal_state_transition">Transição de estado ruim: %1$s</string>
 
