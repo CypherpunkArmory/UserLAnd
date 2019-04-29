@@ -105,6 +105,7 @@
     <string name="prompt_app_connection_type_preference">Please select a connection type: </string>
     <string name="prompt_select_backup">Select filesystem backup file</string>
     <string name="prompt_install_file_manager">Please install a File Manager</string>
+    <string name="prompt_session_start_boot">Start on boot</string>
 
     <!-- Notification strings -->
     <string name="services_notification_channel_id">UserLAndServices</string>

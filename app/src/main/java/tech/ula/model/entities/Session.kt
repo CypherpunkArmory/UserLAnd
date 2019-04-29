@@ -18,24 +18,25 @@ import kotlinx.android.parcel.Parcelize
             Index(value = ["filesystemId"])
         ])
 data class Session(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long,
-    var name: String = "",
-    var filesystemId: Long,
-    var filesystemName: String = "",
-    var active: Boolean = false,
-    var username: String = "",
-    var password: String = "",
-    var vncPassword: String = "",
-    var serviceType: String = "",
-    var port: Long = 2022,
-    var pid: Long = 0,
-    var geometry: String = "",
-    val isAppsSession: Boolean = false
+        @PrimaryKey(autoGenerate = true)
+        val id: Long,
+        var name: String = "",
+        var filesystemId: Long,
+        var filesystemName: String = "",
+        var active: Boolean = false,
+        var username: String = "",
+        var password: String = "",
+        var vncPassword: String = "",
+        var serviceType: String = "",
+        var port: Long = 2022,
+        var pid: Long = 0,
+        var geometry: String = "",
+        val isAppsSession: Boolean = false,
+        var startOnBoot : Boolean = false
 ) : Parcelable {
     override fun toString(): String {
         return "Session(id=$id, name=$name, filesystemId=$filesystemId, filesystemName=" +
                 "$filesystemName, active=$active, serviceType=$serviceType, port=$port, pid=" +
-                "$pid, isAppsSession=$isAppsSession)"
+                "$pid, isAppsSession=$isAppsSession), startOnBoot=$startOnBoot"
     }
 }

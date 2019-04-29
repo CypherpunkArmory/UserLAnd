@@ -41,6 +41,8 @@ class ServerUtility(
     }
 
     fun startServer(session: Session): Long {
+        if (session.startOnBoot)
+            runBootScript(session)
         return when (session.serviceType) {
             "ssh" -> startSSHServer(session)
             "vnc" -> startVNCServer(session)
@@ -52,6 +54,26 @@ class ServerUtility(
     private fun deletePidFile(session: Session) {
         val pidFile = File(session.pidFilePath())
         if (pidFile.exists()) pidFile.delete()
+    }
+
+    private fun runBootScript(session: Session): Long {
+        val filesystemDirName = session.filesystemId.toString()
+        /*
+            val script = File(applicationFilesDirPath, "/$filesystemDirName/support/autostart.sh")
+            script.writeText("#! /bin/bash\n\nsudo apachectl start")
+            script.setExecutable(true)
+        */
+        deletePidFile(session)
+        val command = "/support/autostart.sh"
+        val result = busyboxExecutor.executeProotCommand(command, filesystemDirName, false)
+        return when (result) {
+            is OngoingExecution -> result.process.pid()
+            is FailedExecution -> {
+                logger.logRuntimeErrorForCommand(functionName = "runBootScript", command = command, err = result.reason)
+                -1
+            }
+            else -> -1
+        }
     }
 
     private fun startSSHServer(session: Session): Long {
@@ -126,6 +148,8 @@ class ServerUtility(
 
     fun isServerRunning(session: Session): Boolean {
         val command = "support/isServerInProcTree.sh ${session.pid()}"
+        //Has start on boot flag so dont wait for any server.
+        if (session.startOnBoot) return true
         // The server itself is run by a third-party, so we can consider this to always be true.
         // The third-party app is responsible for handling errors starting their server.
         if (session.serviceType == "xsdl") return true
