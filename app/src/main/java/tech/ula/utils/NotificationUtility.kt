@@ -51,7 +51,7 @@ class NotificationUtility(val context: Context) {
                 .setSmallIcon(R.drawable.ic_stat_icon)
                 .setContentTitle(title)
                 .setContentText(serviceNotificationDescription)
-                .setPriority(if (wakeLockHeld) NotificationCompat.PRIORITY_HIGH else NotificationCompat.PRIORITY_LOW)
+                .setPriority(if (wakeLockHeld) NotificationCompat.PRIORITY_MAX else NotificationCompat.PRIORITY_LOW)
                 .setAutoCancel(false)
                 .setContentIntent(pendingSessionListIntent)
 
@@ -60,7 +60,7 @@ class NotificationUtility(val context: Context) {
 
         val newWakeAction = if (wakeLockHeld) "wakerelease" else "wakelock"
         val toggleWakeLockIntent = Intent(context, ServerService::class.java).setAction(newWakeAction)
-        val actionTitle = if (wakeLockHeld) "Release Lock" else "Wake Lock"
+        val actionTitle = if (wakeLockHeld) "Release Wakelock" else "Acquire Wakelock"
         val actionIcon = if (wakeLockHeld) android.R.drawable.ic_lock_idle_lock else android.R.drawable.ic_lock_lock
         builder.addAction(actionIcon, actionTitle, PendingIntent.getService(context, 0, toggleWakeLockIntent, 0))
 
@@ -68,6 +68,6 @@ class NotificationUtility(val context: Context) {
     }
 
     fun updateNotification(wakeLockHeld : Boolean = false){
-        notificationManager.notify(NotificationUtility.serviceNotificationId, buildPersistentServiceNotification(wakeLockHeld))
+        notificationManager.notify(serviceNotificationId, buildPersistentServiceNotification(wakeLockHeld))
     }
 }
