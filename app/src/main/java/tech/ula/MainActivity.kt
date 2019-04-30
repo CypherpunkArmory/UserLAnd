@@ -166,30 +166,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             setupReviewRequestUI()
 
         viewModel.getState().observe(this, stateObserver)
-        val autostart = intent.getBooleanExtra("autostart", false)
-        if (autostart){
-            val ulaDatabase : UlaDatabase = UlaDatabase.getInstance(this)
-            ulaDatabase.sessionDao().getAllSessions().observeOnce(this, Observer{ t ->
-                if (t != null) {
-                    for (session in t){
-                        if (session.startOnBoot && !session.active) {
-                            Toast.makeText(this@MainActivity, "Starting '${session.name}' session...",Toast.LENGTH_SHORT).show()
-                            startSession(session, false)
-                        }
-                    }
-                }
-                finish()
-            })
-        }
-    }
-
-    fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observer<T>) {
-        observe(lifecycleOwner, object : Observer<T> {
-            override fun onChanged(t: T?) {
-                observer.onChanged(t)
-                removeObserver(this)
-            }
-        })
     }
 
     private fun startAcra() {

@@ -56,24 +56,15 @@ class ServerUtility(
         if (pidFile.exists()) pidFile.delete()
     }
 
-    private fun runBootScript(session: Session): Long {
+    /**
+     * Execute the boot script, should be called only when the session has the startOnBoot flag
+     * Users can use this to add their own custom commands to this script.
+     */
+    private fun runBootScript(session: Session) {
         val filesystemDirName = session.filesystemId.toString()
-        /*
-            val script = File(applicationFilesDirPath, "/$filesystemDirName/support/autostart.sh")
-            script.writeText("#! /bin/bash\n\nsudo apachectl start")
-            script.setExecutable(true)
-        */
-        deletePidFile(session)
+        //TODO create new session parameter and turn this into a user-defined command
         val command = "/support/autostart.sh"
-        val result = busyboxExecutor.executeProotCommand(command, filesystemDirName, false)
-        return when (result) {
-            is OngoingExecution -> result.process.pid()
-            is FailedExecution -> {
-                logger.logRuntimeErrorForCommand(functionName = "runBootScript", command = command, err = result.reason)
-                -1
-            }
-            else -> -1
-        }
+        busyboxExecutor.executeProotCommand(command, filesystemDirName, false)
     }
 
     private fun startSSHServer(session: Session): Long {

@@ -37,7 +37,7 @@
 
         <service
             android:name=".ServerService"
-            android:stopWithTask="true" />
+            android:stopWithTask="false" />
 
         <receiver android:name=".BootReceiver">
             <intent-filter>

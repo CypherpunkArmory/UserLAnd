@@ -9,10 +9,9 @@ class BootReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context?, intent: Intent?) {
         if (Intent.ACTION_BOOT_COMPLETED == intent?.action || testAction == intent?.action) {
-            val i = Intent(context, MainActivity::class.java)
-            i.flags = Intent.FLAG_ACTIVITY_NEW_TASK + Intent.FLAG_ACTIVITY_CLEAR_TASK
-            i.putExtra("autostart", true)
-            context?.startActivity(i)
+            val serviceIntent = Intent(context, ServerService::class.java)
+            serviceIntent.action = "autostart"
+            context?.startService(serviceIntent)
         }
     }
 }
