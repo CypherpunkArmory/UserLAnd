@@ -4,9 +4,9 @@ import tech.ula.model.entities.Session
 import java.io.File
 
 class ServerUtility(
-    private val applicationFilesDirPath: String,
-    private val busyboxExecutor: BusyboxExecutor,
-    private val logger: LogUtility = LogUtility()
+        private val applicationFilesDirPath: String,
+        private val busyboxExecutor: BusyboxExecutor,
+        private val logger: LogUtility = LogUtility()
 ) {
 
     fun Process.pid(): Long {
@@ -62,7 +62,7 @@ class ServerUtility(
      */
     private fun runBootScript(session: Session) {
         val filesystemDirName = session.filesystemId.toString()
-        //TODO create new session parameter and turn this into a user-defined command
+        // TODO create new session parameter and turn this into a user-defined command
         val command = "/support/autostart.sh"
         busyboxExecutor.executeProotCommand(command, filesystemDirName, false)
     }

@@ -15,7 +15,7 @@ class BootReceiver : BroadcastReceiver() {
             serviceIntent.action = "autostart"
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 context?.startForegroundService(serviceIntent)
-             else
+            else
                 context?.startService(serviceIntent)
         }
     }

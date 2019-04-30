@@ -32,7 +32,7 @@ data class Session(
         var pid: Long = 0,
         var geometry: String = "",
         val isAppsSession: Boolean = false,
-        var startOnBoot : Boolean = false
+        var startOnBoot: Boolean = false
 ) : Parcelable {
     override fun toString(): String {
         return "Session(id=$id, name=$name, filesystemId=$filesystemId, filesystemName=" +

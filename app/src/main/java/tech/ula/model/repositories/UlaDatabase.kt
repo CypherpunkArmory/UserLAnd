@@ -9,11 +9,11 @@ import android.content.Context
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import tech.ula.model.daos.AppsDao
-import tech.ula.model.entities.Filesystem
-import tech.ula.model.entities.Session
 import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
+import tech.ula.model.entities.Filesystem
+import tech.ula.model.entities.Session
 
 @Database(entities = [Session::class, Filesystem::class, App::class], version = 8, exportSchema = true)
 abstract class UlaDatabase : RoomDatabase() {
@@ -152,7 +152,7 @@ class Migration6To7 : Migration(6, 7) {
 
 class Migration7To8 : Migration(7, 8) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        //add startOnBoot flag to session
+        // Add startOnBoot flag to session
         database.execSQL("ALTER TABLE session ADD COLUMN startOnBoot INTEGER NOT NULL DEFAULT 0")
     }
 }

@@ -39,7 +39,7 @@ class NotificationUtility(val context: Context) {
         }
     }
 
-    fun buildPersistentServiceNotification(wakeLockHeld : Boolean = false): Notification {
+    fun buildPersistentServiceNotification(wakeLockHeld: Boolean = false): Notification {
         val sessionListIntent = Intent(context, MainActivity::class.java)
         val pendingSessionListIntent = PendingIntent
                 .getActivity(context, 0, sessionListIntent, 0)
@@ -56,7 +56,7 @@ class NotificationUtility(val context: Context) {
                 .setContentIntent(pendingSessionListIntent)
 
         val exitIntent = Intent(context, ServerService::class.java).setAction("exit")
-        builder.addAction(android.R.drawable.ic_delete,"Exit", PendingIntent.getService(context, 0, exitIntent, 0))
+        builder.addAction(android.R.drawable.ic_delete, "Exit", PendingIntent.getService(context, 0, exitIntent, 0))
 
         val newWakeAction = if (wakeLockHeld) "wakerelease" else "wakelock"
         val toggleWakeLockIntent = Intent(context, ServerService::class.java).setAction(newWakeAction)
@@ -67,7 +67,7 @@ class NotificationUtility(val context: Context) {
         return builder.build()
     }
 
-    fun updateNotification(wakeLockHeld : Boolean = false){
+    fun updateNotification(wakeLockHeld: Boolean = false) {
         notificationManager.notify(serviceNotificationId, buildPersistentServiceNotification(wakeLockHeld))
     }
 }

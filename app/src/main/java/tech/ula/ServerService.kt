@@ -1,6 +1,5 @@
 package tech.ula
 
-import android.app.NotificationManager
 import android.app.Service
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -11,16 +10,15 @@ import android.os.Environment
 import android.os.IBinder
 import android.os.PowerManager
 import android.support.v4.content.LocalBroadcastManager
-import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.model.entities.App
-import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Session
-import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import tech.ula.model.repositories.UlaDatabase
+import tech.ula.utils.*
 
 class ServerService : Service() {
 
@@ -145,7 +143,7 @@ class ServerService : Service() {
         notificationManager.updateNotification(false)
     }
 
-    fun stopServiceAndSessions(){
+    fun stopServiceAndSessions() {
         releaseWakeLocks()
         for (session in activeSessions)
             killSession(session.value)
@@ -204,7 +202,7 @@ class ServerService : Service() {
         startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification(wakeLock != null))
         session.pid = serverUtility.startServer(session)
 
-        //only wait for the server if we are interested in launching the client
+        // Only wait for the server if we are interested in launching the client
         if (autoStartClient) {
             while (!serverUtility.isServerRunning(session)) {
                 delay(500)
