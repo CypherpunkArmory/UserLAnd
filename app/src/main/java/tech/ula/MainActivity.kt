@@ -344,11 +344,10 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         session.geometry = deviceDimensions.getGeometry()
     }
 
-    private fun startSession(session: Session, autoStartClient : Boolean = true) {
+    private fun startSession(session: Session) {
         val serviceIntent = Intent(this, ServerService::class.java)
                 .putExtra("type", "start")
                 .putExtra("session", session)
-                .putExtra("autoStartClient", autoStartClient)
         startService(serviceIntent)
     }
 
