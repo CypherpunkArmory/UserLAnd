@@ -18,7 +18,7 @@ import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.utils.*
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 
 class ServerService : Service() {
 

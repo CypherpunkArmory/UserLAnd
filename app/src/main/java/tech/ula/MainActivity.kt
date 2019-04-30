@@ -41,7 +41,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.NavigationUI.setupWithNavController
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_main.* // ktlint-disable no-wildcard-imports
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -62,8 +62,8 @@ import tech.ula.model.state.SessionStartupFsm
 import tech.ula.ui.AppListFragment
 import tech.ula.ui.FilesystemListFragment
 import tech.ula.ui.SessionListFragment
-import tech.ula.utils.*
-import tech.ula.viewmodel.*
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection, FilesystemListFragment.ExportFilesystem {
 
