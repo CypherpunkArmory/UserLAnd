@@ -4,9 +4,9 @@ import tech.ula.model.entities.Session
 import java.io.File
 
 class ServerUtility(
-        private val applicationFilesDirPath: String,
-        private val busyboxExecutor: BusyboxExecutor,
-        private val logger: LogUtility = LogUtility()
+    private val applicationFilesDirPath: String,
+    private val busyboxExecutor: BusyboxExecutor,
+    private val logger: LogUtility = LogUtility()
 ) {
 
     fun Process.pid(): Long {

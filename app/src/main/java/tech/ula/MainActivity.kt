@@ -24,7 +24,12 @@ import android.support.design.widget.TextInputEditText
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
 import android.util.DisplayMetrics
-import android.view.*
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View.GONE
+import android.view.View.VISIBLE
+import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.animation.AlphaAnimation
 import android.widget.Button
 import android.widget.RadioButton
@@ -576,7 +581,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             inAnimation.duration = 200
             layout_progress.animation = inAnimation
 
-            layout_progress.visibility = View.VISIBLE
+            layout_progress.visibility = VISIBLE
             layout_progress.isFocusable = true
             layout_progress.isClickable = true
             progressBarIsVisible = true
@@ -594,7 +599,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val outAnimation = AlphaAnimation(1f, 0f)
         outAnimation.duration = 200
         layout_progress.animation = outAnimation
-        layout_progress.visibility = View.GONE
+        layout_progress.visibility = GONE
         layout_progress.isFocusable = false
         layout_progress.isClickable = false
         progressBarIsVisible = false
@@ -686,7 +691,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 xsdlTypePreference.alpha = 0.5f
 
                 val xsdlSupportedText = customDialog.findViewById<TextView>(R.id.text_xsdl_version_supported_description)
-                xsdlSupportedText.visibility = View.VISIBLE
+                xsdlSupportedText.visibility = VISIBLE
             }
 
             if (!viewModel.lastSelectedApp.supportsCli) {

@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 
-
 class BootReceiver : BroadcastReceiver() {
     private val testAction = "tech.ula.intent.action.TEST_BOOT_COMPLETED"
 
