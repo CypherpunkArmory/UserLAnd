@@ -242,7 +242,7 @@ class SessionEditFragment : Fragment() {
                     insertSession()
                 }
                 return
-            }else
+            } else
                 sessionPreferences.setStartOnBootSession(session.name)
         }
 

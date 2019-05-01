@@ -474,7 +474,7 @@ class UserFeedbackUtility(private val prefs: SharedPreferences) {
 }
 
 class SessionPreferences(private val prefs: SharedPreferences) {
-    fun setStartOnBootSession(sessionName : String) {
+    fun setStartOnBootSession(sessionName: String) {
         with(prefs.edit()) {
             putString("pref_session_startOnBoot", sessionName)
             apply()
