@@ -152,7 +152,8 @@ class Migration6To7 : Migration(6, 7) {
 
 class Migration7To8 : Migration(7, 8) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        // Add startOnBoot flag to session
-        database.execSQL("ALTER TABLE session ADD COLUMN startOnBoot INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE session ADD COLUMN startCommand TEXT NOT NULL DEFAULT ''")
+        database.execSQL("ALTER TABLE session ADD COLUMN startServer INTEGER NOT NULL DEFAULT 1")
+        database.execSQL("ALTER TABLE session ADD COLUMN startClient INTEGER NOT NULL DEFAULT 1")
     }
 }

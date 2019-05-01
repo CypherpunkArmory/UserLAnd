@@ -37,7 +37,8 @@
     <string name="hint_username">Username</string>
     <string name="hint_password">Password</string>
     <string name="hint_vnc_password">VNC Password</string>
-    
+    <string name="hint_autostart_command">Execute command on start</string>
+
     <!-- Errors -->
     <string name="error_session_name">You must provide a session name</string>
     <string name="error_filesystem_name">You must provide a filesystem name</string>
@@ -106,13 +107,19 @@
     <string name="prompt_select_backup">Select filesystem backup file</string>
     <string name="prompt_install_file_manager">Please install a File Manager</string>
     <string name="prompt_session_start_boot">Start on boot</string>
+    <string name="prompt_session_start_server">Start server</string>
+    <string name="prompt_session_start_client">Start client</string>
 
     <!-- Notification strings -->
     <string name="services_notification_channel_id">UserLAndServices</string>
     <string name="services_notification_channel_name">Services</string>
     <string name="services_notification_channel_description">Persistent services</string>
     <string name="service_notification_title">UserLAnd</string>
+    <string name="service_notification_title_wakelocked">UserLAnd (Wake Locked)</string>
     <string name="service_notification_description">UserLAnd is running a background service.</string>
+    <string name="service_notification_exit">Exit</string>
+    <string name="service_notification_wakelock">Acquire Wakelock</string>
+    <string name="service_notification_wakerelease">Release Wakelock</string>
 
     <!-- Progress bar messages -->
     <string name="progress_start_step">Getting things ready for you&#8230;</string>
@@ -176,6 +183,8 @@
     <string name="export_success">Successfully exported backup</string>
     <string name="export_failure">Unable to export backup</string>
     <string name="export_started">Export started, please wait</string>
+    <string name="start_on_boot_conflict_title">Start on boot already assigned!</string>
+    <string name="start_on_boot_conflict_message">UserLAnd only supports a single active session.\nSet this as the default session to start on boot?</string>
 
     <!-- Clear support files alert -->
     <string name="alert_clear_support_files_title">Clear all support files?</string>

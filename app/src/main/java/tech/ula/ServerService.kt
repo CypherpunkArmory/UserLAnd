@@ -24,14 +24,22 @@ class ServerService : Service() {
 
     companion object {
         const val SERVER_SERVICE_RESULT = "tech.ula.ServerService.RESULT"
+        const val WAKELOCK_TAG = "Ula:ServerService"
     }
 
     private val activeSessions: MutableMap<Long, Session> = mutableMapOf()
 
     private lateinit var broadcaster: LocalBroadcastManager
 
-    private var wakeLock: PowerManager.WakeLock? = null
-    private var wifiLock: WifiManager.WifiLock? = null
+    private val wakeLock: PowerManager.WakeLock by lazy {
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG)
+    }
+
+    private val wifiLock: WifiManager.WifiLock by lazy {
+        val wifiManager = getSystemService(Context.WIFI_SERVICE) as WifiManager
+        wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, WAKELOCK_TAG)
+    }
 
     private val notificationManager: NotificationUtility by lazy {
         NotificationUtility(this)
@@ -85,65 +93,44 @@ class ServerService : Service() {
             }
         }
 
-        val action = intent?.action
-        when (action) {
-            "autostart" -> {
-                autoStartSessions()
-            }
-            "exit" -> {
-                stopServiceAndSessions()
-            }
-            "wakelock" -> {
-                acquireWakeLocks()
-            }
-            "wakerelease" -> {
-                releaseWakeLocks()
-            }
+        when (intent?.action) {
+            "autostart" -> autoStartSession()
+            "exit" -> stopServiceAndSessions()
+            "wakelock" -> acquireWakeLocks()
+            "wakerelease" -> releaseWakeLocks()
         }
-        return START_STICKY
+        return Service.START_STICKY
     }
 
     /**
-     * Fetch all sessions marked to start on boot and start them if they are not already active.
+     * Get the startOnBoot session and start it
      */
-    private fun autoStartSessions() {
+    private fun autoStartSession() {
         CoroutineScope(Dispatchers.Default).launch {
-            val sessions = UlaDatabase.getInstance(this@ServerService).sessionDao().getSessionsAutoStart()
-            var startedAnySession = false
-            for (session in sessions)
-                if (!session.active) {
-                    startSession(session, false)
-                    startedAnySession = true
-                }
-            if (startedAnySession)
+            val sessionName = SessionPreferences(defaultSharedPreferences).getStartOnBootSession()
+            if (sessionName.isNotEmpty()) {
+                val session = UlaDatabase.getInstance(this@ServerService).sessionDao().getSessionByName(sessionName)
+                startSession(session)
                 acquireWakeLocks()
+            }
         }
     }
 
     fun acquireWakeLocks() {
-        // Keep the CPU awake.
-        val powerManager = applicationContext.getSystemService(Context.POWER_SERVICE) as PowerManager
-        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ula:Service")
-        wakeLock?.acquire()
-        // Keep the wifi awake.
-        val wm = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        wifiLock = wm.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "ula:Service")
-        wifiLock?.acquire()
-        notificationManager.updateNotification(true)
+        wakeLock.acquire()
+        wifiLock.acquire()
+        notificationManager.updateNotification(wakeLockHeld = wakeLock.isHeld)
     }
 
     fun releaseWakeLocks() {
-        try {
-            wakeLock?.release()
-            wifiLock?.release()
-        } catch (ignore: Exception) {
-        }
-        wakeLock = null
-        wifiLock = null
-        notificationManager.updateNotification(false)
+        if (wakeLock.isHeld)
+            wakeLock.release()
+        if (wifiLock.isHeld)
+            wifiLock.release()
+        notificationManager.updateNotification(wakeLockHeld = wakeLock.isHeld)
     }
 
-    fun stopServiceAndSessions() {
+    private fun stopServiceAndSessions() {
         releaseWakeLocks()
         for (session in activeSessions)
             killSession(session.value)
@@ -152,30 +139,14 @@ class ServerService : Service() {
     }
 
     /**
-     * Used in conjunction with manifest attribute `android:stopWithTask="true"`
+     * Used in conjunction with manifest attribute `android:stopWithTask="false"`
      * to clean up when app is swiped away.
-     *
-     * Warning : stopWithTask on the manifest is now false because if true, this method is not called
-     *
-     * Check official docs at
-     * https://developer.android.com/reference/android/app/Service.html#onTaskRemoved(android.content.Intent)
-     *
-     * If you have set ServiceInfo.FLAG_STOP_WITH_TASK then you will not receive this callback;
-     * instead, the service will simply be stopped.
-     *
-     * When the task is stopped, kill the server only if there are no startOnBoot sessions running.
+     * Terminate service if no wakelock is acquired
      */
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
-        var activeBootSessions = false
-        for (session in activeSessions)
-            if (session.value.startOnBoot) {
-                activeBootSessions = true
-                break
-            }
-        if (!activeBootSessions) {
-            stopForeground(true)
-            stopSelf()
+        if (!wakeLock.isHeld) {
+            stopServiceAndSessions()
         }
     }
 
@@ -192,30 +163,34 @@ class ServerService : Service() {
     }
 
     private fun killSession(session: Session) {
-        serverUtility.stopService(session)
+        if (session.pid > 0)
+            serverUtility.stopService(session)
         removeSession(session)
         session.active = false
         updateSession(session)
     }
 
-    private suspend fun startSession(session: Session, autoStartClient: Boolean = true) {
-        startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification(wakeLock != null))
-        session.pid = serverUtility.startServer(session)
+    private suspend fun startSession(session: Session) {
+        startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification(wakeLockHeld = wakeLock.isHeld))
 
-        // Only wait for the server if we are interested in launching the client
-        if (autoStartClient) {
+        if (session.startServer) {
+            session.pid = serverUtility.startServer(session)
             while (!serverUtility.isServerRunning(session)) {
                 delay(500)
             }
-        }
+        } else
+            session.pid = 0
+
+        serverUtility.executeStartCommand(session)
 
         session.active = true
         updateSession(session)
 
-        if (autoStartClient)
+        if (session.startClient)
             startClient(session)
 
         activeSessions[session.pid] = session
+        sendSessionActivatedBroadcast()
     }
 
     private fun stopApp(app: App) {
@@ -234,7 +209,6 @@ class ServerService : Service() {
             "xsdl" -> startXsdlClient("x.org.server")
             else -> sendDialogBroadcast("unhandledSessionServiceType")
         }
-        sendSessionActivatedBroadcast()
     }
 
     private fun startSshClient(session: Session, packageName: String) {

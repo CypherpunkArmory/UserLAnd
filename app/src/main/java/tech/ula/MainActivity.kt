@@ -26,8 +26,7 @@ import android.support.v7.app.AppCompatActivity
 import android.util.DisplayMetrics
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View.GONE
-import android.view.View.VISIBLE
+import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.animation.AlphaAnimation
@@ -45,25 +44,24 @@ import kotlinx.android.synthetic.main.activity_main.* // ktlint-disable no-wildc
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.acra.ACRA
-import org.acra.config.CoreConfigurationBuilder
-import org.acra.config.HttpSenderConfigurationBuilder
-import org.acra.data.StringFormat
-import org.acra.sender.HttpSender
 import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.find
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
-import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.model.state.AppsStartupFsm
-import tech.ula.model.state.SessionStartupFsm
+import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.ui.AppListFragment
-import tech.ula.ui.FilesystemListFragment
 import tech.ula.ui.SessionListFragment
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
+import org.acra.ACRA
+import org.acra.config.CoreConfigurationBuilder
+import org.acra.config.HttpSenderConfigurationBuilder
+import org.acra.data.StringFormat
+import org.acra.sender.HttpSender
+import tech.ula.ui.FilesystemListFragment
+import tech.ula.model.repositories.DownloadMetadata
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection, FilesystemListFragment.ExportFilesystem {
 
@@ -151,13 +149,14 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         navController.addOnDestinationChangedListener { _, destination, _ ->
             currentFragmentDisplaysProgressDialog =
                     destination.label == getString(R.string.sessions) ||
-                            destination.label == getString(R.string.apps) ||
-                            destination.label == getString(R.string.filesystems)
+                    destination.label == getString(R.string.apps) ||
+                    destination.label == getString(R.string.filesystems)
             if (!currentFragmentDisplaysProgressDialog) killProgressBar()
             else if (progressBarIsVisible) displayProgressBar()
         }
 
         setupWithNavController(bottom_nav_view, navController)
+
         userFeedbackUtility.incrementNumberOfTimesOpened()
         if (userFeedbackUtility.askingForFeedbackIsAppropriate())
             setupReviewRequestUI()
@@ -276,8 +275,10 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     override fun onStop() {
         super.onStop()
+
         acraWrapper.putCustomString("Last call to onStop", "${System.currentTimeMillis()}")
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(serverServiceBroadcastReceiver)
+        LocalBroadcastManager.getInstance(this)
+                .unregisterReceiver(serverServiceBroadcastReceiver)
         unregisterReceiver(downloadBroadcastReceiver)
     }
 
@@ -302,24 +303,12 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private fun handleStateUpdate(newState: State) {
         acraWrapper.putCustomString("Last observed state from viewmodel", "$newState")
         return when (newState) {
-            is CanOnlyStartSingleSession -> {
-                showToast(R.string.single_session_supported)
-            }
-            is SessionCanBeStarted -> {
-                prepareSessionForStart(newState.session)
-            }
-            is SessionCanBeRestarted -> {
-                restartRunningSession(newState.session)
-            }
-            is IllegalState -> {
-                handleIllegalState(newState)
-            }
-            is UserInputRequiredState -> {
-                handleUserInputState(newState)
-            }
-            is ProgressBarUpdateState -> {
-                handleProgressBarUpdateState(newState)
-            }
+            is CanOnlyStartSingleSession -> { showToast(R.string.single_session_supported) }
+            is SessionCanBeStarted -> { prepareSessionForStart(newState.session) }
+            is SessionCanBeRestarted -> { restartRunningSession(newState.session) }
+            is IllegalState -> { handleIllegalState(newState) }
+            is UserInputRequiredState -> { handleUserInputState(newState) }
+            is ProgressBarUpdateState -> { handleProgressBarUpdateState(newState) }
         }
     }
 
@@ -441,7 +430,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         AlertDialog.Builder(this)
                 .setMessage(displayMessage)
                 .setTitle(R.string.illegal_state_title)
-                .setPositiveButton(R.string.button_ok) { dialog, _ ->
+                .setPositiveButton(R.string.button_ok) {
+                    dialog, _ ->
                     dialog.dismiss()
                 }
                 .create().show()
@@ -456,7 +446,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             }
             "playStoreMissingForClient" ->
                 displayGenericErrorDialog(this, R.string.alert_need_client_app_title,
-                        R.string.alert_need_client_app_message)
+                    R.string.alert_need_client_app_message)
         }
     }
 
@@ -487,13 +477,15 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val builder = AlertDialog.Builder(this)
         builder.setMessage(R.string.alert_permissions_necessary_message)
                 .setTitle(R.string.alert_permissions_necessary_title)
-                .setPositiveButton(R.string.button_ok) { dialog, _ ->
+                .setPositiveButton(R.string.button_ok) {
+                    dialog, _ ->
                     requestPermissions(arrayOf(
                             Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),
                             permissionRequestCode)
                     dialog.dismiss()
                 }
-                .setNegativeButton(R.string.alert_permissions_necessary_cancel_button) { dialog, _ ->
+                .setNegativeButton(R.string.alert_permissions_necessary_cancel_button) {
+                    dialog, _ ->
                     dialog.dismiss()
                 }
         builder.create().show()
@@ -581,7 +573,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             inAnimation.duration = 200
             layout_progress.animation = inAnimation
 
-            layout_progress.visibility = VISIBLE
+            layout_progress.visibility = View.VISIBLE
             layout_progress.isFocusable = true
             layout_progress.isClickable = true
             progressBarIsVisible = true
@@ -599,7 +591,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val outAnimation = AlphaAnimation(1f, 0f)
         outAnimation.duration = 200
         layout_progress.animation = outAnimation
-        layout_progress.visibility = GONE
+        layout_progress.visibility = View.GONE
         layout_progress.isFocusable = false
         layout_progress.isClickable = false
         progressBarIsVisible = false
@@ -618,17 +610,20 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val builder = AlertDialog.Builder(this)
         builder.setMessage(R.string.alert_wifi_disabled_message)
                 .setTitle(R.string.alert_wifi_disabled_title)
-                .setPositiveButton(R.string.alert_wifi_disabled_continue_button) { dialog, _ ->
+                .setPositiveButton(R.string.alert_wifi_disabled_continue_button) {
+                    dialog, _ ->
                     dialog.dismiss()
                     viewModel.startAssetDownloads(downloadsToContinue)
                 }
-                .setNegativeButton(R.string.alert_wifi_disabled_turn_on_wifi_button) { dialog, _ ->
+                .setNegativeButton(R.string.alert_wifi_disabled_turn_on_wifi_button) {
+                    dialog, _ ->
                     dialog.dismiss()
                     startActivity(Intent(WifiManager.ACTION_PICK_WIFI_NETWORK))
                     viewModel.handleUserInputCancelled()
                     killProgressBar()
                 }
-                .setNeutralButton(R.string.alert_wifi_disabled_cancel_button) { dialog, _ ->
+                .setNeutralButton(R.string.alert_wifi_disabled_cancel_button) {
+                    dialog, _ ->
                     dialog.dismiss()
                     viewModel.handleUserInputCancelled()
                     killProgressBar()
@@ -691,7 +686,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 xsdlTypePreference.alpha = 0.5f
 
                 val xsdlSupportedText = customDialog.findViewById<TextView>(R.id.text_xsdl_version_supported_description)
-                xsdlSupportedText.visibility = VISIBLE
+                xsdlSupportedText.visibility = View.VISIBLE
             }
 
             if (!viewModel.lastSelectedApp.supportsCli) {

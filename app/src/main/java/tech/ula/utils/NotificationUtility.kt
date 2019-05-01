@@ -21,7 +21,11 @@ class NotificationUtility(val context: Context) {
     private val serviceNotificationChannelId = context.getString(R.string.services_notification_channel_id)
 
     private val serviceNotificationTitle = context.getString(R.string.service_notification_title)
+    private val serviceNotificationTitleWakeLocked = context.getString(R.string.service_notification_title_wakelocked)
     private val serviceNotificationDescription = context.getString(R.string.service_notification_description)
+    private val serviceNotificationExit = context.getString(R.string.service_notification_exit)
+    private val serviceNotificationAcquireLock = context.getString(R.string.service_notification_wakelock)
+    private val serviceNotificationReleaseLock = context.getString(R.string.service_notification_wakerelease)
 
     private val notificationManager: NotificationManager by lazy {
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -44,23 +48,20 @@ class NotificationUtility(val context: Context) {
         val pendingSessionListIntent = PendingIntent
                 .getActivity(context, 0, sessionListIntent, 0)
 
-        var title = serviceNotificationTitle
-        if (wakeLockHeld) title += " (Wake Locked)"
-
         val builder = NotificationCompat.Builder(context, serviceNotificationChannelId)
                 .setSmallIcon(R.drawable.ic_stat_icon)
-                .setContentTitle(title)
+                .setContentTitle(if (wakeLockHeld) serviceNotificationTitleWakeLocked else serviceNotificationTitle)
                 .setContentText(serviceNotificationDescription)
-                .setPriority(if (wakeLockHeld) NotificationCompat.PRIORITY_MAX else NotificationCompat.PRIORITY_LOW)
+                .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setAutoCancel(false)
                 .setContentIntent(pendingSessionListIntent)
 
         val exitIntent = Intent(context, ServerService::class.java).setAction("exit")
-        builder.addAction(android.R.drawable.ic_delete, "Exit", PendingIntent.getService(context, 0, exitIntent, 0))
+        builder.addAction(android.R.drawable.ic_delete, serviceNotificationExit, PendingIntent.getService(context, 0, exitIntent, 0))
 
         val newWakeAction = if (wakeLockHeld) "wakerelease" else "wakelock"
         val toggleWakeLockIntent = Intent(context, ServerService::class.java).setAction(newWakeAction)
-        val actionTitle = if (wakeLockHeld) "Release Wakelock" else "Acquire Wakelock"
+        val actionTitle = if (wakeLockHeld) serviceNotificationReleaseLock else serviceNotificationAcquireLock
         val actionIcon = if (wakeLockHeld) android.R.drawable.ic_lock_idle_lock else android.R.drawable.ic_lock_lock
         builder.addAction(actionIcon, actionTitle, PendingIntent.getService(context, 0, toggleWakeLockIntent, 0))
 
@@ -68,6 +69,6 @@ class NotificationUtility(val context: Context) {
     }
 
     fun updateNotification(wakeLockHeld: Boolean = false) {
-        notificationManager.notify(serviceNotificationId, buildPersistentServiceNotification(wakeLockHeld))
+        notificationManager.notify(serviceNotificationId, buildPersistentServiceNotification(wakeLockHeld = wakeLockHeld))
     }
 }

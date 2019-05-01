@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 8,
-    "identityHash": "86624d9ed32abcaae7afbbf1b9c42758",
+    "identityHash": "a918425ec7a67052538025420cdbee41",
     "entities": [
       {
         "tableName": "session",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `filesystemId` INTEGER NOT NULL, `filesystemName` TEXT NOT NULL, `active` INTEGER NOT NULL, `username` TEXT NOT NULL, `password` TEXT NOT NULL, `vncPassword` TEXT NOT NULL, `serviceType` TEXT NOT NULL, `port` INTEGER NOT NULL, `pid` INTEGER NOT NULL, `geometry` TEXT NOT NULL, `isAppsSession` INTEGER NOT NULL, `startOnBoot` INTEGER NOT NULL, FOREIGN KEY(`filesystemId`) REFERENCES `filesystem`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `filesystemId` INTEGER NOT NULL, `filesystemName` TEXT NOT NULL, `active` INTEGER NOT NULL, `username` TEXT NOT NULL, `password` TEXT NOT NULL, `vncPassword` TEXT NOT NULL, `serviceType` TEXT NOT NULL, `port` INTEGER NOT NULL, `pid` INTEGER NOT NULL, `geometry` TEXT NOT NULL, `isAppsSession` INTEGER NOT NULL, `startCommand` TEXT NOT NULL, `startServer` INTEGER NOT NULL, `startClient` INTEGER NOT NULL, FOREIGN KEY(`filesystemId`) REFERENCES `filesystem`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -87,8 +87,20 @@
             "notNull": true
           },
           {
-            "fieldPath": "startOnBoot",
-            "columnName": "startOnBoot",
+            "fieldPath": "startCommand",
+            "columnName": "startCommand",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startServer",
+            "columnName": "startServer",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startClient",
+            "columnName": "startClient",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -265,7 +277,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"86624d9ed32abcaae7afbbf1b9c42758\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"a918425ec7a67052538025420cdbee41\")"
     ]
   }
 }

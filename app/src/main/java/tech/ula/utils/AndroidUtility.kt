@@ -59,6 +59,21 @@ fun displayGenericErrorDialog(activity: Activity, titleId: Int, messageId: Int, 
             .create().show()
 }
 
+fun displayConfirmationDialog(activity: Activity, titleId: Int, messageId: Int, callback: (() -> Unit) = {}) {
+    AlertDialog.Builder(activity)
+            .setMessage(messageId)
+            .setTitle(titleId)
+            .setPositiveButton(R.string.button_positive) {
+                dialog, _ ->
+                callback()
+                dialog.dismiss()
+            }
+            .setNegativeButton(R.string.button_cancel) { dialog, _ ->
+                dialog.dismiss()
+            }
+            .create().show()
+}
+
 // Add or change asset types as needed for testing and staggered releases.
 fun getBranchToDownloadAssetsFrom(assetType: String): String {
     return when (assetType) {
@@ -455,5 +470,18 @@ class UserFeedbackUtility(private val prefs: SharedPreferences) {
     private fun numberOfTimesOpenedIsGreaterThanThreshold(): Boolean {
         val numberTimesOpened = prefs.getInt(numberOfTimesOpenedKey, 1)
         return numberTimesOpened > minimumNumberOfOpensBeforeReviewRequest
+    }
+}
+
+class SessionPreferences(private val prefs: SharedPreferences) {
+    fun setStartOnBootSession(sessionName : String) {
+        with(prefs.edit()) {
+            putString("pref_session_startOnBoot", sessionName)
+            apply()
+        }
+    }
+
+    fun getStartOnBootSession(): String {
+        return prefs.getString("pref_session_startOnBoot", "") ?: ""
     }
 }

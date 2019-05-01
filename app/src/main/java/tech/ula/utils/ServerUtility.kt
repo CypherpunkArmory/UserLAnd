@@ -41,8 +41,6 @@ class ServerUtility(
     }
 
     fun startServer(session: Session): Long {
-        if (session.startOnBoot)
-            runBootScript(session)
         return when (session.serviceType) {
             "ssh" -> startSSHServer(session)
             "vnc" -> startVNCServer(session)
@@ -57,13 +55,19 @@ class ServerUtility(
     }
 
     /**
-     * Execute the boot script, should be called only when the session has the startOnBoot flag
-     * Users can use this to add their own custom commands to this script.
+     * Execute the user-defined startCommand
+     * Creates a new script based on userland_profile.sh and adds the user-defined command to the script
      */
-    private fun runBootScript(session: Session) {
+    fun executeStartCommand(session: Session) {
+        if (session.startCommand.isEmpty())
+            return
         val filesystemDirName = session.filesystemId.toString()
-        // TODO create new session parameter and turn this into a user-defined command
         val command = "/support/autostart.sh"
+        val startScript = File(applicationFilesDirPath, "$filesystemDirName$command")
+        val profileScript = File(applicationFilesDirPath, "$filesystemDirName/support/userland_profile.sh")
+        profileScript.copyTo(startScript, overwrite = true)
+        startScript.appendText("\n${session.startCommand}")
+        startScript.setExecutable(true, false)
         busyboxExecutor.executeProotCommand(command, filesystemDirName, false)
     }
 

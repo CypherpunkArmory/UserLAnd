@@ -3,6 +3,7 @@ package tech.ula.ui
 import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -11,18 +12,29 @@ import android.text.TextWatcher
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.* // ktlint-disable no-wildcard-imports
 import androidx.navigation.fragment.NavHostFragment
+import kotlinx.android.synthetic.main.frag_filesystem_edit.*
 import kotlinx.android.synthetic.main.frag_session_edit.* // ktlint-disable no-wildcard-imports
+import kotlinx.android.synthetic.main.frag_session_edit.advanced_options
+import kotlinx.android.synthetic.main.frag_session_edit.btn_show_advanced_options
 import org.jetbrains.anko.bundleOf
+import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.UlaDatabase
+import tech.ula.utils.AppsPreferences
+import tech.ula.utils.SessionPreferences
+import tech.ula.utils.displayConfirmationDialog
 import tech.ula.viewmodel.SessionEditViewModel
 import tech.ula.viewmodel.SessionEditViewmodelFactory
 
 class SessionEditFragment : Fragment() {
 
     private lateinit var activityContext: Activity
+
+    private val sessionPreferences by lazy {
+        SessionPreferences(activityContext.defaultSharedPreferences)
+    }
 
     private val session: Session by lazy {
         arguments?.getParcelable("session") as Session
@@ -46,8 +58,8 @@ class SessionEditFragment : Fragment() {
             getListDifferenceAndSetNewFilesystem(filesystemList, it)
 
             val filesystemAdapter = ArrayAdapter(activityContext, android.R.layout.simple_spinner_dropdown_item, spinnerList)
-            val filesystemNamePosition = it.indexOfFirst {
-                filesystem -> filesystem.id == session.filesystemId
+            val filesystemNamePosition = it.indexOfFirst { filesystem ->
+                filesystem.id == session.filesystemId
             }
 
             val usedPosition = if (filesystemNamePosition < 0) 0 else filesystemNamePosition
@@ -65,6 +77,7 @@ class SessionEditFragment : Fragment() {
                 return text
             }
         }
+
         data class FilesystemItem(val filesystem: Filesystem) : FilesystemDropdownItem() {
             override fun toString(): String {
                 return "${filesystem.name}: ${filesystem.distributionType.capitalize()}"
@@ -101,6 +114,23 @@ class SessionEditFragment : Fragment() {
         } else super.onOptionsItemSelected(item)
     }
 
+    private fun setupAdvancedOptionButton() {
+        val btn = btn_show_advanced_options
+
+        btn.setOnClickListener {
+            when (btn.isChecked) {
+                true -> {
+                    btn.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_keyboard_arrow_down_white_24dp, 0)
+                    advanced_options.visibility = View.VISIBLE
+                }
+                false -> {
+                    btn.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_keyboard_arrow_right_white_24dp, 0)
+                    advanced_options.visibility = View.INVISIBLE
+                }
+            }
+        }
+    }
+
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         activityContext = activity!!
@@ -110,8 +140,25 @@ class SessionEditFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        checkbox_start_boot.isChecked = session.startOnBoot
-        checkbox_start_boot.setOnCheckedChangeListener { buttonView, isChecked -> session.startOnBoot = isChecked }
+        activityContext = activity!!
+        setupAdvancedOptionButton()
+        checkbox_start_boot.isChecked = sessionPreferences.getStartOnBootSession().isNotEmpty() && sessionPreferences.getStartOnBootSession() == session.name
+
+        checkbox_start_client.isChecked = session.startClient
+        checkbox_start_client.setOnCheckedChangeListener { _, isChecked -> session.startClient = isChecked }
+
+        checkbox_start_server.isChecked = session.startServer
+        checkbox_start_server.setOnCheckedChangeListener { _, isChecked -> session.startServer = isChecked }
+
+        text_input_start_command.setText(session.startCommand)
+        text_input_start_command.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(p0: Editable?) {
+                session.startCommand = p0.toString()
+            }
+
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+        })
 
         text_input_session_name.setText(session.name)
         if (session.isAppsSession) {
@@ -137,7 +184,8 @@ class SessionEditFragment : Fragment() {
                             if (item.text == "Create new") {
                                 val bundle = bundleOf("filesystem" to Filesystem(0), "editExisting" to false)
                                 NavHostFragment.findNavController(this@SessionEditFragment).navigate(R.id.filesystem_edit_fragment, bundle)
-                            } else { }
+                            } else {
+                            }
                         }
                         is FilesystemDropdownItem.FilesystemItem -> {
                             val filesystem = item.filesystem
@@ -188,6 +236,22 @@ class SessionEditFragment : Fragment() {
             Toast.makeText(activityContext, R.string.error_empty_field, Toast.LENGTH_LONG).show()
             return
         }
+
+        // If another session has the startOnBoot property, warn the user
+        if (checkbox_start_boot.isChecked) {
+            if (sessionPreferences.getStartOnBootSession() != session.name && sessionPreferences.getStartOnBootSession().isNotEmpty()) {
+                displayConfirmationDialog(activityContext, R.string.start_on_boot_conflict_title, R.string.start_on_boot_conflict_message) {
+                    sessionPreferences.setStartOnBootSession(session.name)
+                    insertSession()
+                }
+                return
+            }else
+                sessionPreferences.setStartOnBootSession(session.name)
+        }
+
+        // If this was the startOnBoot session and the user unchecked the property, clear the flag
+        if (!checkbox_start_boot.isChecked && sessionPreferences.getStartOnBootSession() == session.name)
+            sessionPreferences.setStartOnBootSession("")
 
         if (editExisting) sessionEditViewModel.updateSession(session)
         else sessionEditViewModel.insertSession(session)

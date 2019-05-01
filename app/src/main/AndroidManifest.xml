@@ -42,7 +42,6 @@
         <receiver android:name=".BootReceiver">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
-                <action android:name="tech.ula.intent.action.TEST_BOOT_COMPLETED"/>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
                 <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
                 <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
