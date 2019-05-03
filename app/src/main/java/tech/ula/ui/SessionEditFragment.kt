@@ -3,6 +3,7 @@ package tech.ula.ui
 import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -15,12 +16,11 @@ import kotlinx.android.synthetic.main.frag_session_edit.* // ktlint-disable no-w
 import kotlinx.android.synthetic.main.frag_session_edit.advanced_options
 import kotlinx.android.synthetic.main.frag_session_edit.btn_show_advanced_options
 import org.jetbrains.anko.bundleOf
-import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.utils.SessionPreferences
+import tech.ula.utils.BootPreferences
 import tech.ula.utils.displayConfirmationDialog
 import tech.ula.viewmodel.SessionEditViewModel
 import tech.ula.viewmodel.SessionEditViewmodelFactory
@@ -29,8 +29,8 @@ class SessionEditFragment : Fragment() {
 
     private lateinit var activityContext: Activity
 
-    private val sessionPreferences by lazy {
-        SessionPreferences(activityContext.defaultSharedPreferences)
+    private val bootPreferences by lazy {
+        BootPreferences(activityContext.getSharedPreferences("boot", Context.MODE_PRIVATE))
     }
 
     private val session: Session by lazy {
@@ -139,13 +139,18 @@ class SessionEditFragment : Fragment() {
 
         activityContext = activity!!
         setupAdvancedOptionButton()
-        checkbox_start_boot.isChecked = sessionPreferences.getStartOnBootSession().isNotEmpty() && sessionPreferences.getStartOnBootSession() == session.name
+        checkbox_start_boot.isChecked = bootPreferences.getStartOnBootSession() > -1 && bootPreferences.getStartOnBootSession() == session.id
 
-        checkbox_start_client.isChecked = session.startClient
+        checkbox_start_client.isChecked = session.startClient && session.startServer
+        checkbox_start_client.isEnabled = session.startServer
         checkbox_start_client.setOnCheckedChangeListener { _, isChecked -> session.startClient = isChecked }
 
         checkbox_start_server.isChecked = session.startServer
-        checkbox_start_server.setOnCheckedChangeListener { _, isChecked -> session.startServer = isChecked }
+        checkbox_start_server.setOnCheckedChangeListener { _, isChecked ->
+            session.startServer = isChecked
+            checkbox_start_client.isChecked = session.startClient && session.startServer
+            checkbox_start_client.isEnabled = session.startServer
+        }
 
         text_input_start_command.setText(session.startCommand)
         text_input_start_command.addTextChangedListener(object : TextWatcher {
@@ -236,19 +241,18 @@ class SessionEditFragment : Fragment() {
 
         // If another session has the startOnBoot property, warn the user
         if (checkbox_start_boot.isChecked) {
-            if (sessionPreferences.getStartOnBootSession() != session.name && sessionPreferences.getStartOnBootSession().isNotEmpty()) {
+            if (bootPreferences.getStartOnBootSession() != session.id && bootPreferences.getStartOnBootSession() > -1) {
                 displayConfirmationDialog(activityContext, R.string.start_on_boot_conflict_title, R.string.start_on_boot_conflict_message) {
-                    sessionPreferences.setStartOnBootSession(session.name)
+                    bootPreferences.setStartOnBootSession(session.id)
                     insertSession()
                 }
                 return
-            } else
-                sessionPreferences.setStartOnBootSession(session.name)
+            } else bootPreferences.setStartOnBootSession(session.id)
         }
 
         // If this was the startOnBoot session and the user unchecked the property, clear the flag
-        if (!checkbox_start_boot.isChecked && sessionPreferences.getStartOnBootSession() == session.name)
-            sessionPreferences.setStartOnBootSession("")
+        if (!checkbox_start_boot.isChecked && bootPreferences.getStartOnBootSession() == session.id)
+            bootPreferences.setStartOnBootSession(-1)
 
         if (editExisting) sessionEditViewModel.updateSession(session)
         else sessionEditViewModel.insertSession(session)

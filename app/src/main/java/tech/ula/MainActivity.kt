@@ -430,8 +430,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         AlertDialog.Builder(this)
                 .setMessage(displayMessage)
                 .setTitle(R.string.illegal_state_title)
-                .setPositiveButton(R.string.button_ok) {
-                    dialog, _ ->
+                .setPositiveButton(R.string.button_ok) { dialog, _ ->
                     dialog.dismiss()
                 }
                 .create().show()

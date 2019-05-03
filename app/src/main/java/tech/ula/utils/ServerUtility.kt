@@ -62,13 +62,12 @@ class ServerUtility(
         if (session.startCommand.isEmpty())
             return
         val filesystemDirName = session.filesystemId.toString()
-        val command = "/support/autostart.sh"
-        val startScript = File(applicationFilesDirPath, "$filesystemDirName$command")
+        val startScript = File(applicationFilesDirPath, "$filesystemDirName/support/autostart.sh")
         val profileScript = File(applicationFilesDirPath, "$filesystemDirName/support/userland_profile.sh")
         profileScript.copyTo(startScript, overwrite = true)
         startScript.appendText("\n${session.startCommand}")
         startScript.setExecutable(true, false)
-        busyboxExecutor.executeProotCommand(command, filesystemDirName, false)
+        busyboxExecutor.executeProotCommand("/support/autostart.sh", filesystemDirName, false)
     }
 
     private fun startSSHServer(session: Session): Long {

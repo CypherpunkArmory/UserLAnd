@@ -107,9 +107,9 @@ class ServerService : Service() {
      */
     private fun autoStartSession() {
         CoroutineScope(Dispatchers.Default).launch {
-            val sessionName = SessionPreferences(defaultSharedPreferences).getStartOnBootSession()
-            if (sessionName.isNotEmpty()) {
-                val session = UlaDatabase.getInstance(this@ServerService).sessionDao().getSessionByName(sessionName)
+            val sessionId = BootPreferences(getSharedPreferences("boot", Context.MODE_PRIVATE)).getStartOnBootSession()
+            if (sessionId > -1) {
+                val session = UlaDatabase.getInstance(this@ServerService).sessionDao().getSessionById(sessionId)
                 startSession(session)
                 acquireWakeLocks()
             }
@@ -178,8 +178,7 @@ class ServerService : Service() {
             while (!serverUtility.isServerRunning(session)) {
                 delay(500)
             }
-        } else
-            session.pid = 0
+        } else session.pid = 0
 
         serverUtility.executeStartCommand(session)
 

@@ -39,7 +39,7 @@ data class Session(
     override fun toString(): String {
         return "Session(id=$id, name=$name, filesystemId=$filesystemId, filesystemName=" +
                 "$filesystemName, active=$active, serviceType=$serviceType, port=$port, pid=" +
-                "$pid, isAppsSession=$isAppsSession), startCommand=$startCommand, " +
-                "startServer=$startServer, startClient=$startClient"
+                "$pid, isAppsSession=$isAppsSession), startServer=$startServer, startClient=$startClient, " +
+                "startCommand=$startCommand)"
     }
 }

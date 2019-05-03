@@ -51,8 +51,7 @@ fun displayGenericErrorDialog(activity: Activity, titleId: Int, messageId: Int, 
     AlertDialog.Builder(activity)
             .setTitle(titleId)
             .setMessage(messageId)
-            .setPositiveButton(R.string.button_ok) {
-                dialog, _ ->
+            .setPositiveButton(R.string.button_ok) { dialog, _ ->
                 callback()
                 dialog.dismiss()
             }
@@ -63,8 +62,7 @@ fun displayConfirmationDialog(activity: Activity, titleId: Int, messageId: Int, 
     AlertDialog.Builder(activity)
             .setMessage(messageId)
             .setTitle(titleId)
-            .setPositiveButton(R.string.button_positive) {
-                dialog, _ ->
+            .setPositiveButton(R.string.button_positive) { dialog, _ ->
                 callback()
                 dialog.dismiss()
             }
@@ -473,15 +471,15 @@ class UserFeedbackUtility(private val prefs: SharedPreferences) {
     }
 }
 
-class SessionPreferences(private val prefs: SharedPreferences) {
-    fun setStartOnBootSession(sessionName: String) {
+class BootPreferences(private val prefs: SharedPreferences) {
+    fun setStartOnBootSession(sessionId: Long) {
         with(prefs.edit()) {
-            putString("pref_session_startOnBoot", sessionName)
+            putLong("boot_sessionId", sessionId)
             apply()
         }
     }
 
-    fun getStartOnBootSession(): String {
-        return prefs.getString("pref_session_startOnBoot", "") ?: ""
+    fun getStartOnBootSession(): Long {
+        return prefs.getLong("boot_sessionId", 0)
     }
 }
