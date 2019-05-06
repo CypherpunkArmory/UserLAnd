@@ -23,9 +23,7 @@ data class LocalizationData(val resId: Int, val formatStrings: Array<String> = a
 
 class IllegalStateHandler(private val acraWrapper: AcraWrapper = AcraWrapper()) {
 
-    fun logAndGetResourceId(state: IllegalState): LocalizationData {
-        acraWrapper.putCustomString("Last handled illegal state", "$state")
-        acraWrapper.silentlySendIllegalStateReport()
+    fun getResourceId(state: IllegalState): LocalizationData {
         return when (state) {
             is IllegalStateTransition -> {
                 LocalizationData(R.string.illegal_state_transition, arrayOf(state.transition))

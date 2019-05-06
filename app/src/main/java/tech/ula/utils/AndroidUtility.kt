@@ -21,6 +21,7 @@ import org.acra.ACRA
 import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
+import tech.ula.viewmodel.IllegalState
 import java.io.File
 import java.io.InputStream
 import java.net.HttpURLConnection
@@ -391,8 +392,9 @@ class AcraWrapper {
         return err
     }
 
-    fun silentlySendIllegalStateReport() {
-        ACRA.getErrorReporter().handleSilentException(IllegalStateException())
+    fun silentlySendIllegalStateReport(state: IllegalState) {
+        val type = state.javaClass.simpleName
+        ACRA.getErrorReporter().handleSilentException(IllegalStateException(type))
     }
 }
 
