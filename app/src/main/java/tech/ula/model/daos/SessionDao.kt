@@ -29,7 +29,7 @@ interface SessionDao {
     @Query("select * from session where active = 1 and isAppsSession = 1")
     fun findActiveAppsSessions(): LiveData<List<Session>>
 
-    @Insert(onConflict = OnConflictStrategy.FAIL)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     fun insertSession(session: Session)
 
     @Query("delete from session where id = :id")

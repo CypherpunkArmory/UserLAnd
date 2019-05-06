@@ -12,8 +12,9 @@ import android.widget.Toast
 import androidx.preference.Preference
 
 class SettingsFragment : PreferenceFragmentCompat() {
-    override fun onCreatePreferences(savedInstanceState: Bundle, rootKey: String) {
-        setPreferencesFromResource(R.xml.preferences, rootKey)
+
+    override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+        addPreferencesFromResource(R.xml.preferences)
 
         val deleteFilePreference: Preference = findPreference("pref_proot_delete_debug_file")!!
         deleteFilePreference.setOnPreferenceClickListener {

@@ -135,7 +135,7 @@ class ServerService : Service() {
 
     private fun startClient(session: Session) {
         when (session.serviceType) {
-            "ssh" -> startSshClient(session, "org.connectbot")
+            "ssh" -> startSshClient(session)
             "vnc" -> startVncClient(session, "com.iiordanov.freebVNC")
             "xsdl" -> startXsdlClient("x.org.server")
             else -> sendDialogBroadcast("unhandledSessionServiceType")
@@ -143,7 +143,7 @@ class ServerService : Service() {
         sendSessionActivatedBroadcast()
     }
 
-    private fun startSshClient(session: Session, packageName: String) {
+    private fun startSshClient(session: Session) {
         val connectBotIntent = Intent()
         connectBotIntent.action = "android.intent.action.VIEW"
         connectBotIntent.data = Uri.parse("ssh://${session.username}@localhost:${session.port}/#userland")

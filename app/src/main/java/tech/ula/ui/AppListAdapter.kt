@@ -118,7 +118,7 @@ class AppListAdapter(
     private fun handleBindViewHolder(viewHolder: ViewHolder, position: Int, changes: MutableList<Any>?) {
         val item = appsAndSeparators[position]
 
-        bindOnClick(viewHolder, item, onAppsItemClicked, position)
+        bindOnClick(viewHolder, item, onAppsItemClicked)
         bindOnCreateContextMenu(viewHolder, onAppsCreateContextMenu, item)
 
         when (item) {
@@ -166,7 +166,7 @@ class AppListAdapter(
         }
     }
 
-    private fun bindOnClick(viewHolder: ViewHolder, selectedListItem: AppsListItem, onAppsItemClicked: OnAppsItemClicked, position: Int) {
+    private fun bindOnClick(viewHolder: ViewHolder, selectedListItem: AppsListItem, onAppsItemClicked: OnAppsItemClicked) {
         viewHolder.itemView.setOnClickListener {
             onAppsItemClicked.onAppsItemClicked(selectedListItem)
         }

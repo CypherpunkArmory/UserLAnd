@@ -19,7 +19,7 @@ interface FilesystemDao {
     @Query("select * from filesystem where isAppsFilesystem = 1 and distributionType = :requiredFilesystemType")
     fun findAppsFilesystemByType(requiredFilesystemType: String): List<Filesystem>
 
-    @Insert(onConflict = OnConflictStrategy.FAIL)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     fun insertFilesystem(filesystem: Filesystem): Long
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
