@@ -396,7 +396,7 @@ class MainActivityViewModel(
 
     private fun doTransitionIfRequirementsAreSelected(transition: () -> Unit) {
         if (!sessionPreparationRequirementsHaveBeenSelected()) {
-            state.postValue(NoSessionSelectedWhenTransitionNecessary)
+            postIllegalStateWithLog(NoSessionSelectedWhenTransitionNecessary)
             return
         }
         transition()
