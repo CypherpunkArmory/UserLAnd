@@ -43,7 +43,8 @@ class MainActivityViewModel(
 
     private val state = MediatorLiveData<State>()
 
-    // Inlining this function allows generation of discrete logs for each error type.
+    // Inlining this function allows generation of discrete logs for each error type, as Tracepot
+    // seems to organize them by line number.
     @Suppress("NOTHING_TO_INLINE")
     private inline fun postIllegalStateWithLog(newState: IllegalState) {
         acraWrapper.silentlySendIllegalStateReport(newState)
