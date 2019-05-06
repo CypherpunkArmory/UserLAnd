@@ -1,12 +1,12 @@
 package tech.ula.model
 
-import android.arch.persistence.db.SupportSQLiteDatabase
-import android.arch.persistence.db.framework.FrameworkSQLiteOpenHelperFactory
-import android.arch.persistence.room.Room
-import android.arch.persistence.room.testing.MigrationTestHelper
+import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
+import androidx.room.Room
+import androidx.room.testing.MigrationTestHelper
 import android.database.sqlite.SQLiteDatabase
-import android.support.test.InstrumentationRegistry
-import android.support.test.runner.AndroidJUnit4
+import androidx.test.InstrumentationRegistry
+import androidx.test.runner.AndroidJUnit4
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Rule

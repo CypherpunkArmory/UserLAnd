@@ -6,7 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Environment
 import android.os.IBinder
-import android.support.v4.content.LocalBroadcastManager
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

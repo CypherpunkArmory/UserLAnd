@@ -1,7 +1,7 @@
 package tech.ula.viewmodel
 
-import android.arch.core.executor.testing.InstantTaskExecutorRule
-import android.arch.lifecycle.Observer
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.Observer
 import android.content.ContentResolver
 import android.net.Uri
 import com.nhaarman.mockitokotlin2.whenever

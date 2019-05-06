@@ -7,7 +7,7 @@ import android.os.Bundle
 import android.os.Environment
 import tech.ula.R
 import java.io.File
-import android.support.v7.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceFragmentCompat
 import android.widget.Toast
 
 class SettingsFragment : PreferenceFragmentCompat() {

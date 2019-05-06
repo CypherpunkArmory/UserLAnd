@@ -14,7 +14,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.os.StatFs
-import android.support.v4.content.ContextCompat
+import androidx.core.content.ContextCompat
 import android.util.DisplayMetrics
 import android.view.WindowManager
 import org.acra.ACRA
