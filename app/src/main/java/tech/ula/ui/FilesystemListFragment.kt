@@ -10,10 +10,9 @@ import androidx.fragment.app.Fragment
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
 import android.widget.Toast
+import androidx.core.os.bundleOf
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_list.* // ktlint-disable no-wildcard-imports
-import org.jetbrains.anko.bundleOf
-import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.MainActivity
 import tech.ula.R
 import tech.ula.ServerService
@@ -24,6 +23,7 @@ import tech.ula.utils.DefaultPreferences
 import tech.ula.utils.FilesystemUtility
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.entities.Session
+import tech.ula.utils.defaultSharedPreferences
 import tech.ula.viewmodel.FilesystemListViewModel
 
 class FilesystemListFragment : Fragment() {
@@ -117,7 +117,7 @@ class FilesystemListFragment : Fragment() {
         registerForContextMenu(list_filesystems)
     }
 
-    override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
+    override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo?) {
         super.onCreateContextMenu(menu, v, menuInfo)
         activityContext.menuInflater.inflate(R.menu.context_menu_filesystems, menu)
     }

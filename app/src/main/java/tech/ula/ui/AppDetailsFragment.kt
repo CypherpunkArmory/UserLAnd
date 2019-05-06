@@ -11,14 +11,9 @@ import android.view.ViewGroup
 import android.widget.RadioButton
 import android.widget.TextView
 import kotlinx.android.synthetic.main.frag_app_details.*
-import org.jetbrains.anko.find
 import tech.ula.R
 import tech.ula.model.entities.App
-import tech.ula.utils.AppsPreferences
-import tech.ula.utils.LocalFileLocator
-import tech.ula.utils.SshTypePreference
-import tech.ula.utils.VncTypePreference
-import tech.ula.utils.XsdlTypePreference
+import tech.ula.utils.*
 
 class AppDetailsFragment : Fragment() {
 

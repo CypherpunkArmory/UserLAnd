@@ -44,8 +44,6 @@ import kotlinx.android.synthetic.main.activity_main.* // ktlint-disable no-wildc
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.jetbrains.anko.defaultSharedPreferences
-import org.jetbrains.anko.find
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository

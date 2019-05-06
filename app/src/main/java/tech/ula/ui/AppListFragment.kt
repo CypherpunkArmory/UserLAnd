@@ -15,10 +15,9 @@ import android.view.View
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MenuInflater
+import androidx.core.os.bundleOf
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_app_list.* // ktlint-disable no-wildcard-imports
-import org.jetbrains.anko.bundleOf
-import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.MainActivity
 import tech.ula.R
 import tech.ula.ServerService
@@ -94,14 +93,14 @@ class AppListFragment : Fragment(),
         setHasOptionsMenu(true)
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-        inflater?.inflate(R.menu.menu_refresh, menu)
+        inflater.inflate(R.menu.menu_refresh, menu)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when {
-            item?.itemId == R.id.menu_item_refresh -> {
+            item.itemId == R.id.menu_item_refresh -> {
                 swipe_refresh.isRefreshing = true
                 doRefresh()
                 true
@@ -163,8 +162,7 @@ class AppListFragment : Fragment(),
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
-        val selectedItem = appAdapter.getLastSelectedContextItem()
-        return when (selectedItem) {
+        return when (val selectedItem = appAdapter.getLastSelectedContextItem()) {
             is AppSeparatorItem -> true
             is AppItem -> {
                 val app = selectedItem.app

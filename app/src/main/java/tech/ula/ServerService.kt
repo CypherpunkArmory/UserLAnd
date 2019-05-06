@@ -11,7 +11,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.model.entities.App
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Session

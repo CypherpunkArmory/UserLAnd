@@ -10,9 +10,9 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.* // ktlint-disable no-wildcard-imports
+import androidx.core.os.bundleOf
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_session_edit.* // ktlint-disable no-wildcard-imports
-import org.jetbrains.anko.bundleOf
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session

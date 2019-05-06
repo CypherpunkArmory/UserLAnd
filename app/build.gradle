@@ -145,8 +145,9 @@ task jacocoCoverageReport(type: JacocoReport, dependsOn: ['testDebugUnitTest', '
     def fileFilter = [ '**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*' ]
     def javaClasses = fileTree(dir: "$project.buildDir/intermediates/classes/debug", excludes: fileFilter)
     def kotlinClasses = fileTree(dir: "$project.buildDir/tmp/kotlin-classes/debug", excludes: fileFilter)
+    def mainSrc = "$project.projectDir/src/main/java"
 
-    sourceDirectories.from = sourceSets.main.java.sourceDirectories
+    sourceDirectories.from = files(mainSrc)
     classDirectories.from = files([javaClasses, kotlinClasses])
     executionData.from = fileTree(dir: project.buildDir, includes: [
             'jacoco/testDebugUnitTest.exec', 'outputs/code-coverage/connected/*coverage.ec'
@@ -165,8 +166,9 @@ task jacocoCoverageReportForCi(type: JacocoReport, dependsOn: ['testDebugUnitTes
     def fileFilter = [ '**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*' ]
     def javaClasses = fileTree(dir: "$project.buildDir/intermediates/classes/debug", excludes: fileFilter)
     def kotlinClasses = fileTree(dir: "$project.buildDir/tmp/kotlin-classes/debug", excludes: fileFilter)
+    def mainSrc = "$project.projectDir/src/main/java"
 
-    sourceDirectories.from = sourceSets.main.java.sourceDirectories
+    sourceDirectories.from = files(mainSrc)
     classDirectories.from = files([javaClasses, kotlinClasses])
     executionData.from = fileTree(dir: project.buildDir, includes: [
             'jacoco/testDebugUnitTest.exec', 'outputs/code-coverage/connected/*coverage.ec'
@@ -184,13 +186,14 @@ dependencies {
     def lifecycle_version = '2.1.0-alpha04'
     def support_library_version = '1.1.0-alpha06'
     def preference_version = '1.1.0-alpha04'
+    def ktx_version = '1.0.1'
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':terminal-term')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    implementation "org.jetbrains.anko:anko-commons:$anko_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinx_coroutines_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinx_coroutines_version"
+    implementation "androidx.core:core-ktx:$ktx_version"
     implementation "androidx.room:room-runtime:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
