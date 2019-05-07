@@ -10,10 +10,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.RadioButton
 import android.widget.TextView
-import kotlinx.android.synthetic.main.frag_app_details.*
+import kotlinx.android.synthetic.main.frag_app_details.* // ktlint-disable no-wildcard-imports
 import tech.ula.R
 import tech.ula.model.entities.App
-import tech.ula.utils.*
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 
 class AppDetailsFragment : Fragment() {
 
