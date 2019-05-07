@@ -43,6 +43,14 @@ class MainActivityViewModel(
 
     private val state = MediatorLiveData<State>()
 
+    // Inlining this function allows generation of discrete logs for each error type, as Tracepot
+    // seems to organize them by line number.
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun postIllegalStateWithLog(newState: IllegalState) {
+        acraWrapper.silentlySendIllegalStateReport(newState)
+        state.postValue(newState)
+    }
+
     private val job = Job()
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
@@ -98,10 +106,10 @@ class MainActivityViewModel(
     fun permissionsHaveBeenGranted() {
         when {
             lastSelectedApp != unselectedApp && lastSelectedSession != unselectedSession -> {
-                state.postValue(TooManySelectionsMadeWhenPermissionsGranted)
+                postIllegalStateWithLog(TooManySelectionsMadeWhenPermissionsGranted)
             }
             lastSelectedApp == unselectedApp && lastSelectedSession == unselectedSession -> {
-                state.postValue(NoSelectionsMadeWhenPermissionsGranted)
+                postIllegalStateWithLog(NoSelectionsMadeWhenPermissionsGranted)
             }
             lastSelectedApp != unselectedApp -> {
                 submitAppsStartupEvent(AppSelected(lastSelectedApp))
@@ -130,7 +138,7 @@ class MainActivityViewModel(
 
     fun submitFilesystemCredentials(username: String, password: String, vncPassword: String) {
         if (lastSelectedFilesystem == unselectedFilesystem) {
-            state.postValue(NoFilesystemSelectedWhenCredentialsSubmitted)
+            postIllegalStateWithLog(NoFilesystemSelectedWhenCredentialsSubmitted)
             return
         }
         submitAppsStartupEvent(SubmitAppsFilesystemCredentials(lastSelectedFilesystem, username, password, vncPassword))
@@ -142,7 +150,7 @@ class MainActivityViewModel(
 
     fun submitAppServicePreference(preference: AppServiceTypePreference) {
         if (lastSelectedApp == unselectedApp) {
-            state.postValue(NoAppSelectedWhenPreferenceSubmitted)
+            postIllegalStateWithLog(NoAppSelectedWhenPreferenceSubmitted)
             return
         }
         submitAppsStartupEvent(SubmitAppServicePreference(lastSelectedApp, preference))
@@ -167,7 +175,7 @@ class MainActivityViewModel(
             assetFileClearer.clearAllSupportAssets()
             state.postValue(ProgressBarOperationComplete)
         } catch (err: Exception) {
-            state.postValue(FailedToClearSupportFiles)
+            postIllegalStateWithLog(FailedToClearSupportFiles)
         }
     }
 
@@ -177,13 +185,13 @@ class MainActivityViewModel(
             return
         }
         if (!appsPreparationRequirementsHaveBeenSelected()) {
-            state.postValue(NoAppSelectedWhenTransitionNecessary)
+            postIllegalStateWithLog(NoAppSelectedWhenTransitionNecessary)
             return
         }
         // Return when statement for compile-time exhaustiveness check
         return when (newState) {
             is IncorrectAppTransition -> {
-                state.postValue(IllegalStateTransition("$newState"))
+                postIllegalStateWithLog(IllegalStateTransition("$newState"))
             }
             is WaitingForAppSelection -> {}
             is FetchingDatabaseEntries -> {}
@@ -191,7 +199,7 @@ class MainActivityViewModel(
                 submitAppsStartupEvent(CheckAppsFilesystemCredentials(lastSelectedFilesystem))
             }
             is DatabaseEntriesFetchFailed -> {
-                state.postValue(ErrorFetchingAppDatabaseEntries)
+                postIllegalStateWithLog(ErrorFetchingAppDatabaseEntries)
             }
             is AppsFilesystemHasCredentials -> {
                 submitAppsStartupEvent(CheckAppServicePreference(lastSelectedApp))
@@ -210,7 +218,7 @@ class MainActivityViewModel(
                 submitAppsStartupEvent(SyncDatabaseEntries(lastSelectedApp, lastSelectedSession, lastSelectedFilesystem))
             }
             is AppScriptCopyFailed -> {
-                state.postValue(ErrorCopyingAppScript)
+                postIllegalStateWithLog(ErrorCopyingAppScript)
             }
             is SyncingDatabaseEntries -> {}
             is AppDatabaseEntriesSynced -> {
@@ -228,7 +236,7 @@ class MainActivityViewModel(
         // Return for compile-time exhaustiveness check
         return when (newState) {
             is IncorrectSessionTransition -> {
-                state.postValue(IllegalStateTransition("$newState"))
+                postIllegalStateWithLog(IllegalStateTransition("$newState"))
             }
             is WaitingForSessionSelection -> {
                 sessionsAreWaitingForSelection = true
@@ -279,7 +287,7 @@ class MainActivityViewModel(
             is AssetListsRetrievalSucceeded -> { doTransitionIfRequirementsAreSelected {
                     submitSessionStartupEvent(GenerateDownloads(lastSelectedFilesystem, newState.assetLists))
             } }
-            is AssetListsRetrievalFailed -> state.postValue(ErrorFetchingAssetLists)
+            is AssetListsRetrievalFailed -> postIllegalStateWithLog(ErrorFetchingAssetLists)
         }
     }
 
@@ -287,13 +295,13 @@ class MainActivityViewModel(
         return when (newState) {
             is GeneratingDownloadRequirements -> state.postValue(CheckingForAssetsUpdates)
             is UnexpectedDownloadGenerationSize -> {
-                state.postValue(ErrorGeneratingDownloads(R.string.illegal_state_unexpected_generation_size))
+                postIllegalStateWithLog(ErrorGeneratingDownloads(R.string.illegal_state_unexpected_generation_size))
             }
             is UnexpectedDownloadGenerationTypes -> {
-                state.postValue(ErrorGeneratingDownloads(R.string.illegal_state_unexpected_generation_type))
+                postIllegalStateWithLog(ErrorGeneratingDownloads(R.string.illegal_state_unexpected_generation_type))
             }
             is RemoteUnreachableForGeneration -> {
-                state.postValue(ErrorGeneratingDownloads(R.string.illegal_state_remote_unreachable_during_generation))
+                postIllegalStateWithLog(ErrorGeneratingDownloads(R.string.illegal_state_remote_unreachable_during_generation))
             }
             is DownloadsRequired -> {
                 if (newState.largeDownloadRequired) {
@@ -312,12 +320,12 @@ class MainActivityViewModel(
         return when (newState) {
             is DownloadingAssets -> state.postValue(DownloadProgress(newState.numCompleted, newState.numTotal))
             is DownloadsHaveSucceeded -> submitSessionStartupEvent(CopyDownloadsToLocalStorage)
-            is DownloadsHaveFailed -> state.postValue(DownloadsDidNotCompleteSuccessfully(newState.reason))
+            is DownloadsHaveFailed -> postIllegalStateWithLog(DownloadsDidNotCompleteSuccessfully(newState.reason))
             is AttemptedCacheAccessWhileEmpty -> {
-                state.postValue(DownloadCacheAccessedWhileEmpty)
+                postIllegalStateWithLog(DownloadCacheAccessedWhileEmpty)
             }
             is AttemptedCacheAccessInIncorrectState -> {
-                state.postValue(DownloadCacheAccessedInAnIncorrectState)
+                postIllegalStateWithLog(DownloadCacheAccessedInAnIncorrectState)
             }
         }
     }
@@ -333,7 +341,7 @@ class MainActivityViewModel(
                     resetStartupState()
                 }
             }
-            is LocalDirectoryCopyFailed -> state.postValue(FailedToCopyAssetsToLocalStorage)
+            is LocalDirectoryCopyFailed -> postIllegalStateWithLog(FailedToCopyAssetsToLocalStorage)
         }
     }
 
@@ -343,15 +351,15 @@ class MainActivityViewModel(
             is FilesystemAssetVerificationSucceeded -> { doTransitionIfRequirementsAreSelected {
                     submitSessionStartupEvent(VerifyAvailableStorage)
             } }
-            is AssetsAreMissingFromSupportDirectories -> state.postValue(AssetsHaveNotBeenDownloaded)
-            is FilesystemAssetCopyFailed -> state.postValue(FailedToCopyAssetsToFilesystem)
+            is AssetsAreMissingFromSupportDirectories -> postIllegalStateWithLog(AssetsHaveNotBeenDownloaded)
+            is FilesystemAssetCopyFailed -> postIllegalStateWithLog(FailedToCopyAssetsToFilesystem)
         }
     }
 
     private fun handleStorageVerificationState(newState: StorageVerificationState) {
         return when (newState) {
             is VerifyingSufficientStorage -> state.postValue(VerifyingAvailableStorage)
-            is VerifyingSufficientStorageFailed -> state.postValue(InsufficientAvailableStorage)
+            is VerifyingSufficientStorageFailed -> postIllegalStateWithLog(InsufficientAvailableStorage)
             is LowAvailableStorage -> state.postValue(LowStorageAcknowledgementRequired)
             is StorageVerificationCompletedSuccessfully -> { doTransitionIfRequirementsAreSelected {
                 submitSessionStartupEvent(ExtractFilesystem(lastSelectedFilesystem))
@@ -366,7 +374,7 @@ class MainActivityViewModel(
                 state.postValue(SessionCanBeStarted(lastSelectedSession))
                 resetStartupState()
             } }
-            is ExtractionFailed -> state.postValue(FailedToExtractFilesystem(newState.reason))
+            is ExtractionFailed -> postIllegalStateWithLog(FailedToExtractFilesystem(newState.reason))
         }
     }
 
@@ -388,7 +396,7 @@ class MainActivityViewModel(
 
     private fun doTransitionIfRequirementsAreSelected(transition: () -> Unit) {
         if (!sessionPreparationRequirementsHaveBeenSelected()) {
-            state.postValue(NoSessionSelectedWhenTransitionNecessary)
+            postIllegalStateWithLog(NoSessionSelectedWhenTransitionNecessary)
             return
         }
         transition()

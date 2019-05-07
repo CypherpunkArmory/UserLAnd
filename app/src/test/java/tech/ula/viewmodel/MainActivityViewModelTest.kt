@@ -119,6 +119,7 @@ class MainActivityViewModelTest {
         mainActivityViewModel.permissionsHaveBeenGranted()
 
         verify(mockStateObserver).onChanged(TooManySelectionsMadeWhenPermissionsGranted)
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(TooManySelectionsMadeWhenPermissionsGranted)
     }
 
     @Test
@@ -127,6 +128,7 @@ class MainActivityViewModelTest {
         mainActivityViewModel.permissionsHaveBeenGranted()
 
         verify(mockStateObserver).onChanged(NoSelectionsMadeWhenPermissionsGranted)
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(NoSelectionsMadeWhenPermissionsGranted)
     }
 
     @Test
@@ -189,6 +191,7 @@ class MainActivityViewModelTest {
         mainActivityViewModel.submitFilesystemCredentials("", "", "")
 
         verify(mockStateObserver).onChanged(NoFilesystemSelectedWhenCredentialsSubmitted)
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(NoFilesystemSelectedWhenCredentialsSubmitted)
     }
 
     @Test
@@ -210,6 +213,7 @@ class MainActivityViewModelTest {
         mainActivityViewModel.submitAppServicePreference(SshTypePreference)
 
         verify(mockStateObserver).onChanged(NoAppSelectedWhenPreferenceSubmitted)
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(NoAppSelectedWhenPreferenceSubmitted)
     }
 
     @Test
@@ -284,6 +288,7 @@ class MainActivityViewModelTest {
         verify(mockAssetFileClearer).clearAllSupportAssets()
         verify(mockStateObserver).onChanged(ClearingSupportFiles)
         verify(mockStateObserver).onChanged(FailedToClearSupportFiles)
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(FailedToClearSupportFiles)
     }
 
     // Private function tests.
@@ -307,6 +312,7 @@ class MainActivityViewModelTest {
         appsStartupStateLiveData.postValue(DatabaseEntriesFetchFailed)
 
         verify(mockStateObserver).onChanged(NoAppSelectedWhenTransitionNecessary)
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(NoAppSelectedWhenTransitionNecessary)
     }
 
     @Test
@@ -318,7 +324,9 @@ class MainActivityViewModelTest {
         val badTransition = IncorrectAppTransition(event, state)
         appsStartupStateLiveData.postValue(IncorrectAppTransition(event, state))
 
-        verify(mockStateObserver).onChanged(IllegalStateTransition("$badTransition"))
+        val expectedState = IllegalStateTransition("$badTransition")
+        verify(mockStateObserver).onChanged(expectedState)
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(expectedState)
     }
 
     @Test
@@ -342,6 +350,7 @@ class MainActivityViewModelTest {
         appsStartupStateLiveData.postValue(DatabaseEntriesFetchFailed)
 
         verify(mockStateObserver).onChanged(ErrorFetchingAppDatabaseEntries)
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(ErrorFetchingAppDatabaseEntries)
     }
 
     @Test
@@ -402,6 +411,7 @@ class MainActivityViewModelTest {
         appsStartupStateLiveData.postValue(AppScriptCopyFailed)
 
         verify(mockStateObserver).onChanged(ErrorCopyingAppScript)
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(ErrorCopyingAppScript)
     }
 
     @Test
@@ -425,6 +435,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(NoDownloadsRequired)
 
         verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(NoSessionSelectedWhenTransitionNecessary)
     }
 
     @Test
@@ -436,7 +447,9 @@ class MainActivityViewModelTest {
         val badTransition = IncorrectSessionTransition(event, state)
         sessionStartupStateLiveData.postValue(badTransition)
 
-        verify(mockStateObserver).onChanged(IllegalStateTransition("$badTransition"))
+        val expectedState = IllegalStateTransition("$badTransition")
+        verify(mockStateObserver).onChanged(expectedState)
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(expectedState)
     }
 
     @Test
@@ -462,6 +475,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(SessionIsReadyForPreparation(unselectedSession, unselectedFilesystem))
 
         verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(NoSessionSelectedWhenTransitionNecessary)
     }
 
     @Test
@@ -491,6 +505,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(AssetListsRetrievalSucceeded(assetList))
 
         verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(NoSessionSelectedWhenTransitionNecessary)
     }
 
     @Test
@@ -511,6 +526,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(AssetListsRetrievalFailed)
 
         verify(mockStateObserver).onChanged(ErrorFetchingAssetLists)
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(ErrorFetchingAssetLists)
     }
 
     @Test
@@ -547,6 +563,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(NoDownloadsRequired)
 
         verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(NoSessionSelectedWhenTransitionNecessary)
     }
 
     @Test
@@ -586,6 +603,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(DownloadsHaveFailed(reason))
 
         verify(mockStateObserver).onChanged(DownloadsDidNotCompleteSuccessfully(reason))
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(DownloadsDidNotCompleteSuccessfully(reason))
     }
 
     @Test
@@ -593,6 +611,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(AttemptedCacheAccessWhileEmpty)
 
         verify(mockStateObserver).onChanged(DownloadCacheAccessedWhileEmpty)
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(DownloadCacheAccessedWhileEmpty)
     }
 
     @Test
@@ -600,6 +619,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(AttemptedCacheAccessInIncorrectState)
 
         verify(mockStateObserver).onChanged(DownloadCacheAccessedInAnIncorrectState)
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(DownloadCacheAccessedInAnIncorrectState)
     }
 
     @Test
@@ -639,6 +659,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(LocalDirectoryCopyFailed)
 
         verify(mockStateObserver).onChanged(FailedToCopyAssetsToLocalStorage)
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(FailedToCopyAssetsToLocalStorage)
     }
 
     @Test
@@ -655,6 +676,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(FilesystemAssetVerificationSucceeded)
 
         verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(NoSessionSelectedWhenTransitionNecessary)
     }
 
     @Test
@@ -695,6 +717,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(FilesystemAssetCopyFailed)
 
         verify(mockStateObserver).onChanged(FailedToCopyAssetsToFilesystem)
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(FailedToCopyAssetsToFilesystem)
     }
 
     @Test
@@ -712,6 +735,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(ExtractionHasCompletedSuccessfully)
 
         verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(NoSessionSelectedWhenTransitionNecessary)
     }
 
     @Test
@@ -737,5 +761,6 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(ExtractionFailed("reason"))
 
         verify(mockStateObserver).onChanged(FailedToExtractFilesystem("reason"))
+        verify(mockAcraWrapper).silentlySendIllegalStateReport(FailedToExtractFilesystem("reason"))
     }
 }
