@@ -82,7 +82,7 @@ reference:
   export_github_release_token: &export_github_release_token
     run:
       name: Export Github release key
-      command echo 'export GITHUB_RELEASE_TOKEN="$GITHUB_RELEASE_TOKEN"' >> $BASH_ENV
+      command: echo 'export GITHUB_RELEASE_TOKEN="$GITHUB_RELEASE_TOKEN"' >> $BASH_ENV
 
   export_gcloud_key: &export_gcloud_key
     run:
