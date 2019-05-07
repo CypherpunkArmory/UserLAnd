@@ -79,7 +79,7 @@ reference:
       name: Decode Android key store
       command: echo $ANDROID_KEYSTORE | base64 -di > keystore.jks
 
-  export_github_release_key: &export_github_release_token
+  export_github_release_token: &export_github_release_token
     run:
       name: Export Github release key
       command echo 'export GITHUB_RELEASE_TOKEN="$GITHUB_RELEASE_TOKEN"' >> $BASH_ENV
