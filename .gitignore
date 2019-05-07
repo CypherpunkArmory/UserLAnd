@@ -45,8 +45,10 @@ captures/
 
 # Generated files for deployment
 app/versionCode.txt
+app/versionName.txt
 fastlane/README.md
 fastlane/report.xml
+fastlane/metadata/android/*/changelogs
 
 # External native build folder generated in Android Studio 2.2 and later
 .externalNativeBuild
