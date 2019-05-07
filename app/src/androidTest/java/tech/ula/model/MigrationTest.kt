@@ -1,12 +1,15 @@
 package tech.ula.model
 
+import android.content.Context
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.room.Room
 import androidx.room.testing.MigrationTestHelper
 import android.database.sqlite.SQLiteDatabase
-import androidx.test.InstrumentationRegistry
-import androidx.test.runner.AndroidJUnit4
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Rule
@@ -23,6 +26,8 @@ class MigrationTest {
     private val TEST_DB = "migration-test"
 
     private val migrationHelper = MigrationTestHelper()
+
+    @get:Rule val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     @get:Rule
     val helper = MigrationTestHelper(InstrumentationRegistry.getInstrumentation(),
@@ -120,8 +125,8 @@ class MigrationTest {
     }
 
     private fun getMigratedDatabase(): UlaDatabase {
-        val db = Room.databaseBuilder(InstrumentationRegistry.getTargetContext(),
-                UlaDatabase::class.java, TEST_DB)
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val db = Room.databaseBuilder(context, UlaDatabase::class.java, TEST_DB)
                 .addMigrations(
                         Migration1To2(),
                         Migration2To3(),

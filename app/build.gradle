@@ -220,4 +220,5 @@ dependencies {
     androidTestImplementation "androidx.test.espresso:espresso-intents:$espresso_version"
     androidTestImplementation "androidx.room:room-testing:$room_version"
     androidTestImplementation 'androidx.test:runner:1.1.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.0'
 }
