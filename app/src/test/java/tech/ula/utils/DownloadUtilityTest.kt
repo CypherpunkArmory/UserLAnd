@@ -108,7 +108,7 @@ class DownloadUtilityTest {
     @Test
     fun `Returns AssetDownloadFailure while syncing if any cached downloads failed`() {
         val downloadId = 0L
-        val failureReason = LocalizationData(0)
+        val failureReason = DownloadFailureLocalizationData(0)
         whenever(assetPreferences.getDownloadsAreInProgress())
                 .thenReturn(true)
         whenever(assetPreferences.getEnqueuedDownloads())
@@ -198,7 +198,7 @@ class DownloadUtilityTest {
     @Test
     fun `Returns AssetDownloadFailure if any downloads fail`() {
         setupDownloadState()
-        val localizationData = LocalizationData(0)
+        val localizationData = DownloadFailureLocalizationData(0)
         whenever(downloadManagerWrapper.downloadHasFailed(0))
                 .thenReturn(true)
         whenever(downloadManagerWrapper.getDownloadFailureReason(0))

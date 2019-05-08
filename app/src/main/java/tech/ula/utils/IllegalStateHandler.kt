@@ -2,14 +2,13 @@ package tech.ula.utils
 
 import tech.ula.R
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
-import java.util.Arrays
 
 class IllegalStateHandler {
 
-    fun getLocalizationData(state: IllegalState): LocalizationData {
+    fun getLocalizationData(state: IllegalState): Localization {
         return when (state) {
             is IllegalStateTransition -> {
-                LocalizationData(R.string.illegal_state_transition, arrayOf(state.transition))
+                LocalizationData(R.string.illegal_state_transition, listOf(state.transition))
             }
             is TooManySelectionsMadeWhenPermissionsGranted -> {
                 LocalizationData(R.string.illegal_state_too_many_selections_when_permissions_granted)
@@ -42,6 +41,7 @@ class IllegalStateHandler {
                 LocalizationData(state.errorId)
             }
             is DownloadsDidNotCompleteSuccessfully -> {
+                // Rather than try to
                 return state.reason
             }
             is FailedToCopyAssetsToLocalStorage -> {
@@ -60,7 +60,7 @@ class IllegalStateHandler {
                 LocalizationData(R.string.illegal_state_failed_to_copy_assets_to_filesystem)
             }
             is FailedToExtractFilesystem -> {
-                LocalizationData(R.string.illegal_state_failed_to_extract_filesystem, arrayOf(state.reason))
+                LocalizationData(R.string.illegal_state_failed_to_extract_filesystem, listOf(state.reason))
             }
             is FailedToClearSupportFiles -> {
                 LocalizationData(R.string.illegal_state_failed_to_clear_support_files)

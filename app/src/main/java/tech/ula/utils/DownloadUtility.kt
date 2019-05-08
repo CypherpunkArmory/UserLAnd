@@ -14,7 +14,7 @@ object CacheSyncAttemptedWhileCacheIsEmpty : AssetDownloadState()
 object NonUserlandDownloadFound : AssetDownloadState()
 object AllDownloadsCompletedSuccessfully : AssetDownloadState()
 data class CompletedDownloadsUpdate(val numCompleted: Int, val numTotal: Int) : AssetDownloadState()
-data class AssetDownloadFailure(val reason: LocalizationData) : AssetDownloadState()
+data class AssetDownloadFailure(val reason: DownloadFailureLocalizationData) : AssetDownloadState()
 
 class DownloadUtility(
     private val assetPreferences: AssetPreferences,
@@ -81,7 +81,7 @@ class DownloadUtility(
         }
 
         if (!enqueuedDownloadIds.containsAll(completedDownloadIds)) {
-            return AssetDownloadFailure(LocalizationData(R.string.download_failure_finished_wrong_items))
+            return AssetDownloadFailure(DownloadFailureLocalizationData(R.string.download_failure_finished_wrong_items))
         }
 
         enqueuedDownloadIds.clear()

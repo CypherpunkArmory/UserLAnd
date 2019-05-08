@@ -26,7 +26,6 @@ import java.io.File
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
-import java.util.*
 
 fun makePermissionsUsable(containingDirectoryPath: String, filename: String) {
     val commandToRun = arrayListOf("chmod", "0777", filename)
@@ -70,24 +69,21 @@ fun getBranchToDownloadAssetsFrom(assetType: String): String {
     }
 }
 
-data class LocalizationData(val resId: Int, val formatStrings: Array<String> = arrayOf()) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other?.javaClass != javaClass) return false
+interface Localization {
+    fun getString(context: Context): String
+}
 
-        other as LocalizationData
-
-        if (!Arrays.equals(formatStrings, other.formatStrings)) return false
-
-        return resId == other.resId
+data class LocalizationData(val resId: Int, val formatStrings: List<String> = listOf()) : Localization {
+    override fun getString(context: Context): String {
+        return context.getString(resId, formatStrings)
     }
+}
 
-    override fun hashCode(): Int {
-        return Arrays.hashCode(formatStrings)
-    }
-
-    fun getString(context: Context): String {
-        return context.getString(resId, *formatStrings)
+data class DownloadFailureLocalizationData(val resId: Int, val formatStrings: List<String> = listOf()) : Localization {
+    override fun getString(context: Context): String {
+        val errorDescriptionResId = R.string.illegal_state_downloads_did_not_complete_successfully
+        val errorTypeString = context.getString(resId, formatStrings)
+        return context.getString(errorDescriptionResId, errorTypeString)
     }
 }
 
@@ -348,12 +344,12 @@ class DownloadManagerWrapper(private val downloadManager: DownloadManager) {
         return false
     }
 
-    fun getDownloadFailureReason(id: Long): LocalizationData {
+    fun getDownloadFailureReason(id: Long): DownloadFailureLocalizationData {
         val query = generateQuery(id)
         val cursor = generateCursor(query)
         if (cursor.moveToFirst()) {
             val status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_REASON))
-            return LocalizationData(resId = when (status) {
+            return DownloadFailureLocalizationData(resId = when (status) {
                 in 100..500 -> R.string.download_failure_http_error
                 1008 -> R.string.download_failure_cannot_resume
                 1007 -> R.string.download_failure_no_external_devices
@@ -365,9 +361,9 @@ class DownloadManagerWrapper(private val downloadManager: DownloadManager) {
                 1002 -> R.string.download_failure_unhandled_http_response
                 1000 -> R.string.download_failure_unknown_error
                 else -> R.string.download_failure_missing_error
-            }, formatStrings = arrayOf("$status")) // Format strings only used for http_error
+            }, formatStrings = listOf("$status")) // Format strings only used for http_error
         }
-        return LocalizationData(R.string.download_failure_reason_not_found)
+        return DownloadFailureLocalizationData(R.string.download_failure_reason_not_found)
     }
 
     fun getDownloadsDirectory(): File {

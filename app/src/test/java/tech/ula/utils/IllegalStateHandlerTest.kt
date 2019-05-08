@@ -26,7 +26,7 @@ class IllegalStateHandlerTest {
         val result = illegalStateHandler.getLocalizationData(state)
 
         val resId = R.string.illegal_state_transition
-        val expectedResult = LocalizationData(resId, arrayOf(reason))
+        val expectedResult = LocalizationData(resId, listOf(reason))
         assertEquals(expectedResult, result)
     }
 
@@ -37,7 +37,7 @@ class IllegalStateHandlerTest {
         val result = illegalStateHandler.getLocalizationData(state)
 
         val resId = R.string.illegal_state_too_many_selections_when_permissions_granted
-        val expectedResult = LocalizationData(resId, arrayOf())
+        val expectedResult = LocalizationData(resId, listOf())
         assertEquals(expectedResult, result)
     }
 
@@ -48,7 +48,7 @@ class IllegalStateHandlerTest {
         val result = illegalStateHandler.getLocalizationData(state)
 
         val resId = R.string.illegal_state_no_selections_when_permissions_granted
-        val expectedResult = LocalizationData(resId, arrayOf())
+        val expectedResult = LocalizationData(resId, listOf())
         assertEquals(expectedResult, result)
     }
 
@@ -59,7 +59,7 @@ class IllegalStateHandlerTest {
         val result = illegalStateHandler.getLocalizationData(state)
 
         val resId = R.string.illegal_state_no_filesystem_selected_when_credentials_selected
-        val expectedResult = LocalizationData(resId, arrayOf())
+        val expectedResult = LocalizationData(resId, listOf())
         assertEquals(expectedResult, result)
     }
 
@@ -70,7 +70,7 @@ class IllegalStateHandlerTest {
         val result = illegalStateHandler.getLocalizationData(state)
 
         val resId = R.string.illegal_state_no_app_selected_when_preference_submitted
-        val expectedResult = LocalizationData(resId, arrayOf())
+        val expectedResult = LocalizationData(resId, listOf())
         assertEquals(expectedResult, result)
     }
 
@@ -81,7 +81,7 @@ class IllegalStateHandlerTest {
         val result = illegalStateHandler.getLocalizationData(state)
 
         val resId = R.string.illegal_state_no_app_selected_when_preparation_started
-        val expectedResult = LocalizationData(resId, arrayOf())
+        val expectedResult = LocalizationData(resId, listOf())
         assertEquals(expectedResult, result)
     }
 
@@ -92,7 +92,7 @@ class IllegalStateHandlerTest {
         val result = illegalStateHandler.getLocalizationData(state)
 
         val resId = R.string.illegal_state_error_fetching_app_database_entries
-        val expectedResult = LocalizationData(resId, arrayOf())
+        val expectedResult = LocalizationData(resId, listOf())
         assertEquals(expectedResult, result)
     }
 
@@ -103,7 +103,7 @@ class IllegalStateHandlerTest {
         val result = illegalStateHandler.getLocalizationData(state)
 
         val resId = R.string.illegal_state_error_copying_app_script
-        val expectedResult = LocalizationData(resId, arrayOf())
+        val expectedResult = LocalizationData(resId, listOf())
         assertEquals(expectedResult, result)
     }
 
@@ -114,7 +114,7 @@ class IllegalStateHandlerTest {
         val result = illegalStateHandler.getLocalizationData(state)
 
         val resId = R.string.illegal_state_no_session_selected_when_preparation_started
-        val expectedResult = LocalizationData(resId, arrayOf())
+        val expectedResult = LocalizationData(resId, listOf())
         assertEquals(expectedResult, result)
     }
 
@@ -125,7 +125,7 @@ class IllegalStateHandlerTest {
         val result = illegalStateHandler.getLocalizationData(state)
 
         val resId = R.string.illegal_state_error_fetching_asset_lists
-        val expectedResult = LocalizationData(resId, arrayOf())
+        val expectedResult = LocalizationData(resId, listOf())
         assertEquals(expectedResult, result)
     }
 
@@ -136,13 +136,13 @@ class IllegalStateHandlerTest {
         val result = illegalStateHandler.getLocalizationData(state)
 
         val resId = 0
-        val expectedResult = LocalizationData(resId, arrayOf())
+        val expectedResult = LocalizationData(resId, listOf())
         assertEquals(expectedResult, result)
     }
 
     @Test
     fun `DownloadsDidNotCompleteSuccessfully returns correct id and strings`() {
-        val reason = LocalizationData(0)
+        val reason = DownloadFailureLocalizationData(0)
         val state = DownloadsDidNotCompleteSuccessfully(reason)
 
         val result = illegalStateHandler.getLocalizationData(state)
@@ -157,7 +157,7 @@ class IllegalStateHandlerTest {
         val result = illegalStateHandler.getLocalizationData(state)
 
         val resId = R.string.illegal_state_failed_to_copy_assets_to_local
-        val expectedResult = LocalizationData(resId, arrayOf())
+        val expectedResult = LocalizationData(resId, listOf())
         assertEquals(expectedResult, result)
     }
 
@@ -168,7 +168,7 @@ class IllegalStateHandlerTest {
         val result = illegalStateHandler.getLocalizationData(state)
 
         val resId = R.string.illegal_state_assets_have_not_been_downloaded
-        val expectedResult = LocalizationData(resId, arrayOf())
+        val expectedResult = LocalizationData(resId, listOf())
         assertEquals(expectedResult, result)
     }
 
@@ -179,7 +179,7 @@ class IllegalStateHandlerTest {
         val result = illegalStateHandler.getLocalizationData(state)
 
         val resId = R.string.illegal_state_empty_download_cache_access
-        val expectedResult = LocalizationData(resId, arrayOf())
+        val expectedResult = LocalizationData(resId, listOf())
         assertEquals(expectedResult, result)
     }
 
@@ -190,7 +190,7 @@ class IllegalStateHandlerTest {
         val result = illegalStateHandler.getLocalizationData(state)
 
         val resId = R.string.illegal_state_download_cache_access_in_incorrect_state
-        val expectedResult = LocalizationData(resId, arrayOf())
+        val expectedResult = LocalizationData(resId, listOf())
         assertEquals(expectedResult, result)
     }
 
@@ -201,7 +201,7 @@ class IllegalStateHandlerTest {
         val result = illegalStateHandler.getLocalizationData(state)
 
         val resId = R.string.illegal_state_failed_to_copy_assets_to_filesystem
-        val expectedResult = LocalizationData(resId, arrayOf())
+        val expectedResult = LocalizationData(resId, listOf())
         assertEquals(expectedResult, result)
     }
 
@@ -213,7 +213,7 @@ class IllegalStateHandlerTest {
         val result = illegalStateHandler.getLocalizationData(state)
 
         val resId = R.string.illegal_state_failed_to_extract_filesystem
-        val expectedResult = LocalizationData(resId, arrayOf(reason))
+        val expectedResult = LocalizationData(resId, listOf(reason))
         assertEquals(expectedResult, result)
     }
 
@@ -224,7 +224,7 @@ class IllegalStateHandlerTest {
         val result = illegalStateHandler.getLocalizationData(state)
 
         val resId = R.string.illegal_state_failed_to_clear_support_files
-        val expectedResult = LocalizationData(resId, arrayOf())
+        val expectedResult = LocalizationData(resId, listOf())
         assertEquals(expectedResult, result)
     }
 
@@ -235,7 +235,7 @@ class IllegalStateHandlerTest {
         val result = illegalStateHandler.getLocalizationData(state)
 
         val resId = R.string.illegal_state_insufficient_storage
-        val expectedResult = LocalizationData(resId, arrayOf())
+        val expectedResult = LocalizationData(resId, listOf())
         assertEquals(expectedResult, result)
     }
 }

@@ -13,10 +13,7 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
-import tech.ula.utils.AppServiceTypePreference
-import tech.ula.utils.AssetFileClearer
-import tech.ula.utils.AcraWrapper
-import tech.ula.utils.LocalizationData
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import java.lang.Exception
 import kotlin.coroutines.CoroutineContext
 
@@ -437,7 +434,7 @@ object ErrorCopyingAppScript : IllegalState()
 object NoSessionSelectedWhenTransitionNecessary : IllegalState()
 object ErrorFetchingAssetLists : IllegalState()
 data class ErrorGeneratingDownloads(val errorId: Int) : IllegalState()
-data class DownloadsDidNotCompleteSuccessfully(val reason: LocalizationData) : IllegalState()
+data class DownloadsDidNotCompleteSuccessfully(val reason: DownloadFailureLocalizationData) : IllegalState()
 object DownloadCacheAccessedWhileEmpty : IllegalState()
 object DownloadCacheAccessedInAnIncorrectState : IllegalState()
 object FailedToCopyAssetsToLocalStorage : IllegalState()

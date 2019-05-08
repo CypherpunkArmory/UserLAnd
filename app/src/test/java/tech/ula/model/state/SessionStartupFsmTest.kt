@@ -96,7 +96,7 @@ class SessionStartupFsmTest {
             DownloadsRequired(downloadMetadata, false),
             DownloadingAssets(0, 0),
             DownloadsHaveSucceeded,
-            DownloadsHaveFailed(LocalizationData(0)),
+            DownloadsHaveFailed(DownloadFailureLocalizationData(0)),
             CopyingFilesToLocalDirectories,
             LocalDirectoryCopySucceeded,
             LocalDirectoryCopyFailed,
@@ -448,7 +448,7 @@ class SessionStartupFsmTest {
         sessionFsm.setState(DownloadingAssets(0, 0))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        val localizationData = LocalizationData(0)
+        val localizationData = DownloadFailureLocalizationData(0)
         whenever(mockDownloadUtility.handleDownloadComplete(0))
                 .thenReturn(AssetDownloadFailure(localizationData))
 
