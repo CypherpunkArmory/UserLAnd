@@ -55,6 +55,21 @@
     <string name="error_export_to_local_failed">Exporting to local directory failed.</string>
     <string name="error_export_to_external_failed">Exporting to external directory failed. A backup with the same name may already exist.</string>
     <string name="error_export_to_external_failed_no_data">Exporting to external directory failed, exported file has no data.</string>
+
+    <!-- Download Failure Reasons -->
+    <string name="download_failure_http_error">Http Error: %1$s</string>
+    <string name="download_failure_cannot_resume">Cannot resume download.</string>
+    <string name="download_failure_no_external_devices">No external devices (storage) found.</string>
+    <string name="download_failure_destination_exists">Destination already exists.</string>
+    <string name="download_failure_unknown_file_error">Unknown file error.</string>
+    <string name="download_failure_http_processing">HTTP data processing error.</string>
+    <string name="download_failure_insufficient_external_storage">Insufficient external storage space.</string>
+    <string name="download_failure_too_many_redirects">Too many redirects.</string>
+    <string name="download_failure_unhandled_http_response">Unhandled HTTP response code.</string>
+    <string name="download_failure_unknown_error">Unknown error.</string>
+    <string name="download_failure_missing_error">Error code unknown.</string>
+    <string name="download_failure_reason_not_found">Reason not available.</string>
+    <string name="download_failure_finished_wrong_items">Tried to finish download process with items we did not enqueue.</string>
     
     <!-- Illegal State Dialog -->
     <string name="illegal_state_github_message">%1$s \nThe app will now crash so that we can receive an error log. Feel free to also let us know on Github! We are working to resolve these issues.</string>
