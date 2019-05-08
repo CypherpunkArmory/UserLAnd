@@ -410,7 +410,8 @@ class AcraWrapper {
         return err
     }
 
-    fun silentlySendIllegalStateReport(state: IllegalState) {
+    @Suppress("NOTHING_TO_INLINE")
+    inline fun silentlySendIllegalStateReport(state: IllegalState) {
         val type = state.javaClass.simpleName
         ACRA.getErrorReporter().handleSilentException(IllegalStateException(type))
     }
