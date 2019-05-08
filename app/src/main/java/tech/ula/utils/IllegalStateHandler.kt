@@ -4,26 +4,9 @@ import tech.ula.R
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import java.util.Arrays
 
-data class LocalizationData(val resId: Int, val formatStrings: Array<String> = arrayOf()) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other?.javaClass != javaClass) return false
+class IllegalStateHandler {
 
-        other as LocalizationData
-
-        if (!Arrays.equals(formatStrings, other.formatStrings)) return false
-
-        return resId == other.resId
-    }
-
-    override fun hashCode(): Int {
-        return Arrays.hashCode(formatStrings)
-    }
-}
-
-class IllegalStateHandler(private val acraWrapper: AcraWrapper = AcraWrapper()) {
-
-    fun getResourceId(state: IllegalState): LocalizationData {
+    fun getLocalizationData(state: IllegalState): LocalizationData {
         return when (state) {
             is IllegalStateTransition -> {
                 LocalizationData(R.string.illegal_state_transition, arrayOf(state.transition))
@@ -59,7 +42,7 @@ class IllegalStateHandler(private val acraWrapper: AcraWrapper = AcraWrapper()) 
                 LocalizationData(state.errorId)
             }
             is DownloadsDidNotCompleteSuccessfully -> {
-                LocalizationData(R.string.illegal_state_downloads_did_not_complete_successfully, arrayOf(state.reason))
+                return state.reason
             }
             is FailedToCopyAssetsToLocalStorage -> {
                 LocalizationData(R.string.illegal_state_failed_to_copy_assets_to_local)

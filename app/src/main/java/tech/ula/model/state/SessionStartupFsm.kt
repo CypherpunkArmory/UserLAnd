@@ -329,7 +329,7 @@ object RemoteUnreachableForGeneration : DownloadRequirementsGenerationState()
 sealed class DownloadingAssetsState : SessionStartupState()
 data class DownloadingAssets(val numCompleted: Int, val numTotal: Int) : DownloadingAssetsState()
 object DownloadsHaveSucceeded : DownloadingAssetsState()
-data class DownloadsHaveFailed(val reason: String) : DownloadingAssetsState()
+data class DownloadsHaveFailed(val reason: LocalizationData) : DownloadingAssetsState()
 object AttemptedCacheAccessWhileEmpty : DownloadingAssetsState()
 object AttemptedCacheAccessInIncorrectState : DownloadingAssetsState()
 

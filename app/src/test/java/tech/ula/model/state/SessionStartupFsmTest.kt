@@ -96,7 +96,7 @@ class SessionStartupFsmTest {
             DownloadsRequired(downloadMetadata, false),
             DownloadingAssets(0, 0),
             DownloadsHaveSucceeded,
-            DownloadsHaveFailed(""),
+            DownloadsHaveFailed(LocalizationData(0)),
             CopyingFilesToLocalDirectories,
             LocalDirectoryCopySucceeded,
             LocalDirectoryCopyFailed,
@@ -448,14 +448,15 @@ class SessionStartupFsmTest {
         sessionFsm.setState(DownloadingAssets(0, 0))
         sessionFsm.getState().observeForever(mockStateObserver)
 
+        val localizationData = LocalizationData(0)
         whenever(mockDownloadUtility.handleDownloadComplete(0))
-                .thenReturn(AssetDownloadFailure("fail"))
+                .thenReturn(AssetDownloadFailure(localizationData))
 
         runBlocking {
             sessionFsm.submitEvent(AssetDownloadComplete(0), this)
         }
 
-        verify(mockStateObserver).onChanged(DownloadsHaveFailed("fail"))
+        verify(mockStateObserver).onChanged(DownloadsHaveFailed(localizationData))
     }
 
     @Test

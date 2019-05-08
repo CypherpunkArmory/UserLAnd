@@ -21,6 +21,7 @@ import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.SshTypePreference
 import tech.ula.utils.AssetFileClearer
 import tech.ula.utils.AcraWrapper
+import tech.ula.utils.LocalizationData
 
 @RunWith(MockitoJUnitRunner::class)
 class MainActivityViewModelTest {
@@ -599,7 +600,7 @@ class MainActivityViewModelTest {
     fun `Posts IllegalState if downloads fail`() {
         makeSessionSelections()
 
-        val reason = "cause"
+        val reason = LocalizationData(0)
         sessionStartupStateLiveData.postValue(DownloadsHaveFailed(reason))
 
         verify(mockStateObserver).onChanged(DownloadsDidNotCompleteSuccessfully(reason))

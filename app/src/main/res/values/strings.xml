@@ -55,6 +55,21 @@
     <string name="error_export_to_local_failed">Exporting to local directory failed.</string>
     <string name="error_export_to_external_failed">Exporting to external directory failed. A backup with the same name may already exist.</string>
     <string name="error_export_to_external_failed_no_data">Exporting to external directory failed, exported file has no data.</string>
+
+    <!-- Download Failure Reasons -->
+    <string name="download_failure_http_error">Downloads have failed due to: Http Error: %1$s</string>
+    <string name="download_failure_cannot_resume">Downloads have failed due to: Cannot resume download.</string>
+    <string name="download_failure_no_external_devices">Downloads have failed due to: No external devices (storage) found.</string>
+    <string name="download_failure_destination_exists">Downloads have failed due to: Destination already exists.</string>
+    <string name="download_failure_unknown_file_error">Downloads have failed due to: Unknown file error.</string>
+    <string name="download_failure_http_processing">Downloads have failed due to: HTTP data processing error.</string>
+    <string name="download_failure_insufficient_external_storage">Downloads have failed due to: Insufficient external storage space.</string>
+    <string name="download_failure_too_many_redirects">Downloads have failed due to: Too many redirects.</string>
+    <string name="download_failure_unhandled_http_response">Downloads have failed due to: Unhandled HTTP response code.</string>
+    <string name="download_failure_unknown_error">Downloads have failed due to: Unknown error.</string>
+    <string name="download_failure_missing_error">Downloads have failed due to: Error code unknown.</string>
+    <string name="download_failure_reason_not_found">Downloads have failed due to: Reason not available.</string>
+    <string name="download_failure_finished_wrong_items">Tried to finish download process with items we did not enqueue.</string>
     
     <!-- Illegal State Dialog -->
     <string name="illegal_state_github_message">%1$s \nThe app will now crash so that we can receive an error log. Feel free to also let us know on Github! We are working to resolve these issues.</string>
@@ -85,7 +100,6 @@
         strong network connection and try again.
     </string>
 
-    <string name="illegal_state_downloads_did_not_complete_successfully">Downloads have failed due to: %1$s.</string>
     <string name="illegal_state_failed_to_copy_assets_to_local">Failed to copy assets to local storage. Try clearing support files.</string>
     <string name="illegal_state_assets_have_not_been_downloaded">Assets need to be copied to your filesystem, but it looks like they have not been downloaded. Try clearing support files.</string>
     <string name="illegal_state_empty_download_cache_access">The downloads cache was empty when access was attempted.</string>

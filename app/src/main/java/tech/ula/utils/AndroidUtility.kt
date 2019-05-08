@@ -26,6 +26,7 @@ import java.io.File
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.*
 
 fun makePermissionsUsable(containingDirectoryPath: String, filename: String) {
     val commandToRun = arrayListOf("chmod", "0777", filename)
@@ -66,6 +67,27 @@ fun getBranchToDownloadAssetsFrom(assetType: String): String {
         "support" -> "staging"
         "apps" -> "master"
         else -> "master"
+    }
+}
+
+data class LocalizationData(val resId: Int, val formatStrings: Array<String> = arrayOf()) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other?.javaClass != javaClass) return false
+
+        other as LocalizationData
+
+        if (!Arrays.equals(formatStrings, other.formatStrings)) return false
+
+        return resId == other.resId
+    }
+
+    override fun hashCode(): Int {
+        return Arrays.hashCode(formatStrings)
+    }
+
+    fun getString(context: Context): String {
+        return context.getString(resId, *formatStrings)
     }
 }
 
@@ -326,26 +348,26 @@ class DownloadManagerWrapper(private val downloadManager: DownloadManager) {
         return false
     }
 
-    fun getDownloadFailureReason(id: Long): String {
+    fun getDownloadFailureReason(id: Long): LocalizationData {
         val query = generateQuery(id)
         val cursor = generateCursor(query)
         if (cursor.moveToFirst()) {
-            val status: Int = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_REASON))
-            return "Reason: " + when (status) {
-                in 100..500 -> "Http Error: $status"
-                1008 -> "Cannot resume download."
-                1007 -> "No external devices found."
-                1009 -> "Destination already exists."
-                1001 -> "Unknown file error."
-                1004 -> "HTTP data processing error."
-                1006 -> "Insufficient external storage space."
-                1005 -> "Too many redirects."
-                1002 -> "Unhandled HTTP response code."
-                1000 -> "Unknown error."
-                else -> "Unknown failure reason."
-            }
+            val status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_REASON))
+            return LocalizationData(resId = when (status) {
+                in 100..500 -> R.string.download_failure_http_error
+                1008 -> R.string.download_failure_cannot_resume
+                1007 -> R.string.download_failure_no_external_devices
+                1009 -> R.string.download_failure_destination_exists
+                1001 -> R.string.download_failure_unknown_file_error
+                1004 -> R.string.download_failure_http_processing
+                1006 -> R.string.download_failure_insufficient_external_storage
+                1005 -> R.string.download_failure_too_many_redirects
+                1002 -> R.string.download_failure_unhandled_http_response
+                1000 -> R.string.download_failure_unknown_error
+                else -> R.string.download_failure_missing_error
+            }, formatStrings = arrayOf("$status")) // Format strings only used for http_error
         }
-        return "No known reason for failure."
+        return LocalizationData(R.string.download_failure_reason_not_found)
     }
 
     fun getDownloadsDirectory(): File {

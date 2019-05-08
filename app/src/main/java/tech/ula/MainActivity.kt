@@ -424,8 +424,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleIllegalState(state: IllegalState) {
-        val localizationData = IllegalStateHandler().getResourceId(state)
-        val stateDescription = getString(localizationData.resId, *localizationData.formatStrings)
+        val stateDescription = IllegalStateHandler().getLocalizationData(state).getString(this)
         val displayMessage = getString(R.string.illegal_state_github_message, stateDescription)
 
         AlertDialog.Builder(this)
