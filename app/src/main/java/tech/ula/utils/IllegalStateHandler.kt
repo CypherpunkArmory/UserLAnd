@@ -41,7 +41,6 @@ class IllegalStateHandler {
                 LocalizationData(state.errorId)
             }
             is DownloadsDidNotCompleteSuccessfully -> {
-                // Rather than try to
                 return state.reason
             }
             is FailedToCopyAssetsToLocalStorage -> {
