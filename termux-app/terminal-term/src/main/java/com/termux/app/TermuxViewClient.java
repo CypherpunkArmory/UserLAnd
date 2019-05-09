@@ -2,7 +2,7 @@ package com.termux.app;
 
 import android.content.Context;
 import android.media.AudioManager;
-import android.support.v4.widget.DrawerLayout;
+import androidx.drawerlayout.widget.DrawerLayout;
 import android.view.Gravity;
 import android.view.InputDevice;
 import android.view.KeyEvent;

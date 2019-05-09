@@ -1,8 +1,8 @@
 package tech.ula.viewmodel
 
-import android.arch.core.executor.testing.InstantTaskExecutorRule
-import android.arch.lifecycle.MutableLiveData
-import android.arch.lifecycle.Observer
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import com.nhaarman.mockitokotlin2.* // ktlint-disable no-wildcard-imports
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -18,9 +18,7 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
-import tech.ula.utils.SshTypePreference
-import tech.ula.utils.AssetFileClearer
-import tech.ula.utils.AcraWrapper
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 
 @RunWith(MockitoJUnitRunner::class)
 class MainActivityViewModelTest {
@@ -599,7 +597,7 @@ class MainActivityViewModelTest {
     fun `Posts IllegalState if downloads fail`() {
         makeSessionSelections()
 
-        val reason = "cause"
+        val reason = DownloadFailureLocalizationData(0)
         sessionStartupStateLiveData.postValue(DownloadsHaveFailed(reason))
 
         verify(mockStateObserver).onChanged(DownloadsDidNotCompleteSuccessfully(reason))

@@ -79,6 +79,11 @@ reference:
       name: Decode Android key store
       command: echo $ANDROID_KEYSTORE | base64 -di > keystore.jks
 
+  export_github_release_token: &export_github_release_token
+    run:
+      name: Export Github release key
+      command: echo 'export GITHUB_RELEASE_TOKEN="$GITHUB_RELEASE_TOKEN"' >> $BASH_ENV
+
   export_gcloud_key: &export_gcloud_key
     run:
       name: Export Google Cloud Service key environment variable
@@ -232,6 +237,7 @@ jobs:
       - *attach_release_workspace
       - *export_play_key
       - *decode_play_key
+      - *export_github_release_token
       - run:
           name: Deploy to Play store
           command: bundle exec fastlane deploy

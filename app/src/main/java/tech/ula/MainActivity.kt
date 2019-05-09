@@ -5,8 +5,8 @@ import android.annotation.TargetApi
 import android.app.AlertDialog
 import android.app.Application
 import android.app.DownloadManager
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -20,9 +20,9 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.os.StatFs
-import android.support.design.widget.TextInputEditText
-import android.support.v4.content.LocalBroadcastManager
-import android.support.v7.app.AppCompatActivity
+import com.google.android.material.textfield.TextInputEditText
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.appcompat.app.AppCompatActivity
 import android.util.DisplayMetrics
 import android.view.Menu
 import android.view.MenuItem
@@ -44,8 +44,6 @@ import kotlinx.android.synthetic.main.activity_main.* // ktlint-disable no-wildc
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.jetbrains.anko.defaultSharedPreferences
-import org.jetbrains.anko.find
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
@@ -424,8 +422,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleIllegalState(state: IllegalState) {
-        val localizationData = IllegalStateHandler().getResourceId(state)
-        val stateDescription = getString(localizationData.resId, *localizationData.formatStrings)
+        val stateDescription = IllegalStateHandler().getLocalizationData(state).getString(this)
         val displayMessage = getString(R.string.illegal_state_github_message, stateDescription)
 
         AlertDialog.Builder(this)

@@ -1,15 +1,15 @@
 package tech.ula.ui
 
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import android.content.Intent
 import android.os.Bundle
-import android.support.v4.app.Fragment
+import androidx.fragment.app.Fragment
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
+import androidx.core.os.bundleOf
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_session_list.* // ktlint-disable no-wildcard-imports
-import org.jetbrains.anko.bundleOf
 import tech.ula.MainActivity
 import tech.ula.R
 import tech.ula.ServerService
@@ -41,9 +41,9 @@ class SessionListFragment : Fragment() {
     }
 
     private val sessionsAndFilesystemsChangeObserver = Observer<Pair<List<Session>, List<Filesystem>>> {
-        it?.let {
-            sessionList = it.first
-            filesystemList = it.second
+        it?.let { pair ->
+            sessionList = pair.first
+            filesystemList = pair.second
 
             sessionAdapter = SessionListAdapter(activityContext, sessionList, filesystemList)
             list_sessions.adapter = sessionAdapter
@@ -78,8 +78,7 @@ class SessionListFragment : Fragment() {
         registerForContextMenu(list_sessions)
         list_sessions.onItemClickListener = AdapterView.OnItemClickListener {
             parent, _, position, _ ->
-            val selectedItem = parent.getItemAtPosition(position) as SessionListItem
-            when (selectedItem) {
+            when (val selectedItem = parent.getItemAtPosition(position) as SessionListItem) {
                 is SessionSeparatorItem -> return@OnItemClickListener
                 is SessionItem -> {
                     val session = selectedItem.session
@@ -93,12 +92,11 @@ class SessionListFragment : Fragment() {
         doOnSessionSelection.sessionHasBeenSelected(session)
     }
 
-    override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo) {
+    override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo?) {
         super.onCreateContextMenu(menu, v, menuInfo)
         val info = menuInfo as AdapterView.AdapterContextMenuInfo
         val position = info.position
-        val selectedItem = list_sessions.adapter.getItem(position) as SessionListItem
-        when (selectedItem) {
+        when (val selectedItem = list_sessions.adapter.getItem(position) as SessionListItem) {
             is SessionSeparatorItem -> return
             is SessionItem -> {
                 val session = selectedItem.session
@@ -119,8 +117,7 @@ class SessionListFragment : Fragment() {
     override fun onContextItemSelected(item: MenuItem): Boolean {
         val menuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
         val position = menuInfo.position
-        val selectedItem = list_sessions.adapter.getItem(position) as SessionListItem
-        return when (selectedItem) {
+        return when (val selectedItem = list_sessions.adapter.getItem(position) as SessionListItem) {
             is SessionSeparatorItem -> true
             is SessionItem -> {
                 val session = selectedItem.session

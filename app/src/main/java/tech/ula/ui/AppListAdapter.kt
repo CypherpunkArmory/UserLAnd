@@ -4,8 +4,8 @@ import android.app.Activity
 import android.content.Context
 import android.os.BaseBundle
 import android.os.Bundle
-import android.support.v7.util.DiffUtil
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.RecyclerView
 import android.view.ContextMenu
 import android.view.LayoutInflater
 import android.view.View
@@ -118,7 +118,7 @@ class AppListAdapter(
     private fun handleBindViewHolder(viewHolder: ViewHolder, position: Int, changes: MutableList<Any>?) {
         val item = appsAndSeparators[position]
 
-        bindOnClick(viewHolder, item, onAppsItemClicked, position)
+        bindOnClick(viewHolder, item, onAppsItemClicked)
         bindOnCreateContextMenu(viewHolder, onAppsCreateContextMenu, item)
 
         when (item) {
@@ -166,7 +166,7 @@ class AppListAdapter(
         }
     }
 
-    private fun bindOnClick(viewHolder: ViewHolder, selectedListItem: AppsListItem, onAppsItemClicked: OnAppsItemClicked, position: Int) {
+    private fun bindOnClick(viewHolder: ViewHolder, selectedListItem: AppsListItem, onAppsItemClicked: OnAppsItemClicked) {
         viewHolder.itemView.setOnClickListener {
             onAppsItemClicked.onAppsItemClicked(selectedListItem)
         }

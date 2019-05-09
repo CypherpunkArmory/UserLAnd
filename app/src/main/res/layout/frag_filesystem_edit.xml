@@ -6,11 +6,11 @@
     android:layout_height="match_parent"
     android:layout_margin="8dp" >
 
-    <android.support.constraint.ConstraintLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
 
-        <android.support.design.widget.TextInputLayout
+        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/text_input_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -18,15 +18,15 @@
             android:hint="@string/hint_filesystem_name"
             app:layout_constraintTop_toTopOf="parent" >
 
-            <android.support.design.widget.TextInputEditText
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/input_filesystem_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text" />
 
-        </android.support.design.widget.TextInputLayout>
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <android.support.design.widget.TextInputLayout
+        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/text_input_layout_filesystem_username"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -34,15 +34,15 @@
             android:hint="@string/hint_username"
             app:layout_constraintTop_toBottomOf="@+id/text_input_layout">
 
-            <android.support.design.widget.TextInputEditText
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/input_filesystem_username"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textNoSuggestions|textVisiblePassword" />
 
-        </android.support.design.widget.TextInputLayout>
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <android.support.design.widget.TextInputLayout
+        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/text_input_layout_filesystem_password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -51,15 +51,15 @@
             app:passwordToggleEnabled="true"
             app:layout_constraintTop_toBottomOf="@+id/text_input_layout_filesystem_username">
 
-            <android.support.design.widget.TextInputEditText
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/input_filesystem_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPassword" />
 
-        </android.support.design.widget.TextInputLayout>
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <android.support.design.widget.TextInputLayout
+        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/text_input_layout_filesystem_vncpasswd"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -68,13 +68,13 @@
             app:passwordToggleEnabled="true"
             app:layout_constraintTop_toBottomOf="@+id/text_input_layout_filesystem_password">
 
-            <android.support.design.widget.TextInputEditText
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/input_filesystem_vncpassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPassword" />
 
-        </android.support.design.widget.TextInputLayout>
+        </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
             android:id="@+id/text_filesystem_type"
@@ -150,5 +150,5 @@
                 android:paddingStart="24dp"
                 android:paddingEnd="24dp" />
         </LinearLayout>
-    </android.support.constraint.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

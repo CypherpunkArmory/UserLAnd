@@ -1,7 +1,7 @@
 package tech.ula.model.state
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MutableLiveData
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -329,7 +329,7 @@ object RemoteUnreachableForGeneration : DownloadRequirementsGenerationState()
 sealed class DownloadingAssetsState : SessionStartupState()
 data class DownloadingAssets(val numCompleted: Int, val numTotal: Int) : DownloadingAssetsState()
 object DownloadsHaveSucceeded : DownloadingAssetsState()
-data class DownloadsHaveFailed(val reason: String) : DownloadingAssetsState()
+data class DownloadsHaveFailed(val reason: DownloadFailureLocalizationData) : DownloadingAssetsState()
 object AttemptedCacheAccessWhileEmpty : DownloadingAssetsState()
 object AttemptedCacheAccessInIncorrectState : DownloadingAssetsState()
 

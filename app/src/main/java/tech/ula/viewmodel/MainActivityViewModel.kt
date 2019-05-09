@@ -1,9 +1,9 @@
 package tech.ula.viewmodel
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MediatorLiveData
-import android.arch.lifecycle.ViewModel
-import android.arch.lifecycle.ViewModelProvider
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -13,9 +13,7 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
-import tech.ula.utils.AppServiceTypePreference
-import tech.ula.utils.AssetFileClearer
-import tech.ula.utils.AcraWrapper
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import java.lang.Exception
 import kotlin.coroutines.CoroutineContext
 
@@ -436,7 +434,7 @@ object ErrorCopyingAppScript : IllegalState()
 object NoSessionSelectedWhenTransitionNecessary : IllegalState()
 object ErrorFetchingAssetLists : IllegalState()
 data class ErrorGeneratingDownloads(val errorId: Int) : IllegalState()
-data class DownloadsDidNotCompleteSuccessfully(val reason: String) : IllegalState()
+data class DownloadsDidNotCompleteSuccessfully(val reason: DownloadFailureLocalizationData) : IllegalState()
 object DownloadCacheAccessedWhileEmpty : IllegalState()
 object DownloadCacheAccessedInAnIncorrectState : IllegalState()
 object FailedToCopyAssetsToLocalStorage : IllegalState()

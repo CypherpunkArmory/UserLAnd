@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.rauschig.jarchivelib.Archiver
 import org.rauschig.jarchivelib.ArchiverFactory
+import tech.ula.R
 import tech.ula.model.repositories.DownloadMetadata
 import java.io.File
 import java.io.IOException
@@ -13,7 +14,7 @@ object CacheSyncAttemptedWhileCacheIsEmpty : AssetDownloadState()
 object NonUserlandDownloadFound : AssetDownloadState()
 object AllDownloadsCompletedSuccessfully : AssetDownloadState()
 data class CompletedDownloadsUpdate(val numCompleted: Int, val numTotal: Int) : AssetDownloadState()
-data class AssetDownloadFailure(val reason: String) : AssetDownloadState()
+data class AssetDownloadFailure(val reason: DownloadFailureLocalizationData) : AssetDownloadState()
 
 class DownloadUtility(
     private val assetPreferences: AssetPreferences,
@@ -80,7 +81,7 @@ class DownloadUtility(
         }
 
         if (!enqueuedDownloadIds.containsAll(completedDownloadIds)) {
-            return AssetDownloadFailure("Tried to finish download process with items we did not enqueue.")
+            return AssetDownloadFailure(DownloadFailureLocalizationData(R.string.download_failure_finished_wrong_items))
         }
 
         enqueuedDownloadIds.clear()
