@@ -24,7 +24,7 @@ android {
         applicationId "tech.ula"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 61
+        versionCode 62
         versionName "2.5.8"
         
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
