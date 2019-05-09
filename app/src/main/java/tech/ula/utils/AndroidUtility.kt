@@ -412,6 +412,7 @@ class AcraWrapper {
 
     fun silentlySendIllegalStateReport(state: IllegalState) {
         val type = state.javaClass.simpleName
+        putCustomString("State when sending silent report", type)
         ACRA.getErrorReporter().handleSilentException(IllegalStateException(type))
     }
 }
