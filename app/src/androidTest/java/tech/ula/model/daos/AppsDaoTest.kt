@@ -1,8 +1,8 @@
 package tech.ula.model.daos
 
-import android.arch.core.executor.testing.InstantTaskExecutorRule
-import android.arch.persistence.room.Room
-import android.support.test.InstrumentationRegistry
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.room.Room
+import androidx.test.InstrumentationRegistry
 import org.junit.After
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before

@@ -3,7 +3,7 @@ package com.termux.app;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.support.annotation.IntDef;
+import androidx.annotation.IntDef;
 import android.util.Log;
 import android.util.TypedValue;
 import android.widget.Toast;

@@ -1,7 +1,13 @@
 package tech.ula.utils
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MediatorLiveData
+import android.app.Dialog
+import android.content.Context
+import android.content.SharedPreferences
+import android.preference.PreferenceManager
+import android.view.View
+import androidx.annotation.IdRes
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 
 fun <A, B> zipLiveData(a: LiveData<A>, b: LiveData<B>): LiveData<Pair<A, B>> {
     return MediatorLiveData<Pair<A, B>>().apply {
@@ -25,3 +31,9 @@ fun <A, B> zipLiveData(a: LiveData<A>, b: LiveData<B>): LiveData<Pair<A, B>> {
         }
     }
 }
+
+inline val Context.defaultSharedPreferences: SharedPreferences
+    get() = PreferenceManager.getDefaultSharedPreferences(this)
+
+inline fun <reified T : View> View.find(@IdRes id: Int): T = findViewById(id)
+inline fun <reified T : View> Dialog.find(@IdRes id: Int): T = findViewById(id)

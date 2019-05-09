@@ -1,6 +1,6 @@
 package tech.ula.model.repositories
 
-import android.arch.lifecycle.LiveData
+import androidx.lifecycle.LiveData
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import org.junit.Before
