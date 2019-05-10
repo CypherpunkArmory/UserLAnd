@@ -208,6 +208,8 @@ dependencies {
     implementation "com.squareup.moshi:moshi:$moshi_version"
     kapt "com.squareup.moshi:moshi-kotlin-codegen:$moshi_version"
     implementation 'org.rauschig:jarchivelib:0.8.0' // v1.0.0 breaks all sdk versions < 26 https://github.com/thrau/jarchivelib/issues/75
+    implementation 'io.sentry:sentry-android:1.7.16'
+    implementation 'org.slf4j:slf4j-nop:1.7.25'
 
     testImplementation 'junit:junit:4.12'
     testImplementation "org.mockito:mockito-core:$mockito_version"
