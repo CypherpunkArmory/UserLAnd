@@ -397,26 +397,6 @@ class LocalFileLocator(private val applicationFilesDir: String, private val reso
     }
 }
 
-class AcraWrapper {
-    fun putCustomString(key: String, value: String) {
-        ACRA.getErrorReporter().putCustomData(key, value)
-    }
-
-    fun logException(err: Exception): Exception {
-        val topOfStackTrace = err.stackTrace.first()
-        val key = "Exception: ${topOfStackTrace.fileName}"
-        val value = "${topOfStackTrace.lineNumber}"
-        ACRA.getErrorReporter().putCustomData(key, value)
-        return err
-    }
-
-    fun silentlySendIllegalStateReport(state: IllegalState) {
-        val type = state.javaClass.simpleName
-        putCustomString("State when sending silent report", type)
-        ACRA.getErrorReporter().handleSilentException(IllegalStateException(type))
-    }
-}
-
 class DeviceDimensions {
     private var width = 720
     private var height = 1480
