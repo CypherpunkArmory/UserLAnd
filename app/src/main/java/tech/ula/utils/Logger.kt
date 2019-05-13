@@ -32,11 +32,13 @@ class SentryLogger : Logger {
     }
 
     override fun addExceptionBreadcrumb(err: Exception) {
+        val stackTrace = err.stackTrace.first()
         val breadcrumb = BreadcrumbBuilder()
                 .setCategory("Exception")
                 .setData(mapOf(
                         "type" to err.javaClass.simpleName,
-                        "stackTrace" to err.stackTrace.toString()
+                        "file" to stackTrace.fileName,
+                        "lineNumber" to stackTrace.lineNumber.toString()
                 ))
                 .build()
         Sentry.getContext().recordBreadcrumb(breadcrumb)
@@ -50,3 +52,34 @@ class SentryLogger : Logger {
         Sentry.capture(event)
     }
 }
+
+//class AcraLogger : Logger {
+//    override fun initialize(context: Context?) {
+//        val builder = CoreConfigurationBuilder(context!!)
+//        builder.setBuildConfigClass(BuildConfig::class.java)
+//                .setReportFormat(StringFormat.JSON)
+//        builder.getPluginConfigurationBuilder(HttpSenderConfigurationBuilder::class.java)
+//                .setUri(BuildConfig.tracepotHttpsEndpoint)
+//                .setHttpMethod(HttpSender.Method.POST)
+//                .setEnabled(true)
+//        ACRA.init(context as Application, builder)
+//    }
+//
+//    override fun addBreadcrumb(key: String, value: String) {
+//        ACRA.getErrorReporter().putCustomData(key, value)
+//    }
+//
+//    override fun addExceptionBreadcrumb(err: Exception) {
+//        val topOfStackTrace = err.stackTrace.first()
+//        val key = "Exception: ${topOfStackTrace.fileName}"
+//        val value = "${topOfStackTrace.lineNumber}"
+//        ACRA.getErrorReporter().putCustomData(key, value)
+//        return err
+//    }
+//
+//    override fun sendIllegalStateLog(state: IllegalState) {
+//        val type = state.javaClass.simpleName
+//        addBreadcrumb("State when sending silent report", type)
+//        ACRA.getErrorReporter().handleSilentException(IllegalStateException(type))
+//    }
+//}
