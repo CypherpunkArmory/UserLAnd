@@ -85,14 +85,6 @@ configurations {
     ktlint
 }
 
-tasks.whenTaskAdded { task ->
-    if (task.name == 'assembleRelease') {
-        task.doFirst {
-            assert tracepotPropertiesFile.exists()
-        }
-    }
-}
-
 tasks.withType(Test) {
     jacoco.includeNoLocationClasses = true
 }
