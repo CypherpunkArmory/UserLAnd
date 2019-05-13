@@ -104,7 +104,7 @@ reference:
 
   configure_sentry: &configure_sentry
     run:
-      name: Export tracepot https environment variable
+      name: Configure Sentry for production use
       command: |
         mkdir app/src/main/resources
         echo "dsn=$SENTRY_DSN" >> app/src/main/resources/sentry.properties
