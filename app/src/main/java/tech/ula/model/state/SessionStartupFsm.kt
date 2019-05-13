@@ -21,7 +21,7 @@ class SessionStartupFsm(
     private val filesystemUtility: FilesystemUtility,
     private val downloadUtility: DownloadUtility,
     private val storageUtility: StorageUtility,
-    private val acraWrapper: AcraWrapper = AcraWrapper()
+    private val logger: Logger = SentryLogger()
 ) {
 
     private val state = MutableLiveData<SessionStartupState>().apply { postValue(WaitingForSessionSelection) }
@@ -92,8 +92,8 @@ class SessionStartupFsm(
     }
 
     fun submitEvent(event: SessionStartupEvent, coroutineScope: CoroutineScope) = coroutineScope.launch {
-        acraWrapper.putCustomString("Last submitted session fsm event", "$event")
-        acraWrapper.putCustomString("State during session fsm event submission", "${state.value}")
+        logger.addBreadcrumb("Last submitted session fsm event", "$event")
+        logger.addBreadcrumb("State during session fsm event submission", "${state.value}")
         if (!transitionIsAcceptable(event)) {
             state.postValue(IncorrectSessionTransition(event, state.value!!))
             return@launch

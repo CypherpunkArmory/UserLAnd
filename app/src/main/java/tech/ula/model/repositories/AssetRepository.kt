@@ -5,9 +5,7 @@ import kotlinx.coroutines.withContext
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.remote.GithubApiClient
-import tech.ula.utils.AcraWrapper
-import tech.ula.utils.AssetPreferences
-import tech.ula.utils.ConnectionUtility
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -27,7 +25,7 @@ class AssetRepository(
     private val assetPreferences: AssetPreferences,
     private val githubApiClient: GithubApiClient = GithubApiClient(),
     private val connectionUtility: ConnectionUtility = ConnectionUtility(),
-    private val acraWrapper: AcraWrapper = AcraWrapper()
+    private val logger: Logger = SentryLogger()
 ) {
 
     @Throws(IllegalStateException::class, UnknownHostException::class)
@@ -42,7 +40,7 @@ class AssetRepository(
             // Empty lists should not have propagated this deeply.
             if (list.isEmpty()) {
                 val err = IllegalStateException()
-                acraWrapper.logException(err)
+                logger.addExceptionBreadcrumb(err)
                 throw err
             }
             if (assetsArePresentInSupportDirectories(list)) {

@@ -3,7 +3,6 @@ package tech.ula
 import android.Manifest
 import android.annotation.TargetApi
 import android.app.AlertDialog
-import android.app.Application
 import android.app.DownloadManager
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -54,11 +53,6 @@ import tech.ula.ui.SessionListFragment
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import kotlinx.android.synthetic.main.dia_app_select_client.*
-import org.acra.ACRA
-import org.acra.config.CoreConfigurationBuilder
-import org.acra.config.HttpSenderConfigurationBuilder
-import org.acra.data.StringFormat
-import org.acra.sender.HttpSender
 import tech.ula.ui.FilesystemListFragment
 import tech.ula.model.repositories.DownloadMetadata
 

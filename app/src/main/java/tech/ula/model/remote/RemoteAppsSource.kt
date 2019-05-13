@@ -3,9 +3,7 @@ package tech.ula.model.remote
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import tech.ula.model.entities.App
-import tech.ula.utils.AcraWrapper
-import tech.ula.utils.ConnectionUtility
-import tech.ula.utils.getBranchToDownloadAssetsFrom
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import java.io.BufferedReader
 import java.io.File
 import java.io.IOException
@@ -27,7 +25,7 @@ interface RemoteAppsSource {
 class GithubAppsFetcher(
     private val applicationFilesDir: String,
     private val connectionUtility: ConnectionUtility = ConnectionUtility(),
-    private val acraWrapper: AcraWrapper = AcraWrapper()
+    private val logger: Logger = SentryLogger()
 ) : RemoteAppsSource {
 
     // Allows destructing of the list of application elements
@@ -61,7 +59,7 @@ class GithubAppsFetcher(
             appsList.toList()
         } catch (err: Exception) {
             val exception = IOException("Error getting apps list")
-            acraWrapper.logException(exception)
+            logger.addExceptionBreadcrumb(exception)
             throw exception
         }
     }

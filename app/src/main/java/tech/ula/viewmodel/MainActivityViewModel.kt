@@ -20,7 +20,7 @@ import kotlin.coroutines.CoroutineContext
 class MainActivityViewModel(
     private val appsStartupFsm: AppsStartupFsm,
     private val sessionStartupFsm: SessionStartupFsm,
-    private val acraWrapper: AcraWrapper = AcraWrapper()
+    private val logger: Logger = SentryLogger()
 ) : ViewModel(), CoroutineScope {
 
     private var appsAreWaitingForSelection = false
@@ -45,7 +45,7 @@ class MainActivityViewModel(
     // seems to organize them by line number.
     @Suppress("NOTHING_TO_INLINE")
     private inline fun postIllegalStateWithLog(newState: IllegalState) {
-        acraWrapper.silentlySendIllegalStateReport(newState)
+        logger.sendIllegalStateLog(newState)
         state.postValue(newState)
     }
 
@@ -60,7 +60,7 @@ class MainActivityViewModel(
 
     init {
         state.addSource(appsState) { it?.let { update ->
-            acraWrapper.putCustomString("Last observed app state from viewmodel", "$update")
+            logger.addBreadcrumb("Last observed app state from viewmodel", "$update")
             // Update stateful variables before handling the update so they can be used during it
             if (update !is WaitingForAppSelection) {
                 appsAreWaitingForSelection = false
@@ -82,7 +82,7 @@ class MainActivityViewModel(
             handleAppsPreparationState(update)
         } }
         state.addSource(sessionState) { it?.let { update ->
-            acraWrapper.putCustomString("Last observed session state from viewmodel", "$update")
+            logger.addBreadcrumb("Last observed session state from viewmodel", "$update")
             handleSessionPreparationState(update)
         } }
     }
@@ -405,12 +405,12 @@ class MainActivityViewModel(
     }
 
     private fun submitAppsStartupEvent(event: AppsStartupEvent) {
-        acraWrapper.putCustomString("Last viewmodel apps event submission", "$event")
+        logger.addBreadcrumb("Last viewmodel apps event submission", "$event")
         appsStartupFsm.submitEvent(event, this)
     }
 
     private fun submitSessionStartupEvent(event: SessionStartupEvent) {
-        acraWrapper.putCustomString("Last viewmodel session event submission", "$event")
+        logger.addBreadcrumb("Last viewmodel session event submission", "$event")
         sessionStartupFsm.submitEvent(event, this)
     }
 }

@@ -39,7 +39,7 @@ class SentryLogger : Logger {
     }
 
     override fun addExceptionBreadcrumb(err: Exception) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
     }
 
     override fun sendIllegalStateLog(state: IllegalState) {

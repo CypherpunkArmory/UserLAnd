@@ -17,11 +17,9 @@ import android.os.StatFs
 import androidx.core.content.ContextCompat
 import android.util.DisplayMetrics
 import android.view.WindowManager
-import org.acra.ACRA
 import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
-import tech.ula.viewmodel.IllegalState
 import java.io.File
 import java.io.InputStream
 import java.net.HttpURLConnection
@@ -266,7 +264,7 @@ class BuildWrapper {
                 }
         return if (supportedABIS.size == 1 && supportedABIS[0] == "") {
             val exception = IllegalStateException("No supported ABI!")
-            AcraWrapper().logException(exception)
+            SentryLogger().addExceptionBreadcrumb(exception)
             throw exception
         } else {
             supportedABIS[0]
