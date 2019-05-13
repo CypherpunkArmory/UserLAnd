@@ -8,17 +8,8 @@ apply plugin: 'kotlin-kapt'
 
 apply plugin: 'jacoco'
 
-File tracepotPropertiesFile = file("$projectDir/tracepot.properties")
-
 android {
     compileSdkVersion 28
-
-    Properties tracepotProperties = new Properties()
-    if (tracepotPropertiesFile.exists()) {
-        tracepotProperties.load(new FileInputStream(tracepotPropertiesFile))
-    } else {
-        tracepotProperties.put('tracepotHttpsEndpoint', '""')
-    }
 
     defaultConfig {
         applicationId "tech.ula"
@@ -29,7 +20,6 @@ android {
         
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
-        buildConfigField 'String', 'tracepotHttpsEndpoint', tracepotProperties['tracepotHttpsEndpoint']
 
         javaCompileOptions {
             annotationProcessorOptions {
