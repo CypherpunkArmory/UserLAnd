@@ -53,7 +53,7 @@ class SentryLogger : Logger {
     }
 }
 
-//class AcraLogger : Logger {
+// class AcraLogger : Logger {
 //    override fun initialize(context: Context?) {
 //        val builder = CoreConfigurationBuilder(context!!)
 //        builder.setBuildConfigClass(BuildConfig::class.java)
@@ -82,4 +82,4 @@ class SentryLogger : Logger {
 //        addBreadcrumb("State when sending silent report", type)
 //        ACRA.getErrorReporter().handleSilentException(IllegalStateException(type))
 //    }
-//}
+// }
