@@ -9,13 +9,13 @@ class AssetFileClearer(
     private val filesDir: File,
     private val assetDirectoryNames: Set<String>,
     private val busyboxExecutor: BusyboxExecutor,
-    private val acraWrapper: AcraWrapper = AcraWrapper()
+    private val logger: Logger = SentryLogger()
 ) {
     @Throws(Exception::class)
     suspend fun clearAllSupportAssets() {
         if (!filesDir.exists()) {
             val exception = FileNotFoundException()
-            acraWrapper.logException(exception)
+            logger.addExceptionBreadcrumb(exception)
             throw exception
         }
         clearFilesystemSupportAssets()
@@ -32,7 +32,7 @@ class AssetFileClearer(
             if (file.name == supportDirName) continue
             if (busyboxExecutor.recursivelyDelete(file.absolutePath) !is SuccessfulExecution) {
                 val exception = IOException()
-                acraWrapper.logException(exception)
+                logger.addExceptionBreadcrumb(exception)
                 throw exception
             }
         }
@@ -40,7 +40,7 @@ class AssetFileClearer(
         if (supportDir.exists()) {
             if (busyboxExecutor.recursivelyDelete(supportDir.absolutePath) !is SuccessfulExecution) {
                 val exception = IOException()
-                acraWrapper.logException(exception)
+                logger.addExceptionBreadcrumb(exception)
                 throw exception
             }
         }
@@ -60,7 +60,7 @@ class AssetFileClearer(
                 // Use deleteRecursively to match functionality above
                 if (busyboxExecutor.recursivelyDelete(supportFile.path) !is SuccessfulExecution) {
                     val exception = IOException()
-                    acraWrapper.logException(exception)
+                    logger.addExceptionBreadcrumb(exception)
                     throw exception
                 }
             }

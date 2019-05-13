@@ -55,7 +55,7 @@ fastlane/metadata/android/*/changelogs
 
 # Google Services (e.g. APIs or Firebase)
 google-services.json
-app/tracepot.properties
+app/src/main/resources/sentry.properties
 
 # Freeline
 freeline.py

@@ -102,10 +102,13 @@ reference:
       name: Decode Play store key
       command: echo $PLAY_KEY | base64 -di > ${HOME}/play-key.json
 
-  export_tracepot_endpoint: &export_tracepot_endpoint
+  configure_sentry: &configure_sentry
     run:
       name: Export tracepot https environment variable
-      command: echo "tracepotHttpsEndpoint=$TRACEPOT_ENDPOINT" >> app/tracepot.properties
+      command: |
+        mkdir app/src/main/resources
+        echo "dsn=$SENTRY_DSN" >> app/src/main/resources/sentry.properties
+        echo "environment=production" >> app/src/main/resources/sentry.properties
 
   early_return_for_forked_pull_requests: &early_return_for_forked_pull_requests
     run:
@@ -145,7 +148,7 @@ jobs:
       - *save_cache
       - *export_android_key
       - *decode_android_key
-      - *export_tracepot_endpoint
+      - *configure_sentry
       - run:
           name: Run ktlint
           command: ./gradlew ktlint

@@ -10,7 +10,7 @@ import java.io.IOException
 class FilesystemUtility(
     private val applicationFilesDirPath: String,
     private val busyboxExecutor: BusyboxExecutor,
-    private val acraWrapper: AcraWrapper = AcraWrapper()
+    private val logger: Logger = SentryLogger()
 ) {
 
     private val filesystemExtractionSuccess = ".success_filesystem_extraction"
@@ -116,7 +116,7 @@ class FilesystemUtility(
         val result = busyboxExecutor.recursivelyDelete(filesystemDirectory.absolutePath)
         if (result is FailedExecution) {
             val err = IOException()
-            acraWrapper.logException(err)
+            logger.addExceptionBreadcrumb(err)
             throw err
         }
     }
@@ -134,7 +134,7 @@ class FilesystemUtility(
             appScriptSource.copyTo(appScriptProfileDTarget, overwrite = true)
         } catch (err: Exception) {
             val exception = IOException()
-            acraWrapper.logException(exception)
+            logger.addExceptionBreadcrumb(exception)
             throw exception
         }
     }
