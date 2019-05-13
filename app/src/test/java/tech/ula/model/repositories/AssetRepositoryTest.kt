@@ -13,7 +13,7 @@ import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.remote.GithubApiClient
-import tech.ula.utils.AcraWrapper
+import tech.ula.utils.Logger
 import tech.ula.utils.AssetPreferences
 import tech.ula.utils.ConnectionUtility
 import java.io.File
@@ -34,7 +34,7 @@ class AssetRepositoryTest {
 
     @Mock lateinit var mockConnectionUtility: ConnectionUtility
 
-    @Mock lateinit var mockAcraWrapper: AcraWrapper
+    @Mock lateinit var mockLogger: Logger
 
     private lateinit var assetRepository: AssetRepository
 
@@ -102,7 +102,7 @@ class AssetRepositoryTest {
     fun setup() {
         applicationFilesDirPath = tempFolder.root.absolutePath
 
-        assetRepository = AssetRepository(applicationFilesDirPath, mockAssetPreferences, mockGithubApiClient, mockConnectionUtility, mockAcraWrapper)
+        assetRepository = AssetRepository(applicationFilesDirPath, mockAssetPreferences, mockGithubApiClient, mockConnectionUtility, mockLogger)
     }
 
     @Test(expected = IllegalStateException::class)
@@ -113,7 +113,7 @@ class AssetRepositoryTest {
             assetRepository.generateDownloadRequirements(filesystem, assetLists, true)
         }
 
-        verify(mockAcraWrapper).logException(IOException())
+        verify(mockLogger).addExceptionBreadcrumb(IOException())
     }
 
     @Test

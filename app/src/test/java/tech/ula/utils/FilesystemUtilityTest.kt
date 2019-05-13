@@ -24,7 +24,7 @@ class FilesystemUtilityTest {
 
     @Mock lateinit var mockBusyboxExecutor: BusyboxExecutor
 
-    @Mock lateinit var mockAcraWrapper: AcraWrapper
+    @Mock lateinit var mockLogger: Logger
 
     private val statelessListener: (line: String) -> Unit = { }
 
@@ -36,7 +36,7 @@ class FilesystemUtilityTest {
     @Before
     fun setup() {
         applicationFilesDirPath = tempFolder.root.path
-        filesystemUtility = FilesystemUtility(applicationFilesDirPath, mockBusyboxExecutor, mockAcraWrapper)
+        filesystemUtility = FilesystemUtility(applicationFilesDirPath, mockBusyboxExecutor, mockLogger)
     }
 
     @Test
@@ -363,7 +363,7 @@ class FilesystemUtilityTest {
             filesystemUtility.deleteFilesystem(100)
         }
         verifyBlocking(mockBusyboxExecutor) { recursivelyDelete(testDir.absolutePath) }
-        verify(mockAcraWrapper).logException(IOException())
+        verify(mockLogger).addExceptionBreadcrumb(IOException())
     }
 
     @Test
@@ -397,6 +397,6 @@ class FilesystemUtilityTest {
 
         filesystemUtility.moveAppScriptToRequiredLocation(sourceAppName, filesystem)
 
-        verify(mockAcraWrapper).logException(IOException())
+        verify(mockLogger).addExceptionBreadcrumb(IOException())
     }
 }
