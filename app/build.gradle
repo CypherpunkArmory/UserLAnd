@@ -176,9 +176,10 @@ task jacocoCoverageReportForCi(type: JacocoReport, dependsOn: ['testDebugUnitTes
 }
 
 dependencies {
-    def acra_version = '5.2.1'
     def moshi_version = '1.8.0'
     def okhttp_version = '3.13.1'
+    def sentry_version = '1.7.22'
+    def slf4j_version = '1.7.26'
 
     // Androidx versions
     def room_version = '2.1.0-alpha07'
@@ -203,13 +204,12 @@ dependencies {
     implementation "com.google.android.material:material:$support_library_version"
     implementation "androidx.preference:preference:$preference_version"
     ktlint "com.pinterest:ktlint:0.32.0"
-    implementation "ch.acra:acra-http:$acra_version"
     implementation "com.squareup.okhttp3:okhttp:$okhttp_version"
     implementation "com.squareup.moshi:moshi:$moshi_version"
     kapt "com.squareup.moshi:moshi-kotlin-codegen:$moshi_version"
     implementation 'org.rauschig:jarchivelib:0.8.0' // v1.0.0 breaks all sdk versions < 26 https://github.com/thrau/jarchivelib/issues/75
-    implementation 'io.sentry:sentry-android:1.7.16'
-    implementation 'org.slf4j:slf4j-nop:1.7.25'
+    implementation "io.sentry:sentry-android:$sentry_version"
+    implementation "org.slf4j:slf4j-nop:$slf4j_version"
 
     testImplementation 'junit:junit:4.12'
     testImplementation "org.mockito:mockito-core:$mockito_version"
