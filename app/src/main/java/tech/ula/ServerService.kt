@@ -197,7 +197,7 @@ class ServerService : Service() {
         // TODO This could potentially be handled by the main activity (viewmodel) now
         if (filesystemId == (-1).toLong()) {
             val exception = IllegalStateException("Did not receive filesystemId")
-            AcraWrapper().logException(exception)
+            SentryLogger().addExceptionBreadcrumb(exception)
             throw exception
         }
 

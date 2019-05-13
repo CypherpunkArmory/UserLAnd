@@ -15,7 +15,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
-import tech.ula.utils.AcraWrapper
+import tech.ula.utils.Logger
 import tech.ula.utils.BuildWrapper
 import java.io.IOException
 
@@ -28,7 +28,7 @@ class GithubApiClientTest {
 
     @Mock lateinit var mockUrlProvider: UrlProvider
 
-    @Mock lateinit var mockAcraWrapper: AcraWrapper
+    @Mock lateinit var mockLogger: Logger
 
     private val moshi = Moshi.Builder().build()
 
@@ -78,7 +78,7 @@ class GithubApiClientTest {
     fun setup() {
         whenever(mockBuildWrapper.getArchType()).thenReturn(testArch)
 
-        githubApiClient = GithubApiClient(mockBuildWrapper, mockUrlProvider, mockAcraWrapper)
+        githubApiClient = GithubApiClient(mockBuildWrapper, mockUrlProvider, mockLogger)
     }
 
     @After
@@ -142,7 +142,7 @@ class GithubApiClientTest {
 
         runBlocking { githubApiClient.getAssetsListDownloadUrl(testRepo) }
 
-        verify(mockAcraWrapper.logException(IOException()))
+        verify(mockLogger.addExceptionBreadcrumb(IOException()))
     }
 
     @Test
@@ -185,7 +185,7 @@ class GithubApiClientTest {
 
         runBlocking { githubApiClient.getLatestReleaseVersion(testRepo) }
 
-        verify(mockAcraWrapper.logException(IOException()))
+        verify(mockLogger.addExceptionBreadcrumb(IOException()))
     }
 
     @Test
@@ -228,7 +228,7 @@ class GithubApiClientTest {
 
         runBlocking { githubApiClient.getAssetEndpoint(testAssetType, testRepo) }
 
-        verify(mockAcraWrapper).logException(IOException())
+        verify(mockLogger).addExceptionBreadcrumb(IOException())
     }
 
     @Test

@@ -3,7 +3,6 @@ package tech.ula
 import android.Manifest
 import android.annotation.TargetApi
 import android.app.AlertDialog
-import android.app.Application
 import android.app.DownloadManager
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -54,11 +53,6 @@ import tech.ula.ui.SessionListFragment
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import kotlinx.android.synthetic.main.dia_app_select_client.*
-import org.acra.ACRA
-import org.acra.config.CoreConfigurationBuilder
-import org.acra.config.HttpSenderConfigurationBuilder
-import org.acra.data.StringFormat
-import org.acra.sender.HttpSender
 import tech.ula.ui.FilesystemListFragment
 import tech.ula.model.repositories.DownloadMetadata
 
@@ -71,7 +65,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private var progressBarIsVisible = false
     private var currentFragmentDisplaysProgressDialog = false
 
-    private val acraWrapper = AcraWrapper()
+    private val logger = SentryLogger()
 
     private val navController: NavController by lazy {
         findNavController(R.id.nav_host_fragment)
@@ -96,7 +90,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private val serverServiceBroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             intent.getStringExtra("type")?.let { intentType ->
-                acraWrapper.putCustomString("Last service broadcast received", intentType)
+                logger.addBreadcrumb("Last service broadcast received", intentType)
                 when (intentType) {
                     "sessionActivated" -> handleSessionHasBeenActivated()
                     "dialog" -> {
@@ -138,7 +132,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        startAcra()
+        logger.initialize(applicationContext)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
         notificationManager.createServiceNotificationChannel() // Android O requirement
@@ -161,17 +155,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             setupReviewRequestUI()
 
         viewModel.getState().observe(this, stateObserver)
-    }
-
-    private fun startAcra() {
-        val builder = CoreConfigurationBuilder(applicationContext)
-        builder.setBuildConfigClass(BuildConfig::class.java)
-                .setReportFormat(StringFormat.JSON)
-        builder.getPluginConfigurationBuilder(HttpSenderConfigurationBuilder::class.java)
-                .setUri(BuildConfig.tracepotHttpsEndpoint)
-                .setHttpMethod(HttpSender.Method.POST)
-                .setEnabled(true)
-        ACRA.init(applicationContext as Application, builder)
     }
 
     private fun setupReviewRequestUI() {
@@ -252,7 +235,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     override fun onResume() {
         super.onResume()
 
-        acraWrapper.putCustomString("Last call to onResume", "${System.currentTimeMillis()}")
+        logger.addBreadcrumb("Last call to onResume", "${System.currentTimeMillis()}")
         viewModel.handleOnResume()
         val intent = Intent(this, ServerService::class.java)
                 .putExtra("type", "isProgressBarActive")
@@ -275,7 +258,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     override fun onStop() {
         super.onStop()
 
-        acraWrapper.putCustomString("Last call to onStop", "${System.currentTimeMillis()}")
+        logger.addBreadcrumb("Last call to onStop", "${System.currentTimeMillis()}")
         LocalBroadcastManager.getInstance(this)
                 .unregisterReceiver(serverServiceBroadcastReceiver)
         unregisterReceiver(downloadBroadcastReceiver)
@@ -300,7 +283,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleStateUpdate(newState: State) {
-        acraWrapper.putCustomString("Last observed state from viewmodel", "$newState")
+        logger.addBreadcrumb("Last observed state from viewmodel", "$newState")
         return when (newState) {
             is CanOnlyStartSingleSession -> { showToast(R.string.single_session_supported) }
             is SessionCanBeStarted -> { prepareSessionForStart(newState.session) }
@@ -397,7 +380,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleUserInputState(state: UserInputRequiredState) {
-        acraWrapper.putCustomString("Last handled user input state", "$state")
+        logger.addBreadcrumb("Last handled user input state", "$state")
         return when (state) {
             is LowStorageAcknowledgementRequired -> {
                 displayLowStorageDialog()
@@ -508,7 +491,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleProgressBarUpdateState(state: ProgressBarUpdateState) {
-        acraWrapper.putCustomString("Last handled progress bar update state", "$state")
+        logger.addBreadcrumb("Last handled progress bar update state", "$state")
         return when (state) {
             is StartingSetup -> {
                 val step = getString(R.string.progress_start_step)

@@ -46,7 +46,7 @@ class SessionStartupFsmTest {
 
     @Mock lateinit var mockStateObserver: Observer<SessionStartupState>
 
-    @Mock lateinit var mockAcraWrapper: AcraWrapper
+    @Mock lateinit var mockLogger: Logger
 
     @Mock lateinit var mockStorageUtility: StorageUtility
 
@@ -119,7 +119,7 @@ class SessionStartupFsmTest {
         whenever(mockUlaDatabase.filesystemDao()).thenReturn(mockFilesystemDao)
         whenever(mockFilesystemDao.getAllFilesystems()).thenReturn(filesystemLiveData)
 
-        sessionFsm = SessionStartupFsm(mockUlaDatabase, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility, mockStorageUtility, mockAcraWrapper)
+        sessionFsm = SessionStartupFsm(mockUlaDatabase, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility, mockStorageUtility, mockLogger)
     }
 
     @After
