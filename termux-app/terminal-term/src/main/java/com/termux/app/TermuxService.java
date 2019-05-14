@@ -44,6 +44,8 @@ import java.util.regex.Pattern;
  */
 public final class TermuxService extends Service implements SessionChangedCallback {
 
+    private String TAG = "TermuxService";
+
     private static final String NOTIFICATION_CHANNEL_ID = "termux_notification_channel";
 
     /** Note that this is a symlink on the Android M preview. */
@@ -107,12 +109,12 @@ public final class TermuxService extends Service implements SessionChangedCallba
         } else if (ACTION_LOCK_WAKE.equals(action)) {
             if (mWakeLock == null) {
                 PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-                mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, EmulatorDebug.LOG_TAG);
+                mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG + ":" + EmulatorDebug.LOG_TAG);
                 mWakeLock.acquire();
 
                 // http://tools.android.com/tech-docs/lint-in-studio-2-3#TOC-WifiManager-Leak
                 WifiManager wm = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-                mWifiLock = wm.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, EmulatorDebug.LOG_TAG);
+                mWifiLock = wm.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, TAG + ":" + EmulatorDebug.LOG_TAG);
                 mWifiLock.acquire();
 
                 updateNotification();
