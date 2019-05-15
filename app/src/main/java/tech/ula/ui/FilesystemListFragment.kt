@@ -18,12 +18,9 @@ import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.utils.BusyboxExecutor
-import tech.ula.utils.DefaultPreferences
-import tech.ula.utils.FilesystemUtility
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.entities.Session
-import tech.ula.utils.defaultSharedPreferences
+import tech.ula.utils.*
 import tech.ula.viewmodel.FilesystemListViewModel
 
 class FilesystemListFragment : Fragment() {
@@ -44,7 +41,8 @@ class FilesystemListFragment : Fragment() {
     private val filesystemListViewModel: FilesystemListViewModel by lazy {
         val filesystemDao = UlaDatabase.getInstance(activityContext).filesystemDao()
         val sessionDao = UlaDatabase.getInstance(activityContext).sessionDao()
-        val busyboxExecutor = BusyboxExecutor(activityContext.filesDir, externalStorageDir, DefaultPreferences(activityContext.defaultSharedPreferences))
+        val prootDebugLogger = ProotDebugLogger(DefaultPreferences(activityContext.defaultSharedPreferences), activityContext.storageRoot.path)
+        val busyboxExecutor = BusyboxExecutor(activityContext.filesDir, externalStorageDir, prootDebugLogger)
         val filesystemUtility = FilesystemUtility(activityContext.filesDir.absolutePath, busyboxExecutor)
         ViewModelProviders.of(this, FilesystemListViewmodelFactory(filesystemDao, sessionDao, filesystemUtility)).get(FilesystemListViewModel::class.java)
     }

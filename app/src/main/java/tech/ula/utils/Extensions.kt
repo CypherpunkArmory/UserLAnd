@@ -8,6 +8,7 @@ import android.view.View
 import androidx.annotation.IdRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
+import java.io.File
 
 fun <A, B> zipLiveData(a: LiveData<A>, b: LiveData<B>): LiveData<Pair<A, B>> {
     return MediatorLiveData<Pair<A, B>>().apply {
@@ -31,6 +32,13 @@ fun <A, B> zipLiveData(a: LiveData<A>, b: LiveData<B>): LiveData<Pair<A, B>> {
         }
     }
 }
+
+inline val Context.storageRoot: File
+    get() = this.getExternalFilesDir(null) ?: run {
+        val storageRoot = File(this.filesDir, "storage")
+        storageRoot.mkdirs()
+        storageRoot
+    }
 
 inline val Context.defaultSharedPreferences: SharedPreferences
     get() = PreferenceManager.getDefaultSharedPreferences(this)
