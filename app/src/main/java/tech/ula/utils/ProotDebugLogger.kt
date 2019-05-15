@@ -13,7 +13,7 @@ class ProotDebugLogger(defaultSharedPreferences: SharedPreferences, storageRootP
         get() = prefs.getBoolean("pref_proot_debug_enabled", false)
 
     val verbosityLevel
-        get() = prefs.getString("pref_proot_debug_level", "-1") ?: ""
+        get() = prefs.getString("pref_proot_debug_level", "-1") ?: "-1"
 
     private val logLocation = "$storageRootPath/Proot_Debug_Log.txt"
 
