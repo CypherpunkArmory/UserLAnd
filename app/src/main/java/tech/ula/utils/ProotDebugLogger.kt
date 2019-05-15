@@ -1,13 +1,19 @@
 package tech.ula.utils
 
+import android.content.SharedPreferences
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.InputStream
 
-class ProotDebugLogger(defaultPreferences: DefaultPreferences, storageRootPath: String) {
-    val isEnabled = defaultPreferences.getProotDebuggingEnabled()
-    val verbosityLevel = defaultPreferences.getProotDebuggingLevel()
+class ProotDebugLogger(defaultSharedPreferences: SharedPreferences, storageRootPath: String) {
+    private val prefs = defaultSharedPreferences
+
+    val isEnabled: Boolean
+        get() = prefs.getBoolean("pref_proot_debug_enabled", false)
+
+    val verbosityLevel
+        get() = prefs.getString("pref_proot_debug_level", "-1") ?: ""
 
     private val logLocation = "$storageRootPath/Proot_Debug_Log.txt"
 

@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private var currentFragmentDisplaysProgressDialog = false
 
     private val logger = SentryLogger()
-    private val prootDebugLogger = ProotDebugLogger(DefaultPreferences(this.defaultSharedPreferences), this.storageRoot.path)
+    private val prootDebugLogger = ProotDebugLogger(this.defaultSharedPreferences, this.storageRoot.path)
     private val busyboxExecutor = BusyboxExecutor(filesDir, Environment.getExternalStorageDirectory(), prootDebugLogger)
 
     private val navController: NavController by lazy {

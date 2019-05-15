@@ -94,21 +94,6 @@ class StorageUtility(private val statFs: StatFs) {
     }
 }
 
-class DefaultPreferences(private val prefs: SharedPreferences) {
-
-    fun getProotDebuggingEnabled(): Boolean {
-        return prefs.getBoolean("pref_proot_debug_enabled", false)
-    }
-
-    fun getProotDebuggingLevel(): String {
-        return prefs.getString("pref_proot_debug_level", "-1") ?: ""
-    }
-
-    fun getProotDebugLogLocation(): String {
-        return prefs.getString("pref_proot_debug_log_location", "${Environment.getExternalStorageDirectory().path}/PRoot_Debug_Log") ?: ""
-    }
-}
-
 class AssetPreferences(private val prefs: SharedPreferences) {
 
     private val versionString = "version"

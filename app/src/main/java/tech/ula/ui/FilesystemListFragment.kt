@@ -41,7 +41,7 @@ class FilesystemListFragment : Fragment() {
     private val filesystemListViewModel: FilesystemListViewModel by lazy {
         val filesystemDao = UlaDatabase.getInstance(activityContext).filesystemDao()
         val sessionDao = UlaDatabase.getInstance(activityContext).sessionDao()
-        val prootDebugLogger = ProotDebugLogger(DefaultPreferences(activityContext.defaultSharedPreferences), activityContext.storageRoot.path)
+        val prootDebugLogger = ProotDebugLogger(activityContext.defaultSharedPreferences, activityContext.storageRoot.path)
         val busyboxExecutor = BusyboxExecutor(activityContext.filesDir, externalStorageDir, prootDebugLogger)
         val filesystemUtility = FilesystemUtility(activityContext.filesDir.absolutePath, busyboxExecutor)
         ViewModelProviders.of(this, FilesystemListViewmodelFactory(filesystemDao, sessionDao, filesystemUtility)).get(FilesystemListViewModel::class.java)
