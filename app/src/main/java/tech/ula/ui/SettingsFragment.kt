@@ -66,7 +66,6 @@ class SettingsFragment : PreferenceFragmentCompat(), CoroutineScope {
                     else Toast.makeText(activity, R.string.debug_log_export_failure, Toast.LENGTH_LONG).show()
                 }
             }
-
         }
     }
 

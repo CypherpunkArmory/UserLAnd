@@ -20,7 +20,7 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.entities.Session
-import tech.ula.utils.*
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.FilesystemListViewModel
 
 class FilesystemListFragment : Fragment() {

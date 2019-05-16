@@ -1,14 +1,11 @@
 package tech.ula.utils
 
 import android.content.ContentResolver
-import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
-import androidx.core.net.toUri
 import com.nhaarman.mockitokotlin2.whenever
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.*
+import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -104,7 +101,7 @@ class ProotDebugLoggerTest {
     }
 
     @Test
-    fun `copyLogToDestination returns false on failure`() {
+    fun `copyLogToDestination returns false on failure if log file does not exist`() {
         val destinationFile = File(tempFolder.root, "destination")
 
         whenever(mockContentResolver.openOutputStream(mockUri, "w"))

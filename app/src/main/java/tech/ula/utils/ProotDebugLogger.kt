@@ -1,17 +1,13 @@
 package tech.ula.utils
 
 import android.content.ContentResolver
-import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
-import androidx.core.net.toFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.FileOutputStream
 import java.io.InputStream
 
 class ProotDebugLogger(defaultSharedPreferences: SharedPreferences, storageRootPath: String) {
@@ -27,8 +23,8 @@ class ProotDebugLogger(defaultSharedPreferences: SharedPreferences, storageRootP
     private val logLocation = "$storageRootPath/$logName"
 
     fun logStream(
-            inputStream: InputStream,
-            coroutineScope: CoroutineScope
+        inputStream: InputStream,
+        coroutineScope: CoroutineScope
     ) = coroutineScope.launch {
         val prootLogFile = File(logLocation)
         if (prootLogFile.exists()) {
@@ -45,7 +41,6 @@ class ProotDebugLogger(defaultSharedPreferences: SharedPreferences, storageRootP
 
     suspend fun copyLogToDestination(uri: Uri, contentResolver: ContentResolver): Boolean = withContext(Dispatchers.IO) {
         val logFile = File(logLocation)
-        if (!logFile.exists()) return@withContext false
         try {
             contentResolver.openOutputStream(uri, "w")?.use { outputStream ->
                     outputStream.write(logFile.readText().toByteArray())
