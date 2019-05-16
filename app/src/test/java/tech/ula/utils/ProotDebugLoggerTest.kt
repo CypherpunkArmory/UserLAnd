@@ -59,7 +59,6 @@ class ProotDebugLoggerTest {
         val outputFile = File(tempFolder.root, "test")
         val logFile = File(tempFolder.root, logName)
 
-        outputFile.createNewFile()
         outputFile.writeText(originalText)
         assertFalse(logFile.exists())
 
@@ -75,7 +74,6 @@ class ProotDebugLoggerTest {
         val outputFile = File(tempFolder.root, "test")
         val logFile = File(tempFolder.root, logName)
 
-        outputFile.createNewFile()
         outputFile.writeText(originalText)
         logFile.writeText("world hello")
 
@@ -90,7 +88,6 @@ class ProotDebugLoggerTest {
         val originalText = "copy world"
         val logFile = File(tempFolder.root, logName)
 
-        logFile.createNewFile()
         logFile.writeText(originalText)
 
         val destinationFile = File(tempFolder.root, "destination")

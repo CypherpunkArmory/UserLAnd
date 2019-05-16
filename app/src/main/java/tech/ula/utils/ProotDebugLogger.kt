@@ -19,7 +19,7 @@ class ProotDebugLogger(defaultSharedPreferences: SharedPreferences, storageRootP
     val verbosityLevel
         get() = prefs.getString("pref_proot_debug_level", "-1") ?: "-1"
 
-    val logName = "PRoot_Debug_Log.txt"
+    val logName = "Proot_Debug_Log.txt"
     private val logLocation = "$storageRootPath/$logName"
 
     fun logStream(
