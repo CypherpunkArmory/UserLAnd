@@ -228,7 +228,9 @@
     <string name="filesystem_unique_name_required">Filesystems require a unique name!</string>
     <string name="single_session_supported">UserLAnd currently only supports a single active session!</string>
     <string name="no_supported_architecture">UserLAnd does not currently support your devices architecture.</string>
-    <string name="debug_log_deleted">Debug log deleted or does not exist!</string>
+    <string name="debug_log_export_success">Debug log exported successfully!</string>
+    <string name="debug_log_export_failure">Exporting debug log failed!</string>
+    <string name="debug_log_deleted">Debug log deleted!</string>
 
     <!-- Content descriptions -->
     <string name="desc_arrow">Image: Arrow denoting connection between session and filesystem.</string>

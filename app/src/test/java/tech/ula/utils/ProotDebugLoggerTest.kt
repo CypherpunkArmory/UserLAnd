@@ -17,6 +17,7 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import java.io.File
+import java.io.FileNotFoundException
 
 @RunWith(MockitoJUnitRunner::class)
 class ProotDebugLoggerTest {
@@ -86,7 +87,7 @@ class ProotDebugLoggerTest {
     }
 
     @Test
-    fun `Copies log to a URI-specified destination`() {
+    fun `copyLogToDestination copies log to a URI-specified destination and returns true on success`() {
         val originalText = "copy world"
         val logFile = File(tempFolder.root, logName)
         logFile.writeText(originalText)
@@ -96,8 +97,22 @@ class ProotDebugLoggerTest {
         whenever(mockContentResolver.openOutputStream(mockUri, "w"))
                 .thenReturn(destinationFile.outputStream())
 
-        runBlocking { prootDebugLogger.copyLogToDestination(mockUri, mockContentResolver) }
+        val result = runBlocking { prootDebugLogger.copyLogToDestination(mockUri, mockContentResolver) }
 
         assertEquals(originalText, destinationFile.readText().trim())
+        assertTrue(result)
+    }
+
+    @Test
+    fun `copyLogToDestination returns false on failure`() {
+        val destinationFile = File(tempFolder.root, "destination")
+
+        whenever(mockContentResolver.openOutputStream(mockUri, "w"))
+                .thenThrow(FileNotFoundException())
+
+        val result = runBlocking { prootDebugLogger.copyLogToDestination(mockUri, mockContentResolver) }
+
+        assertFalse(destinationFile.exists())
+        assertFalse(result)
     }
 }

@@ -62,8 +62,8 @@ class SettingsFragment : PreferenceFragmentCompat(), CoroutineScope {
             data?.data?.let {
                 launch {
                     val result = prootDebugLogger.copyLogToDestination(it, activity!!.contentResolver)
-                    if (result) Toast.makeText(activity, "success", Toast.LENGTH_LONG).show()
-                    else Toast.makeText(activity, "failure", Toast.LENGTH_LONG).show()
+                    if (result) Toast.makeText(activity, R.string.debug_log_export_success, Toast.LENGTH_LONG).show()
+                    else Toast.makeText(activity, R.string.debug_log_export_failure, Toast.LENGTH_LONG).show()
                 }
             }
 
