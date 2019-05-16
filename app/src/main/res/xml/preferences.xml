@@ -35,6 +35,11 @@
             app:iconSpaceReserved="false"/>
         <Preference
             android:dependency="pref_proot_debug_enabled"
+            android:key="pref_proot_export_debug_file"
+            android:title="@string/pref_proot_export_debug_file_title"
+            app:iconSpaceReserved="false" />
+        <Preference
+            android:dependency="pref_proot_debug_enabled"
             android:key="pref_proot_delete_debug_file"
             android:title="@string/pref_proot_delete_debug_file_title"
             app:iconSpaceReserved="false"/>

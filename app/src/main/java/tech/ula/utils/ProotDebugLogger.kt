@@ -1,9 +1,14 @@
 package tech.ula.utils
 
+import android.content.ContentResolver
+import android.content.Intent
 import android.content.SharedPreferences
+import android.net.Uri
+import androidx.core.net.toFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.File
+import java.io.FileOutputStream
 import java.io.InputStream
 
 class ProotDebugLogger(defaultSharedPreferences: SharedPreferences, storageRootPath: String) {
@@ -15,7 +20,8 @@ class ProotDebugLogger(defaultSharedPreferences: SharedPreferences, storageRootP
     val verbosityLevel
         get() = prefs.getString("pref_proot_debug_level", "-1") ?: "-1"
 
-    private val logLocation = "$storageRootPath/Proot_Debug_Log.txt"
+    private val logName = "PRoot_Debug_Log.txt"
+    private val logLocation = "$storageRootPath/$logName"
 
     fun logStream(
             inputStream: InputStream,
@@ -32,5 +38,36 @@ class ProotDebugLogger(defaultSharedPreferences: SharedPreferences, storageRootP
         reader.close()
         writer.flush()
         writer.close()
+    }
+
+    fun generateCreateIntent(): Intent {
+        // TODO remove
+        File(logLocation).writeText("test")
+
+        return Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TITLE, logName)
+        }
+    }
+
+    fun copyLogToDestination(uri: Uri, contentResolver: ContentResolver): Boolean {
+        val logFile = File(logLocation)
+        if (!logFile.exists()) return false
+        return try {
+            contentResolver.openFileDescriptor(uri, "w")?.use { parcelFileDescriptor ->
+                FileOutputStream(parcelFileDescriptor.fileDescriptor).use { outputStream ->
+                    outputStream.write(logFile.readText().toByteArray())
+                }
+            }
+            true
+        } catch (err: Exception) {
+            false
+        }
+    }
+
+    fun deleteLog() {
+        val logFile = File(logLocation)
+        if (logFile.exists()) logFile.delete()
     }
 }
