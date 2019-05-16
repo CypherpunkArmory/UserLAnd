@@ -1,7 +1,11 @@
 package tech.ula.utils
 
+import android.content.ContentResolver
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
+import android.net.Uri
+import androidx.core.net.toUri
 import com.nhaarman.mockitokotlin2.whenever
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
@@ -20,6 +24,10 @@ class ProotDebugLoggerTest {
     @get:Rule val tempFolder = TemporaryFolder()
 
     @Mock lateinit var mockDefaultSharedPreferences: SharedPreferences
+
+    @Mock lateinit var mockContentResolver: ContentResolver
+
+    @Mock lateinit var mockUri: Uri
 
     private val logName = "Proot_Debug_Log.txt"
 
@@ -75,5 +83,21 @@ class ProotDebugLoggerTest {
 
         val logText = logFile.readText().trim()
         assertEquals(originalText, logText)
+    }
+
+    @Test
+    fun `Copies log to a URI-specified destination`() {
+        val originalText = "copy world"
+        val logFile = File(tempFolder.root, logName)
+        logFile.writeText(originalText)
+
+        val destinationFile = File(tempFolder.root, "destination")
+
+        whenever(mockContentResolver.openOutputStream(mockUri, "w"))
+                .thenReturn(destinationFile.outputStream())
+
+        runBlocking { prootDebugLogger.copyLogToDestination(mockUri, mockContentResolver) }
+
+        assertEquals(originalText, destinationFile.readText().trim())
     }
 }

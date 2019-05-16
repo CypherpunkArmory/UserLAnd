@@ -6,7 +6,10 @@ import android.content.SharedPreferences
 import android.net.Uri
 import androidx.core.net.toFile
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -20,7 +23,7 @@ class ProotDebugLogger(defaultSharedPreferences: SharedPreferences, storageRootP
     val verbosityLevel
         get() = prefs.getString("pref_proot_debug_level", "-1") ?: "-1"
 
-    private val logName = "PRoot_Debug_Log.txt"
+    val logName = "PRoot_Debug_Log.txt"
     private val logLocation = "$storageRootPath/$logName"
 
     fun logStream(
@@ -40,29 +43,16 @@ class ProotDebugLogger(defaultSharedPreferences: SharedPreferences, storageRootP
         writer.close()
     }
 
-    fun generateCreateIntent(): Intent {
-        // TODO remove
-        File(logLocation).writeText("test")
-
-        return Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TITLE, logName)
-        }
-    }
-
-    fun copyLogToDestination(uri: Uri, contentResolver: ContentResolver): Boolean {
+    suspend fun copyLogToDestination(uri: Uri, contentResolver: ContentResolver): Boolean = withContext(Dispatchers.IO) {
         val logFile = File(logLocation)
-        if (!logFile.exists()) return false
-        return try {
-            contentResolver.openFileDescriptor(uri, "w")?.use { parcelFileDescriptor ->
-                FileOutputStream(parcelFileDescriptor.fileDescriptor).use { outputStream ->
+        if (!logFile.exists()) return@withContext false
+        try {
+            contentResolver.openOutputStream(uri, "w")?.use { outputStream ->
                     outputStream.write(logFile.readText().toByteArray())
-                }
             }
-            true
+            return@withContext true
         } catch (err: Exception) {
-            false
+            return@withContext false
         }
     }
 

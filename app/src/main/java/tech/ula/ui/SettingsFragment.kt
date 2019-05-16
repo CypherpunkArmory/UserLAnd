@@ -9,24 +9,33 @@ import tech.ula.R
 import androidx.preference.PreferenceFragmentCompat
 import android.widget.Toast
 import androidx.preference.Preference
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import tech.ula.utils.ProotDebugLogger
 import tech.ula.utils.defaultSharedPreferences
 import tech.ula.utils.storageRoot
+import kotlin.coroutines.CoroutineContext
 
 private const val EXPORT_REQUEST_CODE = 42
 
-class SettingsFragment : PreferenceFragmentCompat() {
+class SettingsFragment : PreferenceFragmentCompat(), CoroutineScope {
 
     private val prootDebugLogger by lazy {
         ProotDebugLogger(activity!!.defaultSharedPreferences, activity!!.storageRoot.path)
     }
+
+    private val job = Job()
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.preferences)
 
         val exportFilePreference: Preference = findPreference("pref_proot_export_debug_file")!!
         exportFilePreference.setOnPreferenceClickListener {
-            val intent = prootDebugLogger.generateCreateIntent()
+            val intent = generateCreateIntent()
             startActivityForResult(intent, EXPORT_REQUEST_CODE)
             true
         }
@@ -51,9 +60,21 @@ class SettingsFragment : PreferenceFragmentCompat() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == EXPORT_REQUEST_CODE) {
             data?.data?.let {
-                prootDebugLogger.copyLogToDestination(it, activity!!.contentResolver)
+                launch {
+                    val result = prootDebugLogger.copyLogToDestination(it, activity!!.contentResolver)
+                    if (result) Toast.makeText(activity, "success", Toast.LENGTH_LONG).show()
+                    else Toast.makeText(activity, "failure", Toast.LENGTH_LONG).show()
+                }
             }
 
+        }
+    }
+
+    private fun generateCreateIntent(): Intent {
+        return Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TITLE, prootDebugLogger.logName)
         }
     }
 }
