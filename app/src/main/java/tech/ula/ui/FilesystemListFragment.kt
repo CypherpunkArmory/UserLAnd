@@ -13,6 +13,10 @@ import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_list.* // ktlint-disable no-wildcard-imports
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import tech.ula.MainActivity
 import tech.ula.R
 import tech.ula.ServerService
@@ -22,8 +26,11 @@ import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.entities.Session
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.FilesystemListViewModel
+import kotlin.coroutines.CoroutineContext
 
-class FilesystemListFragment : Fragment() {
+private const val FILESYSTEM_EXPORT_REQUEST_CODE = 7
+
+class FilesystemListFragment : Fragment(), CoroutineScope {
 
     interface ExportFilesystem {
         fun updateExportProgress(details: String)
@@ -62,8 +69,9 @@ class FilesystemListFragment : Fragment() {
                     activityContext.updateExportProgress(exportStatus.details)
                 }
                 is ExportSuccess -> {
-                    Toast.makeText(activityContext, R.string.export_success, Toast.LENGTH_LONG).show()
                     activityContext.stopExportProgress()
+                    val intent = createExportExternalIntent(exportStatus.backupName)
+                    startActivityForResult(intent, FILESYSTEM_EXPORT_REQUEST_CODE)
                 }
                 is ExportFailure -> {
                     val dialogBuilder = AlertDialog.Builder(activityContext)
@@ -85,6 +93,10 @@ class FilesystemListFragment : Fragment() {
     private val activeSessionObserver = Observer<List<Session>> {
         it?.let { sessions -> activeSessions = sessions }
     }
+
+    private val job = Job()
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -127,8 +139,20 @@ class FilesystemListFragment : Fragment() {
         return when (item.itemId) {
             R.id.menu_item_filesystem_edit -> editFilesystem(filesystem)
             R.id.menu_item_filesystem_delete -> deleteFilesystem(filesystem)
-            R.id.menu_item_filesystem_export -> exportFilesystem(filesystem, activeSessions)
+            R.id.menu_item_filesystem_export -> exportFilesystem(filesystem)
             else -> super.onContextItemSelected(item)
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == FILESYSTEM_EXPORT_REQUEST_CODE) {
+            data?.data?.let { uri ->
+                // TODO coroutines should be launched from a viewmodel scope to survive config changes
+                launch {
+                    filesystemListViewModel.copyExportToExternal("test", activityContext.storageRoot, uri, activityContext.contentResolver)
+                }
+            }
         }
     }
 
@@ -150,9 +174,17 @@ class FilesystemListFragment : Fragment() {
         return true
     }
 
-    private fun exportFilesystem(filesystem: Filesystem, activeSessions: List<Session>): Boolean {
-        val externalDestination = Environment.getExternalStoragePublicDirectory("UserLAnd")
-        filesystemListViewModel.startExport(filesystem, activeSessions, activityContext.filesDir, externalDestination)
+    private fun exportFilesystem(filesystem: Filesystem): Boolean {
+        val scopedExternalRoot = activityContext.storageRoot
+        filesystemListViewModel.startExport(filesystem, scopedExternalRoot)
         return true
+    }
+
+    private fun createExportExternalIntent(backupName: String): Intent {
+        return Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "application/*"
+            putExtra(Intent.EXTRA_TITLE, backupName)
+        }
     }
 }

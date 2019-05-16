@@ -1,5 +1,7 @@
 package tech.ula.viewmodel
 
+import android.content.ContentResolver
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -18,7 +20,7 @@ import tech.ula.utils.FailedExecution
 
 sealed class FilesystemExportStatus
 data class ExportUpdate(val details: String) : FilesystemExportStatus()
-object ExportSuccess : FilesystemExportStatus()
+data class ExportSuccess(val backupName: String) : FilesystemExportStatus()
 data class ExportFailure(val reason: Int, val details: String = "") : FilesystemExportStatus()
 object ExportStarted : FilesystemExportStatus()
 
@@ -66,48 +68,53 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
 
     fun compressFilesystemAndExportToStorage(
         filesystem: Filesystem,
-        filesDir: File,
-        externalStorageDirectory: File,
+        scopedExternalRoot: File,
         coroutineScope: CoroutineScope = this
     ) = coroutineScope.launch {
         withContext(Dispatchers.IO) {
             exportStatusLiveData.postValue(ExportStarted)
             val backupName = "${filesystem.name}-${filesystem.distributionType}-rootfs.tar.gz"
-            val externalBackupFile = File("${externalStorageDirectory.path}/$backupName")
-            val localTempBackupFile = File("${filesDir.path}/rootfs.tar.gz")
-            if (!externalStorageDirectory.exists()) externalStorageDirectory.mkdirs()
+            val scopedBackup = File("${scopedExternalRoot.path}/$backupName")
+            if (!scopedExternalRoot.exists()) scopedExternalRoot.mkdirs()
 
-            val result = filesystemUtility.compressFilesystem(filesystem, localTempBackupFile, exportUpdateListener)
+            val result = filesystemUtility.compressFilesystem(filesystem, scopedBackup, exportUpdateListener)
             if (result is FailedExecution) {
                 exportStatusLiveData.postValue(ExportFailure(R.string.error_export_execution_failure, result.reason))
-            }
-
-            if (!localTempBackupFile.exists()) {
-                exportStatusLiveData.postValue(ExportFailure(R.string.error_export_to_local_failed))
                 return@withContext
             }
 
-            try {
-                localTempBackupFile.copyTo(externalBackupFile)
-                localTempBackupFile.delete()
-            } catch (e: Exception) {
-                exportStatusLiveData.postValue(ExportFailure(R.string.error_export_to_external_failed))
-                localTempBackupFile.delete()
+            if (!scopedBackup.exists()) {
+                exportStatusLiveData.postValue(ExportFailure(R.string.error_export_scoped_failure))
                 return@withContext
             }
 
-            when (externalBackupFile.exists() && externalBackupFile.length() > 0) {
-                true -> exportStatusLiveData.postValue(ExportSuccess)
-                false -> exportStatusLiveData.postValue(ExportFailure(R.string.error_export_to_external_failed_no_data))
+            when (scopedBackup.exists() && scopedBackup.length() > 0) {
+                true -> exportStatusLiveData.postValue(ExportSuccess(backupName))
+                false -> exportStatusLiveData.postValue(ExportFailure(R.string.error_export_scoped_failure_no_data))
             }
         }
     }
 
-    fun startExport(filesystem: Filesystem, activeSessions: List<Session>, filesDir: File, externalDestination: File) {
-        if (activeSessions.isEmpty()) {
-            compressFilesystemAndExportToStorage(filesystem, filesDir, externalDestination)
+    fun startExport(filesystem: Filesystem, externalDestination: File) {
+        if (activeSessions.value!!.isEmpty()) {
+            compressFilesystemAndExportToStorage(filesystem, externalDestination)
         } else {
             exportStatusLiveData.postValue(ExportFailure(R.string.deactivate_sessions))
+        }
+    }
+
+    suspend fun copyExportToExternal(backupName: String, scopedExternalRootPath: File, uri: Uri, contentResolver: ContentResolver) = withContext(Dispatchers.IO) {
+        // TODO we should probably create a backups folder at least
+        val backupFile = File(scopedExternalRootPath, backupName)
+        try {
+            backupFile.inputStream().use { inputStream ->
+                contentResolver.openOutputStream(uri, "w")?.use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            }
+            return@withContext true
+        } catch (err: Exception) {
+            return@withContext false
         }
     }
 }

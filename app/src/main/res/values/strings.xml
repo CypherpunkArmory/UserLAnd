@@ -52,9 +52,8 @@
     <string name="error_username_in_blacklist">That username is possibly reserved by Linux and cannot be used as a filesystem username.</string>
     <string name="error_filesystem_name_invalid_characters">Characters in filesystem name must be 1 to 50 characters without characters such as \"/:*\\|</string>
     <string name="error_export_execution_failure">Exporting failed. Reason: %1$s</string>
-    <string name="error_export_to_local_failed">Exporting to local directory failed.</string>
-    <string name="error_export_to_external_failed">Exporting to external directory failed. A backup with the same name may already exist.</string>
-    <string name="error_export_to_external_failed_no_data">Exporting to external directory failed, exported file has no data.</string>
+    <string name="error_export_scoped_failure">Exporting to scoped external storage failed.</string>
+    <string name="error_export_scoped_failure_no_data">Exporting failed to create a file with data.</string>
 
     <!-- Download Failure Reasons -->
     <string name="download_failure_http_error">Http Error: %1$s</string>

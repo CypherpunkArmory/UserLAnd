@@ -60,6 +60,7 @@ class SettingsFragment : PreferenceFragmentCompat(), CoroutineScope {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == EXPORT_REQUEST_CODE) {
             data?.data?.let {
+                // TODO coroutines should be launched from a viewmodel scope to survive config changes
                 launch {
                     val result = prootDebugLogger.copyLogToDestination(it, activity!!.contentResolver)
                     if (result) Toast.makeText(activity, R.string.debug_log_export_success, Toast.LENGTH_LONG).show()
