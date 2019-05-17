@@ -116,12 +116,13 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
         }
     }
 
-    fun copyExportToExternal(
-            scopedExternalRootPath: File,
-            uri: Uri,
-            contentResolver: ContentResolver,
-            coroutineScope: CoroutineScope = this)
-            = coroutineScope.launch {
+    fun copyBackupToExternal(
+        scopedExternalRootPath: File,
+        uri: Uri,
+        contentResolver: ContentResolver,
+        coroutineScope: CoroutineScope = this
+    ) =
+            coroutineScope.launch {
         withContext(Dispatchers.IO) {
             // TODO we should probably create a backups folder at least
             if (currentBackupName == "") {

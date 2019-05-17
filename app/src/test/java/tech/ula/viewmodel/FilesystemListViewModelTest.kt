@@ -1,13 +1,13 @@
 package tech.ula.viewmodel
 
+import android.content.ContentResolver
+import android.net.Uri
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.nhaarman.mockitokotlin2.* // ktlint-disable no-wildcard-imports
-import kotlinx.coroutines.channels.actor
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
+import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -24,6 +24,7 @@ import tech.ula.utils.FailedExecution
 import tech.ula.utils.FilesystemUtility
 import tech.ula.utils.SuccessfulExecution
 import java.io.File
+import java.io.FileNotFoundException
 
 @RunWith(MockitoJUnitRunner::class)
 class FilesystemListViewModelTest {
@@ -204,5 +205,105 @@ class FilesystemListViewModelTest {
         verify(mockExportObserver).onChanged(ExportFailure(R.string.error_export_local_failure, ""))
     }
 
-    // TODO test 'local backup copy to scoped fails' '0 size file failure' 'copyExportToExternal`
+    @Test
+    fun `compressFilesystem posts ExportFailure if an empty backup is copied`() {
+        val filesystem = Filesystem(id = 0, name = filesystemName, distributionType = filesystemType)
+        val filesDir = tempFolder.newFolder("files")
+        val scopedDir = tempFolder.newFolder("scoped")
+
+        val expectedLocalBackupFile = File(filesDir, expectedBackupName)
+        expectedLocalBackupFile.createNewFile()
+
+        val expectedScopedBackupFile = File(scopedDir, expectedBackupName)
+        assertFalse(expectedScopedBackupFile.exists())
+
+        filesystemListViewModel.getExportStatusLiveData().observeForever(mockExportObserver)
+        runBlocking {
+            filesystemListViewModel.compressFilesystemAndExportToStorage(filesystem, filesDir, scopedDir, this)
+        }
+
+        verify(mockExportObserver).onChanged(ExportStarted)
+        verifyBlocking(mockFilesystemUtility) { compressFilesystem(eq(filesystem), eq(expectedLocalBackupFile), anyOrNull()) }
+        verify(mockExportObserver).onChanged(ExportFailure(R.string.error_export_scoped_failure_no_data))
+    }
+
+    @Test
+    fun `copyBackupToExternal posts ExportFailure if the currentBackupName is not set`() {
+        filesystemListViewModel.getExportStatusLiveData().observeForever(mockExportObserver)
+
+        val scopedExternal = tempFolder.newFolder("scoped")
+        val mockUri = mock<Uri>()
+        val mockContentResolver = mock<ContentResolver>()
+
+        runBlocking {
+            filesystemListViewModel.copyBackupToExternal(scopedExternal, mockUri, mockContentResolver, this)
+        }
+
+        verify(mockExportObserver).onChanged(ExportFailure(R.string.error_export_name_not_found))
+    }
+
+    @Test
+    fun `copyBackupToExternal posts ExportFailure if copying fails`() {
+        filesystemListViewModel.getExportStatusLiveData().observeForever(mockExportObserver)
+        val filesystem = Filesystem(id = 0, name = filesystemName, distributionType = filesystemType)
+        val filesDir = tempFolder.newFolder("files")
+        val scopedDir = tempFolder.newFolder("scoped")
+
+        val expectedText = "test"
+        val expectedLocalBackupFile = File(filesDir, expectedBackupName)
+        expectedLocalBackupFile.createNewFile()
+        expectedLocalBackupFile.writeText(expectedText)
+
+        val expectedScopedBackupFile = File(scopedDir, expectedBackupName)
+        assertFalse(expectedScopedBackupFile.exists())
+
+        val mockUri = mock<Uri>()
+        val mockContentResolver = mock<ContentResolver>()
+
+        whenever(mockContentResolver.openOutputStream(mockUri, "w"))
+                .thenThrow(FileNotFoundException())
+
+        // These must be run in separate blocks to force the coroutines to complete
+        runBlocking {
+            filesystemListViewModel.compressFilesystemAndExportToStorage(filesystem, filesDir, scopedDir, this)
+        }
+        runBlocking {
+            filesystemListViewModel.copyBackupToExternal(scopedDir, mockUri, mockContentResolver, this)
+        }
+
+        verify(mockExportObserver).onChanged(ExportFailure(R.string.error_export_copy_public_external_failure))
+    }
+
+    @Test
+    fun `copyBackupToExternal successfully copies backup to external`() {
+        filesystemListViewModel.getExportStatusLiveData().observeForever(mockExportObserver)
+        val filesystem = Filesystem(id = 0, name = filesystemName, distributionType = filesystemType)
+        val filesDir = tempFolder.newFolder("files")
+        val scopedDir = tempFolder.newFolder("scoped")
+        val externalDir = tempFolder.newFolder("external")
+
+        val expectedText = "test"
+        val expectedLocalBackupFile = File(filesDir, expectedBackupName)
+        expectedLocalBackupFile.createNewFile()
+        expectedLocalBackupFile.writeText(expectedText)
+
+        val expectedExternalFile = File(externalDir, expectedBackupName)
+
+        val mockUri = mock<Uri>()
+        val mockContentResolver = mock<ContentResolver>()
+
+        whenever(mockContentResolver.openOutputStream(mockUri, "w"))
+                .thenReturn(expectedExternalFile.outputStream())
+
+        // These must be run in separate blocks to force the coroutines to complete
+        runBlocking {
+            filesystemListViewModel.compressFilesystemAndExportToStorage(filesystem, filesDir, scopedDir, this)
+        }
+        runBlocking {
+            filesystemListViewModel.copyBackupToExternal(scopedDir, mockUri, mockContentResolver, this)
+        }
+
+        assertTrue(expectedExternalFile.exists())
+        assertEquals(expectedText, expectedExternalFile.readText().trim())
+    }
 }

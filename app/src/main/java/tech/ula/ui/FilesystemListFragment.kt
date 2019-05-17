@@ -9,14 +9,12 @@ import android.os.Environment
 import androidx.fragment.app.Fragment
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
-import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_list.* // ktlint-disable no-wildcard-imports
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import tech.ula.MainActivity
 import tech.ula.R
 import tech.ula.ServerService
@@ -148,7 +146,7 @@ class FilesystemListFragment : Fragment(), CoroutineScope {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == FILESYSTEM_EXPORT_REQUEST_CODE) {
             data?.data?.let { uri ->
-                filesystemListViewModel.copyExportToExternal(activityContext.storageRoot, uri, activityContext.contentResolver)
+                filesystemListViewModel.copyBackupToExternal(activityContext.storageRoot, uri, activityContext.contentResolver)
             }
         }
     }
