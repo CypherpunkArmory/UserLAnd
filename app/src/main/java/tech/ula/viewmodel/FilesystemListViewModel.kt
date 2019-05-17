@@ -20,7 +20,7 @@ import tech.ula.utils.FailedExecution
 
 sealed class FilesystemExportStatus
 data class ExportUpdate(val details: String) : FilesystemExportStatus()
-data class ExportSuccess(val backupName: String) : FilesystemExportStatus()
+object ExportSuccess : FilesystemExportStatus()
 data class ExportFailure(val reason: Int, val details: String = "") : FilesystemExportStatus()
 object ExportStarted : FilesystemExportStatus()
 
@@ -40,7 +40,12 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
         exportStatusLiveData.postValue(ExportUpdate(details))
     }
 
-    private var currentBackupName = ""
+    private val unselectedFilesystem = Filesystem(id = -1, name = "UNSELECTED")
+    private var filesystemToBackup = unselectedFilesystem
+
+    fun setFilesystemToBackup(filesystem: Filesystem) {
+        filesystemToBackup = filesystem
+    }
 
     fun getExportStatusLiveData(): LiveData<FilesystemExportStatus> {
         return exportStatusLiveData
@@ -68,78 +73,60 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
         }
     }
 
+    fun getFilesystemBackupName(filesystem: Filesystem): String {
+        return "${filesystem.name}-${filesystem.distributionType}-rootfs.tar.gz"
+    }
+
     fun compressFilesystemAndExportToStorage(
-        filesystem: Filesystem,
-        filesDir: File,
-        scopedExternalRoot: File,
-        coroutineScope: CoroutineScope = this
+            filesDir: File,
+            publicExternalUri: Uri,
+            contentResolver: ContentResolver,
+            coroutineScope: CoroutineScope = this
     ) = coroutineScope.launch {
         withContext(Dispatchers.IO) {
             exportStatusLiveData.postValue(ExportStarted)
-            currentBackupName = "${filesystem.name}-${filesystem.distributionType}-rootfs.tar.gz"
-            val localBackup = File(filesDir, currentBackupName)
-            val scopedBackup = File(scopedExternalRoot, currentBackupName)
-            if (!scopedExternalRoot.exists()) scopedExternalRoot.mkdirs()
+            val tempBackupName = getFilesystemBackupName(filesystemToBackup)
+            val localBackup = File(filesDir, tempBackupName)
 
-            val result = filesystemUtility.compressFilesystem(filesystem, localBackup, exportUpdateListener)
+            val result = filesystemUtility.compressFilesystem(filesystemToBackup, localBackup, exportUpdateListener)
             if (result is FailedExecution) {
                 exportStatusLiveData.postValue(ExportFailure(R.string.error_export_execution_failure, result.reason))
                 return@withContext
             }
 
-            if (!localBackup.exists()) {
+            if (!localBackup.exists() || localBackup.length() <= 0) {
                 exportStatusLiveData.postValue(ExportFailure(R.string.error_export_local_failure))
                 return@withContext
             }
 
-            try {
-                localBackup.copyTo(scopedBackup, overwrite = true)
-                localBackup.delete()
-            } catch (err: Exception) {
-                localBackup.delete()
-                exportStatusLiveData.postValue(ExportFailure(R.string.error_export_scoped_failure))
-                return@withContext
-            }
-
-            when (scopedBackup.exists() && scopedBackup.length() > 0) {
-                true -> exportStatusLiveData.postValue(ExportSuccess(currentBackupName))
-                false -> exportStatusLiveData.postValue(ExportFailure(R.string.error_export_scoped_failure_no_data))
-            }
-        }
-    }
-
-    fun startExport(filesystem: Filesystem, filesDir: File, scopedExternalRoot: File) {
-        if (activeSessions.value!!.isEmpty()) {
-            compressFilesystemAndExportToStorage(filesystem, filesDir, scopedExternalRoot)
-        } else {
-            exportStatusLiveData.postValue(ExportFailure(R.string.deactivate_sessions))
-        }
-    }
-
-    fun copyBackupToExternal(
-        scopedExternalRootPath: File,
-        uri: Uri,
-        contentResolver: ContentResolver,
-        coroutineScope: CoroutineScope = this
-    ) =
-            coroutineScope.launch {
-        withContext(Dispatchers.IO) {
-            // TODO we should probably create a backups folder at least
-            if (currentBackupName == "") {
-                exportStatusLiveData.postValue(ExportFailure(R.string.error_export_name_not_found))
-                return@withContext
-            }
-            val backupFile = File(scopedExternalRootPath, currentBackupName)
+            val backupFile = File(filesDir, tempBackupName)
             try {
                 backupFile.inputStream().use { inputStream ->
-                    contentResolver.openOutputStream(uri, "w")?.use { outputStream ->
+                    contentResolver.openOutputStream(publicExternalUri, "w")?.use { outputStream ->
                         inputStream.copyTo(outputStream)
                     }
                 }
-                return@withContext
             } catch (err: Exception) {
                 exportStatusLiveData.postValue(ExportFailure(R.string.error_export_copy_public_external_failure))
                 return@withContext
+            }
+
+            exportStatusLiveData.postValue(ExportSuccess)
+        }
+    }
+
+    fun startExport(filesDir: File, publicExternalUri: Uri, contentResolver: ContentResolver) {
+        when {
+            activeSessions.value!!.isNotEmpty() -> {
+                exportStatusLiveData.postValue(ExportFailure(R.string.deactivate_sessions))
+                return
+            }
+            filesystemToBackup == unselectedFilesystem -> {
+                exportStatusLiveData.postValue(ExportFailure(R.string.error_export_filesystem_not_found))
+                return
+            }
+            else -> {
+                compressFilesystemAndExportToStorage(filesDir, publicExternalUri, contentResolver)
             }
         }
     }

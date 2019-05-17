@@ -9,6 +9,7 @@ import android.os.Environment
 import androidx.fragment.app.Fragment
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
+import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_list.* // ktlint-disable no-wildcard-imports
@@ -68,8 +69,7 @@ class FilesystemListFragment : Fragment(), CoroutineScope {
                 }
                 is ExportSuccess -> {
                     activityContext.stopExportProgress()
-                    val intent = createExportExternalIntent(exportStatus.backupName)
-                    startActivityForResult(intent, FILESYSTEM_EXPORT_REQUEST_CODE)
+                    Toast.makeText(activityContext, R.string.backup_export_success, Toast.LENGTH_LONG).show()
                 }
                 is ExportFailure -> {
                     val dialogBuilder = AlertDialog.Builder(activityContext)
@@ -146,7 +146,8 @@ class FilesystemListFragment : Fragment(), CoroutineScope {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == FILESYSTEM_EXPORT_REQUEST_CODE) {
             data?.data?.let { uri ->
-                filesystemListViewModel.copyBackupToExternal(activityContext.storageRoot, uri, activityContext.contentResolver)
+                val filesDir = activityContext.filesDir
+                filesystemListViewModel.startExport(filesDir, uri, activityContext.contentResolver)
             }
         }
     }
@@ -170,9 +171,10 @@ class FilesystemListFragment : Fragment(), CoroutineScope {
     }
 
     private fun exportFilesystem(filesystem: Filesystem): Boolean {
-        val filesDir = activityContext.filesDir
-        val scopedExternalRoot = activityContext.storageRoot
-        filesystemListViewModel.startExport(filesystem, filesDir, scopedExternalRoot)
+        val suggestedFilesystemBackupName = filesystemListViewModel.getFilesystemBackupName(filesystem)
+        val intent = createExportExternalIntent(suggestedFilesystemBackupName)
+        filesystemListViewModel.setFilesystemToBackup(filesystem)
+        startActivityForResult(intent, FILESYSTEM_EXPORT_REQUEST_CODE)
         return true
     }
 

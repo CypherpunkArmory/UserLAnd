@@ -53,9 +53,7 @@
     <string name="error_filesystem_name_invalid_characters">Characters in filesystem name must be 1 to 50 characters without characters such as \"/:*\\|</string>
     <string name="error_export_execution_failure">Exporting failed. Reason: %1$s</string>
     <string name="error_export_local_failure">Exporting to local storage failed.</string>
-    <string name="error_export_scoped_failure">Exporting to scoped external storage failed.</string>
-    <string name="error_export_scoped_failure_no_data">Exporting failed to create a file with data.</string>
-    <string name="error_export_name_not_found">Backup name has been lost. Please try again.</string>
+    <string name="error_export_filesystem_not_found">Could not determine filesystem to backup. Please try again.</string>
     <string name="error_export_copy_public_external_failure">Copying backup to external public storage failed.</string>
 
     <!-- Download Failure Reasons -->
@@ -233,6 +231,7 @@
     <string name="debug_log_export_success">Debug log exported successfully!</string>
     <string name="debug_log_export_failure">Exporting debug log failed!</string>
     <string name="debug_log_deleted">Debug log deleted!</string>
+    <string name="backup_export_success">Backup successfully exported!</string>
 
     <!-- Content descriptions -->
     <string name="desc_arrow">Image: Arrow denoting connection between session and filesystem.</string>
