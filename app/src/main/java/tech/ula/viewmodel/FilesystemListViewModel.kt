@@ -35,10 +35,6 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
         super.onCleared()
     }
 
-    private val filesystems: LiveData<List<Filesystem>> by lazy {
-        filesystemDao.getAllFilesystems()
-    }
-
     private val exportStatusLiveData = MutableLiveData<FilesystemExportStatus>()
     private val exportUpdateListener: (String) -> Unit = { details ->
         exportStatusLiveData.postValue(ExportUpdate(details))
@@ -50,12 +46,16 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
         return exportStatusLiveData
     }
 
-    private val activeSessions: LiveData<List<Session>> by lazy {
-        sessionDao.findActiveSessions()
+    private val filesystems: LiveData<List<Filesystem>> by lazy {
+        filesystemDao.getAllFilesystems()
     }
 
     fun getAllFilesystems(): LiveData<List<Filesystem>> {
         return filesystems
+    }
+
+    private val activeSessions: LiveData<List<Session>> by lazy {
+        sessionDao.findActiveSessions()
     }
 
     fun getAllActiveSessions(): LiveData<List<Session>> {
