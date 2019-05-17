@@ -25,10 +25,10 @@ public final class BackgroundJob {
     final Process mProcess;
 
     public BackgroundJob(String cwd, String fileToExecute, final String[] args, final TermuxService service) {
-        String[] env = buildEnvironment(false, cwd, service.FILES_PATH, service.HOME_PATH, service.PREFIX_PATH);
-        if (cwd == null) cwd = service.HOME_PATH;
+        String[] env = buildEnvironment(false, cwd, service.filesPath, service.homePath, service.prefixPath);
+        if (cwd == null) cwd = service.homePath;
 
-        final String[] progArray = setupProcessArgs(fileToExecute, args, service.PREFIX_PATH);
+        final String[] progArray = setupProcessArgs(fileToExecute, args, service.prefixPath);
         final String processDescription = Arrays.toString(progArray);
 
         Process process;
