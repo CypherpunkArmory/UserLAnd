@@ -140,7 +140,7 @@ class BusyboxExecutor(
 class BusyboxWrapper {
     // For basic commands, CWD should be `applicationFilesDir`
     fun addBusybox(command: String): List<String> {
-        return listOf("support/busybox", "sh", "-c", command)
+        return listOf("support/busybox", "sh") + command.split(" ")
     }
 
     fun getBusyboxEnv(filesDir: File): HashMap<String, String> {
@@ -154,8 +154,7 @@ class BusyboxWrapper {
 
     // Proot scripts expect CWD to be `applicationFilesDir/<filesystem`
     fun addBusyboxAndProot(command: String): List<String> {
-        val commandWithProot = "support/execInProot.sh $command"
-        return listOf("support/busybox", "sh", "-c", commandWithProot)
+        return listOf("support/busybox", "sh", "support/execInProot.sh")  + command.split(" ")
     }
 
     fun getProotEnv(filesDir: File, filesystemDir: File, prootDebugLevel: String, externalStorageDir: File): HashMap<String, String> {

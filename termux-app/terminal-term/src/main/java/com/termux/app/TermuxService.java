@@ -50,10 +50,10 @@ public final class TermuxService extends Service implements SessionChangedCallba
 
     /** Note that this is a symlink on the Android M preview. */
     @SuppressLint("SdCardPath")
-    public static String FILES_PATH = "/data/data/tech.ula/files";
-    public static final String SUPPORT_PATH = FILES_PATH + "/support/";
-    public static final String PREFIX_PATH = FILES_PATH + "/usr";
-    public static final String HOME_PATH = FILES_PATH + "/home";
+    public String FILES_PATH;
+    public String SUPPORT_PATH;
+    public String PREFIX_PATH;
+    public String HOME_PATH;
 
     private static final int NOTIFICATION_ID = 1337;
 
@@ -157,6 +157,10 @@ public final class TermuxService extends Service implements SessionChangedCallba
 
     @Override
     public void onCreate() {
+        FILES_PATH = this.getFilesDir().getAbsolutePath();
+        SUPPORT_PATH = FILES_PATH + "/support/";
+        PREFIX_PATH = FILES_PATH + "/usr";
+        HOME_PATH = FILES_PATH + "/home";
         setupNotificationChannel();
         startForeground(NOTIFICATION_ID, buildNotification());
     }
@@ -252,7 +256,7 @@ public final class TermuxService extends Service implements SessionChangedCallba
 
         if (cwd == null) cwd = HOME_PATH;
 
-        String[] env = BackgroundJob.buildEnvironment(failSafe, cwd);
+        String[] env = BackgroundJob.buildEnvironment(failSafe, cwd, FILES_PATH, HOME_PATH, PREFIX_PATH);
         boolean isLoginShell = false;
 
         for (String shellBinary : new String[]{"busybox"}) {
@@ -265,7 +269,7 @@ public final class TermuxService extends Service implements SessionChangedCallba
 
         // TODO: Replace -y -y option with a way to support hostkey checking
         String[] dbclientArgs = {"sh", "-c", SUPPORT_PATH + "dbclient -y -y " + username + "@" + hostname + "/" + port};
-        String[] processArgs = BackgroundJob.setupProcessArgs(executablePath, dbclientArgs);
+        String[] processArgs = BackgroundJob.setupProcessArgs(executablePath, dbclientArgs, PREFIX_PATH);
         executablePath = processArgs[0];
         int lastSlashIndex = executablePath.lastIndexOf('/');
         String processName = (isLoginShell ? "-" : "") +
