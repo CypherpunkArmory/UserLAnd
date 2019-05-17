@@ -154,7 +154,7 @@ class BusyboxWrapper {
 
     // Proot scripts expect CWD to be `applicationFilesDir/<filesystem`
     fun addBusyboxAndProot(command: String): List<String> {
-        return listOf("support/busybox", "sh", "support/execInProot.sh")  + command.split(" ")
+        return listOf("support/busybox", "sh", "support/execInProot.sh") + command.split(" ")
     }
 
     fun getProotEnv(filesDir: File, filesystemDir: File, prootDebugLevel: String, externalStorageDir: File): HashMap<String, String> {
