@@ -44,6 +44,8 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
         exportStatusLiveData.postValue(ExportUpdate(details))
     }
 
+    private var currentBackupName = ""
+
     fun getExportStatusLiveData(): LiveData<FilesystemExportStatus> {
         return exportStatusLiveData
     }
@@ -68,53 +70,76 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
 
     fun compressFilesystemAndExportToStorage(
         filesystem: Filesystem,
+        filesDir: File,
         scopedExternalRoot: File,
         coroutineScope: CoroutineScope = this
     ) = coroutineScope.launch {
         withContext(Dispatchers.IO) {
             exportStatusLiveData.postValue(ExportStarted)
-            val backupName = "${filesystem.name}-${filesystem.distributionType}-rootfs.tar.gz"
-            val scopedBackup = File("${scopedExternalRoot.path}/$backupName")
+            currentBackupName = "${filesystem.name}-${filesystem.distributionType}-rootfs.tar.gz"
+            val localBackup = File(filesDir, currentBackupName)
+            val scopedBackup = File(scopedExternalRoot, currentBackupName)
             if (!scopedExternalRoot.exists()) scopedExternalRoot.mkdirs()
 
-            val result = filesystemUtility.compressFilesystem(filesystem, scopedBackup, exportUpdateListener)
+            val result = filesystemUtility.compressFilesystem(filesystem, localBackup, exportUpdateListener)
             if (result is FailedExecution) {
                 exportStatusLiveData.postValue(ExportFailure(R.string.error_export_execution_failure, result.reason))
                 return@withContext
             }
 
-            if (!scopedBackup.exists()) {
+            if (!localBackup.exists()) {
+                exportStatusLiveData.postValue(ExportFailure(R.string.error_export_local_failure))
+                return@withContext
+            }
+
+            try {
+                localBackup.copyTo(scopedBackup, overwrite = true)
+                localBackup.delete()
+            } catch (err: Exception) {
+                localBackup.delete()
                 exportStatusLiveData.postValue(ExportFailure(R.string.error_export_scoped_failure))
                 return@withContext
             }
 
             when (scopedBackup.exists() && scopedBackup.length() > 0) {
-                true -> exportStatusLiveData.postValue(ExportSuccess(backupName))
+                true -> exportStatusLiveData.postValue(ExportSuccess(currentBackupName))
                 false -> exportStatusLiveData.postValue(ExportFailure(R.string.error_export_scoped_failure_no_data))
             }
         }
     }
 
-    fun startExport(filesystem: Filesystem, externalDestination: File) {
+    fun startExport(filesystem: Filesystem, filesDir: File, scopedExternalRoot: File) {
         if (activeSessions.value!!.isEmpty()) {
-            compressFilesystemAndExportToStorage(filesystem, externalDestination)
+            compressFilesystemAndExportToStorage(filesystem, filesDir, scopedExternalRoot)
         } else {
             exportStatusLiveData.postValue(ExportFailure(R.string.deactivate_sessions))
         }
     }
 
-    suspend fun copyExportToExternal(backupName: String, scopedExternalRootPath: File, uri: Uri, contentResolver: ContentResolver) = withContext(Dispatchers.IO) {
-        // TODO we should probably create a backups folder at least
-        val backupFile = File(scopedExternalRootPath, backupName)
-        try {
-            backupFile.inputStream().use { inputStream ->
-                contentResolver.openOutputStream(uri, "w")?.use { outputStream ->
-                    inputStream.copyTo(outputStream)
-                }
+    fun copyExportToExternal(
+            scopedExternalRootPath: File,
+            uri: Uri,
+            contentResolver: ContentResolver,
+            coroutineScope: CoroutineScope = this)
+            = coroutineScope.launch {
+        withContext(Dispatchers.IO) {
+            // TODO we should probably create a backups folder at least
+            if (currentBackupName == "") {
+                exportStatusLiveData.postValue(ExportFailure(R.string.error_export_name_not_found))
+                return@withContext
             }
-            return@withContext true
-        } catch (err: Exception) {
-            return@withContext false
+            val backupFile = File(scopedExternalRootPath, currentBackupName)
+            try {
+                backupFile.inputStream().use { inputStream ->
+                    contentResolver.openOutputStream(uri, "w")?.use { outputStream ->
+                        inputStream.copyTo(outputStream)
+                    }
+                }
+                return@withContext
+            } catch (err: Exception) {
+                exportStatusLiveData.postValue(ExportFailure(R.string.error_export_copy_public_external_failure))
+                return@withContext
+            }
         }
     }
 }

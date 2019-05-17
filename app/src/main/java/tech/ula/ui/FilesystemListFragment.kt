@@ -148,10 +148,7 @@ class FilesystemListFragment : Fragment(), CoroutineScope {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == FILESYSTEM_EXPORT_REQUEST_CODE) {
             data?.data?.let { uri ->
-                // TODO coroutines should be launched from a viewmodel scope to survive config changes
-                launch {
-                    filesystemListViewModel.copyExportToExternal("test", activityContext.storageRoot, uri, activityContext.contentResolver)
-                }
+                filesystemListViewModel.copyExportToExternal(activityContext.storageRoot, uri, activityContext.contentResolver)
             }
         }
     }
@@ -175,8 +172,9 @@ class FilesystemListFragment : Fragment(), CoroutineScope {
     }
 
     private fun exportFilesystem(filesystem: Filesystem): Boolean {
+        val filesDir = activityContext.filesDir
         val scopedExternalRoot = activityContext.storageRoot
-        filesystemListViewModel.startExport(filesystem, scopedExternalRoot)
+        filesystemListViewModel.startExport(filesystem, filesDir, scopedExternalRoot)
         return true
     }
 
