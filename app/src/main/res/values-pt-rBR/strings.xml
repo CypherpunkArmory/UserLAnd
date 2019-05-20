@@ -52,10 +52,7 @@
     <string name="error_username_in_blacklist">Esse nome de usuário é possivelmente reservado pelo Linux e não pode ser usado como um nome de usuário do sistema de arquivos.</string>
     <string name="error_filesystem_name_invalid_characters">Os caracteres no nome do sistema de arquivos devem ter de 1 a 50 caracteres sem caracteres, como \"/:*\\|</string>
     <string name="error_export_execution_failure">A exportação falhou. Motivo: %1$s</string>
-    <string name="error_export_to_local_failed">A exportação para o diretório local falhou.</string>
-    <string name="error_export_to_external_failed">A exportação para o diretório externo falhou. Um backup com o mesmo nome já pode existir.</string>
-    <string name="error_export_to_external_failed_no_data">A exportação para o diretório externo falhou, o arquivo não possui dados.</string>
-    
+
     <!-- Illegal State Dialog -->
     <string name="illegal_state_github_message">%1$s \nO aplicativo irá falhar agora para que possamos receber um log de erros. Sinta-se à vontade para também nos informar sobre o Github! Estamos trabalhando para resolver esses problemas.</string>
     <string name="illegal_state_title">UserLAnd entrou em um estado ilegal!</string>

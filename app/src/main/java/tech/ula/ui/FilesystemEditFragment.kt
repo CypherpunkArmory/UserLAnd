@@ -187,10 +187,9 @@ class FilesystemEditFragment : Fragment() {
 
     private fun setupImportButton() {
         import_button.setOnClickListener {
-            val filePickerIntent = Intent(Intent.ACTION_GET_CONTENT)
+            val filePickerIntent = Intent(Intent.ACTION_OPEN_DOCUMENT)
             filePickerIntent.addCategory(Intent.CATEGORY_OPENABLE)
             filePickerIntent.type = "application/*"
-            val fileChooser = Intent.createChooser(filePickerIntent, getString(R.string.prompt_select_backup))
             if (!arePermissionsGranted(activityContext)) {
                 showPermissionsNecessaryDialog()
                 return@setOnClickListener
@@ -198,7 +197,7 @@ class FilesystemEditFragment : Fragment() {
 
             try {
                 filesystem.isCreatedFromBackup = true
-                startActivityForResult(fileChooser, IMPORT_FILESYSTEM_REQUEST_CODE)
+                startActivityForResult(filePickerIntent, IMPORT_FILESYSTEM_REQUEST_CODE)
             } catch (activityNotFoundErr: ActivityNotFoundException) {
                 Toast.makeText(activityContext, R.string.prompt_install_file_manager, Toast.LENGTH_LONG).show()
             }

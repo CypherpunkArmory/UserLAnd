@@ -67,13 +67,13 @@ class FilesystemUtility(
 
     suspend fun compressFilesystem(
         filesystem: Filesystem,
-        localDestinationFile: File,
+        scopedExternalDestination: File,
         listener: (String) -> Any
     ) = withContext(Dispatchers.IO) {
         val filesystemDirName = "${filesystem.id}"
         val command = "/support/common/compressFilesystem.sh"
         val env = HashMap<String, String>()
-        env["TAR_PATH"] = localDestinationFile.absolutePath
+        env["TAR_PATH"] = scopedExternalDestination.absolutePath
 
         return@withContext busyboxExecutor.executeProotCommand(
                 command,
