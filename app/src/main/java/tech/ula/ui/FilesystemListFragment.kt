@@ -18,13 +18,12 @@ import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.utils.BusyboxExecutor
-import tech.ula.utils.DefaultPreferences
-import tech.ula.utils.FilesystemUtility
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.entities.Session
-import tech.ula.utils.defaultSharedPreferences
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.FilesystemListViewModel
+
+private const val FILESYSTEM_EXPORT_REQUEST_CODE = 7
 
 class FilesystemListFragment : Fragment() {
 
@@ -44,7 +43,8 @@ class FilesystemListFragment : Fragment() {
     private val filesystemListViewModel: FilesystemListViewModel by lazy {
         val filesystemDao = UlaDatabase.getInstance(activityContext).filesystemDao()
         val sessionDao = UlaDatabase.getInstance(activityContext).sessionDao()
-        val busyboxExecutor = BusyboxExecutor(activityContext.filesDir, externalStorageDir, DefaultPreferences(activityContext.defaultSharedPreferences))
+        val prootDebugLogger = ProotDebugLogger(activityContext.defaultSharedPreferences, activityContext.storageRoot.path)
+        val busyboxExecutor = BusyboxExecutor(activityContext.filesDir, externalStorageDir, prootDebugLogger)
         val filesystemUtility = FilesystemUtility(activityContext.filesDir.absolutePath, busyboxExecutor)
         ViewModelProviders.of(this, FilesystemListViewmodelFactory(filesystemDao, sessionDao, filesystemUtility)).get(FilesystemListViewModel::class.java)
     }
@@ -64,8 +64,8 @@ class FilesystemListFragment : Fragment() {
                     activityContext.updateExportProgress(exportStatus.details)
                 }
                 is ExportSuccess -> {
-                    Toast.makeText(activityContext, R.string.export_success, Toast.LENGTH_LONG).show()
                     activityContext.stopExportProgress()
+                    Toast.makeText(activityContext, R.string.backup_export_success, Toast.LENGTH_LONG).show()
                 }
                 is ExportFailure -> {
                     val dialogBuilder = AlertDialog.Builder(activityContext)
@@ -129,8 +129,18 @@ class FilesystemListFragment : Fragment() {
         return when (item.itemId) {
             R.id.menu_item_filesystem_edit -> editFilesystem(filesystem)
             R.id.menu_item_filesystem_delete -> deleteFilesystem(filesystem)
-            R.id.menu_item_filesystem_export -> exportFilesystem(filesystem, activeSessions)
+            R.id.menu_item_filesystem_export -> exportFilesystem(filesystem)
             else -> super.onContextItemSelected(item)
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == FILESYSTEM_EXPORT_REQUEST_CODE) {
+            data?.data?.let { uri ->
+                val filesDir = activityContext.filesDir
+                filesystemListViewModel.startExport(filesDir, uri, activityContext.contentResolver)
+            }
         }
     }
 
@@ -152,9 +162,19 @@ class FilesystemListFragment : Fragment() {
         return true
     }
 
-    private fun exportFilesystem(filesystem: Filesystem, activeSessions: List<Session>): Boolean {
-        val externalDestination = Environment.getExternalStoragePublicDirectory("UserLAnd")
-        filesystemListViewModel.startExport(filesystem, activeSessions, activityContext.filesDir, externalDestination)
+    private fun exportFilesystem(filesystem: Filesystem): Boolean {
+        val suggestedFilesystemBackupName = filesystemListViewModel.getFilesystemBackupName(filesystem)
+        val intent = createExportExternalIntent(suggestedFilesystemBackupName)
+        filesystemListViewModel.setFilesystemToBackup(filesystem)
+        startActivityForResult(intent, FILESYSTEM_EXPORT_REQUEST_CODE)
         return true
+    }
+
+    private fun createExportExternalIntent(backupName: String): Intent {
+        return Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "application/*"
+            putExtra(Intent.EXTRA_TITLE, backupName)
+        }
     }
 }

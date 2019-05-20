@@ -2,11 +2,9 @@ package tech.ula.utils
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStream
-import kotlin.text.Charsets.UTF_8
 
 sealed class ExecutionResult
 data class MissingExecutionAsset(val asset: String) : ExecutionResult()
@@ -17,7 +15,7 @@ data class OngoingExecution(val process: Process) : ExecutionResult()
 class BusyboxExecutor(
     private val filesDir: File,
     private val externalStorageDir: File,
-    private val defaultPreferences: DefaultPreferences,
+    private val prootDebugLogger: ProotDebugLogger,
     private val busyboxWrapper: BusyboxWrapper = BusyboxWrapper()
 ) {
 
@@ -60,10 +58,9 @@ class BusyboxExecutor(
             !busyboxWrapper.executionScriptIsPresent(filesDir) -> return MissingExecutionAsset("execution script")
         }
 
-        val prootDebugEnabled = defaultPreferences.getProotDebuggingEnabled()
+        val prootDebugEnabled = prootDebugLogger.isEnabled
         val prootDebugLevel =
-                if (prootDebugEnabled) defaultPreferences.getProotDebuggingLevel() else "-1"
-        val prootDebugLocation = defaultPreferences.getProotDebugLogLocation()
+                if (prootDebugEnabled) prootDebugLogger.verbosityLevel else "-1"
 
         val updatedCommand = busyboxWrapper.addBusyboxAndProot(command)
         val filesystemDir = File("${filesDir.absolutePath}/$filesystemDirName")
@@ -79,11 +76,11 @@ class BusyboxExecutor(
             val process = processBuilder.start()
             when {
                 prootDebugEnabled && commandShouldTerminate -> {
-                    redirectOutputToDebugLog(process.inputStream, prootDebugLocation, coroutineScope)
+                    prootDebugLogger.logStream(process.inputStream, coroutineScope)
                     getProcessResult(process)
                 }
                 prootDebugEnabled && !commandShouldTerminate -> {
-                    redirectOutputToDebugLog(process.inputStream, prootDebugLocation, coroutineScope)
+                    prootDebugLogger.logStream(process.inputStream, coroutineScope)
                     OngoingExecution(process)
                 }
                 commandShouldTerminate -> {
@@ -112,24 +109,6 @@ class BusyboxExecutor(
         buf.close()
     }
 
-    private fun redirectOutputToDebugLog(
-        inputStream: InputStream,
-        prootDebugLocation: String,
-        coroutineScope: CoroutineScope
-    ) = coroutineScope.launch {
-        val prootLogFile = File(prootDebugLocation)
-        if (prootLogFile.exists()) {
-            prootLogFile.delete()
-        }
-        prootLogFile.createNewFile()
-        val reader = inputStream.bufferedReader(UTF_8)
-        val writer = prootLogFile.writer(UTF_8)
-        reader.forEachLine { line -> writer.write("$line\n") }
-        reader.close()
-        writer.flush()
-        writer.close()
-    }
-
     private fun getProcessResult(process: Process): ExecutionResult {
         return if (process.waitFor() == 0) SuccessfulExecution
         else FailedExecution("Command failed with: ${process.exitValue()}")
@@ -140,7 +119,7 @@ class BusyboxExecutor(
 class BusyboxWrapper {
     // For basic commands, CWD should be `applicationFilesDir`
     fun addBusybox(command: String): List<String> {
-        return listOf("support/busybox", "sh", "-c", command)
+        return listOf("support/busybox", "sh") + command.split(" ")
     }
 
     fun getBusyboxEnv(filesDir: File): HashMap<String, String> {
@@ -154,8 +133,7 @@ class BusyboxWrapper {
 
     // Proot scripts expect CWD to be `applicationFilesDir/<filesystem`
     fun addBusyboxAndProot(command: String): List<String> {
-        val commandWithProot = "support/execInProot.sh $command"
-        return listOf("support/busybox", "sh", "-c", commandWithProot)
+        return listOf("support/busybox", "sh", "support/execInProot.sh") + command.split(" ")
     }
 
     fun getProotEnv(filesDir: File, filesystemDir: File, prootDebugLevel: String, externalStorageDir: File): HashMap<String, String> {

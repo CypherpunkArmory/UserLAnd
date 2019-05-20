@@ -66,6 +66,10 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private var currentFragmentDisplaysProgressDialog = false
 
     private val logger = SentryLogger()
+    private val busyboxExecutor by lazy {
+        val prootDebugLogger = ProotDebugLogger(this.defaultSharedPreferences, this.storageRoot.path)
+        BusyboxExecutor(filesDir, Environment.getExternalStorageDirectory(), prootDebugLogger)
+    }
 
     private val navController: NavController by lazy {
         findNavController(R.id.nav_host_fragment)
@@ -114,7 +118,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val assetPreferences = AssetPreferences(this.getSharedPreferences("assetLists", Context.MODE_PRIVATE))
         val assetRepository = AssetRepository(filesDir.path, assetPreferences)
 
-        val busyboxExecutor = BusyboxExecutor(filesDir, Environment.getExternalStorageDirectory(), DefaultPreferences(defaultSharedPreferences))
         val filesystemUtility = FilesystemUtility(filesDir.path, busyboxExecutor)
         val storageUtility = StorageUtility(StatFs(Environment.getExternalStorageDirectory().path))
 
@@ -447,7 +450,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     private fun handleClearSupportFiles() {
         val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
-        val busyboxExecutor = BusyboxExecutor(this.filesDir, Environment.getExternalStorageDirectory(), DefaultPreferences(defaultSharedPreferences))
         val assetDirectoryNames = appsPreferences.getDistributionsList().plus("support")
         val assetFileClearer = AssetFileClearer(this.filesDir, assetDirectoryNames, busyboxExecutor)
         CoroutineScope(Dispatchers.Main).launch { viewModel.handleClearSupportFiles(assetFileClearer) }

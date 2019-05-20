@@ -32,7 +32,8 @@ class ServerService : Service() {
 
     private val busyboxExecutor by lazy {
         val externalStorage = Environment.getExternalStorageDirectory()
-        BusyboxExecutor(this.filesDir, externalStorage, DefaultPreferences(this.defaultSharedPreferences))
+        val prootDebugLogger = ProotDebugLogger(this.defaultSharedPreferences, this.storageRoot.path)
+        BusyboxExecutor(this.filesDir, externalStorage, prootDebugLogger)
     }
 
     private val filesystemUtility by lazy {
