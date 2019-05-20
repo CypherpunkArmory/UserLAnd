@@ -1,8 +1,8 @@
 package tech.ula.model.state
 
-import android.arch.core.executor.testing.InstantTaskExecutorRule
-import android.arch.lifecycle.MutableLiveData
-import android.arch.lifecycle.Observer
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import com.nhaarman.mockitokotlin2.* // ktlint-disable no-wildcard-imports
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -46,7 +46,7 @@ class SessionStartupFsmTest {
 
     @Mock lateinit var mockStateObserver: Observer<SessionStartupState>
 
-    @Mock lateinit var mockAcraWrapper: AcraWrapper
+    @Mock lateinit var mockLogger: Logger
 
     @Mock lateinit var mockStorageUtility: StorageUtility
 
@@ -96,7 +96,7 @@ class SessionStartupFsmTest {
             DownloadsRequired(downloadMetadata, false),
             DownloadingAssets(0, 0),
             DownloadsHaveSucceeded,
-            DownloadsHaveFailed(""),
+            DownloadsHaveFailed(DownloadFailureLocalizationData(0)),
             CopyingFilesToLocalDirectories,
             LocalDirectoryCopySucceeded,
             LocalDirectoryCopyFailed,
@@ -119,7 +119,7 @@ class SessionStartupFsmTest {
         whenever(mockUlaDatabase.filesystemDao()).thenReturn(mockFilesystemDao)
         whenever(mockFilesystemDao.getAllFilesystems()).thenReturn(filesystemLiveData)
 
-        sessionFsm = SessionStartupFsm(mockUlaDatabase, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility, mockStorageUtility, mockAcraWrapper)
+        sessionFsm = SessionStartupFsm(mockUlaDatabase, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility, mockStorageUtility, mockLogger)
     }
 
     @After
@@ -448,14 +448,15 @@ class SessionStartupFsmTest {
         sessionFsm.setState(DownloadingAssets(0, 0))
         sessionFsm.getState().observeForever(mockStateObserver)
 
+        val localizationData = DownloadFailureLocalizationData(0)
         whenever(mockDownloadUtility.handleDownloadComplete(0))
-                .thenReturn(AssetDownloadFailure("fail"))
+                .thenReturn(AssetDownloadFailure(localizationData))
 
         runBlocking {
             sessionFsm.submitEvent(AssetDownloadComplete(0), this)
         }
 
-        verify(mockStateObserver).onChanged(DownloadsHaveFailed("fail"))
+        verify(mockStateObserver).onChanged(DownloadsHaveFailed(localizationData))
     }
 
     @Test

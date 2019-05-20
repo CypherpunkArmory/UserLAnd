@@ -26,12 +26,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Vibrator;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.StringRes;
-import android.support.v4.view.PagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v4.widget.DrawerLayout;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+import androidx.drawerlayout.widget.DrawerLayout;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -97,6 +97,8 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
 
     private static final String RELOAD_STYLE_ACTION = "com.termux.app.reload_style";
 
+    private String prefix_path;
+
     /** The main view of the activity showing the terminal. Initialized in onCreate(). */
     @SuppressWarnings("NullableProblems")
     @NonNull
@@ -150,8 +152,8 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
 
     void checkForFontAndColors() {
         try {
-            @SuppressLint("SdCardPath") File fontFile = new File("/data/data/tech.ula/files/home/.termux/font.ttf");
-            @SuppressLint("SdCardPath") File colorsFile = new File("/data/data/tech.ula/files/home/.termux/colors.properties");
+            File fontFile = new File(this.getFilesDir().getAbsolutePath() + "/home/.termux/font.ttf");
+            File colorsFile = new File(this.getFilesDir().getAbsolutePath() +"/home/.termux/colors.properties");
 
             final Properties props = new Properties();
             if (colorsFile.isFile()) {
@@ -200,6 +202,8 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
     @Override
     public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
+
+        prefix_path = this.getFilesDir().getAbsolutePath() + "/usr";
 
         mSettings = new TermuxPreferences(this);
 
@@ -623,7 +627,7 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
                 .setPositiveButton(android.R.string.ok, null).show();
         } else {
             if (mTermService.getSessions().size() == 0 && !mTermService.isWakelockEnabled()) {
-                File termuxTmpDir = new File(TermuxService.PREFIX_PATH + "/tmp");
+                File termuxTmpDir = new File(prefix_path + "/tmp");
                 if (termuxTmpDir.exists()) {
                     termuxTmpDir.mkdirs();
                 }

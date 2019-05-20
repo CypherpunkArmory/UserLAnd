@@ -23,7 +23,7 @@ class AssetFileClearerTest {
 
     @Mock lateinit var busyboxExecutor: BusyboxExecutor
 
-    @Mock lateinit var mockAcraWrapper: AcraWrapper
+    @Mock lateinit var mockLogger: Logger
 
     lateinit var filesDir: File
     lateinit var supportDir: File
@@ -52,7 +52,7 @@ class AssetFileClearerTest {
     fun setup() {
         createTestFiles()
 
-        assetFileClearer = AssetFileClearer(filesDir, assetDirectoryNames, busyboxExecutor, mockAcraWrapper)
+        assetFileClearer = AssetFileClearer(filesDir, assetDirectoryNames, busyboxExecutor, mockLogger)
     }
 
     fun createTestFiles() {
@@ -82,7 +82,7 @@ class AssetFileClearerTest {
 
         runBlocking { assetFileClearer.clearAllSupportAssets() }
 
-        verify(mockAcraWrapper.logException(FileNotFoundException()))
+        verify(mockLogger.addExceptionBreadcrumb(FileNotFoundException()))
     }
 
     @Test

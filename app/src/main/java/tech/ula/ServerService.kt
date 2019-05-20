@@ -8,16 +8,15 @@ import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Environment
 import android.os.IBinder
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import android.os.PowerManager
-import android.support.v4.content.LocalBroadcastManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.model.entities.App
-import tech.ula.model.entities.Session
 import tech.ula.model.repositories.UlaDatabase
+import tech.ula.model.entities.Session
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 
 class ServerService : Service() {
@@ -203,14 +202,14 @@ class ServerService : Service() {
 
     private fun startClient(session: Session) {
         when (session.serviceType) {
-            "ssh" -> startSshClient(session, "org.connectbot")
+            "ssh" -> startSshClient(session)
             "vnc" -> startVncClient(session, "com.iiordanov.freebVNC")
             "xsdl" -> startXsdlClient("x.org.server")
             else -> sendDialogBroadcast("unhandledSessionServiceType")
         }
     }
 
-    private fun startSshClient(session: Session, packageName: String) {
+    private fun startSshClient(session: Session) {
         val connectBotIntent = Intent()
         connectBotIntent.action = "android.intent.action.VIEW"
         connectBotIntent.data = Uri.parse("ssh://${session.username}@localhost:${session.port}/#userland")
@@ -264,7 +263,7 @@ class ServerService : Service() {
         // TODO This could potentially be handled by the main activity (viewmodel) now
         if (filesystemId == (-1).toLong()) {
             val exception = IllegalStateException("Did not receive filesystemId")
-            AcraWrapper().logException(exception)
+            SentryLogger().addExceptionBreadcrumb(exception)
             throw exception
         }
 

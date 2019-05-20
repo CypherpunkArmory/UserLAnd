@@ -1,7 +1,7 @@
 package tech.ula.model.state
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MutableLiveData
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -21,7 +21,7 @@ class SessionStartupFsm(
     private val filesystemUtility: FilesystemUtility,
     private val downloadUtility: DownloadUtility,
     private val storageUtility: StorageUtility,
-    private val acraWrapper: AcraWrapper = AcraWrapper()
+    private val logger: Logger = SentryLogger()
 ) {
 
     private val state = MutableLiveData<SessionStartupState>().apply { postValue(WaitingForSessionSelection) }
@@ -92,8 +92,8 @@ class SessionStartupFsm(
     }
 
     fun submitEvent(event: SessionStartupEvent, coroutineScope: CoroutineScope) = coroutineScope.launch {
-        acraWrapper.putCustomString("Last submitted session fsm event", "$event")
-        acraWrapper.putCustomString("State during session fsm event submission", "${state.value}")
+        logger.addBreadcrumb("Last submitted session fsm event", "$event")
+        logger.addBreadcrumb("State during session fsm event submission", "${state.value}")
         if (!transitionIsAcceptable(event)) {
             state.postValue(IncorrectSessionTransition(event, state.value!!))
             return@launch
@@ -329,7 +329,7 @@ object RemoteUnreachableForGeneration : DownloadRequirementsGenerationState()
 sealed class DownloadingAssetsState : SessionStartupState()
 data class DownloadingAssets(val numCompleted: Int, val numTotal: Int) : DownloadingAssetsState()
 object DownloadsHaveSucceeded : DownloadingAssetsState()
-data class DownloadsHaveFailed(val reason: String) : DownloadingAssetsState()
+data class DownloadsHaveFailed(val reason: DownloadFailureLocalizationData) : DownloadingAssetsState()
 object AttemptedCacheAccessWhileEmpty : DownloadingAssetsState()
 object AttemptedCacheAccessInIncorrectState : DownloadingAssetsState()
 

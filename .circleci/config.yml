@@ -79,6 +79,11 @@ reference:
       name: Decode Android key store
       command: echo $ANDROID_KEYSTORE | base64 -di > keystore.jks
 
+  export_github_release_token: &export_github_release_token
+    run:
+      name: Export Github release key
+      command: echo 'export GITHUB_RELEASE_TOKEN="$GITHUB_RELEASE_TOKEN"' >> $BASH_ENV
+
   export_gcloud_key: &export_gcloud_key
     run:
       name: Export Google Cloud Service key environment variable
@@ -97,10 +102,13 @@ reference:
       name: Decode Play store key
       command: echo $PLAY_KEY | base64 -di > ${HOME}/play-key.json
 
-  export_tracepot_endpoint: &export_tracepot_endpoint
+  configure_sentry: &configure_sentry
     run:
-      name: Export tracepot https environment variable
-      command: echo "tracepotHttpsEndpoint=$TRACEPOT_ENDPOINT" >> app/tracepot.properties
+      name: Configure Sentry for production use
+      command: |
+        mkdir app/src/main/resources
+        echo "dsn=$SENTRY_DSN" >> app/src/main/resources/sentry.properties
+        echo "environment=production" >> app/src/main/resources/sentry.properties
 
   early_return_for_forked_pull_requests: &early_return_for_forked_pull_requests
     run:
@@ -140,7 +148,7 @@ jobs:
       - *save_cache
       - *export_android_key
       - *decode_android_key
-      - *export_tracepot_endpoint
+      - *configure_sentry
       - run:
           name: Run ktlint
           command: ./gradlew ktlint
@@ -232,6 +240,7 @@ jobs:
       - *attach_release_workspace
       - *export_play_key
       - *decode_play_key
+      - *export_github_release_token
       - run:
           name: Deploy to Play store
           command: bundle exec fastlane deploy

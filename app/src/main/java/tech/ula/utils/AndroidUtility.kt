@@ -14,10 +14,9 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.os.StatFs
-import android.support.v4.content.ContextCompat
+import androidx.core.content.ContextCompat
 import android.util.DisplayMetrics
 import android.view.WindowManager
-import org.acra.ACRA
 import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Asset
@@ -78,6 +77,24 @@ fun getBranchToDownloadAssetsFrom(assetType: String): String {
         "support" -> "staging"
         "apps" -> "master"
         else -> "master"
+    }
+}
+
+interface Localization {
+    fun getString(context: Context): String
+}
+
+data class LocalizationData(val resId: Int, val formatStrings: List<String> = listOf()) : Localization {
+    override fun getString(context: Context): String {
+        return context.getString(resId, formatStrings)
+    }
+}
+
+data class DownloadFailureLocalizationData(val resId: Int, val formatStrings: List<String> = listOf()) : Localization {
+    override fun getString(context: Context): String {
+        val errorDescriptionResId = R.string.illegal_state_downloads_did_not_complete_successfully
+        val errorTypeString = context.getString(resId, formatStrings)
+        return context.getString(errorDescriptionResId, errorTypeString)
     }
 }
 
@@ -228,7 +245,7 @@ class AppsPreferences(private val prefs: SharedPreferences) {
         return when {
             pref.toLowerCase() == "ssh" || (app.supportsCli && !app.supportsGui) -> SshTypePreference
             pref.toLowerCase() == "xsdl" -> XsdlTypePreference
-            pref.toLowerCase() == "vnc" -> VncTypePreference
+            pref.toLowerCase() == "vnc" || (app.supportsGui && Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) -> VncTypePreference
             else -> PreferenceHasNotBeenSelected
         }
     }
@@ -260,7 +277,7 @@ class BuildWrapper {
                 }
         return if (supportedABIS.size == 1 && supportedABIS[0] == "") {
             val exception = IllegalStateException("No supported ABI!")
-            AcraWrapper().logException(exception)
+            SentryLogger().addExceptionBreadcrumb(exception)
             throw exception
         } else {
             supportedABIS[0]
@@ -338,26 +355,26 @@ class DownloadManagerWrapper(private val downloadManager: DownloadManager) {
         return false
     }
 
-    fun getDownloadFailureReason(id: Long): String {
+    fun getDownloadFailureReason(id: Long): DownloadFailureLocalizationData {
         val query = generateQuery(id)
         val cursor = generateCursor(query)
         if (cursor.moveToFirst()) {
-            val status: Int = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_REASON))
-            return "Reason: " + when (status) {
-                in 100..500 -> "Http Error: $status"
-                1008 -> "Cannot resume download."
-                1007 -> "No external devices found."
-                1009 -> "Destination already exists."
-                1001 -> "Unknown file error."
-                1004 -> "HTTP data processing error."
-                1006 -> "Insufficient external storage space."
-                1005 -> "Too many redirects."
-                1002 -> "Unhandled HTTP response code."
-                1000 -> "Unknown error."
-                else -> "Unknown failure reason."
-            }
+            val status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_REASON))
+            return DownloadFailureLocalizationData(resId = when (status) {
+                in 100..500 -> R.string.download_failure_http_error
+                1008 -> R.string.download_failure_cannot_resume
+                1007 -> R.string.download_failure_no_external_devices
+                1009 -> R.string.download_failure_destination_exists
+                1001 -> R.string.download_failure_unknown_file_error
+                1004 -> R.string.download_failure_http_processing
+                1006 -> R.string.download_failure_insufficient_external_storage
+                1005 -> R.string.download_failure_too_many_redirects
+                1002 -> R.string.download_failure_unhandled_http_response
+                1000 -> R.string.download_failure_unknown_error
+                else -> R.string.download_failure_missing_error
+            }, formatStrings = listOf("$status")) // Format strings only used for http_error
         }
-        return "No known reason for failure."
+        return DownloadFailureLocalizationData(R.string.download_failure_reason_not_found)
     }
 
     fun getDownloadsDirectory(): File {
@@ -388,24 +405,6 @@ class LocalFileLocator(private val applicationFilesDir: String, private val reso
             return resources.getString(R.string.error_app_description_not_found)
         }
         return appDescriptionFile.readText()
-    }
-}
-
-class AcraWrapper {
-    fun putCustomString(key: String, value: String) {
-        ACRA.getErrorReporter().putCustomData(key, value)
-    }
-
-    fun logException(err: Exception): Exception {
-        val topOfStackTrace = err.stackTrace.first()
-        val key = "Exception: ${topOfStackTrace.fileName}"
-        val value = "${topOfStackTrace.lineNumber}"
-        ACRA.getErrorReporter().putCustomData(key, value)
-        return err
-    }
-
-    fun silentlySendIllegalStateReport() {
-        ACRA.getErrorReporter().handleSilentException(IllegalStateException())
     }
 }
 

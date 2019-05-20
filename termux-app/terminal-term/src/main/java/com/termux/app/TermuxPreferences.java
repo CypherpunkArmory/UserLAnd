@@ -3,7 +3,7 @@ package com.termux.app;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.support.annotation.IntDef;
+import androidx.annotation.IntDef;
 import android.util.Log;
 import android.util.TypedValue;
 import android.widget.Toast;
@@ -39,6 +39,8 @@ final class TermuxPreferences {
     private static final String FONTSIZE_KEY = "fontsize";
     private static final String CURRENT_SESSION_KEY = "current_session";
 
+    private String home_path;
+
     private int mFontSize;
 
     @AsciiBellBehaviour
@@ -57,6 +59,8 @@ final class TermuxPreferences {
     TermuxPreferences(Context context) {
         reloadFromProperties(context);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+
+        home_path = context.getFilesDir().getAbsolutePath() + "/home";
 
         float dipInPixels = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, context.getResources().getDisplayMetrics());
 
@@ -117,9 +121,9 @@ final class TermuxPreferences {
     public String[][] mExtraKeys;
 
     public void reloadFromProperties(Context context) {
-        File propsFile = new File(TermuxService.HOME_PATH + "/.termux/termux.properties");
+        File propsFile = new File(home_path + "/.termux/termux.properties");
         if (!propsFile.exists())
-            propsFile = new File(TermuxService.HOME_PATH + "/.config/termux/termux.properties");
+            propsFile = new File(home_path + "/.config/termux/termux.properties");
 
         Properties props = new Properties();
         try {

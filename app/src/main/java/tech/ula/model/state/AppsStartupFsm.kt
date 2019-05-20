@@ -1,7 +1,7 @@
 package tech.ula.model.state
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MutableLiveData
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,7 +17,7 @@ class AppsStartupFsm(
     private val appsPreferences: AppsPreferences,
     private val filesystemUtility: FilesystemUtility,
     private val buildWrapper: BuildWrapper = BuildWrapper(),
-    private val acraWrapper: AcraWrapper = AcraWrapper()
+    private val logger: Logger = SentryLogger()
 ) {
 
     private val sessionDao = ulaDatabase.sessionDao()
@@ -48,8 +48,8 @@ class AppsStartupFsm(
     }
 
     fun submitEvent(event: AppsStartupEvent, coroutineScope: CoroutineScope) = coroutineScope.launch {
-        acraWrapper.putCustomString("Last submitted apps fsm event", "$event")
-        acraWrapper.putCustomString("State during apps fsm event submission", "${state.value}")
+        logger.addBreadcrumb("Last submitted apps fsm event", "$event")
+        logger.addBreadcrumb("State during apps fsm event submission", "${state.value}")
         if (!transitionIsAcceptable(event)) {
             state.postValue(IncorrectAppTransition(event, state.value!!))
             return@launch

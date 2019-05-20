@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <!-- TODO set preference categories to not reserve icon space after androidx > 1.0.0 is released -->
     <PreferenceCategory
         android:title="@string/pref_app_category"
-        android:key="pref_app_category" >
+        android:key="pref_app_category"
+        app:iconSpaceReserved="false">
         <ListPreference
             android:key="pref_default_nav_location"
             android:title="@string/pref_default_landing_page_title"

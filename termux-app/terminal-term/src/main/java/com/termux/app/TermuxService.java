@@ -9,7 +9,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Build;
@@ -27,8 +26,6 @@ import com.termux.terminal.TerminalSession.SessionChangedCallback;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * A service holding a list of terminal sessions, {@link #mTerminalSessions}, showing a foreground notification while
@@ -44,14 +41,16 @@ import java.util.regex.Pattern;
  */
 public final class TermuxService extends Service implements SessionChangedCallback {
 
+    private String TAG = "TermuxService";
+
     private static final String NOTIFICATION_CHANNEL_ID = "termux_notification_channel";
 
     /** Note that this is a symlink on the Android M preview. */
     @SuppressLint("SdCardPath")
-    public static String FILES_PATH = "/data/data/tech.ula/files";
-    public static final String SUPPORT_PATH = FILES_PATH + "/support/";
-    public static final String PREFIX_PATH = FILES_PATH + "/usr";
-    public static final String HOME_PATH = FILES_PATH + "/home";
+    public String filesPath;
+    public String supportPath;
+    public String prefixPath;
+    public String homePath;
 
     private static final int NOTIFICATION_ID = 1337;
 
@@ -107,12 +106,12 @@ public final class TermuxService extends Service implements SessionChangedCallba
         } else if (ACTION_LOCK_WAKE.equals(action)) {
             if (mWakeLock == null) {
                 PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-                mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, EmulatorDebug.LOG_TAG);
+                mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG + ":" + EmulatorDebug.LOG_TAG);
                 mWakeLock.acquire();
 
                 // http://tools.android.com/tech-docs/lint-in-studio-2-3#TOC-WifiManager-Leak
                 WifiManager wm = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-                mWifiLock = wm.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, EmulatorDebug.LOG_TAG);
+                mWifiLock = wm.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, TAG + ":" + EmulatorDebug.LOG_TAG);
                 mWifiLock.acquire();
 
                 updateNotification();
@@ -155,6 +154,10 @@ public final class TermuxService extends Service implements SessionChangedCallba
 
     @Override
     public void onCreate() {
+        filesPath = this.getFilesDir().getAbsolutePath();
+        supportPath = filesPath + "/support/";
+        prefixPath = filesPath + "/usr";
+        homePath = filesPath + "/home";
         setupNotificationChannel();
         startForeground(NOTIFICATION_ID, buildNotification());
     }
@@ -246,15 +249,15 @@ public final class TermuxService extends Service implements SessionChangedCallba
     }
 
     TerminalSession createTermSession(String executablePath, String[] arguments, String cwd, boolean failSafe) {
-        new File(HOME_PATH).mkdirs();
+        new File(homePath).mkdirs();
 
-        if (cwd == null) cwd = HOME_PATH;
+        if (cwd == null) cwd = homePath;
 
-        String[] env = BackgroundJob.buildEnvironment(failSafe, cwd);
+        String[] env = BackgroundJob.buildEnvironment(failSafe, cwd, filesPath, homePath, prefixPath);
         boolean isLoginShell = false;
 
         for (String shellBinary : new String[]{"busybox"}) {
-            File shellFile = new File(SUPPORT_PATH + shellBinary);
+            File shellFile = new File(supportPath + shellBinary);
             if (shellFile.canExecute()) {
                 executablePath = shellFile.getAbsolutePath();
                 break;
@@ -262,8 +265,8 @@ public final class TermuxService extends Service implements SessionChangedCallba
         }
 
         // TODO: Replace -y -y option with a way to support hostkey checking
-        String[] dbclientArgs = {"sh", "-c", SUPPORT_PATH + "dbclient -y -y " + username + "@" + hostname + "/" + port};
-        String[] processArgs = BackgroundJob.setupProcessArgs(executablePath, dbclientArgs);
+        String[] dbclientArgs = {"sh", "-c", supportPath + "dbclient -y -y " + username + "@" + hostname + "/" + port};
+        String[] processArgs = BackgroundJob.setupProcessArgs(executablePath, dbclientArgs, prefixPath);
         executablePath = processArgs[0];
         int lastSlashIndex = executablePath.lastIndexOf('/');
         String processName = (isLoginShell ? "-" : "") +

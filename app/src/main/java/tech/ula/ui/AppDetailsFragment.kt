@@ -4,21 +4,16 @@ import android.app.Activity
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
-import android.support.v4.app.Fragment
+import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.RadioButton
 import android.widget.TextView
-import kotlinx.android.synthetic.main.frag_app_details.*
-import org.jetbrains.anko.find
+import kotlinx.android.synthetic.main.frag_app_details.* // ktlint-disable no-wildcard-imports
 import tech.ula.R
 import tech.ula.model.entities.App
-import tech.ula.utils.AppsPreferences
-import tech.ula.utils.LocalFileLocator
-import tech.ula.utils.SshTypePreference
-import tech.ula.utils.VncTypePreference
-import tech.ula.utils.XsdlTypePreference
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 
 class AppDetailsFragment : Fragment() {
 

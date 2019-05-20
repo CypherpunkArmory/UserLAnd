@@ -7,8 +7,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import tech.ula.utils.AcraWrapper
 import tech.ula.utils.BuildWrapper
+import tech.ula.utils.Logger
+import tech.ula.utils.SentryLogger
 import java.io.IOException
 import java.net.UnknownHostException
 
@@ -21,7 +22,7 @@ class UrlProvider {
 class GithubApiClient(
     private val buildWrapper: BuildWrapper = BuildWrapper(),
     private val urlProvider: UrlProvider = UrlProvider(),
-    private val acraWrapper: AcraWrapper = AcraWrapper()
+    private val logger: Logger = SentryLogger()
 ) {
     private val client = OkHttpClient()
     private val latestResults: HashMap<String, ReleasesResponse?> = hashMapOf()
@@ -71,12 +72,12 @@ class GithubApiClient(
         val response = try {
             client.newCall(request).execute()
         } catch (err: UnknownHostException) {
-            acraWrapper.logException(err)
+            logger.addExceptionBreadcrumb(err)
             throw err
         }
         if (!response.isSuccessful) {
             val err = IOException("Unexpected code: $response")
-            acraWrapper.logException(err)
+            logger.addExceptionBreadcrumb(err)
             throw err
         }
 
