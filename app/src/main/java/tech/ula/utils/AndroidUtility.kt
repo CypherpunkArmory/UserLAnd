@@ -232,7 +232,7 @@ class AppsPreferences(private val prefs: SharedPreferences) {
         return when {
             pref.toLowerCase() == "ssh" || (app.supportsCli && !app.supportsGui) -> SshTypePreference
             pref.toLowerCase() == "xsdl" -> XsdlTypePreference
-            pref.toLowerCase() == "vnc" -> VncTypePreference
+            pref.toLowerCase() == "vnc" || (app.supportsGui && Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) -> VncTypePreference
             else -> PreferenceHasNotBeenSelected
         }
     }
