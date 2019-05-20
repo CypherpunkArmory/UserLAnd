@@ -13,7 +13,6 @@ import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_list.* // ktlint-disable no-wildcard-imports
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import tech.ula.MainActivity
@@ -29,7 +28,7 @@ import kotlin.coroutines.CoroutineContext
 
 private const val FILESYSTEM_EXPORT_REQUEST_CODE = 7
 
-class FilesystemListFragment : Fragment(), CoroutineScope {
+class FilesystemListFragment : Fragment() {
 
     interface ExportFilesystem {
         fun updateExportProgress(details: String)
@@ -91,10 +90,6 @@ class FilesystemListFragment : Fragment(), CoroutineScope {
     private val activeSessionObserver = Observer<List<Session>> {
         it?.let { sessions -> activeSessions = sessions }
     }
-
-    private val job = Job()
-    override val coroutineContext: CoroutineContext
-        get() = Dispatchers.Main + job
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
