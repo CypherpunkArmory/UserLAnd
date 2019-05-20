@@ -282,14 +282,16 @@ class ConnectionUtility {
 }
 
 class DownloadManagerWrapper(private val downloadManager: DownloadManager) {
-    fun generateDownloadRequest(url: String, destination: String): DownloadManager.Request {
+    fun generateDownloadRequest(url: String, destination: File): DownloadManager.Request {
         val uri = Uri.parse(url)
         val request = DownloadManager.Request(uri)
+        val destinationUri = Uri.fromFile(destination)
         request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
-        request.setTitle(destination)
-        request.setDescription("Downloading ${destination.substringAfterLast("-")}.")
+        request.setTitle(destination.name)
+        request.setDescription("Downloading ${destination.name.substringAfterLast("-")}.")
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
-        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, destination)
+        request.setDestinationUri(destinationUri)
+//        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, destination)
         return request
     }
 
@@ -347,10 +349,6 @@ class DownloadManagerWrapper(private val downloadManager: DownloadManager) {
             }, formatStrings = listOf("$status")) // Format strings only used for http_error
         }
         return DownloadFailureLocalizationData(R.string.download_failure_reason_not_found)
-    }
-
-    fun getDownloadsDirectory(): File {
-        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
     }
 }
 
