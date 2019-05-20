@@ -1,5 +1,7 @@
 package tech.ula.utils
 
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
@@ -24,13 +26,12 @@ class BusyboxExecutorTest {
 
     lateinit var mockFilesystemDir: File
 
-    @Mock lateinit var mockDefaultPreferences: DefaultPreferences
+    @Mock lateinit var mockProotDebugLogger: ProotDebugLogger
 
     @Mock lateinit var mockBusyboxWrapper: BusyboxWrapper
 
     private val testFilesystemDirName = "filesystem"
     private val testProotDebugLevel = "9"
-    private val prootDebugFileName = "PRoot_Debug_Log"
 
     private val outputCollection = mutableListOf<String>()
     private val testListener: (String) -> Unit = { outputCollection.add(it) }
@@ -54,7 +55,7 @@ class BusyboxExecutorTest {
         mockFilesystemDir = File("${mockFilesDir.absolutePath}/$testFilesystemDirName")
         mockFilesDir.mkdirs()
 
-        busyboxExecutor = BusyboxExecutor(mockFilesDir, mockExternalStorage, mockDefaultPreferences, mockBusyboxWrapper)
+        busyboxExecutor = BusyboxExecutor(mockFilesDir, mockExternalStorage, mockProotDebugLogger, mockBusyboxWrapper)
     }
 
     private fun stubBusyboxIsPresent(present: Boolean) {
@@ -78,14 +79,8 @@ class BusyboxExecutorTest {
     }
 
     private fun stubProotDebuggingEnabled(enabled: Boolean) {
-        if (enabled) {
-            whenever(mockDefaultPreferences.getProotDebuggingEnabled()).thenReturn(true)
-        } else {
-            whenever(mockDefaultPreferences.getProotDebuggingEnabled()).thenReturn(false)
-        }
-        // Stub these regardless to ensure unwanted writes don't occur
-        whenever(mockDefaultPreferences.getProotDebuggingLevel()).thenReturn(testProotDebugLevel)
-        whenever(mockDefaultPreferences.getProotDebugLogLocation()).thenReturn("${mockExternalStorage.absolutePath}/$prootDebugFileName")
+        whenever(mockProotDebugLogger.isEnabled).thenReturn(enabled)
+        whenever(mockProotDebugLogger.verbosityLevel).thenReturn(testProotDebugLevel)
     }
 
     private fun stubProotCommand(command: String) {
@@ -175,12 +170,9 @@ class BusyboxExecutorTest {
     }
 
     @Test
-    fun `Overwrites PRoot debug logs with redirected output if logging is enabled`() {
+    fun `Calls ProotDebugLogger#logStream if logging is enabled`() {
         val testOutput = "hello"
         val testCommand = "echo $testOutput"
-        val debugFile = File("${mockExternalStorage.absolutePath}/$prootDebugFileName")
-        debugFile.createNewFile()
-        debugFile.writeText("original text")
 
         stubBusyboxIsPresent(true)
         stubProotIsPresent(true)
@@ -201,9 +193,7 @@ class BusyboxExecutorTest {
 
         assertTrue(result is SuccessfulExecution)
         assertEquals(0, outputCollection.size)
-
-        val debugText = debugFile.readText()
-        assertEquals(testOutput, debugText.trim())
+        verify(mockProotDebugLogger).logStream(any(), any())
     }
 
     @Test

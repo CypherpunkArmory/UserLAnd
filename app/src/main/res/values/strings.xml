@@ -153,6 +153,7 @@
     <string name="pref_proot_debugging_level_title">Debug Verbosity Level</string>
     <string name="pref_proot_debugging_level_summary">The higher the number, the greater the verbosity.</string>
     <string name="pref_proot_debugging_level_default">-1</string>
+    <string name="pref_proot_export_debug_file_title">Export Debug File</string>
     <string name="pref_proot_delete_debug_file_title">Delete Debug File</string>
 
     <!-- Help Activity -->
@@ -227,7 +228,9 @@
     <string name="filesystem_unique_name_required">Filesystems require a unique name!</string>
     <string name="single_session_supported">UserLAnd currently only supports a single active session!</string>
     <string name="no_supported_architecture">UserLAnd does not currently support your devices architecture.</string>
-    <string name="debug_log_deleted">Debug log deleted or does not exist!</string>
+    <string name="debug_log_export_success">Debug log exported successfully!</string>
+    <string name="debug_log_export_failure">Exporting debug log failed!</string>
+    <string name="debug_log_deleted">Debug log deleted!</string>
 
     <!-- Content descriptions -->
     <string name="desc_arrow">Image: Arrow denoting connection between session and filesystem.</string>
