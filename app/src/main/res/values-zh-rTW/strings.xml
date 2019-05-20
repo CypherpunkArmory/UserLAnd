@@ -52,9 +52,6 @@
     <string name="error_username_in_blacklist">使用者名稱可能被 Linux 保留，不能用於檔案系統的使用者名稱。</string>
     <string name="error_filesystem_name_invalid_characters">檔案系統名稱必須在1到50個字元間，且不能有如 \"/:*\\| 等符號</string>
     <string name="error_export_execution_failure">匯出失敗。理由：%1$s</string>
-    <string name="error_export_to_local_failed">匯出到本機目錄失敗。</string>
-    <string name="error_export_to_external_failed">匯出到外部目錄失敗。可能已存在相同名稱的備份。</string>
-    <string name="error_export_to_external_failed_no_data">匯出到外部目錄失敗，已匯出的檔案沒有資料。</string>
 
     <!-- Illegal State Dialog -->
     <string name="illegal_state_title">UserLAnd 已進入違規狀態！</string>

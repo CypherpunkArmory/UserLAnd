@@ -51,9 +51,6 @@
     <string name="error_username_invalid_characters">يجب أن تتكون الأحرف في اسم المستخدم من 1 إلى 30 حرفًا بأحرف و / أو أرقام صغيرة.</string>
     <string name="error_username_in_blacklist">ربما يتم حجز اسم المستخدم هذا بواسطة Linux ولا يمكن استخدامه كاسم مستخدم لنظام الملفات</string>
     <string name="error_filesystem_name_invalid_characters">يجب أن تكون الأحرف في اسم نظام الملفات من 1 إلى 50 حرفًا دون أحرف مثل \ "/: * \\ |</string>
-    <string name="error_export_to_local_failed">فشل التصدير إلى الدليل المحلي.</string>
-    <string name="error_export_to_external_failed">فشل التصدير إلى الدليل الخارجي. قد توجد نسخة احتياطية بنفس الاسم بالفعل.</string>
-    <string name="error_export_to_external_failed_no_data">أخفق التصدير إلى الدليل الخارجي ، لا يحتوي الملف المصدر على بيانات.</string>
 
     <!-- Illegal State Dialog -->
     <string name="illegal_state_title">لقد دخل UserLAnd حالة غير قانونية!</string>

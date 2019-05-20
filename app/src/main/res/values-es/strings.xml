@@ -51,9 +51,6 @@
     <string name="error_username_in_blacklist">Este nombre de usuario puede estar reservado por Linux y no puede ser usado como nombre de usuario para el sistema de archivos.</string>
     <string name="error_filesystem_name_invalid_characters">La longitud de el nombre del sistema de archivos debe ser entre 1 y 50 caracteres excluyendo caracteres como \"/:*\\|</string>
     <string name="error_export_execution_failure">La exportación falló, Razón: %1$s</string>
-    <string name="error_export_to_local_failed">La exportación al directorio local falló.</string>
-    <string name="error_export_to_external_failed">La exportación al directorio externo falló. Un respaldo con el mismo nombre ya existe.</string>
-    <string name="error_export_to_external_failed_no_data">La exportación al directorio externo falló, el archivo a exportar no tiene datos.</string>
 
 
     <!-- Illegal State Dialog -->
