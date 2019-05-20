@@ -79,10 +79,10 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
     }
 
     fun startExport(
-            filesDir: File,
-            publicExternalUri: Uri,
-            contentResolver: ContentResolver,
-            coroutineScope: CoroutineScope = this
+        filesDir: File,
+        publicExternalUri: Uri,
+        contentResolver: ContentResolver,
+        coroutineScope: CoroutineScope = this
     ) = coroutineScope.launch {
         when {
             activeSessions.value!!.isNotEmpty() -> {
@@ -100,9 +100,9 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
     }
 
     private suspend fun compressFilesystemAndExportToStorage(
-            filesDir: File,
-            publicExternalUri: Uri,
-            contentResolver: ContentResolver
+        filesDir: File,
+        publicExternalUri: Uri,
+        contentResolver: ContentResolver
     ) {
         withContext(Dispatchers.IO) {
             exportStatusLiveData.postValue(ExportStarted)
