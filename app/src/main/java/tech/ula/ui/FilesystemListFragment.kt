@@ -13,8 +13,6 @@ import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_filesystem_list.* // ktlint-disable no-wildcard-imports
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import tech.ula.MainActivity
 import tech.ula.R
 import tech.ula.ServerService
@@ -24,7 +22,6 @@ import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.entities.Session
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.FilesystemListViewModel
-import kotlin.coroutines.CoroutineContext
 
 private const val FILESYSTEM_EXPORT_REQUEST_CODE = 7
 
