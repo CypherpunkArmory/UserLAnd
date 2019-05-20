@@ -123,7 +123,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
         val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val downloadManagerWrapper = DownloadManagerWrapper(downloadManager)
-        val downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, filesDir)
+        val downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, filesDir, this.storageRoot)
 
         val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
 
