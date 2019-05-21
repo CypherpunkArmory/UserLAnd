@@ -31,10 +31,14 @@ class CloudDemoFragment : Fragment() {
     private val cloudStateObserver = Observer<CloudState> { it?.let { state ->
 
         when (state) {
-            is LoginResult -> handleLoginResult()
-            is ConnectResult -> handleConnectResult()
+            is LoginResult -> handleLoginResult(state)
+            is ConnectResult -> handleConnectResult(state)
         }
     } }
+
+    private val activityContext by lazy {
+        activity!! as MainActivity
+    }
 
     private var email = ""
     private var password = ""
@@ -68,16 +72,32 @@ class CloudDemoFragment : Fragment() {
         })
 
         cloud_demo_login_button.setOnClickListener { viewModel.handleLoginClick(email, password) }
-        cloud_demo_connect_button.setOnClickListener { viewModel.handleConnectClick() }
+        cloud_demo_connect_button.setOnClickListener { viewModel.handleConnectClick(activityContext.filesDir) }
     }
 
     private fun handleLoginResult(state: LoginResult) {
-        val activityContext = activity!!
-        activityContext as MainActivity
         when (state) {
             is LoginResult.InProgress -> activityContext.updateProgress("Logging in")
             is LoginResult.Success -> activityContext.killProgress()
-            is LoginResult.Failure -> activityContext.killProgress()
+            is LoginResult.Failure -> {
+                Toast.makeText(activityContext, "Login failed", Toast.LENGTH_LONG).show()
+                activityContext.killProgress()
+            }
+        }
+    }
+
+    private fun handleConnectResult(state: ConnectResult) {
+        when (state) {
+            is ConnectResult.InProgress -> activityContext.updateProgress("Connecting to box")
+            is ConnectResult.Success -> activityContext.killProgress()
+            is ConnectResult.BoxCreateFailure -> {
+                activityContext.killProgress()
+                Toast.makeText(activityContext, "Failed to create box", Toast.LENGTH_LONG).show()
+            }
+            is ConnectResult.ConnectFailure -> {
+                activityContext.killProgress()
+                Toast.makeText(activityContext, "Failed to connect to box", Toast.LENGTH_LONG).show()
+            }
         }
     }
 }
