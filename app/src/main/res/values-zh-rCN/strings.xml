@@ -99,7 +99,7 @@
     <string name="desc_filesystem_type">图像：分发图标</string>
     <string name="custom_sessions">自定义会话</string>
     <string name="apps_sessions">应用程序会话</string>
-    <string name="github_message">发现错误并且想要申请新的功能？上我们的Github，在那里您能得到最快的答复！</string>
+    <string name="github_message">发现错误并且想要申请新功能？上我们的Github页面，在那里您能得到最快的答复！</string>
     <string name="pref_proot_debugging_level_summary">数值越大，越冗余越高.</string>
     <string name="alert_clear_support_files_title">真的要删除支持文件吗?</string>
     <string name="alert_clear_support_files_message">
