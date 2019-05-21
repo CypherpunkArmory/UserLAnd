@@ -72,7 +72,10 @@
     <string name="download_failure_finished_wrong_items">Tried to finish download process with items we did not enqueue.</string>
     
     <!-- Illegal State Dialog -->
-    <string name="illegal_state_github_message">%1$s \nThe app will now crash so that we can receive an error log. Feel free to also let us know on Github! We are working to resolve these issues.</string>
+    <string name="illegal_state_github_message">
+        %1$s \nWe are working to resolve these issues. You can let us know about this issue on
+        Github if you\'d like to help!
+    </string>
     <string name="illegal_state_title">UserLAnd has entered an illegal state!</string>
 
     <string name="illegal_state_transition">Bad state transition: %1$s</string>
