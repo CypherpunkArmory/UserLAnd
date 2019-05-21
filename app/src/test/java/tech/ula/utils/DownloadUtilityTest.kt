@@ -38,8 +38,6 @@ class DownloadUtilityTest {
 
     private lateinit var downloadDirectory: File
 
-    private val userlandDownloadPrefix = "UserLAnd-"
-
     private val rootfsName = "rootfs.tar.gz"
     private val assetsName = "assets.tar.gz"
     private val type1 = "type1"
@@ -52,10 +50,28 @@ class DownloadUtilityTest {
     private val downloadMetadata2 = DownloadMetadata(assetsName, type2, version, url2)
     private val downloadList = listOf(downloadMetadata1, downloadMetadata2)
 
-    private val destination1 = "$userlandDownloadPrefix${downloadMetadata1.downloadTitle}"
-    private val destination2 = "$userlandDownloadPrefix${downloadMetadata2.downloadTitle}"
+    private lateinit var destination1: File
+    private lateinit var destination2: File
 
     private lateinit var downloadUtility: DownloadUtility
+
+    @Before
+    fun setup() {
+        mockFilesDir = tempFolder.newFolder("files")
+        val scopedStorage = tempFolder.newFolder("scoped")
+        downloadDirectory = File(scopedStorage,"downloads")
+        downloadDirectory.mkdirs()
+
+        destination1 = File(downloadDirectory, downloadMetadata1.downloadTitle)
+        destination2 = File(downloadDirectory, downloadMetadata2.downloadTitle)
+
+        whenever(downloadManagerWrapper.generateDownloadRequest(downloadMetadata1.url, destination1))
+                .thenReturn(requestReturn1)
+        whenever(downloadManagerWrapper.generateDownloadRequest(downloadMetadata2.url, destination2))
+                .thenReturn(requestReturn2)
+
+        downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, mockFilesDir, scopedStorage)
+    }
 
     private fun setupDownloadState() {
         whenever(downloadManagerWrapper.enqueue(requestReturn1))
@@ -66,19 +82,6 @@ class DownloadUtilityTest {
         downloadUtility.downloadRequirements(downloadList)
     }
 
-    @Before
-    fun setup() {
-        mockFilesDir = tempFolder.root
-        downloadDirectory = tempFolder.newFolder("downloads")
-        whenever(downloadManagerWrapper.getDownloadsDirectory())
-                .thenReturn(downloadDirectory)
-        whenever(downloadManagerWrapper.generateDownloadRequest(downloadMetadata1.url, destination1))
-                .thenReturn(requestReturn1)
-        whenever(downloadManagerWrapper.generateDownloadRequest(downloadMetadata2.url, destination2))
-                .thenReturn(requestReturn2)
-
-        downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, mockFilesDir)
-    }
 
     @Test
     fun `Returns appropriate value from asset preferences about whether cache is populated`() {
@@ -234,8 +237,8 @@ class DownloadUtilityTest {
 
     @Test
     fun `Clears download directory of userland files`() {
-        val asset1DownloadsFile = File("${downloadDirectory.path}/$userlandDownloadPrefix${downloadMetadata1.downloadTitle}")
-        val asset2DownloadsFile = File("${downloadDirectory.path}/$userlandDownloadPrefix${downloadMetadata2.downloadTitle}")
+        val asset1DownloadsFile = File("${downloadDirectory.path}/${downloadMetadata1.downloadTitle}")
+        val asset2DownloadsFile = File("${downloadDirectory.path}/${downloadMetadata2.downloadTitle}")
         asset1DownloadsFile.createNewFile()
         asset2DownloadsFile.createNewFile()
         assertTrue(asset1DownloadsFile.exists())
@@ -248,21 +251,18 @@ class DownloadUtilityTest {
     }
 
     @Test
-    fun `prepareDownloadsForUse creates staging directory`() {
+    fun `prepareDownloadsForUse deletes staging directory after use`() {
         val stagingDirectory = File("${mockFilesDir.absolutePath}/staging")
-
-        assertFalse(stagingDirectory.exists())
-        assertFalse(stagingDirectory.isDirectory)
+        stagingDirectory.mkdirs()
 
         runBlocking { downloadUtility.prepareDownloadsForUse() }
 
-        assertTrue(stagingDirectory.exists())
-        assertTrue(stagingDirectory.isDirectory)
+        assertFalse(stagingDirectory.exists())
     }
 
     @Test
     fun `prepareDownloadsForUse moves rootfs files internal`() {
-        val downloadedRootfs = File("${downloadDirectory.absolutePath}/$userlandDownloadPrefix${downloadMetadata1.downloadTitle}")
+        val downloadedRootfs = File("${downloadDirectory.absolutePath}/${downloadMetadata1.downloadTitle}")
         downloadedRootfs.createNewFile()
 
         val destinationDirectory = File("${mockFilesDir.absolutePath}/$type1")
@@ -282,7 +282,7 @@ class DownloadUtilityTest {
 
     @Test
     fun `prepareDownloadsForUse deletes old rootfs part files`() {
-        val downloadedRootfs = File("${downloadDirectory.absolutePath}/$userlandDownloadPrefix${downloadMetadata1.downloadTitle}")
+        val downloadedRootfs = File("${downloadDirectory.absolutePath}/${downloadMetadata1.downloadTitle}")
         downloadedRootfs.createNewFile()
 
         val destinationDirectory = File("${mockFilesDir.absolutePath}/$type1")
@@ -308,7 +308,7 @@ class DownloadUtilityTest {
     @Test
     fun `prepareDownloadsForUse overwrites stale rootfs files`() {
         val expectedText = "expected"
-        val downloadedRootfs = File("${downloadDirectory.absolutePath}/$userlandDownloadPrefix${downloadMetadata1.downloadTitle}")
+        val downloadedRootfs = File("${downloadDirectory.absolutePath}/${downloadMetadata1.downloadTitle}")
         downloadedRootfs.createNewFile()
         downloadedRootfs.writeText(expectedText)
 
@@ -332,7 +332,7 @@ class DownloadUtilityTest {
 
     @Test
     fun `prepareDownloadsForUse extracts assets tar files`() {
-        val downloadedAssets = File("${downloadDirectory.absolutePath}/$userlandDownloadPrefix${downloadMetadata2.downloadTitle}")
+        val downloadedAssets = File("${downloadDirectory.absolutePath}/${downloadMetadata2.downloadTitle}")
         downloadedAssets.createNewFile()
         assertTrue(downloadedAssets.exists())
 
