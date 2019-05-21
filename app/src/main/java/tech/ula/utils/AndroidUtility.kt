@@ -213,10 +213,13 @@ class AppsPreferences(private val prefs: SharedPreferences) {
     fun getAppServiceTypePreference(app: App): AppServiceTypePreference {
         val pref = prefs.getString(app.name, "") ?: ""
 
+        val xsdlAvailable = Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1
+        val onlyCliSupported = app.supportsCli && !app.supportsGui
+        val onlyVncSupported = app.supportsGui && !app.supportsCli && !xsdlAvailable
         return when {
-            pref.toLowerCase() == "ssh" || (app.supportsCli && !app.supportsGui) -> SshTypePreference
+            pref.toLowerCase() == "ssh" || onlyCliSupported -> SshTypePreference
             pref.toLowerCase() == "xsdl" -> XsdlTypePreference
-            pref.toLowerCase() == "vnc" || (app.supportsGui && !app.supportsCli && Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) -> VncTypePreference
+            pref.toLowerCase() == "vnc" || onlyVncSupported -> VncTypePreference
             else -> PreferenceHasNotBeenSelected
         }
     }
