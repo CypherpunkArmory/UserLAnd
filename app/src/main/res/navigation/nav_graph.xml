@@ -2,6 +2,13 @@
 <navigation xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" >
+
+    <fragment
+        android:id="@+id/cloud_demo_fragment"
+        android:name="tech.ula.ui.CloudDemoFragment"
+        android:label="Cloud"
+        tools:layout="@layout/frag_cloud_demo" />
+
     <fragment
         android:id="@+id/app_list_fragment"
         android:name="tech.ula.ui.AppListFragment"
