@@ -55,8 +55,17 @@ import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import kotlinx.android.synthetic.main.dia_app_select_client.*
 import tech.ula.ui.FilesystemListFragment
 import tech.ula.model.repositories.DownloadMetadata
+import tech.ula.ui.CloudDemoFragment
 
-class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection, FilesystemListFragment.ExportFilesystem {
+class MainActivity : AppCompatActivity(), CloudDemoFragment.CloudProgress, SessionListFragment.SessionSelection, AppListFragment.AppSelection, FilesystemListFragment.ExportFilesystem {
+
+    override fun updateProgress(details: String) {
+        updateProgressBar(details, "")
+    }
+
+    override fun killProgress() {
+        killProgressBar()
+    }
 
     private val permissionRequestCode: Int by lazy {
         getString(R.string.permission_request_code).toInt()

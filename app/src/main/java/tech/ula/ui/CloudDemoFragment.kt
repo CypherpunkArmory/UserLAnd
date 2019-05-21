@@ -13,19 +13,27 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import kotlinx.android.synthetic.main.frag_cloud_demo.*
 import kotlinx.android.synthetic.main.frag_cloud_demo.view.*
+import tech.ula.MainActivity
 import tech.ula.R
-import tech.ula.viewmodel.CloudDemoViewModel
-import tech.ula.viewmodel.CloudDemoViewModelFactory
-import tech.ula.viewmodel.CloudState
+import tech.ula.viewmodel.*
 
 class CloudDemoFragment : Fragment() {
+
+    interface CloudProgress {
+        fun updateProgress(details: String)
+        fun killProgress()
+    }
+
     private val viewModel by lazy {
         ViewModelProviders.of(this, CloudDemoViewModelFactory()).get(CloudDemoViewModel::class.java)
     }
 
     private val cloudStateObserver = Observer<CloudState> { it?.let { state ->
 
-        Toast.makeText(activity, state.toString(), Toast.LENGTH_LONG).show()
+        when (state) {
+            is LoginResult -> handleLoginResult()
+            is ConnectResult -> handleConnectResult()
+        }
     } }
 
     private var email = ""
@@ -63,4 +71,13 @@ class CloudDemoFragment : Fragment() {
         cloud_demo_connect_button.setOnClickListener { viewModel.handleConnectClick() }
     }
 
+    private fun handleLoginResult(state: LoginResult) {
+        val activityContext = activity!!
+        activityContext as MainActivity
+        when (state) {
+            is LoginResult.InProgress -> activityContext.updateProgress("Logging in")
+            is LoginResult.Success -> activityContext.killProgress()
+            is LoginResult.Failure -> activityContext.killProgress()
+        }
+    }
 }

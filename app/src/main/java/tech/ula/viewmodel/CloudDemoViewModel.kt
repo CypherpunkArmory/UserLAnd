@@ -18,6 +18,7 @@ import kotlin.coroutines.CoroutineContext
 
 sealed class CloudState
 sealed class LoginResult : CloudState() {
+    object InProgress: LoginResult()
     object Success : LoginResult()
     object Failure : LoginResult()
 }
@@ -56,6 +57,7 @@ class CloudDemoViewModel : ViewModel(), CoroutineScope {
     }
 
     fun handleLoginClick(email: String, password: String) = launch { withContext(Dispatchers.IO) {
+        cloudState.postValue(LoginResult.InProgress)
         val json = JSONObject()
                 .put("email", email)
                 .put("password", password)
@@ -81,7 +83,6 @@ class CloudDemoViewModel : ViewModel(), CoroutineScope {
         val adapter = Moshi.Builder().build().adapter<LoginResponse>(LoginResponse::class.java)
         val loginResponse = adapter.fromJson(response.body()!!.source())
         cloudState.postValue(LoginResult.Success)
-
     } }
 
     fun handleConnectClick() {
