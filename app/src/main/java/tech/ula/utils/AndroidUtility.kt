@@ -293,7 +293,6 @@ class DownloadManagerWrapper(private val downloadManager: DownloadManager) {
         request.setDescription("Downloading ${destination.name.substringAfterLast("-")}.")
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
         request.setDestinationUri(destinationUri)
-//        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, destination)
         return request
     }
 
