@@ -59,7 +59,7 @@ class DownloadUtilityTest {
     fun setup() {
         mockFilesDir = tempFolder.newFolder("files")
         val scopedStorage = tempFolder.newFolder("scoped")
-        downloadDirectory = File(scopedStorage,"downloads")
+        downloadDirectory = File(scopedStorage, "downloads")
         downloadDirectory.mkdirs()
 
         destination1 = File(downloadDirectory, downloadMetadata1.downloadTitle)
@@ -81,7 +81,6 @@ class DownloadUtilityTest {
 
         downloadUtility.downloadRequirements(downloadList)
     }
-
 
     @Test
     fun `Returns appropriate value from asset preferences about whether cache is populated`() {
