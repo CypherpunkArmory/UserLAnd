@@ -106,7 +106,7 @@ reference:
     run:
       name: Configure Sentry for production use
       command: |
-        mkdir app/src/main/resources
+        mkdir -p app/src/main/resources
         echo "dsn=$SENTRY_DSN" >> app/src/main/resources/sentry.properties
         echo "environment=production" >> app/src/main/resources/sentry.properties
 
