@@ -107,5 +107,7 @@
         点击“是的”将会导致在下次运行会话或应用程序时再下载资源。
     </string>
     <string name="alert_clear_support_files_clear_button">清除</string>
-
+    <string name="review_ask_for_rating">可以在 Play商店 上为我们评分吗？</string>
+    <string name="review_ask_for_feedback">您介意在 GitHub 上給我們一些回饋嗎？</string>
+   
 </resources>
