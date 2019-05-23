@@ -1,5 +1,7 @@
 package tech.ula.ui
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -78,7 +80,10 @@ class CloudDemoFragment : Fragment() {
     private fun handleLoginResult(state: LoginResult) {
         when (state) {
             is LoginResult.InProgress -> activityContext.updateProgress("Logging in")
-            is LoginResult.Success -> activityContext.killProgress()
+            is LoginResult.Success -> {
+                activityContext.killProgress()
+                Toast.makeText(activityContext, "Login succeeded", Toast.LENGTH_LONG).show()
+            }
             is LoginResult.Failure -> {
                 Toast.makeText(activityContext, "Login failed", Toast.LENGTH_LONG).show()
                 activityContext.killProgress()
@@ -87,9 +92,20 @@ class CloudDemoFragment : Fragment() {
     }
 
     private fun handleConnectResult(state: ConnectResult) {
-        when (state) {
-            is ConnectResult.InProgress -> activityContext.updateProgress("Connecting to box")
-            is ConnectResult.Success -> activityContext.killProgress()
+        val a = when (state) {
+            is ConnectResult.InProgress -> activityContext.updateProgress("Creating box")
+            is ConnectResult.Success -> {
+                activityContext.killProgress()
+                startTermux(state.ipAddress, state.sshPort)
+            }
+            is ConnectResult.PublicKeyNotFound -> {
+                activityContext.killProgress()
+                Toast.makeText(activityContext, "Public SSH key not found", Toast.LENGTH_LONG).show()
+            }
+            is ConnectResult.RequestFailed -> {
+                activityContext.killProgress()
+                Toast.makeText(activityContext, "API request failed ${state.message}", Toast.LENGTH_LONG).show()
+            }
             is ConnectResult.BoxCreateFailure -> {
                 activityContext.killProgress()
                 Toast.makeText(activityContext, "Failed to create box", Toast.LENGTH_LONG).show()
@@ -98,6 +114,23 @@ class CloudDemoFragment : Fragment() {
                 activityContext.killProgress()
                 Toast.makeText(activityContext, "Failed to connect to box", Toast.LENGTH_LONG).show()
             }
+            is ConnectResult.BusyboxMissing -> {
+                activityContext.killProgress()
+                Toast.makeText(activityContext, "Busybox is not downloaded", Toast.LENGTH_LONG).show()
+            }
+            is ConnectResult.LinkFailed -> {
+                activityContext.killProgress()
+                Toast.makeText(activityContext, "Could not link busybox to sh", Toast.LENGTH_LONG).show()
+            }
         }
+    }
+
+    private fun startTermux(ipAddress: String, sshPort: Int) {
+        val intent = Intent()
+        intent.action = "android.intent.action.VIEW"
+        intent.data = Uri.parse("ssh://blah@$ipAddress:$sshPort/#userland")
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+
+        startActivity(intent)
     }
 }

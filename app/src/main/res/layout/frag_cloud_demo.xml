@@ -19,6 +19,7 @@
             android:id="@+id/cloud_demo_email_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inputType="textEmailAddress"
             android:hint="Email"/>
 
     </com.google.android.material.textfield.TextInputLayout>
@@ -38,6 +39,7 @@
             android:id="@+id/cloud_demo_password_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inputType="textPassword"
             android:hint="Password"/>
 
     </com.google.android.material.textfield.TextInputLayout>

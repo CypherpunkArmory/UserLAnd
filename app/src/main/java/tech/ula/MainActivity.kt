@@ -155,7 +155,8 @@ class MainActivity : AppCompatActivity(), CloudDemoFragment.CloudProgress, Sessi
             currentFragmentDisplaysProgressDialog =
                     destination.label == getString(R.string.sessions) ||
                     destination.label == getString(R.string.apps) ||
-                    destination.label == getString(R.string.filesystems)
+                    destination.label == getString(R.string.filesystems) ||
+                    destination.label == "Cloud"
             if (!currentFragmentDisplaysProgressDialog) killProgressBar()
             else if (progressBarIsVisible) displayProgressBar()
         }

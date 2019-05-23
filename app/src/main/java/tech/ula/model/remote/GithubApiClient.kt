@@ -29,11 +29,12 @@ class GithubApiClient(
 
     // This function can be used to tune the release used for each asset type for testing purposes.
     private fun getReleaseToUseForRepo(repo: String): String {
-        return "latest"
-//        return when (repo) {
-//            "support" -> "latest"
-//            "debian" -> "tags/:tag"
-//        }
+//        return "latest"
+        return when (repo) {
+            "support" -> "tags/v7.7.7"
+//            "debian" -> "latest"
+            else -> "latest"
+        }
     }
 
     @Throws(IOException::class)
