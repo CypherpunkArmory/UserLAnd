@@ -113,6 +113,10 @@ class CloudDemoFragment : Fragment() {
                 activityContext.killProgress()
                 Toast.makeText(activityContext, "Failed to create box", Toast.LENGTH_LONG).show()
             }
+            is ConnectResult.NullResponseFromCreate -> {
+                activityContext.killProgress()
+                Toast.makeText(activityContext, "Null response from list", Toast.LENGTH_LONG).show()
+            }
             is ConnectResult.ConnectFailure -> {
                 activityContext.killProgress()
                 Toast.makeText(activityContext, "Failed to connect to box", Toast.LENGTH_LONG).show()
@@ -147,6 +151,10 @@ class CloudDemoFragment : Fragment() {
             is DeleteResult.ListResponseFailure -> {
                 activityContext.killProgress()
                 Toast.makeText(activityContext, "Fetching boxes response err: ${state.message}", Toast.LENGTH_LONG).show()
+            }
+            is DeleteResult.NullResponseFromList -> {
+                activityContext.killProgress()
+                Toast.makeText(activityContext, "Null response from list", Toast.LENGTH_LONG).show()
             }
             is DeleteResult.DeleteRequestFailure -> {
                 activityContext.killProgress()

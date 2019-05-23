@@ -31,6 +31,7 @@ sealed class ConnectResult : CloudState() {
     object PublicKeyNotFound : ConnectResult()
     data class RequestFailed(val message: String) : ConnectResult()
     object BoxCreateFailure : ConnectResult()
+    object NullResponseFromCreate : ConnectResult()
     object ConnectFailure : ConnectResult()
     object BusyboxMissing : ConnectResult()
     object LinkFailed : ConnectResult()
@@ -41,6 +42,7 @@ sealed class DeleteResult : CloudState() {
     data class Success(val id: Int) : DeleteResult()
     object ListRequestFailure : DeleteResult()
     data class ListResponseFailure(val message: String) : DeleteResult()
+    object NullResponseFromList : DeleteResult()
     object DeleteRequestFailure : DeleteResult()
     data class DeleteResponseFailure(val message: String): DeleteResult()
 }
@@ -158,8 +160,12 @@ class CloudDemoViewModel : ViewModel(), CoroutineScope {
         }
 
         val adapter = moshi.adapter<CreateResponse>(CreateResponse::class.java)
-        // TODO null responses should be handled for demo
-        val createResponse = adapter.fromJson(response.body()!!.source())!!
+        val createResponse = try {
+            adapter.fromJson(response.body()!!.source())!!
+        } catch (err: NullPointerException) {
+            cloudState.postValue(ConnectResult.NullResponseFromCreate)
+            return@withContext
+        }
         val ipAddress = createResponse.data.attributes.ipAddress
         val sshPort = createResponse.data.attributes.sshPort
 
@@ -187,7 +193,12 @@ class CloudDemoViewModel : ViewModel(), CoroutineScope {
         }
 
         val listAdapter = moshi.adapter<ListResponse>(ListResponse::class.java)
-        val id = listAdapter.fromJson(response.body()!!.source())!!.data.first().id
+        val id = try {
+            listAdapter.fromJson(response.body()!!.source())!!.data.first().id
+        } catch (err: NullPointerException) {
+            cloudState.postValue(DeleteResult.NullResponseFromList)
+            return@withContext
+        }
 
         val deleteRequest = createDeleteRequest(id)
         val deleteResponse = try {
