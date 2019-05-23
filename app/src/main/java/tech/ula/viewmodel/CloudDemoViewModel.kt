@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.room.Delete
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
@@ -34,6 +35,15 @@ sealed class ConnectResult : CloudState() {
     object BusyboxMissing : ConnectResult()
     object LinkFailed : ConnectResult()
 }
+sealed class DeleteResult : CloudState() {
+    object InProgress : DeleteResult()
+    data class IdRetrieved(val id: Int) : DeleteResult()
+    data class Success(val id: Int) : DeleteResult()
+    object ListRequestFailure : DeleteResult()
+    data class ListResponseFailure(val message: String) : DeleteResult()
+    object DeleteRequestFailure : DeleteResult()
+    data class DeleteResponseFailure(val message: String): DeleteResult()
+}
 
 @JsonClass(generateAdapter = true)
 internal data class LoginResponse(
@@ -61,6 +71,12 @@ internal data class CreateAttributes(
         val sshPort: Int,
         val ipAddress: String
 )
+
+@JsonClass(generateAdapter = true)
+internal data class ListResponse(val data: List<TunnelData>)
+
+@JsonClass(generateAdapter = true)
+internal data class TunnelData(val id: Int)
 
 class CloudDemoViewModel : ViewModel(), CoroutineScope {
     private val job = Job()
@@ -150,12 +166,45 @@ class CloudDemoViewModel : ViewModel(), CoroutineScope {
         cloudState.postValue(ConnectResult.Success(ipAddress, sshPort))
     } }
 
+    fun handleDeleteClick() = launch { withContext(Dispatchers.IO) {
+        if (accessToken == "") {
+            cloudState.postValue(LoginResult.Failure)
+            return@withContext
+        }
+
+        cloudState.postValue(DeleteResult.InProgress)
+
+        val request = createListRequest()
+        val response = try {
+            client.newCall(request).execute()
+        } catch (err: Exception) {
+            cloudState.postValue(DeleteResult.ListRequestFailure)
+            return@withContext
+        }
+        if (!response.isSuccessful) {
+            cloudState.postValue(DeleteResult.ListResponseFailure(response.message()))
+            return@withContext
+        }
+
+        val listAdapter = moshi.adapter<ListResponse>(ListResponse::class.java)
+        val id = listAdapter.fromJson(response.body()!!.source())!!.data.first().id
+
+        val deleteRequest = createDeleteRequest(id)
+        val deleteResponse = try {
+            client.newCall(deleteRequest).execute()
+        } catch (err: Exception) {
+            cloudState.postValue(DeleteResult.DeleteRequestFailure)
+            return@withContext
+        }
+        if (!deleteResponse.isSuccessful) {
+            cloudState.postValue(DeleteResult.DeleteResponseFailure(response.message()))
+            return@withContext
+        }
+
+        cloudState.postValue(DeleteResult.Success(id))
+    } }
+
     private fun createLoginRequest(email: String, password: String): Request {
-//        val json = JSONObject()
-//                .put("email", email)
-//                .put("password", password)
-//                .toString()
-//        val json = "{\"email:\"\"$email\",\"password:\"\"$password\"}"
         val json = """
             {
                 "email": "$email",
@@ -171,22 +220,13 @@ class CloudDemoViewModel : ViewModel(), CoroutineScope {
     }
 
     private fun createBoxCreateRequest(filesDir: File): Request? {
-//        val attributesJson = JSONObject()
-//                .put("port", JSONArray().put("http"))
-//                .put("sshKey")
-//        val dataJson = JSONObject()
-//                .put("type", "tunnel")
-//                .put("attributes")
-//        val json = JSONObject()
-//                .put("data", dataJson)
-//                .toString()
-
         val sshKeyFile = File(filesDir, "sshkey.pub")
         if (!sshKeyFile.exists()) {
             cloudState.postValue(ConnectResult.PublicKeyNotFound)
             return null
         }
         val sshKey = sshKeyFile.readText().trim()
+
         val json = """
             {
               "data": {
@@ -204,6 +244,22 @@ class CloudDemoViewModel : ViewModel(), CoroutineScope {
                 .url("$baseUrl/tunnels")
                 .post(body)
                 .addHeader("Authorization","Bearer $accessToken")
+                .build()
+    }
+
+    private fun createListRequest(): Request {
+        return Request.Builder()
+                .url("$baseUrl/tunnels")
+                .addHeader("Authorization","Bearer $accessToken")
+                .get()
+                .build()
+    }
+
+    private fun createDeleteRequest(id: Int): Request {
+        return Request.Builder()
+                .url("$baseUrl/tunnels/$id")
+                .addHeader("Authorization","Bearer $accessToken")
+                .delete()
                 .build()
     }
 }
