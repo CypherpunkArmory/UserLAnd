@@ -268,7 +268,11 @@ public final class TermuxService extends Service implements SessionChangedCallba
 //        String dbKeyFile = filesPath + "/dbkey";
         String sshKeyFile = filesPath + "/sshkey";
 //        String dbCommand = "/support/dbclient -i " + dbKeyFile + " -A root@" + hostname + "/" + port + "-J 'ssh -A -p " + port + " root@" + hostname + "'";
-        String sshCommand = supportPath + "/ssh -o \"StrictHostKeyChecking=no\" -i " + sshKeyFile + " -A root@" + hostname + " -p " + port + " -J punch@api.ula.orbtestenv.net";
+//        String sshCommand = supportPath + "/ssh -o \"UserKnownHostsFile=/dev/null\" -o \"StrictHostKeyChecking=no\" -i " + sshKeyFile + " -A root@" + hostname + " -p " + port + " -J punch@api.ula.orbtestenv.net";
+        String proxyCommand = supportPath + "/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i " + sshKeyFile + " -W %h:%p punch@api.ula.orbtestenv.net";
+        String sshCommand = supportPath + "/ssh -o ProxyCommand=\"" + proxyCommand + "\" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i " + sshKeyFile +  " -p " + port + " -t -A root@" + hostname + " '/usr/bin/clear; /bin/bash -i'";
+        //String proxyCommand = supportPath + "/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i " + sshKeyFile + " -W %h:%p punch@api.ula.orbtestenv.net";
+        //String sshCommand = supportPath + "/dbclient -i " + dbKeyFile + " -A root@" + hostname + "/" + port + "-J 'ssh -A -p " + port + " root@" + hostname + "'";
         String[] dbclientArgs = {"sh", "-c", sshCommand};
         String[] processArgs = BackgroundJob.setupProcessArgs(executablePath, dbclientArgs, prefixPath);
         executablePath = processArgs[0];
