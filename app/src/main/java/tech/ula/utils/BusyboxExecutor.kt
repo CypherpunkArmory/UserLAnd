@@ -13,10 +13,9 @@ data class FailedExecution(val reason: String) : ExecutionResult()
 data class OngoingExecution(val process: Process) : ExecutionResult()
 
 class BusyboxExecutor(
-    private val filesDir: File,
-    private val externalStorageDir: File,
+    private val ulaFiles: UlaFiles,
     private val prootDebugLogger: ProotDebugLogger,
-    private val busyboxWrapper: BusyboxWrapper = BusyboxWrapper()
+    private val busyboxWrapper: BusyboxWrapper = BusyboxWrapper(ulaFiles)
 ) {
 
     private val discardOutput: (String) -> Any = { }
@@ -25,13 +24,13 @@ class BusyboxExecutor(
         command: String,
         listener: (String) -> Any = discardOutput
     ): ExecutionResult {
-        if (!busyboxWrapper.busyboxIsPresent(filesDir)) {
+        if (!busyboxWrapper.busyboxIsPresent()) {
             return MissingExecutionAsset("busybox")
         }
         val updatedCommand = busyboxWrapper.addBusybox(command)
-        val env = busyboxWrapper.getBusyboxEnv(filesDir)
+        val env = busyboxWrapper.getBusyboxEnv()
         val processBuilder = ProcessBuilder(updatedCommand)
-        processBuilder.directory(filesDir)
+        processBuilder.directory(ulaFiles.filesDir)
         processBuilder.environment().putAll(env)
         processBuilder.redirectErrorStream(true)
 
@@ -53,9 +52,12 @@ class BusyboxExecutor(
         coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     ): ExecutionResult {
         when {
-            !busyboxWrapper.busyboxIsPresent(filesDir) -> return MissingExecutionAsset("busybox")
-            !busyboxWrapper.prootIsPresent(filesDir) -> return MissingExecutionAsset("proot")
-            !busyboxWrapper.executionScriptIsPresent(filesDir) -> return MissingExecutionAsset("execution script")
+            !busyboxWrapper.busyboxIsPresent() ->
+                return MissingExecutionAsset("busybox")
+            !busyboxWrapper.prootIsPresent() ->
+                return MissingExecutionAsset("proot")
+            !busyboxWrapper.executionScriptIsPresent() ->
+                return MissingExecutionAsset("execution script")
         }
 
         val prootDebugEnabled = prootDebugLogger.isEnabled
@@ -63,12 +65,12 @@ class BusyboxExecutor(
                 if (prootDebugEnabled) prootDebugLogger.verbosityLevel else "-1"
 
         val updatedCommand = busyboxWrapper.addBusyboxAndProot(command)
-        val filesystemDir = File("${filesDir.absolutePath}/$filesystemDirName")
+        val filesystemDir = File("${ulaFiles.filesDir.absolutePath}/$filesystemDirName")
 
-        env.putAll(busyboxWrapper.getProotEnv(filesDir, filesystemDir, prootDebugLevel, externalStorageDir))
+        env.putAll(busyboxWrapper.getProotEnv(filesystemDir, prootDebugLevel))
 
         val processBuilder = ProcessBuilder(updatedCommand)
-        processBuilder.directory(filesDir)
+        processBuilder.directory(ulaFiles.filesDir)
         processBuilder.environment().putAll(env)
         processBuilder.redirectErrorStream(true)
 
@@ -116,43 +118,46 @@ class BusyboxExecutor(
 }
 
 // This class is intended to allow stubbing of elements that are unavailable during unit tests.
-class BusyboxWrapper {
+class BusyboxWrapper(private val ulaFiles: UlaFiles) {
     // For basic commands, CWD should be `applicationFilesDir`
     fun addBusybox(command: String): List<String> {
-        return listOf("support/busybox", "sh") + command.split(" ")
+        return listOf(ulaFiles.busybox.absolutePath, "sh") + command.split(" ")
     }
 
-    fun getBusyboxEnv(filesDir: File): HashMap<String, String> {
-        return hashMapOf("ROOT_PATH" to filesDir.absolutePath)
+    fun getBusyboxEnv(): HashMap<String, String> {
+        return hashMapOf(
+                "LIB_PATH" to ulaFiles.libDir.absolutePath,
+                "ROOT_PATH" to ulaFiles.filesDir.absolutePath
+        )
     }
 
-    fun busyboxIsPresent(filesDir: File): Boolean {
-        val busyboxFile = File("${filesDir.absolutePath}/support/busybox")
-        return busyboxFile.exists()
+    fun busyboxIsPresent(): Boolean {
+        return ulaFiles.busybox.exists()
     }
 
     // Proot scripts expect CWD to be `applicationFilesDir/<filesystem`
     fun addBusyboxAndProot(command: String): List<String> {
-        return listOf("support/busybox", "sh", "support/execInProot.sh") + command.split(" ")
+        return listOf(ulaFiles.busybox.absolutePath, "sh", "support/execInProot.sh") + command.split(" ")
     }
 
-    fun getProotEnv(filesDir: File, filesystemDir: File, prootDebugLevel: String, externalStorageDir: File): HashMap<String, String> {
+    fun getProotEnv(filesystemDir: File, prootDebugLevel: String): HashMap<String, String> {
         return hashMapOf(
-                "LD_LIBRARY_PATH" to "${filesDir.absolutePath}/support",
-                "ROOT_PATH" to filesDir.absolutePath,
+                "LD_LIBRARY_PATH" to ulaFiles.libDir.absolutePath,
+                "LIB_PATH" to ulaFiles.libDir.absolutePath,
+                "ROOT_PATH" to ulaFiles.filesDir.absolutePath,
                 "ROOTFS_PATH" to filesystemDir.absolutePath,
                 "PROOT_DEBUG_LEVEL" to prootDebugLevel,
-                "EXTRA_BINDINGS" to "-b ${externalStorageDir.absolutePath}:/sdcard",
-                "OS_VERSION" to System.getProperty("os.version"))
+                "EXTRA_BINDINGS" to "-b ${ulaFiles.scopedDir.absolutePath}:/sdcard",
+                "OS_VERSION" to System.getProperty("os.version")
+        )
     }
 
-    fun prootIsPresent(filesDir: File): Boolean {
-        val prootFile = File("${filesDir.absolutePath}/support/proot")
-        return prootFile.exists()
+    fun prootIsPresent(): Boolean {
+        return ulaFiles.proot.exists()
     }
 
-    fun executionScriptIsPresent(filesDir: File): Boolean {
-        val execInProotFile = File("${filesDir.absolutePath}/support/execInProot.sh")
+    fun executionScriptIsPresent(): Boolean {
+        val execInProotFile = File(ulaFiles.supportDir, "execInProot.sh")
         return execInProotFile.exists()
     }
 }
