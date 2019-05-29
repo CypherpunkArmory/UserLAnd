@@ -23,10 +23,6 @@ class BusyboxExecutor(
 
     private val discardOutput: (String) -> Any = { }
 
-    fun setupLinks() {
-        busyboxWrapper.setupLibrarySymlinks()
-    }
-
     fun executeCommand(
         command: String,
         listener: (String) -> Any = discardOutput
@@ -169,24 +165,5 @@ class BusyboxWrapper(private val ulaFiles: UlaFiles) {
     fun executionScriptIsPresent(): Boolean {
         val execInProotFile = File(ulaFiles.supportDir, "execInProot.sh")
         return execInProotFile.exists()
-    }
-
-    fun setupLibrarySymlinks() {
-        listOf(
-                "libc++_shared.so" to "libcpp",
-                "libcrypto.so.1.1" to "libcrypto.so.1.1",
-                "libleveldb.so.1" to "libleveldb.so.1",
-                "libtalloc.so.2" to "libtalloc.so.2",
-                "libtermux-auth.so" to "libtermuxauth",
-                "libutil.so" to "libutil"
-        ).forEach { (requiredLinkName, actualLibName) ->
-            if (!ulaFiles.libLinkDir.exists()) ulaFiles.libLinkDir.mkdirs()
-            val libFile = File(ulaFiles.libDir, actualLibName)
-            val linkFile = File(ulaFiles.libLinkDir, requiredLinkName)
-            if (!libFile.exists()) throw NoSuchFileException(libFile)
-            linkFile.delete()
-            Log.e("SYMLINK", "${libFile.name} : ${linkFile.name}")
-            Os.symlink(libFile.path, linkFile.path)
-        }
     }
 }

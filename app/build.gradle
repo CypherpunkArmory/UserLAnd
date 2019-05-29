@@ -188,10 +188,22 @@ task fetchAssets(dependsOn: downloadAssets) {
             copy {
                 from "$buildDir/output/$arch/release"
                 into "$libDir/$arch"
+                rename '(.*)\\+\\+_(.*)', '$1pp$2'
+                rename '(.*)-(.*)', '$1$2'
+                rename '(.*).so', '$1'
             }
         }
     }
 }
+
+//task fetchAssets(dependsOn: moveAssets) {
+//    for (arch in architectures) {
+//        copy {
+//            from "$libDir/$arch/libutil.so"
+//            into
+//        }
+//    }
+//}
 
 task checkIfAssetsMissing {
     for (arch in architectures) {

@@ -66,12 +66,10 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private var currentFragmentDisplaysProgressDialog = false
 
     private val logger = SentryLogger()
+    private val ulaFiles = UlaFiles(this)
     private val busyboxExecutor by lazy {
-        val ulaFiles = UlaFiles(this)
         val prootDebugLogger = ProotDebugLogger(this.defaultSharedPreferences, this.storageRoot.path)
-        val executor = BusyboxExecutor(ulaFiles, prootDebugLogger)
-        executor.setupLinks()
-        executor
+        BusyboxExecutor(ulaFiles, prootDebugLogger)
     }
 
     private val navController: NavController by lazy {
@@ -142,6 +140,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
         notificationManager.createServiceNotificationChannel() // Android O requirement
+        // TODO these should be called off the main thread and monitored for success
+        ulaFiles.setupSupportDir()
+        ulaFiles.setupLinks()
 
         setNavStartDestination()
 
