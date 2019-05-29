@@ -208,16 +208,6 @@ afterEvaluate {
     }
 }
 
-//task fetchAssets(type: Copy, dependsOn: unzipAssets) {
-//    for (arch in architectures) {
-//        println("$project.projectDir/src/main/resources/lib/$arch")
-//        println("$buildDir/output/$arch/release/**")
-//        from buildDir
-//        into "$project.projectDir/src/main/resources/lib/$arch"
-//        include "$buildDir/output/$arch/release/**"
-//    }
-//}
-
 dependencies {
     def moshi_version = '1.8.0'
     def okhttp_version = '3.13.1'

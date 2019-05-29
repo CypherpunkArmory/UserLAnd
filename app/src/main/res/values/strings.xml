@@ -92,12 +92,6 @@
     <string name="illegal_state_no_session_selected_when_preparation_started">Trying to handle session preparation before one has been selected.</string>
     <string name="illegal_state_error_fetching_asset_lists">Failed to retrieve asset lists.</string>
 
-    <string name="illegal_state_unexpected_generation_size">
-        Unexpected size found while generating download requirements.
-    </string>
-    <string name="illegal_state_unexpected_generation_type">
-        Unexpected type found while generating download requirements.
-    </string>
     <string name="illegal_state_remote_unreachable_during_generation">
         Could not reach remote host while generating download requirements. Make sure you have a
         strong network connection and try again.

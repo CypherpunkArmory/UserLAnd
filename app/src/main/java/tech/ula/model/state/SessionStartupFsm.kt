@@ -101,7 +101,7 @@ class SessionStartupFsm(
         when (event) {
             is SessionSelected -> { handleSessionSelected(event.session) }
             is RetrieveAssetLists -> { handleRetrieveAssetLists(event.filesystem) }
-            is GenerateDownloads -> { handleGenerateDownloads(event.filesystem, event.assetLists) }
+            is GenerateDownloads -> { handleGenerateDownloads(event.filesystem, event.assetList) }
             is DownloadAssets -> { handleDownloadAssets(event.downloadRequirements) }
             is AssetDownloadComplete -> { handleAssetsDownloadComplete(event.downloadAssetId) }
             is SyncDownloadState -> { handleSyncDownloadState() }
@@ -146,26 +146,15 @@ class SessionStartupFsm(
         state.postValue(AssetListsRetrievalSucceeded(assetList))
     }
 
-    private suspend fun handleGenerateDownloads(filesystem: Filesystem, assetLists: HashMap<String, List<Asset>>) {
+    private suspend fun handleGenerateDownloads(filesystem: Filesystem, assetList: List<Asset>) {
         state.postValue(GeneratingDownloadRequirements)
-
-        // Asset lists should always only include distribution and "support"
-        if (assetLists.size != 2) {
-            state.postValue(UnexpectedDownloadGenerationSize(assetLists.size, assetLists.keys))
-            return
-        }
-
-        if (!assetLists.containsKey(filesystem.distributionType)) {
-            state.postValue(UnexpectedDownloadGenerationTypes(filesystem.distributionType, assetLists.keys))
-            return
-        }
 
         val filesystemNeedsExtraction =
                 !filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}") &&
                 !filesystem.isCreatedFromBackup
 
         val downloadRequirements = try {
-            assetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemNeedsExtraction)
+            assetRepository.generateDownloadRequirements(filesystem, assetList, filesystemNeedsExtraction)
         } catch (err: UnknownHostException) {
             state.postValue(RemoteUnreachableForGeneration)
             return
@@ -321,8 +310,6 @@ sealed class DownloadRequirementsGenerationState : SessionStartupState()
 object GeneratingDownloadRequirements : DownloadRequirementsGenerationState()
 data class DownloadsRequired(val downloadsRequired: List<DownloadMetadata>, val largeDownloadRequired: Boolean) : DownloadRequirementsGenerationState()
 object NoDownloadsRequired : DownloadRequirementsGenerationState()
-data class UnexpectedDownloadGenerationSize(val size: Int, val listNames: Set<String>) : DownloadRequirementsGenerationState()
-data class UnexpectedDownloadGenerationTypes(val expectedDistribution: String, val listNames: Set<String>) : DownloadRequirementsGenerationState()
 object RemoteUnreachableForGeneration : DownloadRequirementsGenerationState()
 
 // Downloading asset states

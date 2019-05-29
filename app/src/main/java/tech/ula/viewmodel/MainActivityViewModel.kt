@@ -289,12 +289,6 @@ class MainActivityViewModel(
     private fun handleDownloadRequirementsGenerationState(newState: DownloadRequirementsGenerationState) {
         return when (newState) {
             is GeneratingDownloadRequirements -> state.postValue(CheckingForAssetsUpdates)
-            is UnexpectedDownloadGenerationSize -> {
-                postIllegalStateWithLog(ErrorGeneratingDownloads(R.string.illegal_state_unexpected_generation_size))
-            }
-            is UnexpectedDownloadGenerationTypes -> {
-                postIllegalStateWithLog(ErrorGeneratingDownloads(R.string.illegal_state_unexpected_generation_type))
-            }
             is RemoteUnreachableForGeneration -> {
                 postIllegalStateWithLog(ErrorGeneratingDownloads(R.string.illegal_state_remote_unreachable_during_generation))
             }
