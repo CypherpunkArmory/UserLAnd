@@ -101,7 +101,7 @@ class AssetRepository(
     }
 
     @Throws(UnknownHostException::class)
-    suspend fun getAllAssetLists(distributionType: String): List<Asset> {
+    suspend fun getAssetList(distributionType: String): List<Asset> {
         return try {
             val list = fetchAssetList(distributionType)
             assetPreferences.setAssetList(distributionType, list)

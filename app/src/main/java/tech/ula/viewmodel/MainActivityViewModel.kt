@@ -280,7 +280,7 @@ class MainActivityViewModel(
         return when (newState) {
             is RetrievingAssetLists -> state.postValue(FetchingAssetLists)
             is AssetListsRetrievalSucceeded -> { doTransitionIfRequirementsAreSelected {
-                    submitSessionStartupEvent(GenerateDownloads(lastSelectedFilesystem, newState.assetLists))
+                    submitSessionStartupEvent(GenerateDownloads(lastSelectedFilesystem, newState.assetList))
             } }
             is AssetListsRetrievalFailed -> postIllegalStateWithLog(ErrorFetchingAssetLists)
         }

@@ -136,14 +136,14 @@ class SessionStartupFsm(
     private suspend fun handleRetrieveAssetLists(filesystem: Filesystem) {
         state.postValue(RetrievingAssetLists)
 
-        val assetLists = assetRepository.getAllAssetLists(filesystem.distributionType)
+        val assetList = assetRepository.getAssetList(filesystem.distributionType)
 
-        if (assetLists.values.any { it.isEmpty() }) {
+        if (assetList.isEmpty()) {
             state.postValue(AssetListsRetrievalFailed)
             return
         }
 
-        state.postValue(AssetListsRetrievalSucceeded(assetLists))
+        state.postValue(AssetListsRetrievalSucceeded(assetList))
     }
 
     private suspend fun handleGenerateDownloads(filesystem: Filesystem, assetLists: HashMap<String, List<Asset>>) {
@@ -313,7 +313,7 @@ data class SessionIsReadyForPreparation(val session: Session, val filesystem: Fi
 // Asset retrieval states
 sealed class AssetRetrievalState : SessionStartupState()
 object RetrievingAssetLists : AssetRetrievalState()
-data class AssetListsRetrievalSucceeded(val assetLists: HashMap<String, List<Asset>>) : AssetRetrievalState()
+data class AssetListsRetrievalSucceeded(val assetList: List<Asset>) : AssetRetrievalState()
 object AssetListsRetrievalFailed : AssetRetrievalState()
 
 // Download requirements generation state
@@ -358,7 +358,7 @@ object StorageVerificationCompletedSuccessfully : StorageVerificationState()
 sealed class SessionStartupEvent
 data class SessionSelected(val session: Session) : SessionStartupEvent()
 data class RetrieveAssetLists(val filesystem: Filesystem) : SessionStartupEvent()
-data class GenerateDownloads(val filesystem: Filesystem, val assetLists: HashMap<String, List<Asset>>) : SessionStartupEvent()
+data class GenerateDownloads(val filesystem: Filesystem, val assetList: List<Asset>) : SessionStartupEvent()
 data class DownloadAssets(val downloadRequirements: List<DownloadMetadata>) : SessionStartupEvent()
 data class AssetDownloadComplete(val downloadAssetId: Long) : SessionStartupEvent()
 object SyncDownloadState : SessionStartupEvent()

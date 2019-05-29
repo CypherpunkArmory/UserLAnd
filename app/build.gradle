@@ -164,21 +164,15 @@ task jacocoCoverageReportForCi(type: JacocoReport, dependsOn: ['testDebugUnitTes
     ])
 }
 
-//ext.assetVersion = "v6.6.6"
-//ext.baseUrl = "https://github.com/CypherpunkArmory/UserLAnd-Assets-Support/releases/download/$assetVersion"
 ext.architectures = ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"]
+ext.libDir = "$project.projectDir/src/main/resources/lib"
 
 task downloadAssets(type: Download) {
     def assetVersion = "v6.6.6"
-//    https://github.com/CypherpunkArmory/UserLAnd-Assets-Support/releases/download/v6.6.6/arm64-v8a-assets.zip
     def baseUrl = "https://github.com/CypherpunkArmory/UserLAnd-Assets-Support/releases/download/$assetVersion"
-//    def architectures = ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"]
     for (arch in architectures) {
         src "$baseUrl/$arch-assets.zip"
-//        dest new File(buildDir, "assets/$arch-assets.zip")
         dest buildDir
-//        from zipTree(dest)
-//        into buildDir
     }
 }
 
@@ -193,9 +187,24 @@ task fetchAssets(dependsOn: downloadAssets) {
         for (arch in architectures) {
             copy {
                 from "$buildDir/output/$arch/release"
-                into "$project.projectDir/src/main/resources/lib/$arch"
+                into "$libDir/$arch"
             }
         }
+    }
+}
+
+task checkIfAssetsMissing {
+    for (arch in architectures) {
+        File[] archLibDirContents = new File(libDir, arch).listFiles()
+        if (archLibDirContents == null || archLibDirContents.length == 0) {
+            dependsOn 'fetchAssets'
+        }
+    }
+}
+
+afterEvaluate {
+    android.applicationVariants.all { variant ->
+        variant.javaCompiler.dependsOn(checkIfAssetsMissing)
     }
 }
 
