@@ -164,10 +164,50 @@ task jacocoCoverageReportForCi(type: JacocoReport, dependsOn: ['testDebugUnitTes
     ])
 }
 
+//ext.assetVersion = "v6.6.6"
+//ext.baseUrl = "https://github.com/CypherpunkArmory/UserLAnd-Assets-Support/releases/download/$assetVersion"
+ext.architectures = ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"]
+
 task downloadAssets(type: Download) {
     def assetVersion = "v6.6.6"
-
+//    https://github.com/CypherpunkArmory/UserLAnd-Assets-Support/releases/download/v6.6.6/arm64-v8a-assets.zip
+    def baseUrl = "https://github.com/CypherpunkArmory/UserLAnd-Assets-Support/releases/download/$assetVersion"
+//    def architectures = ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"]
+    for (arch in architectures) {
+        src "$baseUrl/$arch-assets.zip"
+//        dest new File(buildDir, "assets/$arch-assets.zip")
+        dest buildDir
+//        from zipTree(dest)
+//        into buildDir
+    }
 }
+
+task fetchAssets(dependsOn: downloadAssets) {
+    for (arch in architectures) {
+        copy {
+            from zipTree(new File(buildDir, "$arch-assets.zip"))
+            into buildDir
+        }
+    }
+    doLast {
+        for (arch in architectures) {
+            copy {
+                from "$buildDir/output/$arch/release"
+                into "$project.projectDir/src/main/resources/lib/$arch"
+            }
+        }
+    }
+}
+
+//task fetchAssets(type: Copy, dependsOn: unzipAssets) {
+//    for (arch in architectures) {
+//        println("$project.projectDir/src/main/resources/lib/$arch")
+//        println("$buildDir/output/$arch/release/**")
+//        from buildDir
+//        into "$project.projectDir/src/main/resources/lib/$arch"
+//        include "$buildDir/output/$arch/release/**"
+//    }
+//}
 
 dependencies {
     def moshi_version = '1.8.0'
