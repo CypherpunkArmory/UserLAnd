@@ -55,6 +55,8 @@
     <string name="error_export_local_failure">Exporting to local storage failed.</string>
     <string name="error_export_filesystem_not_found">Could not determine filesystem to backup. Please try again.</string>
     <string name="error_export_copy_public_external_failure">Copying backup to external public storage failed.</string>
+    <string name="error_library_file_missing">It looks like we\'re missing a required library!</string>
+    <string name="error_library_setup_failure">It looks like initial setup failed. Please contact us on Github.</string>
 
     <!-- Download Failure Reasons -->
     <string name="download_failure_http_error">Http Error: %1$s</string>

@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private var currentFragmentDisplaysProgressDialog = false
 
     private val logger = SentryLogger()
-    private val ulaFiles = UlaFiles(this)
+    private val ulaFiles by lazy { UlaFiles(this) }
     private val busyboxExecutor by lazy {
         val prootDebugLogger = ProotDebugLogger(this.defaultSharedPreferences, this.storageRoot.path)
         BusyboxExecutor(ulaFiles, prootDebugLogger)
@@ -140,9 +140,15 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
         notificationManager.createServiceNotificationChannel() // Android O requirement
-        // TODO these should be called off the main thread and monitored for success
-        ulaFiles.setupSupportDir()
-        ulaFiles.setupLinks()
+        try {
+            ulaFiles.setupSupportDir()
+            ulaFiles.setupLinks()
+        } catch (err: NoSuchFileException) {
+            logger.sendEvent(err.file.name)
+            displayGenericErrorDialog(this, R.string.general_error_title, R.string.error_library_file_missing)
+        } catch (err: Exception) {
+            displayGenericErrorDialog(this, R.string.general_error_title, R.string.error_library_setup_failure)
+        }
 
         setNavStartDestination()
 

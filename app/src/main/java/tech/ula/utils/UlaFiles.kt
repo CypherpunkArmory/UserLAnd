@@ -2,9 +2,18 @@ package tech.ula.utils
 
 import android.content.Context
 import android.system.Os
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.io.File
+import kotlin.coroutines.CoroutineContext
 
-class UlaFiles(context: Context) {
+class UlaFiles(context: Context) : CoroutineScope {
+    private val job = Job()
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
+
     val filesDir: File = context.filesDir
     val scopedDir: File = context.storageRoot
     val libDir: File = File(context.applicationInfo.nativeLibraryDir)
@@ -15,24 +24,29 @@ class UlaFiles(context: Context) {
     val proot = File(libDir, "proot")
 
     // TODO error checking for these functions
-    fun setupSupportDir() {
+    fun setupSupportDir() = launch {
         supportDir.mkdirs()
 
         listOf(
                 "addNonRootUser.sh",
                 "busybox_static",
                 "compressFilesystem.sh",
+                "extractFilesystem.sh",
                 "execInProot.sh",
                 "isServerInProcTree.sh",
-                "killProcTree.sh"
+                "killProcTree.sh",
+                "stat4",
+                "stat8",
+                "uptime"
         ).forEach { filename ->
             val assetFile = File(libDir, filename)
             val target = File(supportDir, filename)
             assetFile.copyTo(target, overwrite = true)
+            makePermissionsUsable(supportDir.path, filename)
         }
     }
 
-    fun setupLinks() {
+    fun setupLinks() = launch {
         listOf(
                 "libc++_shared.so" to "libcppshared",
                 "libcrypto.so.1.1" to "libcrypto.1.1",
