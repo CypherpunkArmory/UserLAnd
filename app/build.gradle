@@ -8,6 +8,8 @@ apply plugin: 'kotlin-kapt'
 
 apply plugin: 'jacoco'
 
+apply plugin: 'de.undercouch.download'
+
 android {
     compileSdkVersion 28
 
@@ -160,6 +162,11 @@ task jacocoCoverageReportForCi(type: JacocoReport, dependsOn: ['testDebugUnitTes
     executionData.from = fileTree(dir: project.buildDir, includes: [
             'jacoco/testDebugUnitTest.exec', 'outputs/code-coverage/connected/*coverage.ec'
     ])
+}
+
+task downloadAssets(type: Download) {
+    def assetVersion = "v6.6.6"
+
 }
 
 dependencies {

@@ -101,18 +101,14 @@ class AssetRepository(
     }
 
     @Throws(UnknownHostException::class)
-    suspend fun getAllAssetLists(distributionType: String): HashMap<String, List<Asset>> {
-        val lists = hashMapOf<String, List<Asset>>()
-        listOf(distributionType, "support").forEach { repo ->
-            try {
-                val list = fetchAssetList(repo)
-                assetPreferences.setAssetList(repo, list)
-                lists[repo] = list
-            } catch (err: Exception) {
-                lists[repo] = assetPreferences.getCachedAssetList(repo)
-            }
+    suspend fun getAllAssetLists(distributionType: String): List<Asset> {
+        return try {
+            val list = fetchAssetList(distributionType)
+            assetPreferences.setAssetList(distributionType, list)
+            list
+        } catch (err: Exception) {
+            assetPreferences.getCachedAssetList(distributionType)
         }
-        return lists
     }
 
     private suspend fun fetchAssetList(assetType: String): List<Asset> = withContext(Dispatchers.IO) {

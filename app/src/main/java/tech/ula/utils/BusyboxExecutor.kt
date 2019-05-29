@@ -1,5 +1,8 @@
 package tech.ula.utils
 
+import android.os.Environment
+import android.system.Os
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -20,6 +23,10 @@ class BusyboxExecutor(
 
     private val discardOutput: (String) -> Any = { }
 
+    fun setupLinks() {
+        busyboxWrapper.setupLibrarySymlinks()
+    }
+
     fun executeCommand(
         command: String,
         listener: (String) -> Any = discardOutput
@@ -27,6 +34,7 @@ class BusyboxExecutor(
         if (!busyboxWrapper.busyboxIsPresent()) {
             return MissingExecutionAsset("busybox")
         }
+
         val updatedCommand = busyboxWrapper.addBusybox(command)
         val env = busyboxWrapper.getBusyboxEnv()
         val processBuilder = ProcessBuilder(updatedCommand)
@@ -142,12 +150,14 @@ class BusyboxWrapper(private val ulaFiles: UlaFiles) {
 
     fun getProotEnv(filesystemDir: File, prootDebugLevel: String): HashMap<String, String> {
         return hashMapOf(
-                "LD_LIBRARY_PATH" to ulaFiles.libDir.absolutePath,
+                "LD_LIBRARY_PATH" to ulaFiles.libLinkDir.absolutePath,
                 "LIB_PATH" to ulaFiles.libDir.absolutePath,
                 "ROOT_PATH" to ulaFiles.filesDir.absolutePath,
                 "ROOTFS_PATH" to filesystemDir.absolutePath,
                 "PROOT_DEBUG_LEVEL" to prootDebugLevel,
-                "EXTRA_BINDINGS" to "-b ${ulaFiles.scopedDir.absolutePath}:/sdcard",
+                // TODO this should change as part of Q, but we need a way to import public files
+//                "EXTRA_BINDINGS" to "-b ${ulaFiles.scopedDir.absolutePath}:/sdcard",
+                "EXTRA_BINDINGS" to "-b ${Environment.getExternalStorageDirectory()}:/sdcard",
                 "OS_VERSION" to System.getProperty("os.version")
         )
     }
@@ -159,5 +169,24 @@ class BusyboxWrapper(private val ulaFiles: UlaFiles) {
     fun executionScriptIsPresent(): Boolean {
         val execInProotFile = File(ulaFiles.supportDir, "execInProot.sh")
         return execInProotFile.exists()
+    }
+
+    fun setupLibrarySymlinks() {
+        listOf(
+                "libc++_shared.so" to "libcpp",
+                "libcrypto.so.1.1" to "libcrypto.so.1.1",
+                "libleveldb.so.1" to "libleveldb.so.1",
+                "libtalloc.so.2" to "libtalloc.so.2",
+                "libtermux-auth.so" to "libtermuxauth",
+                "libutil.so" to "libutil"
+        ).forEach { (requiredLinkName, actualLibName) ->
+            if (!ulaFiles.libLinkDir.exists()) ulaFiles.libLinkDir.mkdirs()
+            val libFile = File(ulaFiles.libDir, actualLibName)
+            val linkFile = File(ulaFiles.libLinkDir, requiredLinkName)
+            if (!libFile.exists()) throw NoSuchFileException(libFile)
+            linkFile.delete()
+            Log.e("SYMLINK", "${libFile.name} : ${linkFile.name}")
+            Os.symlink(libFile.path, linkFile.path)
+        }
     }
 }

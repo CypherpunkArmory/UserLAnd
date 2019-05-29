@@ -69,7 +69,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private val busyboxExecutor by lazy {
         val ulaFiles = UlaFiles(this)
         val prootDebugLogger = ProotDebugLogger(this.defaultSharedPreferences, this.storageRoot.path)
-        BusyboxExecutor(ulaFiles, prootDebugLogger)
+        val executor = BusyboxExecutor(ulaFiles, prootDebugLogger)
+        executor.setupLinks()
+        executor
     }
 
     private val navController: NavController by lazy {
