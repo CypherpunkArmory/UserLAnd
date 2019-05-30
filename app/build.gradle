@@ -176,15 +176,15 @@ task downloadAssets(type: Download) {
     }
 }
 
-task fetchAssets(type: Copy, dependsOn: downloadAssets) {
-    for (arch in architectures) {
-        from zipTree(new File(buildDir, "$arch-assets.zip"))
-        into buildDir
-    }
+task fetchAssets(dependsOn: downloadAssets) {
     doLast {
         for (arch in architectures) {
             copy {
-                from "$buildDir/output/$arch/release"
+                from zipTree("$buildDir/$arch-assets.zip")
+                into "$buildDir/$arch"
+            }
+            copy {
+                from "$buildDir/$arch/$arch/release/"
                 into "$libDir/$arch"
                 rename '(.*)\\+\\+_(.*)', '$1pp$2'
                 rename '(.*)-(.*)', '$1$2'
