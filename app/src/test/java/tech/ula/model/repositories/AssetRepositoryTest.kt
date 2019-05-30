@@ -107,10 +107,10 @@ class AssetRepositoryTest {
 
     @Test(expected = IllegalStateException::class)
     fun `generateDownloadRequirements logs and throws and exception if sent an empty asset list`() {
-        val assetLists = hashMapOf(supportRepo to listOf<Asset>())
+        val assetList = listOf<Asset>()
 
         runBlocking {
-            assetRepository.generateDownloadRequirements(filesystem, assetLists, true)
+            assetRepository.generateDownloadRequirements(filesystem, assetList, true)
         }
 
         verify(mockLogger).addExceptionBreadcrumb(IOException())
@@ -127,11 +127,11 @@ class AssetRepositoryTest {
         val remoteVersion = lowVersion
         stubAssetsVersion(supportRepo, cachedVersion, remoteVersion)
 
-        val assetLists = hashMapOf(supportRepo to listOf(supportAsset))
+        val assetList = listOf(supportAsset)
         val filesystemNeedsExtraction = false
 
         val result = runBlocking {
-            assetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemNeedsExtraction)
+            assetRepository.generateDownloadRequirements(filesystem, assetList, filesystemNeedsExtraction)
         }
         assertTrue(result.isEmpty())
     }
@@ -150,10 +150,10 @@ class AssetRepositoryTest {
                     .thenThrow(UnknownHostException())
         }
 
-        val assetLists = hashMapOf(supportRepo to listOf(supportAsset))
+        val assetList = listOf(supportAsset)
         val filesystemNeedsExtraction = false
         val result = runBlocking {
-            assetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemNeedsExtraction)
+            assetRepository.generateDownloadRequirements(filesystem, assetList, filesystemNeedsExtraction)
         }
 
         assertTrue(result.isEmpty())
@@ -166,11 +166,11 @@ class AssetRepositoryTest {
                     .thenThrow(UnknownHostException())
         }
 
-        val assetLists = hashMapOf(supportRepo to listOf(supportAsset))
+        val assetList = listOf(supportAsset)
         val filesystemNeedsExtraction = false
 
         runBlocking {
-            assetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemNeedsExtraction)
+            assetRepository.generateDownloadRequirements(filesystem, assetList, filesystemNeedsExtraction)
         }
     }
 
@@ -185,14 +185,14 @@ class AssetRepositoryTest {
         val remoteVersion = highVersion
         stubAssetsVersion(supportRepo, cachedVersion, remoteVersion)
 
-        val assetLists = hashMapOf(supportRepo to listOf(supportAsset))
+        val assetList = listOf(supportAsset)
         val filesystemNeedsExtraction = false
 
         val url = "url"
         stubApiVersionAndUrl(supportRepo, remoteVersion, url)
 
         val result = runBlocking {
-            assetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemNeedsExtraction)
+            assetRepository.generateDownloadRequirements(filesystem, assetList, filesystemNeedsExtraction)
         }
 
         val expectedDownloadMetadata = DownloadMetadata(assetsTarName, supportRepo, remoteVersion, url)
@@ -205,14 +205,14 @@ class AssetRepositoryTest {
         val remoteVersion = highVersion
         stubAssetsVersion(supportRepo, cachedVersion, remoteVersion)
 
-        val assetLists = hashMapOf(supportRepo to listOf(supportAsset))
+        val assetList = listOf(supportAsset)
         val filesystemNeedsExtraction = false
 
         val url = "url"
         stubApiVersionAndUrl(supportRepo, remoteVersion, url)
 
         val result = runBlocking {
-            assetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemNeedsExtraction)
+            assetRepository.generateDownloadRequirements(filesystem, assetList, filesystemNeedsExtraction)
         }
 
         val expectedDownloadMetadata = DownloadMetadata(assetsTarName, supportRepo, remoteVersion, url)
@@ -231,12 +231,12 @@ class AssetRepositoryTest {
         val remoteVersion = highVersion
         stubRootFsVersion(repo, cachedVersion, remoteVersion)
 
-        val assetLists = hashMapOf(repo to listOf(distAsset))
+        val assetList = listOf(distAsset)
         stubAssetDoesNotNeedDownloading(distAsset, repo)
         val filesystemNeedsExtraction = false
 
         val result = runBlocking {
-            assetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemNeedsExtraction)
+            assetRepository.generateDownloadRequirements(filesystem, assetList, filesystemNeedsExtraction)
         }
 
         assertTrue(result.isEmpty())
@@ -254,12 +254,12 @@ class AssetRepositoryTest {
         val remoteVersion = highVersion
         stubRootFsVersion(repo, cachedVersion, remoteVersion)
 
-        val assetLists = hashMapOf(repo to listOf(distAsset))
+        val assetList = listOf(distAsset)
         stubAssetDoesNotNeedDownloading(distAsset, repo)
         val filesystemNeedsExtraction = true
 
         val result = runBlocking {
-            assetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemNeedsExtraction)
+            assetRepository.generateDownloadRequirements(filesystem, assetList, filesystemNeedsExtraction)
         }
 
         assertTrue(result.isEmpty())
@@ -283,11 +283,11 @@ class AssetRepositoryTest {
                     .thenThrow(UnknownHostException())
         }
 
-        val assetLists = hashMapOf(repo to listOf(distAsset))
+        val assetList = listOf(distAsset)
         val filesystemNeedsExtraction = true
 
         val result = runBlocking {
-            assetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemNeedsExtraction)
+            assetRepository.generateDownloadRequirements(filesystem, assetList, filesystemNeedsExtraction)
         }
 
         assertTrue(result.isEmpty())
@@ -309,11 +309,11 @@ class AssetRepositoryTest {
                     .thenThrow(UnknownHostException())
         }
 
-        val assetLists = hashMapOf(repo to listOf(distAsset))
+        val assetList = listOf(distAsset)
         val filesystemNeedsExtraction = true
 
         runBlocking {
-            assetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemNeedsExtraction)
+            assetRepository.generateDownloadRequirements(filesystem, assetList, filesystemNeedsExtraction)
         }
     }
 
@@ -329,7 +329,7 @@ class AssetRepositoryTest {
         val remoteVersion = highVersion
         stubRootFsVersion(repo, cachedVersion, remoteVersion)
 
-        val assetLists = hashMapOf(repo to listOf(distAsset))
+        val assetList = listOf(distAsset)
         stubAssetDoesNotNeedDownloading(distAsset, repo)
         val filesystemNeedsExtraction = true
 
@@ -337,7 +337,7 @@ class AssetRepositoryTest {
         stubRootFsApiVersionAndUrl(repo, highVersion, url)
 
         val result = runBlocking {
-            assetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemNeedsExtraction)
+            assetRepository.generateDownloadRequirements(filesystem, assetList, filesystemNeedsExtraction)
         }
 
         val expectedDownloads = listOf(DownloadMetadata(rootFsTarName, repo, highVersion, url))
@@ -357,7 +357,7 @@ class AssetRepositoryTest {
         val remoteVersion = highVersion
         stubRootFsVersion(repo, cachedVersion, remoteVersion)
 
-        val assetLists = hashMapOf(repo to listOf(distAsset))
+        val assetList = listOf(distAsset)
         stubAssetDoesNotNeedDownloading(distAsset, repo)
         val filesystemNeedsExtraction = true
 
@@ -365,7 +365,7 @@ class AssetRepositoryTest {
         stubRootFsApiVersionAndUrl(repo, highVersion, url)
 
         val result = runBlocking {
-            assetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemNeedsExtraction)
+            assetRepository.generateDownloadRequirements(filesystem, assetList, filesystemNeedsExtraction)
         }
 
         val expectedDownloads = listOf(DownloadMetadata(rootFsTarName, repo, highVersion, url))
@@ -465,7 +465,7 @@ class AssetRepositoryTest {
                 .thenReturn(supportInputStream)
 
         val result = runBlocking {
-            assetRepository.getAllAssetLists(distRepo)
+            assetRepository.getAssetList(distRepo)
         }
 
         val expectedDistList = listOf(distAsset)
@@ -497,7 +497,7 @@ class AssetRepositoryTest {
                 .thenReturn(supportAssetList)
 
         val result = runBlocking {
-            assetRepository.getAllAssetLists(distRepo)
+            assetRepository.getAssetList(distRepo)
         }
 
         val expectedResult = hashMapOf(distRepo to distAssetList, supportRepo to supportAssetList)

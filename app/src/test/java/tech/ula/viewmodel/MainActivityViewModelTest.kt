@@ -45,7 +45,7 @@ class MainActivityViewModelTest {
     private val unselectedFilesystem = Filesystem(id = -1, name = "UNSELECTED")
 
     private val asset = Asset(name = "asset", type = "dist")
-    private val assetList = hashMapOf("dist" to listOf(asset))
+    private val assetList = listOf(asset)
 
     private val downloadMetadata = DownloadMetadata("asset", "type", "v0", "url")
     private val downloadList = listOf(downloadMetadata)
