@@ -158,7 +158,6 @@ public final class TermuxService extends Service implements SessionChangedCallba
         supportPath = filesPath + "/support/";
         prefixPath = filesPath + "/usr";
         homePath = filesPath + "/home";
-        setupNotificationChannel();
         startForeground(NOTIFICATION_ID, buildNotification());
     }
 
@@ -337,16 +336,4 @@ public final class TermuxService extends Service implements SessionChangedCallba
         });
     }
 
-    private void setupNotificationChannel() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
-
-        String channelName = "UserLAnd Terminal";
-        String channelDescription = "Notifications from UserLAnd Terminal";
-        int importance = NotificationManager.IMPORTANCE_LOW;
-
-        NotificationChannel channel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName,importance);
-        channel.setDescription(channelDescription);
-        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        manager.createNotificationChannel(channel);
-    }
 }
