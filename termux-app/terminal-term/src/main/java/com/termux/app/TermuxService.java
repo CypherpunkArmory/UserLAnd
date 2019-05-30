@@ -43,7 +43,7 @@ public final class TermuxService extends Service implements SessionChangedCallba
 
     private String TAG = "TermuxService";
 
-    private static final String NOTIFICATION_CHANNEL_ID = "termux_notification_channel";
+    private static final String NOTIFICATION_CHANNEL_ID = "UserLAndServices";
 
     /** Note that this is a symlink on the Android M preview. */
     @SuppressLint("SdCardPath")
@@ -52,7 +52,7 @@ public final class TermuxService extends Service implements SessionChangedCallba
     public String prefixPath;
     public String homePath;
 
-    private static final int NOTIFICATION_ID = 1337;
+    private static final int NOTIFICATION_ID = 2000;
 
     private static final String ACTION_STOP_SERVICE = "com.termux.service_stop";
     private static final String ACTION_LOCK_WAKE = "com.termux.service_wake_lock";
@@ -172,6 +172,8 @@ public final class TermuxService extends Service implements SessionChangedCallba
         }
     }
 
+    String GROUP_KEY_USERLAND = "tech.ula.userland";
+
     private Notification buildNotification() {
         Intent notifyIntent = new Intent(this, TermuxActivity.class);
         // PendingIntent#getActivity(): "Note that the activity will be started outside of the context of an existing
@@ -195,6 +197,7 @@ public final class TermuxService extends Service implements SessionChangedCallba
         builder.setSmallIcon(R.drawable.ic_service_notification);
         builder.setContentIntent(pendingIntent);
         builder.setOngoing(true);
+        builder.setGroup(GROUP_KEY_USERLAND);
 
         // If holding a wake or wifi lock consider the notification of high priority since it's using power,
         // otherwise use a low priority

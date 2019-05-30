@@ -15,6 +15,7 @@ class NotificationUtility(val context: Context) {
 
     companion object {
         const val serviceNotificationId = 1000
+        const val GROUP_KEY_USERLAND = "tech.ula.userland"
     }
 
     private val serviceNotificationChannelId = context.getString(R.string.services_notification_channel_id)
@@ -48,6 +49,7 @@ class NotificationUtility(val context: Context) {
                 .setContentTitle(serviceNotificationTitle)
                 .setContentText(serviceNotificationDescription)
                 .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setGroup(GROUP_KEY_USERLAND)
                 .setAutoCancel(false)
                 .setContentIntent(pendingSessionListIntent)
 
