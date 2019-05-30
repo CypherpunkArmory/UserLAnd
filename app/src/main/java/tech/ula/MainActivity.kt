@@ -55,6 +55,8 @@ import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import kotlinx.android.synthetic.main.dia_app_select_client.*
 import tech.ula.ui.FilesystemListFragment
 import tech.ula.model.repositories.DownloadMetadata
+import java.io.File
+import kotlin.coroutines.CoroutineContext
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection, FilesystemListFragment.ExportFilesystem {
 
@@ -66,7 +68,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private var currentFragmentDisplaysProgressDialog = false
 
     private val logger = SentryLogger()
-    private val ulaFiles by lazy { UlaFiles(this) }
+    private val ulaFiles by lazy { UlaFiles(this.filesDir, this.storageRoot, File(this.applicationInfo.nativeLibraryDir)) }
     private val busyboxExecutor by lazy {
         val prootDebugLogger = ProotDebugLogger(this.defaultSharedPreferences, this.storageRoot.path)
         BusyboxExecutor(ulaFiles, prootDebugLogger)
@@ -141,8 +143,10 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         setSupportActionBar(toolbar)
         notificationManager.createServiceNotificationChannel() // Android O requirement
         try {
-            ulaFiles.setupSupportDir()
-            ulaFiles.setupLinks()
+            CoroutineScope(Dispatchers.Main).launch {
+                ulaFiles.setupSupportDir()
+                ulaFiles.setupLinks()
+            }
         } catch (err: NoSuchFileException) {
             logger.sendEvent(err.file.name)
             displayGenericErrorDialog(this, R.string.general_error_title, R.string.error_library_file_missing)

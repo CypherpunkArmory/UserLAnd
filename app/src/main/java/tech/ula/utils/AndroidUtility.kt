@@ -13,6 +13,7 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.os.StatFs
+import android.system.Os
 import androidx.core.content.ContextCompat
 import android.util.DisplayMetrics
 import android.view.WindowManager
@@ -81,6 +82,12 @@ data class DownloadFailureLocalizationData(val resId: Int, val formatStrings: Li
         val errorDescriptionResId = R.string.illegal_state_downloads_did_not_complete_successfully
         val errorTypeString = context.getString(resId, formatStrings)
         return context.getString(errorDescriptionResId, errorTypeString)
+    }
+}
+
+class Symlinker {
+    fun createSymlink(targetPath: String, linkPath: String) {
+        Os.symlink(targetPath, linkPath)
     }
 }
 
