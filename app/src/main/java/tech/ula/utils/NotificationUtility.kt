@@ -10,11 +10,13 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import tech.ula.MainActivity
 import tech.ula.R
+import tech.ula.ServerService
 
 class NotificationUtility(val context: Context) {
 
     companion object {
         const val serviceNotificationId = 1000
+        const val GROUP_KEY_USERLAND = "tech.ula.userland"
     }
 
     private val serviceNotificationChannelId = context.getString(R.string.services_notification_channel_id)
@@ -43,13 +45,21 @@ class NotificationUtility(val context: Context) {
         val pendingSessionListIntent = PendingIntent
                 .getActivity(context, 0, sessionListIntent, 0)
 
+        val stopSessionsIntent = Intent(context, ServerService::class.java).putExtra("type", "stopAll")
+        val stopSessionsPendingIntent = PendingIntent.getService(context, 0,
+                stopSessionsIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+
         val builder = NotificationCompat.Builder(context, serviceNotificationChannelId)
                 .setSmallIcon(R.drawable.ic_stat_icon)
                 .setContentTitle(serviceNotificationTitle)
                 .setContentText(serviceNotificationDescription)
                 .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setGroup(GROUP_KEY_USERLAND)
+                .setGroupSummary(true)
                 .setAutoCancel(false)
                 .setContentIntent(pendingSessionListIntent)
+                .addAction(R.drawable.ic_stat_icon, "Stop Sessions",
+                        stopSessionsPendingIntent)
 
         return builder.build()
     }

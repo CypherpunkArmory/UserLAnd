@@ -43,7 +43,7 @@ public final class TermuxService extends Service implements SessionChangedCallba
 
     private String TAG = "TermuxService";
 
-    private static final String NOTIFICATION_CHANNEL_ID = "termux_notification_channel";
+    private static final String NOTIFICATION_CHANNEL_ID = "UserLAndServices";
 
     /** Note that this is a symlink on the Android M preview. */
     @SuppressLint("SdCardPath")
@@ -52,7 +52,7 @@ public final class TermuxService extends Service implements SessionChangedCallba
     public String prefixPath;
     public String homePath;
 
-    private static final int NOTIFICATION_ID = 1337;
+    private static final int NOTIFICATION_ID = 2000;
 
     private static final String ACTION_STOP_SERVICE = "com.termux.service_stop";
     private static final String ACTION_LOCK_WAKE = "com.termux.service_wake_lock";
@@ -158,7 +158,6 @@ public final class TermuxService extends Service implements SessionChangedCallba
         supportPath = filesPath + "/support/";
         prefixPath = filesPath + "/usr";
         homePath = filesPath + "/home";
-        setupNotificationChannel();
         startForeground(NOTIFICATION_ID, buildNotification());
     }
 
@@ -171,6 +170,8 @@ public final class TermuxService extends Service implements SessionChangedCallba
             ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID, buildNotification());
         }
     }
+
+    String GROUP_KEY_USERLAND = "tech.ula.userland";
 
     private Notification buildNotification() {
         Intent notifyIntent = new Intent(this, TermuxActivity.class);
@@ -195,6 +196,7 @@ public final class TermuxService extends Service implements SessionChangedCallba
         builder.setSmallIcon(R.drawable.ic_service_notification);
         builder.setContentIntent(pendingIntent);
         builder.setOngoing(true);
+        builder.setGroup(GROUP_KEY_USERLAND);
 
         // If holding a wake or wifi lock consider the notification of high priority since it's using power,
         // otherwise use a low priority
@@ -334,16 +336,4 @@ public final class TermuxService extends Service implements SessionChangedCallba
         });
     }
 
-    private void setupNotificationChannel() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
-
-        String channelName = "UserLAnd Terminal";
-        String channelDescription = "Notifications from UserLAnd Terminal";
-        int importance = NotificationManager.IMPORTANCE_LOW;
-
-        NotificationChannel channel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName,importance);
-        channel.setDescription(channelDescription);
-        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        manager.createNotificationChannel(channel);
-    }
 }
