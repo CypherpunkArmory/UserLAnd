@@ -111,8 +111,8 @@ class AssetRepository(
     }
 
     private suspend fun getRegularAssetDownloadRequirements(
-            assetList: List<Asset>,
-            repo: String
+        assetList: List<Asset>,
+        repo: String
     ): List<DownloadMetadata> {
         val downloadRequirements = mutableListOf<DownloadMetadata>()
         if (assetsArePresentInSupportDirectories(assetList)) {
