@@ -176,12 +176,10 @@ task downloadAssets(type: Download) {
     }
 }
 
-task fetchAssets(dependsOn: downloadAssets) {
+task fetchAssets(type: Copy, dependsOn: downloadAssets) {
     for (arch in architectures) {
-        copy {
-            from zipTree(new File(buildDir, "$arch-assets.zip"))
-            into buildDir
-        }
+        from zipTree(new File(buildDir, "$arch-assets.zip"))
+        into buildDir
     }
     doLast {
         for (arch in architectures) {
@@ -195,15 +193,6 @@ task fetchAssets(dependsOn: downloadAssets) {
         }
     }
 }
-
-//task fetchAssets(dependsOn: moveAssets) {
-//    for (arch in architectures) {
-//        copy {
-//            from "$libDir/$arch/libutil.so"
-//            into
-//        }
-//    }
-//}
 
 task checkIfAssetsMissing {
     for (arch in architectures) {

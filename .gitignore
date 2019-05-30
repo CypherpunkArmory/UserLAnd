@@ -57,5 +57,5 @@ fastlane/metadata/android/*/changelogs
 google-services.json
 app/src/main/resources/sentry.properties
 
-# Lib resources should be left of source tree
+# Lib resources should be left out of source tree
 app/src/main/resources/lib/*
