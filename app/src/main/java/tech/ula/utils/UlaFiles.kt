@@ -5,10 +5,11 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 class UlaFiles(
-        val filesDir: File,
-        val scopedDir: File,
-        val libDir: File,
-        private val symlinker: Symlinker = Symlinker()) {
+    val filesDir: File,
+    val scopedDir: File,
+    val libDir: File,
+    private val symlinker: Symlinker = Symlinker()
+) {
 
     val libLinkDir: File = File(filesDir, "lib")
     val supportDir: File = File(filesDir, "support")
