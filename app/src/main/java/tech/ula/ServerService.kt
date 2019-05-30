@@ -78,6 +78,11 @@ class ServerService : Service() {
                 val filesystemId: Long = intent.getLongExtra("filesystemId", -1)
                 cleanUpFilesystem(filesystemId)
             }
+            "stopAll" -> {
+                activeSessions.forEach { (_, session) ->
+                    killSession(session)
+                }
+            }
         }
 
         return Service.START_STICKY
