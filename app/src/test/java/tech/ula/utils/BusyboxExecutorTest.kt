@@ -20,7 +20,7 @@ class BusyboxExecutorTest {
 
     @get:Rule val tempFolder = TemporaryFolder()
 
-    lateinit var mockUlaFiles: UlaFiles
+    @Mock lateinit var mockUlaFiles: UlaFiles
 
     lateinit var mockFilesDir: File
 
@@ -52,6 +52,7 @@ class BusyboxExecutorTest {
         outputCollection.clear()
 
         mockFilesDir = tempFolder.newFolder("files")
+        whenever(mockUlaFiles.filesDir).thenReturn(mockFilesDir)
         mockExternalStorage = tempFolder.newFolder("external")
 
         mockFilesystemDir = File("${mockFilesDir.absolutePath}/$testFilesystemDirName")
@@ -243,7 +244,7 @@ class BusyboxExecutorTest {
         assertEquals("execution script", result.asset)
     }
 
-    @Test()
+    @Test
     fun `Fails to execute illegal commands, 'adding' proot and busybox`() {
         val testCommand = "badCommand"
 
