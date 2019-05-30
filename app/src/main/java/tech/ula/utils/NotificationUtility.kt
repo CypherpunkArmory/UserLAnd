@@ -55,6 +55,7 @@ class NotificationUtility(val context: Context) {
                 .setContentText(serviceNotificationDescription)
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setGroup(GROUP_KEY_USERLAND)
+                .setGroupSummary(true)
                 .setAutoCancel(false)
                 .setContentIntent(pendingSessionListIntent)
                 .addAction(R.drawable.ic_stat_icon, "Stop Sessions",
