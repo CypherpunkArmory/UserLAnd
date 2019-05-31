@@ -203,11 +203,7 @@ task checkIfAssetsMissing {
     }
 }
 
-afterEvaluate {
-    android.applicationVariants.all { variant ->
-        variant.javaCompiler.dependsOn(checkIfAssetsMissing)
-    }
-}
+preBuild.dependsOn checkIfAssetsMissing
 
 dependencies {
     def moshi_version = '1.8.0'

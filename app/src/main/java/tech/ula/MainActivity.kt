@@ -59,6 +59,8 @@ import java.io.File
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection, FilesystemListFragment.ExportFilesystem {
 
+    val className = "MainActivity"
+
     private val permissionRequestCode: Int by lazy {
         getString(R.string.permission_request_code).toInt()
     }
@@ -96,7 +98,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private val serverServiceBroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             intent.getStringExtra("type")?.let { intentType ->
-                logger.addBreadcrumb("Last service broadcast received", intentType)
+                val breadcrumb = UlaBreadcrumb(className, BreadcrumbType.ReceivedIntent, intentType)
+                logger.addBreadcrumb(breadcrumb)
                 when (intentType) {
                     "sessionActivated" -> handleSessionHasBeenActivated()
                     "dialog" -> {
@@ -109,6 +112,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private val stateObserver = Observer<State> {
+        val breadcrumb = UlaBreadcrumb(className, BreadcrumbType.ObservedState, "$it")
+        logger.addBreadcrumb(breadcrumb)
         it?.let { state ->
             handleStateUpdate(state)
         }
@@ -251,7 +256,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     override fun onResume() {
         super.onResume()
 
-        logger.addBreadcrumb("Last call to onResume", "${System.currentTimeMillis()}")
         viewModel.handleOnResume()
         val intent = Intent(this, ServerService::class.java)
                 .putExtra("type", "isProgressBarActive")
@@ -274,7 +278,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     override fun onStop() {
         super.onStop()
 
-        logger.addBreadcrumb("Last call to onStop", "${System.currentTimeMillis()}")
         LocalBroadcastManager.getInstance(this)
                 .unregisterReceiver(serverServiceBroadcastReceiver)
         unregisterReceiver(downloadBroadcastReceiver)
@@ -299,7 +302,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleStateUpdate(newState: State) {
-        logger.addBreadcrumb("Last observed state from viewmodel", "$newState")
         return when (newState) {
             is CanOnlyStartSingleSession -> { showToast(R.string.single_session_supported) }
             is SessionCanBeStarted -> { prepareSessionForStart(newState.session) }
@@ -396,7 +398,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleUserInputState(state: UserInputRequiredState) {
-        logger.addBreadcrumb("Last handled user input state", "$state")
         return when (state) {
             is LowStorageAcknowledgementRequired -> {
                 displayLowStorageDialog()
@@ -506,7 +507,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleProgressBarUpdateState(state: ProgressBarUpdateState) {
-        logger.addBreadcrumb("Last handled progress bar update state", "$state")
         return when (state) {
             is StartingSetup -> {
                 val step = getString(R.string.progress_start_step)

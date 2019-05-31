@@ -20,6 +20,8 @@ class AppsStartupFsm(
     private val logger: Logger = SentryLogger()
 ) {
 
+    private val className = "AppsFSM"
+
     private val sessionDao = ulaDatabase.sessionDao()
     private val filesystemDao = ulaDatabase.filesystemDao()
 
@@ -48,8 +50,8 @@ class AppsStartupFsm(
     }
 
     fun submitEvent(event: AppsStartupEvent, coroutineScope: CoroutineScope) = coroutineScope.launch {
-        logger.addBreadcrumb("Last submitted apps fsm event", "$event")
-        logger.addBreadcrumb("State during apps fsm event submission", "${state.value}")
+        val eventBreadcrumb = UlaBreadcrumb(className, BreadcrumbType.ReceivedEvent, "Event: $event State: ${state.value}")
+        logger.addBreadcrumb(eventBreadcrumb)
         if (!transitionIsAcceptable(event)) {
             state.postValue(IncorrectAppTransition(event, state.value!!))
             return@launch
