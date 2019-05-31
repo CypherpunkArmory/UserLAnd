@@ -92,8 +92,8 @@ class SessionStartupFsm(
     }
 
     fun submitEvent(event: SessionStartupEvent, coroutineScope: CoroutineScope) = coroutineScope.launch {
-        logger.addBreadcrumb("Last submitted session fsm event", "$event")
-        logger.addBreadcrumb("State during session fsm event submission", "${state.value}")
+        val eventBreadcrumb = UlaBreadcrumb(this::class, BreadcrumbType.ReceivedEvent, "Event: $event State: ${state.value}")
+        logger.addBreadcrumb(eventBreadcrumb)
         if (!transitionIsAcceptable(event)) {
             state.postValue(IncorrectSessionTransition(event, state.value!!))
             return@launch
