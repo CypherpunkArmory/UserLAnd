@@ -48,8 +48,8 @@ class AppsStartupFsm(
     }
 
     fun submitEvent(event: AppsStartupEvent, coroutineScope: CoroutineScope) = coroutineScope.launch {
-        logger.addBreadcrumb("Last submitted apps fsm event", "$event")
-        logger.addBreadcrumb("State during apps fsm event submission", "${state.value}")
+        val eventBreadcrumb = UlaBreadcrumb(this::class, BreadcrumbType.ReceivedEvent, "$event")
+        logger.addBreadcrumb(breadcrumb)
         if (!transitionIsAcceptable(event)) {
             state.postValue(IncorrectAppTransition(event, state.value!!))
             return@launch

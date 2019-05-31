@@ -57,7 +57,8 @@ class MainActivityViewModel(
 
     init {
         state.addSource(appsState) { it?.let { update ->
-            logger.addBreadcrumb("Last observed app state from viewmodel", "$update")
+            val breadcrumb = UlaBreadcrumb(this::class, BreadcrumbType.ObservedState, "$update")
+            logger.addBreadcrumb(breadcrumb)
             // Update stateful variables before handling the update so they can be used during it
             if (update !is WaitingForAppSelection) {
                 appsAreWaitingForSelection = false
@@ -79,7 +80,8 @@ class MainActivityViewModel(
             handleAppsPreparationState(update)
         } }
         state.addSource(sessionState) { it?.let { update ->
-            logger.addBreadcrumb("Last observed session state from viewmodel", "$update")
+            val breadcrumb = UlaBreadcrumb(this::class, BreadcrumbType.ObservedState, "$update")
+            logger.addBreadcrumb(breadcrumb)
             handleSessionPreparationState(update)
         } }
     }
@@ -396,12 +398,14 @@ class MainActivityViewModel(
     }
 
     private fun submitAppsStartupEvent(event: AppsStartupEvent) {
-        logger.addBreadcrumb("Last viewmodel apps event submission", "$event")
+        val breadcrumb = UlaBreadcrumb(this::class, BreadcrumbType.SubmittedEvent, "$event")
+        logger.addBreadcrumb(breadcrumb)
         appsStartupFsm.submitEvent(event, this)
     }
 
     private fun submitSessionStartupEvent(event: SessionStartupEvent) {
-        logger.addBreadcrumb("Last viewmodel session event submission", "$event")
+        val breadcrumb = UlaBreadcrumb(this::class, BreadcrumbType.SubmittedEvent, "$event")
+        logger.addBreadcrumb(breadcrumb)
         sessionStartupFsm.submitEvent(event, this)
     }
 }
