@@ -23,6 +23,8 @@ class MainActivityViewModel(
     private val logger: Logger = SentryLogger()
 ) : ViewModel(), CoroutineScope {
 
+    private val className = "MainVM"
+
     private var appsAreWaitingForSelection = false
     private var sessionsAreWaitingForSelection = false
 
@@ -57,7 +59,7 @@ class MainActivityViewModel(
 
     init {
         state.addSource(appsState) { it?.let { update ->
-            val breadcrumb = UlaBreadcrumb(this::class, BreadcrumbType.ObservedState, "$update")
+            val breadcrumb = UlaBreadcrumb(className, BreadcrumbType.ObservedState, "$update")
             logger.addBreadcrumb(breadcrumb)
             // Update stateful variables before handling the update so they can be used during it
             if (update !is WaitingForAppSelection) {
@@ -80,7 +82,7 @@ class MainActivityViewModel(
             handleAppsPreparationState(update)
         } }
         state.addSource(sessionState) { it?.let { update ->
-            val breadcrumb = UlaBreadcrumb(this::class, BreadcrumbType.ObservedState, "$update")
+            val breadcrumb = UlaBreadcrumb(className, BreadcrumbType.ObservedState, "$update")
             logger.addBreadcrumb(breadcrumb)
             handleSessionPreparationState(update)
         } }
@@ -398,13 +400,13 @@ class MainActivityViewModel(
     }
 
     private fun submitAppsStartupEvent(event: AppsStartupEvent) {
-        val breadcrumb = UlaBreadcrumb(this::class, BreadcrumbType.SubmittedEvent, "$event")
+        val breadcrumb = UlaBreadcrumb(className, BreadcrumbType.SubmittedEvent, "$event")
         logger.addBreadcrumb(breadcrumb)
         appsStartupFsm.submitEvent(event, this)
     }
 
     private fun submitSessionStartupEvent(event: SessionStartupEvent) {
-        val breadcrumb = UlaBreadcrumb(this::class, BreadcrumbType.SubmittedEvent, "$event")
+        val breadcrumb = UlaBreadcrumb(className, BreadcrumbType.SubmittedEvent, "$event")
         logger.addBreadcrumb(breadcrumb)
         sessionStartupFsm.submitEvent(event, this)
     }

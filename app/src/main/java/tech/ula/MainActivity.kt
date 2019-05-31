@@ -59,6 +59,8 @@ import java.io.File
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection, FilesystemListFragment.ExportFilesystem {
 
+    val className = "MainActivity"
+
     private val permissionRequestCode: Int by lazy {
         getString(R.string.permission_request_code).toInt()
     }
@@ -96,7 +98,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private val serverServiceBroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             intent.getStringExtra("type")?.let { intentType ->
-                val breadcrumb = UlaBreadcrumb(this@MainActivity::class, BreadcrumbType.ReceivedIntent, intentType)
+                val breadcrumb = UlaBreadcrumb(className, BreadcrumbType.ReceivedIntent, intentType)
                 logger.addBreadcrumb(breadcrumb)
                 when (intentType) {
                     "sessionActivated" -> handleSessionHasBeenActivated()
@@ -110,7 +112,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private val stateObserver = Observer<State> {
-        val breadcrumb = UlaBreadcrumb(this::class, BreadcrumbType.ObservedState, "$it")
+        val breadcrumb = UlaBreadcrumb(className, BreadcrumbType.ObservedState, "$it")
         logger.addBreadcrumb(breadcrumb)
         it?.let { state ->
             handleStateUpdate(state)

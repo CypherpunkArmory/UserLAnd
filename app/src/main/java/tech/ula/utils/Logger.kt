@@ -7,9 +7,10 @@ import io.sentry.event.BreadcrumbBuilder
 import io.sentry.event.Event
 import io.sentry.event.EventBuilder
 import tech.ula.viewmodel.IllegalState
-import kotlin.reflect.KClass
 
 sealed class BreadcrumbType {
+    // These types should override toString with return values of < 15 characters so that they
+    // are easily identified in the Sentry UI.
     object ReceivedIntent : BreadcrumbType() {
         override fun toString(): String {
             return "Intent received"
@@ -20,32 +21,22 @@ sealed class BreadcrumbType {
             return "Event submitted"
         }
     }
-    object ReceivedEvent: BreadcrumbType() {
+    object ReceivedEvent : BreadcrumbType() {
         override fun toString(): String {
             return "Event received"
         }
     }
-    object ObservedState: BreadcrumbType() {
+    object ObservedState : BreadcrumbType() {
         override fun toString(): String {
             return "State observed"
-        }
-    }
-    object CurrentState : BreadcrumbType() {
-        override fun toString(): String {
-            return "Current state"
-        }
-    }
-    object SetState: BreadcrumbType() {
-        override fun toString(): String {
-            return "State set"
         }
     }
 }
 
 data class UlaBreadcrumb(
-        val originatingClass: KClass<out Any>,
-        val type: BreadcrumbType,
-        val details: String
+    val originatingClass: String,
+    val type: BreadcrumbType,
+    val details: String
 )
 
 interface Logger {
@@ -67,7 +58,7 @@ class SentryLogger : Logger {
 
     override fun addBreadcrumb(breadcrumb: UlaBreadcrumb) {
         val key = "${breadcrumb.type}"
-        val value = "${breadcrumb.originatingClass.simpleName}: ${breadcrumb.details}"
+        val value = "${breadcrumb.originatingClass}: ${breadcrumb.details}"
         val sentryBreadcrumb = BreadcrumbBuilder()
                 .setCategory(key)
                 .setMessage(value)

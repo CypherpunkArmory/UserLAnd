@@ -24,6 +24,8 @@ class SessionStartupFsm(
     private val logger: Logger = SentryLogger()
 ) {
 
+    private val className = "SessionFSM"
+
     private val state = MutableLiveData<SessionStartupState>().apply { postValue(WaitingForSessionSelection) }
 
     private val sessionDao = ulaDatabase.sessionDao()
@@ -92,7 +94,7 @@ class SessionStartupFsm(
     }
 
     fun submitEvent(event: SessionStartupEvent, coroutineScope: CoroutineScope) = coroutineScope.launch {
-        val eventBreadcrumb = UlaBreadcrumb(this::class, BreadcrumbType.ReceivedEvent, "Event: $event State: ${state.value}")
+        val eventBreadcrumb = UlaBreadcrumb(className, BreadcrumbType.ReceivedEvent, "Event: $event State: ${state.value}")
         logger.addBreadcrumb(eventBreadcrumb)
         if (!transitionIsAcceptable(event)) {
             state.postValue(IncorrectSessionTransition(event, state.value!!))
