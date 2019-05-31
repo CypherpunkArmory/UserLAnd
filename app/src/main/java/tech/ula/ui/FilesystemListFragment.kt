@@ -22,6 +22,7 @@ import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.entities.Session
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.FilesystemListViewModel
+import java.io.File
 
 private const val FILESYSTEM_EXPORT_REQUEST_CODE = 7
 
@@ -43,8 +44,11 @@ class FilesystemListFragment : Fragment() {
     private val filesystemListViewModel: FilesystemListViewModel by lazy {
         val filesystemDao = UlaDatabase.getInstance(activityContext).filesystemDao()
         val sessionDao = UlaDatabase.getInstance(activityContext).sessionDao()
+
+        val ulaFiles = UlaFiles(activityContext.filesDir, activityContext.storageRoot, File(activityContext.applicationInfo.nativeLibraryDir))
         val prootDebugLogger = ProotDebugLogger(activityContext.defaultSharedPreferences, activityContext.storageRoot.path)
-        val busyboxExecutor = BusyboxExecutor(activityContext.filesDir, externalStorageDir, prootDebugLogger)
+        val busyboxExecutor = BusyboxExecutor(ulaFiles, prootDebugLogger)
+
         val filesystemUtility = FilesystemUtility(activityContext.filesDir.absolutePath, busyboxExecutor)
         ViewModelProviders.of(this, FilesystemListViewmodelFactory(filesystemDao, sessionDao, filesystemUtility)).get(FilesystemListViewModel::class.java)
     }

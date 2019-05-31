@@ -12,8 +12,8 @@ import android.content.res.Resources
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.os.StatFs
+import android.system.Os
 import androidx.core.content.ContextCompat
 import android.util.DisplayMetrics
 import android.view.WindowManager
@@ -82,6 +82,12 @@ data class DownloadFailureLocalizationData(val resId: Int, val formatStrings: Li
         val errorDescriptionResId = R.string.illegal_state_downloads_did_not_complete_successfully
         val errorTypeString = context.getString(resId, formatStrings)
         return context.getString(errorDescriptionResId, errorTypeString)
+    }
+}
+
+class Symlinker {
+    fun createSymlink(targetPath: String, linkPath: String) {
+        Os.symlink(targetPath, linkPath)
     }
 }
 
@@ -214,10 +220,13 @@ class AppsPreferences(private val prefs: SharedPreferences) {
     fun getAppServiceTypePreference(app: App): AppServiceTypePreference {
         val pref = prefs.getString(app.name, "") ?: ""
 
+        val xsdlAvailable = Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1
+        val onlyCliSupported = app.supportsCli && !app.supportsGui
+        val onlyVncSupported = app.supportsGui && !app.supportsCli && !xsdlAvailable
         return when {
-            pref.toLowerCase() == "ssh" || (app.supportsCli && !app.supportsGui) -> SshTypePreference
+            pref.toLowerCase() == "ssh" || onlyCliSupported -> SshTypePreference
             pref.toLowerCase() == "xsdl" -> XsdlTypePreference
-            pref.toLowerCase() == "vnc" || (app.supportsGui && Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) -> VncTypePreference
+            pref.toLowerCase() == "vnc" || onlyVncSupported -> VncTypePreference
             else -> PreferenceHasNotBeenSelected
         }
     }
@@ -282,14 +291,15 @@ class ConnectionUtility {
 }
 
 class DownloadManagerWrapper(private val downloadManager: DownloadManager) {
-    fun generateDownloadRequest(url: String, destination: String): DownloadManager.Request {
+    fun generateDownloadRequest(url: String, destination: File): DownloadManager.Request {
         val uri = Uri.parse(url)
         val request = DownloadManager.Request(uri)
+        val destinationUri = Uri.fromFile(destination)
         request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
-        request.setTitle(destination)
-        request.setDescription("Downloading ${destination.substringAfterLast("-")}.")
+        request.setTitle(destination.name)
+        request.setDescription("Downloading ${destination.name.substringAfterLast("-")}.")
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
-        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, destination)
+        request.setDestinationUri(destinationUri)
         return request
     }
 
@@ -347,10 +357,6 @@ class DownloadManagerWrapper(private val downloadManager: DownloadManager) {
             }, formatStrings = listOf("$status")) // Format strings only used for http_error
         }
         return DownloadFailureLocalizationData(R.string.download_failure_reason_not_found)
-    }
-
-    fun getDownloadsDirectory(): File {
-        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
     }
 }
 

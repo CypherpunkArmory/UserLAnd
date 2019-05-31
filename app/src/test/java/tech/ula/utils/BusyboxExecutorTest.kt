@@ -20,6 +20,8 @@ class BusyboxExecutorTest {
 
     @get:Rule val tempFolder = TemporaryFolder()
 
+    @Mock lateinit var mockUlaFiles: UlaFiles
+
     lateinit var mockFilesDir: File
 
     lateinit var mockExternalStorage: File
@@ -50,16 +52,17 @@ class BusyboxExecutorTest {
         outputCollection.clear()
 
         mockFilesDir = tempFolder.newFolder("files")
+        whenever(mockUlaFiles.filesDir).thenReturn(mockFilesDir)
         mockExternalStorage = tempFolder.newFolder("external")
 
         mockFilesystemDir = File("${mockFilesDir.absolutePath}/$testFilesystemDirName")
         mockFilesDir.mkdirs()
 
-        busyboxExecutor = BusyboxExecutor(mockFilesDir, mockExternalStorage, mockProotDebugLogger, mockBusyboxWrapper)
+        busyboxExecutor = BusyboxExecutor(mockUlaFiles, mockProotDebugLogger, mockBusyboxWrapper)
     }
 
     private fun stubBusyboxIsPresent(present: Boolean) {
-        whenever(mockBusyboxWrapper.busyboxIsPresent(mockFilesDir)).thenReturn(present)
+        whenever(mockBusyboxWrapper.busyboxIsPresent()).thenReturn(present)
     }
 
     private fun stubBusyboxCommand(command: String) {
@@ -67,15 +70,15 @@ class BusyboxExecutorTest {
     }
 
     private fun stubBusyboxEnv() {
-        whenever(mockBusyboxWrapper.getBusyboxEnv(mockFilesDir)).thenReturn(hashMapOf())
+        whenever(mockBusyboxWrapper.getBusyboxEnv()).thenReturn(hashMapOf())
     }
 
     private fun stubProotIsPresent(present: Boolean) {
-        whenever(mockBusyboxWrapper.prootIsPresent(mockFilesDir)).thenReturn(present)
+        whenever(mockBusyboxWrapper.prootIsPresent()).thenReturn(present)
     }
 
     private fun stubExecutionScriptIsPresent(present: Boolean) {
-        whenever(mockBusyboxWrapper.executionScriptIsPresent(mockFilesDir)).thenReturn(present)
+        whenever(mockBusyboxWrapper.executionScriptIsPresent()).thenReturn(present)
     }
 
     private fun stubProotDebuggingEnabled(enabled: Boolean) {
@@ -88,7 +91,7 @@ class BusyboxExecutorTest {
     }
 
     private fun stubProotEnv() {
-        whenever(mockBusyboxWrapper.getProotEnv(mockFilesDir, mockFilesystemDir, testProotDebugLevel, mockExternalStorage))
+        whenever(mockBusyboxWrapper.getProotEnv(mockFilesystemDir, testProotDebugLevel))
                 .thenReturn(hashMapOf())
     }
 
@@ -241,7 +244,7 @@ class BusyboxExecutorTest {
         assertEquals("execution script", result.asset)
     }
 
-    @Test()
+    @Test
     fun `Fails to execute illegal commands, 'adding' proot and busybox`() {
         val testCommand = "badCommand"
 

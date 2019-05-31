@@ -55,6 +55,8 @@
     <string name="error_export_local_failure">Exporting to local storage failed.</string>
     <string name="error_export_filesystem_not_found">Could not determine filesystem to backup. Please try again.</string>
     <string name="error_export_copy_public_external_failure">Copying backup to external public storage failed.</string>
+    <string name="error_library_file_missing">It looks like we\'re missing a required library!</string>
+    <string name="error_library_setup_failure">It looks like initial setup failed. Please contact us on Github.</string>
 
     <!-- Download Failure Reasons -->
     <string name="download_failure_http_error">Http Error: %1$s</string>
@@ -72,7 +74,10 @@
     <string name="download_failure_finished_wrong_items">Tried to finish download process with items we did not enqueue.</string>
     
     <!-- Illegal State Dialog -->
-    <string name="illegal_state_github_message">%1$s \nThe app will now crash so that we can receive an error log. Feel free to also let us know on Github! We are working to resolve these issues.</string>
+    <string name="illegal_state_github_message">
+        %1$s \nWe are working to resolve these issues. You can let us know about this issue on
+        Github if you\'d like to help!
+    </string>
     <string name="illegal_state_title">UserLAnd has entered an illegal state!</string>
 
     <string name="illegal_state_transition">Bad state transition: %1$s</string>
@@ -89,12 +94,6 @@
     <string name="illegal_state_no_session_selected_when_preparation_started">Trying to handle session preparation before one has been selected.</string>
     <string name="illegal_state_error_fetching_asset_lists">Failed to retrieve asset lists.</string>
 
-    <string name="illegal_state_unexpected_generation_size">
-        Unexpected size found while generating download requirements.
-    </string>
-    <string name="illegal_state_unexpected_generation_type">
-        Unexpected type found while generating download requirements.
-    </string>
     <string name="illegal_state_remote_unreachable_during_generation">
         Could not reach remote host while generating download requirements. Make sure you have a
         strong network connection and try again.

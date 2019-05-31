@@ -8,14 +8,47 @@ import io.sentry.event.Event
 import io.sentry.event.EventBuilder
 import tech.ula.viewmodel.IllegalState
 
+sealed class BreadcrumbType {
+    // These types should override toString with return values of < 15 characters so that they
+    // are easily identified in the Sentry UI.
+    object ReceivedIntent : BreadcrumbType() {
+        override fun toString(): String {
+            return "Intent received"
+        }
+    }
+    object SubmittedEvent : BreadcrumbType() {
+        override fun toString(): String {
+            return "Event submitted"
+        }
+    }
+    object ReceivedEvent : BreadcrumbType() {
+        override fun toString(): String {
+            return "Event received"
+        }
+    }
+    object ObservedState : BreadcrumbType() {
+        override fun toString(): String {
+            return "State observed"
+        }
+    }
+}
+
+data class UlaBreadcrumb(
+    val originatingClass: String,
+    val type: BreadcrumbType,
+    val details: String
+)
+
 interface Logger {
     fun initialize(context: Context? = null)
 
-    fun addBreadcrumb(key: String, value: String)
+    fun addBreadcrumb(breadcrumb: UlaBreadcrumb)
 
     fun addExceptionBreadcrumb(err: Exception)
 
     fun sendIllegalStateLog(state: IllegalState)
+
+    fun sendEvent(message: String)
 }
 
 class SentryLogger : Logger {
@@ -23,12 +56,14 @@ class SentryLogger : Logger {
         Sentry.init(AndroidSentryClientFactory(context!!))
     }
 
-    override fun addBreadcrumb(key: String, value: String) {
-        val breadcrumb = BreadcrumbBuilder()
+    override fun addBreadcrumb(breadcrumb: UlaBreadcrumb) {
+        val key = "${breadcrumb.type}"
+        val value = "${breadcrumb.originatingClass}: ${breadcrumb.details}"
+        val sentryBreadcrumb = BreadcrumbBuilder()
                 .setCategory(key)
                 .setMessage(value)
                 .build()
-        Sentry.getContext().recordBreadcrumb(breadcrumb)
+        Sentry.getContext().recordBreadcrumb(sentryBreadcrumb)
     }
 
     override fun addExceptionBreadcrumb(err: Exception) {
@@ -51,35 +86,11 @@ class SentryLogger : Logger {
                 .withLevel(Event.Level.ERROR)
         Sentry.capture(event)
     }
-}
 
-// class AcraLogger : Logger {
-//    override fun initialize(context: Context?) {
-//        val builder = CoreConfigurationBuilder(context!!)
-//        builder.setBuildConfigClass(BuildConfig::class.java)
-//                .setReportFormat(StringFormat.JSON)
-//        builder.getPluginConfigurationBuilder(HttpSenderConfigurationBuilder::class.java)
-//                .setUri(BuildConfig.tracepotHttpsEndpoint)
-//                .setHttpMethod(HttpSender.Method.POST)
-//                .setEnabled(true)
-//        ACRA.init(context as Application, builder)
-//    }
-//
-//    override fun addBreadcrumb(key: String, value: String) {
-//        ACRA.getErrorReporter().putCustomData(key, value)
-//    }
-//
-//    override fun addExceptionBreadcrumb(err: Exception) {
-//        val topOfStackTrace = err.stackTrace.first()
-//        val key = "Exception: ${topOfStackTrace.fileName}"
-//        val value = "${topOfStackTrace.lineNumber}"
-//        ACRA.getErrorReporter().putCustomData(key, value)
-//        return err
-//    }
-//
-//    override fun sendIllegalStateLog(state: IllegalState) {
-//        val type = state.javaClass.simpleName
-//        addBreadcrumb("State when sending silent report", type)
-//        ACRA.getErrorReporter().handleSilentException(IllegalStateException(type))
-//    }
-// }
+    override fun sendEvent(message: String) {
+        val event = EventBuilder()
+                .withMessage(message)
+                .withLevel(Event.Level.ERROR)
+        Sentry.capture(event)
+    }
+}

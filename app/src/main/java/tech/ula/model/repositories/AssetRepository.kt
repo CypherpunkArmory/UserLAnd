@@ -31,54 +31,23 @@ class AssetRepository(
     @Throws(IllegalStateException::class, UnknownHostException::class)
     suspend fun generateDownloadRequirements(
         filesystem: Filesystem,
-        assetLists: HashMap<String, List<Asset>>,
+        assetList: List<Asset>,
         filesystemNeedsExtraction: Boolean
     ): List<DownloadMetadata> {
         val downloadRequirements = mutableListOf<DownloadMetadata>()
-        for (entry in assetLists) {
-            val (repo, list) = entry
-            // Empty lists should not have propagated this deeply.
-            if (list.isEmpty()) {
-                val err = IllegalStateException()
-                logger.addExceptionBreadcrumb(err)
-                throw err
-            }
-            if (assetsArePresentInSupportDirectories(list)) {
-                try {
-                    if (lastDownloadedVersionIsUpToDate(repo)) {
-                        continue
-                    }
-                } catch (err: UnknownHostException) {
-                    // If assets are present but the network is unreachable, don't bother trying
-                    // to find updates.
-                    break
-                }
-            }
-            val filename = "assets.tar.gz"
-            val versionCode = githubApiClient.getLatestReleaseVersion(repo)
-            val url = githubApiClient.getAssetEndpoint(filename, repo)
-            val downloadMetadata = DownloadMetadata(filename, repo, versionCode, url)
-            downloadRequirements.add(downloadMetadata)
+        // Empty lists should not have propagated this deeply.
+        if (assetList.isEmpty()) {
+            val err = IllegalStateException()
+            logger.addExceptionBreadcrumb(err)
+            throw err
         }
+
+        val repo = filesystem.distributionType
+        downloadRequirements.addAll(getRegularAssetDownloadRequirements(assetList, repo))
         if (filesystemNeedsExtraction) {
-            val repo = filesystem.distributionType
-            val filename = "rootfs.tar.gz"
-
-            val rootFsIsDownloaded = File("$applicationFilesDirPath/$repo/$filename").exists()
-            val rootFsIsUpToDate = try {
-                lastDownloadedFilesystemVersionIsUpToDate(repo)
-            } catch (err: UnknownHostException) {
-                // Allows usage of existing rootfs files in case of failing network connectivity.
-                true
-            }
-            if (rootFsIsDownloaded && rootFsIsUpToDate) return downloadRequirements
-
-            // If the rootfs is not downloaded, network failures will still propagate.
-            val versionCode = githubApiClient.getLatestReleaseVersion(repo)
-            val url = githubApiClient.getAssetEndpoint(filename, repo)
-            val downloadMetadata = DownloadMetadata(filename, repo, versionCode, url)
-            downloadRequirements.add(downloadMetadata)
+            downloadRequirements.addAll(getRootFsAssetDownloadRequirements(repo))
         }
+
         return downloadRequirements
     }
 
@@ -101,18 +70,14 @@ class AssetRepository(
     }
 
     @Throws(UnknownHostException::class)
-    suspend fun getAllAssetLists(distributionType: String): HashMap<String, List<Asset>> {
-        val lists = hashMapOf<String, List<Asset>>()
-        listOf(distributionType, "support").forEach { repo ->
-            try {
-                val list = fetchAssetList(repo)
-                assetPreferences.setAssetList(repo, list)
-                lists[repo] = list
-            } catch (err: Exception) {
-                lists[repo] = assetPreferences.getCachedAssetList(repo)
-            }
+    suspend fun getAssetList(distributionType: String): List<Asset> {
+        return try {
+            val list = fetchAssetList(distributionType)
+            assetPreferences.setAssetList(distributionType, list)
+            list
+        } catch (err: Exception) {
+            assetPreferences.getCachedAssetList(distributionType)
         }
-        return lists
     }
 
     private suspend fun fetchAssetList(assetType: String): List<Asset> = withContext(Dispatchers.IO) {
@@ -143,5 +108,50 @@ class AssetRepository(
         val latestCached = assetPreferences.getLatestDownloadFilesystemVersion(repo)
         val latestRemote = githubApiClient.getLatestReleaseVersion(repo)
         return latestCached >= latestRemote
+    }
+
+    private suspend fun getRegularAssetDownloadRequirements(
+        assetList: List<Asset>,
+        repo: String
+    ): List<DownloadMetadata> {
+        val downloadRequirements = mutableListOf<DownloadMetadata>()
+        if (assetsArePresentInSupportDirectories(assetList)) {
+            try {
+                if (lastDownloadedVersionIsUpToDate(repo)) {
+                    return downloadRequirements
+                }
+            } catch (err: UnknownHostException) {
+                // If assets are present but the network is unreachable, don't bother trying
+                // to find updates.
+                return downloadRequirements
+            }
+        }
+
+        val filename = "assets.tar.gz"
+        val versionCode = githubApiClient.getLatestReleaseVersion(repo)
+        val url = githubApiClient.getAssetEndpoint(filename, repo)
+        val downloadMetadata = DownloadMetadata(filename, repo, versionCode, url)
+        downloadRequirements.add(downloadMetadata)
+        return downloadRequirements
+    }
+
+    private suspend fun getRootFsAssetDownloadRequirements(repo: String): List<DownloadMetadata> {
+        val downloadRequirements = mutableListOf<DownloadMetadata>()
+        val filename = "rootfs.tar.gz"
+
+        val rootFsIsDownloaded = File("$applicationFilesDirPath/$repo/$filename").exists()
+        val rootFsIsUpToDate = try {
+            lastDownloadedFilesystemVersionIsUpToDate(repo)
+        } catch (err: UnknownHostException) {
+            // Allows usage of existing rootfs files in case of failing network connectivity.
+            true
+        }
+        if (rootFsIsDownloaded && rootFsIsUpToDate) return downloadRequirements
+
+        // If the rootfs is not downloaded, network failures will still propagate.
+        val versionCode = githubApiClient.getLatestReleaseVersion(repo)
+        val url = githubApiClient.getAssetEndpoint(filename, repo)
+        val downloadMetadata = DownloadMetadata(filename, repo, versionCode, url)
+        return listOf(downloadMetadata)
     }
 }

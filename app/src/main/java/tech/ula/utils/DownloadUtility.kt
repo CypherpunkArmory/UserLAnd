@@ -19,17 +19,17 @@ data class AssetDownloadFailure(val reason: DownloadFailureLocalizationData) : A
 class DownloadUtility(
     private val assetPreferences: AssetPreferences,
     private val downloadManagerWrapper: DownloadManagerWrapper,
-    private val applicationFilesDir: File
+    private val applicationFilesDir: File,
+    scopedExternalRoot: File
 ) {
-    private val downloadDirectory = downloadManagerWrapper.getDownloadsDirectory()
 
-    private val userlandDownloadPrefix = "UserLAnd-"
+    private val downloadDirectory = File(scopedExternalRoot, "downloads")
 
     private val enqueuedDownloadIds = mutableSetOf<Long>()
     private val completedDownloadIds = mutableSetOf<Long>()
 
-    private fun String.containsUserland(): Boolean {
-        return this.toLowerCase().contains(userlandDownloadPrefix.toLowerCase())
+    init {
+        if (!downloadDirectory.exists()) downloadDirectory.mkdirs()
     }
 
     fun downloadStateHasBeenCached(): Boolean {
@@ -59,7 +59,7 @@ class DownloadUtility(
         completedDownloadIds.clear()
 
         enqueuedDownloadIds.addAll(downloadRequirements.map { metadata ->
-            val destination = "$userlandDownloadPrefix${metadata.downloadTitle}"
+            val destination = File(downloadDirectory, metadata.downloadTitle)
             val request = downloadManagerWrapper.generateDownloadRequest(metadata.url, destination)
             downloadManagerWrapper.enqueue(request)
         })
@@ -99,9 +99,7 @@ class DownloadUtility(
         val downloadDirectoryFiles = downloadDirectory.listFiles()
         downloadDirectoryFiles?.let {
             for (file in downloadDirectoryFiles) {
-                if (file.name.containsUserland()) {
-                    file.delete()
-                }
+                file.delete()
             }
         }
     }
@@ -110,19 +108,18 @@ class DownloadUtility(
     suspend fun prepareDownloadsForUse(archiverFactory: ArchiveFactoryWrapper = ArchiveFactoryWrapper()) = withContext(Dispatchers.IO) {
         val stagingDirectory = File("${applicationFilesDir.path}/staging")
         stagingDirectory.mkdirs()
-        downloadDirectory.walkBottomUp()
-                .filter { it.name.containsUserland() }
-                .forEach {
-                    if (it.name.contains("rootfs.tar.gz")) {
-                        moveRootfsAssetInternal(it)
-                        return@forEach
-                    }
-                    extractAssets(it, stagingDirectory, archiverFactory)
-                }
+        downloadDirectory.listFiles().forEach {
+            if (it.name.contains("rootfs.tar.gz")) {
+                moveRootfsAssetInternal(it)
+                return@forEach
+            }
+            extractAssets(it, stagingDirectory, archiverFactory)
+        }
+        stagingDirectory.deleteRecursively()
     }
 
     private suspend fun moveRootfsAssetInternal(rootFsFile: File) = withContext(Dispatchers.IO) {
-        val (_, repo, filename, version) = rootFsFile.name.split("-", limit = 4)
+        val (repo, filename, version) = rootFsFile.name.split("-", limit = 4)
         val destinationDirectory = File("${applicationFilesDir.absolutePath}/$repo")
         val target = File("${destinationDirectory.absolutePath}/$filename")
 
@@ -142,7 +139,7 @@ class DownloadUtility(
     }
 
     private suspend fun extractAssets(tarFile: File, stagingDirectory: File, archiverFactory: ArchiveFactoryWrapper) = withContext(Dispatchers.IO) {
-        val (_, repo, filename, version) = tarFile.name.split("-", limit = 4)
+        val (repo, filename, version) = tarFile.name.split("-", limit = 3)
         val stagingTarget = File("${stagingDirectory.absolutePath}/$filename")
         val destination = File("${applicationFilesDir.path}/$repo")
 
@@ -151,7 +148,6 @@ class DownloadUtility(
 
         val archiver = archiverFactory.createArchiver(stagingTarget)
         archiver.extract(stagingTarget, destination)
-        stagingDirectory.deleteRecursively()
         for (file in destination.listFiles()) {
             makePermissionsUsable(destination.absolutePath, file.name)
         }

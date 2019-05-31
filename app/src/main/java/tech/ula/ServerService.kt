@@ -4,7 +4,6 @@ import android.app.Service
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
-import android.os.Environment
 import android.os.IBinder
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.coroutines.CoroutineScope
@@ -15,6 +14,7 @@ import tech.ula.model.entities.App
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Session
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import java.io.File
 
 class ServerService : Service() {
 
@@ -31,9 +31,9 @@ class ServerService : Service() {
     }
 
     private val busyboxExecutor by lazy {
-        val externalStorage = Environment.getExternalStorageDirectory()
+        val ulaFiles = UlaFiles(this.filesDir, this.storageRoot, File(this.applicationInfo.nativeLibraryDir))
         val prootDebugLogger = ProotDebugLogger(this.defaultSharedPreferences, this.storageRoot.path)
-        BusyboxExecutor(this.filesDir, externalStorage, prootDebugLogger)
+        BusyboxExecutor(ulaFiles, prootDebugLogger)
     }
 
     private val filesystemUtility by lazy {
@@ -77,6 +77,11 @@ class ServerService : Service() {
             "filesystemIsBeingDeleted" -> {
                 val filesystemId: Long = intent.getLongExtra("filesystemId", -1)
                 cleanUpFilesystem(filesystemId)
+            }
+            "stopAll" -> {
+                activeSessions.forEach { (_, session) ->
+                    killSession(session)
+                }
             }
         }
 

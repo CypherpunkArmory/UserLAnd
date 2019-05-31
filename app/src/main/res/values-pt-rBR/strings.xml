@@ -71,12 +71,6 @@
     <string name="illegal_state_no_session_selected_when_preparation_started">Tentando lidar com a preparação da sessão antes que uma tenha sido selecionada.</string>
     <string name="illegal_state_error_fetching_asset_lists">Falha ao recuperar listas de recursos.</string>
 
-    <string name="illegal_state_unexpected_generation_size">
-        Tamanho inesperado encontrado ao gerar os requisitos de download.
-    </string>
-    <string name="illegal_state_unexpected_generation_type">
-        Tipo inesperado encontrado ao gerar requisitos de download.
-    </string>
     <string name="illegal_state_remote_unreachable_during_generation">
         Não foi possível alcançar o host remoto ao gerar os requisitos de download.
         Certifique-se de ter uma forte conexão de rede e tente novamente.

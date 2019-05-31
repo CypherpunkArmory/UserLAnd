@@ -57,7 +57,5 @@ fastlane/metadata/android/*/changelogs
 google-services.json
 app/src/main/resources/sentry.properties
 
-# Freeline
-freeline.py
-freeline/
-freeline_project_description.json
+# Lib resources should be left out of source tree
+app/src/main/resources/lib/*
