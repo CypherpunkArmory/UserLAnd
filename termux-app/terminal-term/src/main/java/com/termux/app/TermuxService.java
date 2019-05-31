@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.system.Os;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 
@@ -258,8 +259,10 @@ public final class TermuxService extends Service implements SessionChangedCallba
         String[] env = BackgroundJob.buildEnvironment(failSafe, cwd, filesPath, homePath, prefixPath);
         boolean isLoginShell = false;
 
+        String libPath = this.getApplicationInfo().nativeLibraryDir + "/";
+
         for (String shellBinary : new String[]{"busybox"}) {
-            File shellFile = new File(supportPath + shellBinary);
+            File shellFile = new File(libPath + shellBinary);
             if (shellFile.canExecute()) {
                 executablePath = shellFile.getAbsolutePath();
                 break;
@@ -267,7 +270,7 @@ public final class TermuxService extends Service implements SessionChangedCallba
         }
 
         // TODO: Replace -y -y option with a way to support hostkey checking
-        String[] dbclientArgs = {"sh", "-c", supportPath + "dbclient -y -y " + username + "@" + hostname + "/" + port};
+        String[] dbclientArgs = {"sh", "-c", libPath + "dbclient -y -y " + username + "@" + hostname + "/" + port};
         String[] processArgs = BackgroundJob.setupProcessArgs(executablePath, dbclientArgs, prefixPath);
         executablePath = processArgs[0];
         int lastSlashIndex = executablePath.lastIndexOf('/');

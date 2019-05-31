@@ -70,12 +70,6 @@
     <string name="illegal_state_no_session_selected_when_preparation_started">嘗試在選取前處理工作階段準備事宜。</string>
     <string name="illegal_state_error_fetching_asset_lists">擷取資源清單失敗。</string>
     
-    <string name="illegal_state_unexpected_generation_size">
-        生成下載需求時發現非預期的大小。
-    </string>
-    <string name="illegal_state_unexpected_generation_type">
-        生成下載需求時發現非預期的類型。
-    </string>
     <string name="illegal_state_remote_unreachable_during_generation">
         生成下載需求時無法連線到遠端主機。請確定您的網路
         連線夠穩定，然後再試一次。

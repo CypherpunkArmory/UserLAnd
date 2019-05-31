@@ -31,8 +31,8 @@ class GithubApiClient(
     private fun getReleaseToUseForRepo(repo: String): String {
         return "latest"
 //        return when (repo) {
-//            "support" -> "latest"
-//            "debian" -> "tags/:tag"
+//            "debian" -> "latest"
+//            else -> "latest"
 //        }
     }
 

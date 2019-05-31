@@ -55,6 +55,7 @@ import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import kotlinx.android.synthetic.main.dia_app_select_client.*
 import tech.ula.ui.FilesystemListFragment
 import tech.ula.model.repositories.DownloadMetadata
+import java.io.File
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection, FilesystemListFragment.ExportFilesystem {
 
@@ -66,9 +67,10 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private var currentFragmentDisplaysProgressDialog = false
 
     private val logger = SentryLogger()
+    private val ulaFiles by lazy { UlaFiles(this.filesDir, this.storageRoot, File(this.applicationInfo.nativeLibraryDir)) }
     private val busyboxExecutor by lazy {
         val prootDebugLogger = ProotDebugLogger(this.defaultSharedPreferences, this.storageRoot.path)
-        BusyboxExecutor(filesDir, Environment.getExternalStorageDirectory(), prootDebugLogger)
+        BusyboxExecutor(ulaFiles, prootDebugLogger)
     }
 
     private val navController: NavController by lazy {
@@ -139,6 +141,17 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
         notificationManager.createServiceNotificationChannel() // Android O requirement
+        try {
+            CoroutineScope(Dispatchers.Main).launch {
+                ulaFiles.setupSupportDir()
+                ulaFiles.setupLinks()
+            }
+        } catch (err: NoSuchFileException) {
+            logger.sendEvent(err.file.name)
+            displayGenericErrorDialog(this, R.string.general_error_title, R.string.error_library_file_missing)
+        } catch (err: Exception) {
+            displayGenericErrorDialog(this, R.string.general_error_title, R.string.error_library_setup_failure)
+        }
 
         setNavStartDestination()
 

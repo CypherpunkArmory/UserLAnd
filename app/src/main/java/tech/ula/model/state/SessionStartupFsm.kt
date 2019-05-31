@@ -101,7 +101,7 @@ class SessionStartupFsm(
         when (event) {
             is SessionSelected -> { handleSessionSelected(event.session) }
             is RetrieveAssetLists -> { handleRetrieveAssetLists(event.filesystem) }
-            is GenerateDownloads -> { handleGenerateDownloads(event.filesystem, event.assetLists) }
+            is GenerateDownloads -> { handleGenerateDownloads(event.filesystem, event.assetList) }
             is DownloadAssets -> { handleDownloadAssets(event.downloadRequirements) }
             is AssetDownloadComplete -> { handleAssetsDownloadComplete(event.downloadAssetId) }
             is SyncDownloadState -> { handleSyncDownloadState() }
@@ -136,36 +136,25 @@ class SessionStartupFsm(
     private suspend fun handleRetrieveAssetLists(filesystem: Filesystem) {
         state.postValue(RetrievingAssetLists)
 
-        val assetLists = assetRepository.getAllAssetLists(filesystem.distributionType)
+        val assetList = assetRepository.getAssetList(filesystem.distributionType)
 
-        if (assetLists.values.any { it.isEmpty() }) {
+        if (assetList.isEmpty()) {
             state.postValue(AssetListsRetrievalFailed)
             return
         }
 
-        state.postValue(AssetListsRetrievalSucceeded(assetLists))
+        state.postValue(AssetListsRetrievalSucceeded(assetList))
     }
 
-    private suspend fun handleGenerateDownloads(filesystem: Filesystem, assetLists: HashMap<String, List<Asset>>) {
+    private suspend fun handleGenerateDownloads(filesystem: Filesystem, assetList: List<Asset>) {
         state.postValue(GeneratingDownloadRequirements)
-
-        // Asset lists should always only include distribution and "support"
-        if (assetLists.size != 2) {
-            state.postValue(UnexpectedDownloadGenerationSize(assetLists.size, assetLists.keys))
-            return
-        }
-
-        if (!assetLists.containsKey(filesystem.distributionType)) {
-            state.postValue(UnexpectedDownloadGenerationTypes(filesystem.distributionType, assetLists.keys))
-            return
-        }
 
         val filesystemNeedsExtraction =
                 !filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}") &&
                 !filesystem.isCreatedFromBackup
 
         val downloadRequirements = try {
-            assetRepository.generateDownloadRequirements(filesystem, assetLists, filesystemNeedsExtraction)
+            assetRepository.generateDownloadRequirements(filesystem, assetList, filesystemNeedsExtraction)
         } catch (err: UnknownHostException) {
             state.postValue(RemoteUnreachableForGeneration)
             return
@@ -313,7 +302,7 @@ data class SessionIsReadyForPreparation(val session: Session, val filesystem: Fi
 // Asset retrieval states
 sealed class AssetRetrievalState : SessionStartupState()
 object RetrievingAssetLists : AssetRetrievalState()
-data class AssetListsRetrievalSucceeded(val assetLists: HashMap<String, List<Asset>>) : AssetRetrievalState()
+data class AssetListsRetrievalSucceeded(val assetList: List<Asset>) : AssetRetrievalState()
 object AssetListsRetrievalFailed : AssetRetrievalState()
 
 // Download requirements generation state
@@ -321,8 +310,6 @@ sealed class DownloadRequirementsGenerationState : SessionStartupState()
 object GeneratingDownloadRequirements : DownloadRequirementsGenerationState()
 data class DownloadsRequired(val downloadsRequired: List<DownloadMetadata>, val largeDownloadRequired: Boolean) : DownloadRequirementsGenerationState()
 object NoDownloadsRequired : DownloadRequirementsGenerationState()
-data class UnexpectedDownloadGenerationSize(val size: Int, val listNames: Set<String>) : DownloadRequirementsGenerationState()
-data class UnexpectedDownloadGenerationTypes(val expectedDistribution: String, val listNames: Set<String>) : DownloadRequirementsGenerationState()
 object RemoteUnreachableForGeneration : DownloadRequirementsGenerationState()
 
 // Downloading asset states
@@ -358,7 +345,7 @@ object StorageVerificationCompletedSuccessfully : StorageVerificationState()
 sealed class SessionStartupEvent
 data class SessionSelected(val session: Session) : SessionStartupEvent()
 data class RetrieveAssetLists(val filesystem: Filesystem) : SessionStartupEvent()
-data class GenerateDownloads(val filesystem: Filesystem, val assetLists: HashMap<String, List<Asset>>) : SessionStartupEvent()
+data class GenerateDownloads(val filesystem: Filesystem, val assetList: List<Asset>) : SessionStartupEvent()
 data class DownloadAssets(val downloadRequirements: List<DownloadMetadata>) : SessionStartupEvent()
 data class AssetDownloadComplete(val downloadAssetId: Long) : SessionStartupEvent()
 object SyncDownloadState : SessionStartupEvent()

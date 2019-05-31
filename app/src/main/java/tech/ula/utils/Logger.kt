@@ -16,6 +16,8 @@ interface Logger {
     fun addExceptionBreadcrumb(err: Exception)
 
     fun sendIllegalStateLog(state: IllegalState)
+
+    fun sendEvent(message: String)
 }
 
 class SentryLogger : Logger {
@@ -46,6 +48,13 @@ class SentryLogger : Logger {
 
     override fun sendIllegalStateLog(state: IllegalState) {
         val message = state.javaClass.simpleName
+        val event = EventBuilder()
+                .withMessage(message)
+                .withLevel(Event.Level.ERROR)
+        Sentry.capture(event)
+    }
+
+    override fun sendEvent(message: String) {
         val event = EventBuilder()
                 .withMessage(message)
                 .withLevel(Event.Level.ERROR)
