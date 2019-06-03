@@ -148,7 +148,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         notificationManager.createServiceNotificationChannel() // Android O requirement
         try {
             CoroutineScope(Dispatchers.Main).launch {
-                ulaFiles.setupSupportDir()
                 ulaFiles.setupLinks()
             }
         } catch (err: NoSuchFileException) {
