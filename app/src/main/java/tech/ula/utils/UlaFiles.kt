@@ -27,7 +27,6 @@ class UlaFiles(
         libDir.listFiles().forEach { libFile ->
             val name = libFile.name.toSupportName()
             val linkFile = File(supportDir, name)
-            if (!libFile.exists()) throw NoSuchFileException(libFile)
             linkFile.delete()
             symlinker.createSymlink(libFile.path, linkFile.path)
         }
