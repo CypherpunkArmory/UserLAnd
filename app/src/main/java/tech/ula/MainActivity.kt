@@ -156,8 +156,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         } catch (err: NullPointerException) {
             logger.sendEvent("NPE when looking for lib directory")
             displayGenericErrorDialog(this, R.string.general_error_title, R.string.error_no_lib_directory)
-        }
-        catch (err: Exception) {
+        } catch (err: Exception) {
             logger.sendEvent("$err")
             displayGenericErrorDialog(this, R.string.general_error_title, R.string.error_library_setup_failure)
         }
