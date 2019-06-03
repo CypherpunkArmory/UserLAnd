@@ -11,13 +11,20 @@ class UlaFiles(
     private val symlinker: Symlinker = Symlinker()
 ) {
 
-    val libLinkDir: File = File(filesDir, "lib")
     val supportDir: File = File(filesDir, "support")
 
-    val busybox = File(libDir, "busybox")
-    val proot = File(libDir, "proot")
+    val busybox = File(supportDir, "busybox")
+    val proot = File(supportDir, "proot")
+
+    // Lib files must start with 'lib' and end with '.so.'
+    private fun String.toLibName(): String {
+        return "lib_$this.so"
+    }
 
     internal val supportDirFileRequirements = listOf(
+            "busybox",
+            "dbclient",
+            "proot",
             "addNonRootUser.sh",
             "busybox_static",
             "compressFilesystem.sh",
@@ -43,19 +50,22 @@ class UlaFiles(
         supportDir.mkdirs()
 
         supportDirFileRequirements.forEach { filename ->
-            val assetFile = File(libDir, filename)
+            val assetFile = File(libDir, filename.toLibName())
             val target = File(supportDir, filename)
-            assetFile.copyTo(target, overwrite = true)
-            makePermissionsUsable(supportDir.path, filename)
+            if (!assetFile.exists()) throw NoSuchFileException(assetFile)
+            target.delete()
+            symlinker.createSymlink(assetFile.path, target.path)
+//            assetFile.copyTo(target, overwrite = true)
+//            makePermissionsUsable(supportDir.path, filename)
         }
     }
 
     suspend fun setupLinks() = withContext(Dispatchers.IO) {
-        libLinkDir.mkdirs()
+        supportDir.mkdirs()
 
         libDirectorySymlinkMapping.forEach { (requiredLinkName, actualLibName) ->
-            val libFile = File(libDir, actualLibName)
-            val linkFile = File(libLinkDir, requiredLinkName)
+            val linkFile = File(supportDir, requiredLinkName)
+            val libFile = File(libDir, actualLibName.toLibName())
             if (!libFile.exists()) throw NoSuchFileException(libFile)
             linkFile.delete()
             symlinker.createSymlink(libFile.path, linkFile.path)

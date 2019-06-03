@@ -1,6 +1,7 @@
 package tech.ula.utils
 
 import android.os.Environment
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -128,7 +129,7 @@ class BusyboxWrapper(private val ulaFiles: UlaFiles) {
 
     fun getBusyboxEnv(): HashMap<String, String> {
         return hashMapOf(
-                "LIB_PATH" to ulaFiles.libDir.absolutePath,
+                "LIB_PATH" to ulaFiles.supportDir.absolutePath,
                 "ROOT_PATH" to ulaFiles.filesDir.absolutePath
         )
     }
@@ -144,8 +145,8 @@ class BusyboxWrapper(private val ulaFiles: UlaFiles) {
 
     fun getProotEnv(filesystemDir: File, prootDebugLevel: String): HashMap<String, String> {
         return hashMapOf(
-                "LD_LIBRARY_PATH" to ulaFiles.libLinkDir.absolutePath,
-                "LIB_PATH" to ulaFiles.libDir.absolutePath,
+                "LD_LIBRARY_PATH" to ulaFiles.supportDir.absolutePath,
+                "LIB_PATH" to ulaFiles.supportDir.absolutePath,
                 "ROOT_PATH" to ulaFiles.filesDir.absolutePath,
                 "ROOTFS_PATH" to filesystemDir.absolutePath,
                 "PROOT_DEBUG_LEVEL" to prootDebugLevel,
