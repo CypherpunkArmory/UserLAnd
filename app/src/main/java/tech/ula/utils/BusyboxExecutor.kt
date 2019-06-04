@@ -1,7 +1,6 @@
 package tech.ula.utils
 
 import android.os.Environment
-import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -31,8 +30,9 @@ class BusyboxExecutor(
         return runCommand(updatedCommand, listener)
     }
 
-    fun executeCommand(command: String,
-                       listener: (String) -> Any = discardOutput
+    fun executeCommand(
+        command: String,
+        listener: (String) -> Any = discardOutput
     ): ExecutionResult {
         val updatedCommand = busyboxWrapper.wrapCommand(command)
 
@@ -116,10 +116,7 @@ class BusyboxExecutor(
 
     suspend fun recursivelyDelete(absolutePath: String): ExecutionResult = withContext(Dispatchers.IO) {
         val command = "rm -rf $absolutePath"
-        val listener: (String) -> Unit = { line ->
-            Log.e("delete", line)
-        }
-        return@withContext executeCommand(command, listener = listener)
+        return@withContext executeCommand(command)
     }
 
     private fun collectOutput(inputStream: InputStream, listener: (String) -> Any) {
