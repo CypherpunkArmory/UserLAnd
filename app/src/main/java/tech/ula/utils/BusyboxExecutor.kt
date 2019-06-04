@@ -1,6 +1,7 @@
 package tech.ula.utils
 
 import android.os.Environment
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -101,8 +102,11 @@ class BusyboxExecutor(
     }
 
     suspend fun recursivelyDelete(absolutePath: String): ExecutionResult = withContext(Dispatchers.IO) {
-        val command = "rm -rf $absolutePath"
-        return@withContext executeCommand(command)
+        val command = "-c rm -rf $absolutePath"
+        val listener: (String) -> Unit = { line ->
+            Log.e("delete", line)
+        }
+        return@withContext executeCommand(command, listener = listener)
     }
 
     private fun collectOutput(inputStream: InputStream, listener: (String) -> Any) {
@@ -123,7 +127,12 @@ class BusyboxExecutor(
 class BusyboxWrapper(private val ulaFiles: UlaFiles) {
     // For basic commands, CWD should be `applicationFilesDir`
     fun addBusybox(command: String): List<String> {
-        return listOf(ulaFiles.busybox.absolutePath, "sh") + command.split(" ")
+        val correctlySeparatedCommand = if (command.contains("-c")) {
+            listOf("sh", "-c", command.substringAfter("-c"))
+        } else {
+            listOf("sh") + command.split(" ")
+        }
+        return listOf(ulaFiles.busybox.absolutePath) + correctlySeparatedCommand
     }
 
     fun getBusyboxEnv(): HashMap<String, String> {
