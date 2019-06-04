@@ -21,17 +21,31 @@ class BusyboxExecutor(
 
     private val discardOutput: (String) -> Any = { }
 
+    fun executeScript(
+        scriptCall: String,
+        listener: (String) -> Any = discardOutput
+    ): ExecutionResult {
+        val updatedCommand = busyboxWrapper.wrapScript(scriptCall)
+
+        return runCommand(updatedCommand, listener)
+    }
+
     fun executeCommand(
         command: String,
         listener: (String) -> Any = discardOutput
     ): ExecutionResult {
+        val updatedCommand = busyboxWrapper.wrapCommand(command)
+
+        return runCommand(updatedCommand, listener)
+    }
+
+    private fun runCommand(command: List<String>, listener: (String) -> Any): ExecutionResult {
         if (!busyboxWrapper.busyboxIsPresent()) {
             return MissingExecutionAsset("busybox")
         }
 
-        val updatedCommand = busyboxWrapper.addBusybox(command)
         val env = busyboxWrapper.getBusyboxEnv()
-        val processBuilder = ProcessBuilder(updatedCommand)
+        val processBuilder = ProcessBuilder(command)
         processBuilder.directory(ulaFiles.filesDir)
         processBuilder.environment().putAll(env)
         processBuilder.redirectErrorStream(true)
@@ -122,8 +136,12 @@ class BusyboxExecutor(
 // This class is intended to allow stubbing of elements that are unavailable during unit tests.
 class BusyboxWrapper(private val ulaFiles: UlaFiles) {
     // For basic commands, CWD should be `applicationFilesDir`
-    fun addBusybox(command: String): List<String> {
-        return listOf(ulaFiles.busybox.absolutePath, "sh") + command.split(" ")
+    fun wrapCommand(command: String): List<String> {
+        return listOf(ulaFiles.busybox.path, "sh", "-c", command)
+    }
+
+    fun wrapScript(command: String): List<String> {
+        return listOf(ulaFiles.busybox.path, "sh") + command.split(" ")
     }
 
     fun getBusyboxEnv(): HashMap<String, String> {

@@ -118,7 +118,7 @@ class ServerUtility(
 
     fun stopService(session: Session) {
         val command = "support/killProcTree.sh ${session.pid} ${session.pid()}"
-        val result = busyboxExecutor.executeCommand(command)
+        val result = busyboxExecutor.executeScript(command)
         if (result is FailedExecution) {
             logger.logRuntimeErrorForCommand(functionName = "stopService", command = command, err = result.reason)
         }
@@ -129,7 +129,7 @@ class ServerUtility(
         // The server itself is run by a third-party, so we can consider this to always be true.
         // The third-party app is responsible for handling errors starting their server.
         if (session.serviceType == "xsdl") return true
-        val result = busyboxExecutor.executeCommand(command)
+        val result = busyboxExecutor.executeScript(command)
         return when (result) {
             is SuccessfulExecution -> true
             is FailedExecution -> {
