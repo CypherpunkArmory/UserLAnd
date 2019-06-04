@@ -11,52 +11,22 @@ class UlaFiles(
     private val symlinker: Symlinker = Symlinker()
 ) {
 
-    val libLinkDir: File = File(filesDir, "lib")
     val supportDir: File = File(filesDir, "support")
 
-    val busybox = File(libDir, "busybox")
-    val proot = File(libDir, "proot")
+    val busybox = File(supportDir, "busybox")
+    val proot = File(supportDir, "proot")
 
-    internal val supportDirFileRequirements = listOf(
-            "addNonRootUser.sh",
-            "busybox_static",
-            "compressFilesystem.sh",
-            "extractFilesystem.sh",
-            "execInProot.sh",
-            "isServerInProcTree.sh",
-            "killProcTree.sh",
-            "stat4",
-            "stat8",
-            "uptime"
-    )
-
-    internal val libDirectorySymlinkMapping = listOf(
-            "libc++_shared.so" to "libcppshared",
-            "libcrypto.so.1.1" to "libcrypto.1.1",
-            "libleveldb.so.1" to "libleveldb.1",
-            "libtalloc.so.2" to "libtalloc.2",
-            "libtermux-auth.so" to "libtermuxauth",
-            "libutil.so" to "libutil"
-    )
-
-    suspend fun setupSupportDir() = withContext(Dispatchers.IO) {
-        supportDir.mkdirs()
-
-        supportDirFileRequirements.forEach { filename ->
-            val assetFile = File(libDir, filename)
-            val target = File(supportDir, filename)
-            assetFile.copyTo(target, overwrite = true)
-            makePermissionsUsable(supportDir.path, filename)
-        }
+    // Lib files must start with 'lib' and end with '.so.'
+    private fun String.toSupportName(): String {
+        return this.substringAfter("lib_").substringBeforeLast(".so")
     }
 
     suspend fun setupLinks() = withContext(Dispatchers.IO) {
-        libLinkDir.mkdirs()
+        supportDir.mkdirs()
 
-        libDirectorySymlinkMapping.forEach { (requiredLinkName, actualLibName) ->
-            val libFile = File(libDir, actualLibName)
-            val linkFile = File(libLinkDir, requiredLinkName)
-            if (!libFile.exists()) throw NoSuchFileException(libFile)
+        libDir.listFiles().forEach { libFile ->
+            val name = libFile.name.toSupportName()
+            val linkFile = File(supportDir, name)
             linkFile.delete()
             symlinker.createSymlink(libFile.path, linkFile.path)
         }
