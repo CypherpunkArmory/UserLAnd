@@ -138,13 +138,17 @@ class BusyboxExecutorTest {
     }
 
     @Test
-    fun `Successfully executes scripts, using BusyboxWrapper#wrapScript`() {
-        val testScript = "example/script.sh"
+    fun `Successfully executes 'scripts', using BusyboxWrapper#wrapScript`() {
+        val testOutput = "hello"
+        val testCommand = "echo $testOutput"
         stubBusyboxIsPresent(true)
-        stubBusyboxScript(testScript)
+        stubBusyboxScript(testCommand)
         stubBusyboxEnv()
 
-        val result = busyboxExecutor.executeCommand(testScript, testListener)
+        val result = busyboxExecutor.executeScript(testCommand, testListener)
+
+        assertEquals(1, outputCollection.size)
+        assertEquals(testOutput, outputCollection[0])
         assertTrue(result is SuccessfulExecution)
     }
 
