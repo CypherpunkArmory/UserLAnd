@@ -66,7 +66,11 @@ class BusyboxExecutorTest {
     }
 
     private fun stubBusyboxCommand(command: String) {
-        whenever(mockBusyboxWrapper.addBusybox(command)).thenReturn(command.toExecutableList())
+        whenever(mockBusyboxWrapper.wrapCommand(command)).thenReturn(command.toExecutableList())
+    }
+
+    private fun stubBusyboxScript(command: String) {
+        whenever(mockBusyboxWrapper.wrapScript(command)).thenReturn(command.toExecutableList())
     }
 
     private fun stubBusyboxEnv() {
@@ -116,13 +120,13 @@ class BusyboxExecutorTest {
         val testCommand = "echo $testOutput"
         stubBusyboxIsPresent(false)
 
-        val result = busyboxExecutor.executeCommand(testCommand, testListener)
+        val result = busyboxExecutor.executeScript(testCommand, testListener)
         assertTrue(result is MissingExecutionAsset)
         result as MissingExecutionAsset
         assertEquals("busybox", result.asset)
     }
 
-    @Test()
+    @Test
     fun `Fails to execute illegal commands, 'adding' busybox`() {
         val testCommand = "badCommand"
         stubBusyboxIsPresent(true)
@@ -131,6 +135,21 @@ class BusyboxExecutorTest {
 
         val result = busyboxExecutor.executeCommand(testCommand, testListener)
         assertTrue(result is FailedExecution)
+    }
+
+    @Test
+    fun `Successfully executes 'scripts', using BusyboxWrapper#wrapScript`() {
+        val testOutput = "hello"
+        val testCommand = "echo $testOutput"
+        stubBusyboxIsPresent(true)
+        stubBusyboxScript(testCommand)
+        stubBusyboxEnv()
+
+        val result = busyboxExecutor.executeScript(testCommand, testListener)
+
+        assertEquals(1, outputCollection.size)
+        assertEquals(testOutput, outputCollection[0])
+        assertTrue(result is SuccessfulExecution)
     }
 
     @Test

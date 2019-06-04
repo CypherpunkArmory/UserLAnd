@@ -221,7 +221,7 @@ class ServerUtilityTest {
         val session = Session(0, filesystemId = filesystemId, serviceType = "ssh")
         serverUtility.stopService(session)
         val command = "support/killProcTree.sh ${session.pid} -1"
-        verify(mockBusyboxExecutor).executeCommand(eq(command), anyOrNull())
+        verify(mockBusyboxExecutor).executeScript(eq(command), anyOrNull())
     }
 
     @Test
@@ -230,7 +230,7 @@ class ServerUtilityTest {
         val command = "support/killProcTree.sh ${session.pid} -1"
 
         val reason = "reason"
-        whenever(mockBusyboxExecutor.executeCommand(eq(command), anyOrNull()))
+        whenever(mockBusyboxExecutor.executeScript(eq(command), anyOrNull()))
                 .thenReturn(FailedExecution("reason"))
 
         serverUtility.stopService(session)
@@ -245,7 +245,7 @@ class ServerUtilityTest {
         val result = serverUtility.isServerRunning(session)
 
         assertTrue(result)
-        verify(mockBusyboxExecutor, never()).executeCommand(anyOrNull(), anyOrNull())
+        verify(mockBusyboxExecutor, never()).executeScript(anyOrNull(), anyOrNull())
         verify(mockLogUtility, never()).logRuntimeErrorForCommand(anyOrNull(), anyOrNull(), anyOrNull())
     }
 
@@ -253,7 +253,7 @@ class ServerUtilityTest {
     fun `Calls appropriate command to check if server is running, and returns the result`() {
         val session = Session(0, filesystemId = filesystemId, serviceType = "ssh")
         val command = "support/isServerInProcTree.sh -1"
-        whenever(mockBusyboxExecutor.executeCommand(eq(command), anyOrNull()))
+        whenever(mockBusyboxExecutor.executeScript(eq(command), anyOrNull()))
                 .thenReturn(SuccessfulExecution)
                 .thenReturn(FailedExecution(""))
 
@@ -269,7 +269,7 @@ class ServerUtilityTest {
         val session = Session(0, filesystemId = filesystemId, serviceType = "ssh")
         val command = "support/isServerInProcTree.sh -1"
         val reason = "reason"
-        whenever(mockBusyboxExecutor.executeCommand(eq(command), anyOrNull()))
+        whenever(mockBusyboxExecutor.executeScript(eq(command), anyOrNull()))
                 .thenReturn(FailedExecution(reason))
 
         val result = serverUtility.isServerRunning(session)
