@@ -103,7 +103,7 @@ class BusyboxExecutorTest {
         stubBusyboxCommand(testCommand)
         stubBusyboxEnv()
 
-        val result = busyboxExecutor.executeCommand(testCommand, testListener)
+        val result = busyboxExecutor.executeScript(testCommand, testListener)
 
         assertEquals(1, outputCollection.size)
         assertEquals(testOutput, outputCollection[0])
@@ -116,7 +116,7 @@ class BusyboxExecutorTest {
         val testCommand = "echo $testOutput"
         stubBusyboxIsPresent(false)
 
-        val result = busyboxExecutor.executeCommand(testCommand, testListener)
+        val result = busyboxExecutor.executeScript(testCommand, testListener)
         assertTrue(result is MissingExecutionAsset)
         result as MissingExecutionAsset
         assertEquals("busybox", result.asset)
@@ -129,7 +129,7 @@ class BusyboxExecutorTest {
         stubBusyboxCommand(testCommand)
         stubBusyboxEnv()
 
-        val result = busyboxExecutor.executeCommand(testCommand, testListener)
+        val result = busyboxExecutor.executeScript(testCommand, testListener)
         assertTrue(result is FailedExecution)
     }
 
