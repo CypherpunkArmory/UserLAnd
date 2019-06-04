@@ -23,10 +23,10 @@ class BusyboxExecutor(
     private val discardOutput: (String) -> Any = { }
 
     fun executeScript(
-        command: String,
+        scriptCall: String,
         listener: (String) -> Any = discardOutput
     ): ExecutionResult {
-        val updatedCommand = busyboxWrapper.wrapScript(command)
+        val updatedCommand = busyboxWrapper.wrapScript(scriptCall)
 
         return runCommand(updatedCommand, listener)
     }
