@@ -165,7 +165,8 @@ task jacocoCoverageReportForCi(type: JacocoReport, dependsOn: ['testDebugUnitTes
 }
 
 ext.architectures = ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"]
-ext.libDir = "$project.projectDir/src/main/resources/lib"
+//ext.libDir = "$project.projectDir/src/main/resources/lib"
+ext.libDir = "$project.projectDir/src/main/jniLibs"
 
 task downloadAssets(type: Download) {
     def assetVersion = "v1.0.0"
@@ -186,9 +187,8 @@ task fetchAssets(dependsOn: downloadAssets) {
             copy {
                 from "$buildDir/$arch"
                 into "$libDir/$arch"
-                rename '(.*)\\+\\+_(.*)', '$1pp$2'
-                rename '(.*)-(.*)', '$1$2'
-                rename '(.*).so', '$1'
+                // Lib files must start with 'lib' and end with '.so.'
+                rename '(.*)', 'lib_$1.so'
             }
         }
     }

@@ -21,7 +21,6 @@ class UlaFilesTest {
     lateinit var testFilesDir: File
     lateinit var testScopedDir: File
     lateinit var testLibDir: File
-    lateinit var testLibLinkDir: File
     lateinit var testSupportDir: File
 
     lateinit var ulaFiles: UlaFiles
@@ -31,7 +30,6 @@ class UlaFilesTest {
         testFilesDir = tempFolder.newFolder("files")
         testScopedDir = tempFolder.newFolder("scoped")
         testLibDir = tempFolder.newFolder("execLib")
-        testLibLinkDir = File(testFilesDir, "lib")
         testSupportDir = File(testFilesDir, "support")
 
         mockSymlinker = mock()
@@ -40,73 +38,35 @@ class UlaFilesTest {
     }
 
     @Test
-    fun `setupSupportDir will copy the right assets to the supportDir`() {
-        val expectedText = "supportRequirement"
-        ulaFiles.supportDirFileRequirements.forEach { filename ->
-            val fileInLibDir = File(testLibDir, filename)
-            fileInLibDir.createNewFile()
-            fileInLibDir.writeText(expectedText)
-        }
-        ulaFiles.libDirectorySymlinkMapping.forEach { (_, filename) ->
-            val fileInLibDir = File(testLibDir, filename)
-            fileInLibDir.createNewFile()
-            fileInLibDir.writeText("notSupportRequirement")
-        }
+    fun `setupLinks create links from every file in the lib directory to support, stripping unnecessary name parts`() {
+        val expectedText1 = "text1"
+        val libFile1 = File(testLibDir, "lib_1.so")
+        libFile1.writeText(expectedText1)
 
-        assertFalse(testSupportDir.exists())
+        val expectedText2 = "text2"
+        val libFile2 = File(testLibDir, "lib_2.so")
+        libFile2.writeText(expectedText2)
 
-        runBlocking {
-            ulaFiles.setupSupportDir()
-        }
+        val expectedSupportFile1 = File(testSupportDir, "1")
+        val expectedSupportFile2 = File(testSupportDir, "2")
 
-        assertTrue(testSupportDir.exists())
-        ulaFiles.supportDirFileRequirements.forEach { filename ->
-            val fileInSupportDir = File(testSupportDir, filename)
-            assertTrue(fileInSupportDir.exists())
-            val actualText = fileInSupportDir.readText().trim()
-            assertEquals(expectedText, actualText)
-        }
+        // Create files for the symlinker mock to verify the calls are done.
+        whenever(mockSymlinker.createSymlink(libFile1.path, expectedSupportFile1.path))
+                .then {
+                    Files.createSymbolicLink(expectedSupportFile1.toPath(), libFile1.toPath())
+                }
+        whenever(mockSymlinker.createSymlink(libFile2.path, expectedSupportFile2.path))
+                .then {
+                    Files.createSymbolicLink(expectedSupportFile2.toPath(), libFile2.toPath())
+                }
 
-        ulaFiles.libDirectorySymlinkMapping.forEach { (_, filename) ->
-            val fileInSupportDir = File(testSupportDir, filename)
-            assertFalse(fileInSupportDir.exists())
-        }
-    }
-
-    @Test(expected = NoSuchFileException::class)
-    fun `setupSupportDir throws NoSuchFileException if a file does not exist`() {
-        runBlocking { ulaFiles.setupSupportDir() }
-    }
-
-    @Test
-    fun `setupLinks creates the correct symlinks in the right place`() {
-        ulaFiles.libDirectorySymlinkMapping.forEach { (linkname, filename) ->
-            val fileInLibDir = File(testLibDir, filename)
-            val fileInLibLinkDir = File(testLibLinkDir, linkname)
-            fileInLibDir.createNewFile()
-            // Create symlink for the mock, since Files#createSymbolicLink API is unavailable on
-            // older SDKs
-            whenever(mockSymlinker.createSymlink(fileInLibDir.path, fileInLibLinkDir.path))
-                    .then {
-                        Files.createSymbolicLink(fileInLibLinkDir.toPath(), fileInLibDir.toPath())
-                    }
-        }
-        assertFalse(testLibLinkDir.exists())
-
-        runBlocking { ulaFiles.setupLinks() }
-
-        assertTrue(testLibLinkDir.exists())
-        ulaFiles.libDirectorySymlinkMapping.forEach { (linkname, _) ->
-            val linkFile = File(testLibLinkDir, linkname)
-            assertTrue(linkFile.exists())
-            assertTrue(Files.isSymbolicLink(linkFile.toPath()))
-        }
-    }
-
-    @Test(expected = NoSuchFileException::class)
-    fun `setupLinks throws NoSuchFileException if a lib file does not exist`() {
         runBlocking {
             ulaFiles.setupLinks()
         }
+
+        assertTrue(expectedSupportFile1.exists())
+        assertTrue(expectedSupportFile2.exists())
+        assertEquals(expectedText1, expectedSupportFile1.readText().trim())
+        assertEquals(expectedText2, expectedSupportFile2.readText().trim())
     }
 }
