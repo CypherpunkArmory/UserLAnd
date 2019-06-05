@@ -96,7 +96,6 @@
     <string name="prompt_install_file_manager">請安裝檔案管理員</string>
 
     <!-- Notification strings -->
-    <string name="services_notification_channel_id">UserLAndServices</string>
     <string name="services_notification_channel_name">服務</string>
     <string name="services_notification_channel_description">永久服務</string>
     <string name="service_notification_title">UserLAnd</string>

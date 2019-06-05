@@ -86,7 +86,6 @@
     <string name="prompt_app_connection_type_preference">Seleccione el tipo de conexión: </string>
 
     <!-- Notification strings -->
-    <string name="services_notification_channel_id">ServiciosDeUserLAnd</string>
     <string name="services_notification_channel_name">Servicios</string>
     <string name="services_notification_channel_description">Servicios persistentes</string>
     <string name="service_notification_title">UserLAnd</string>

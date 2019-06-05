@@ -98,7 +98,6 @@
     <string name="prompt_install_file_manager">Por favor, instale um gerenciador de arquivos</string>
 
     <!-- Notification strings -->
-    <string name="services_notification_channel_id">UserLAndServices</string>
     <string name="services_notification_channel_name">Serviços</string>
     <string name="services_notification_channel_description">Serviços persistentes</string>
     <string name="service_notification_title">UserLAnd</string>

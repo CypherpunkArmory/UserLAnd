@@ -78,7 +78,6 @@
     <string name="prompt_app_connection_type_preference">Тип соединения:</string>
 
     <!-- Notification strings -->
-    <string name="services_notification_channel_id">UserLAndServices</string>
     <string name="services_notification_channel_name">Службы</string>
     <string name="services_notification_channel_description">Постоянные службы</string>
     <string name="service_notification_title">UserLAnd</string>

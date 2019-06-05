@@ -44,7 +44,7 @@ public final class TermuxService extends Service implements SessionChangedCallba
 
     private String TAG = "TermuxService";
 
-    private static final String NOTIFICATION_CHANNEL_ID = "UserLAndServices";
+    private static final String NOTIFICATION_CHANNEL_ID = "UserLAnd";
 
     /** Note that this is a symlink on the Android M preview. */
     @SuppressLint("SdCardPath")
