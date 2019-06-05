@@ -17,9 +17,8 @@ class NotificationUtility(val context: Context) {
     companion object {
         const val serviceNotificationId = 1000
         const val GROUP_KEY_USERLAND = "tech.ula.userland"
+        const val serviceNotificationChannelId = "UserLAnd"
     }
-
-    private val serviceNotificationChannelId = context.getString(R.string.services_notification_channel_id)
 
     private val serviceNotificationTitle = context.getString(R.string.service_notification_title)
     private val serviceNotificationDescription = context.getString(R.string.service_notification_description)
