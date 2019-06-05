@@ -85,7 +85,6 @@
     <string name="prompt_install_file_manager">الرجاء تثبيت مدير الملفات</string>
 
     <!-- Notification strings -->
-    <string name="services_notification_channel_id">UserLAnd خدمات</string>
     <string name="services_notification_channel_name">خدمات</string>
     <string name="services_notification_channel_description">الخدمات المستمرة</string>
     <string name="service_notification_title">UserLAnd</string>

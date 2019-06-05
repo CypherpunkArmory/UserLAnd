@@ -122,7 +122,6 @@
     <string name="prompt_install_file_manager">Please install a File Manager</string>
 
     <!-- Notification strings -->
-    <string name="services_notification_channel_id">UserLAndServices</string>
     <string name="services_notification_channel_name">Services</string>
     <string name="services_notification_channel_description">Persistent services</string>
     <string name="service_notification_title">UserLAnd</string>
