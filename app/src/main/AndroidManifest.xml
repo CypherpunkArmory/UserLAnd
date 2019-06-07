@@ -38,6 +38,18 @@
             android:name=".ServerService"
             android:stopWithTask="true" />
 
+        <provider
+            android:name="tech.ula.provider.UlaDocProvider"
+            android:authorities="tech.ula.documents"
+            android:grantUriPermissions="true"
+            android:exported="true"
+            android:permission="android.permission.MANAGE_DOCUMENTS">
+            <intent-filter>
+                <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
+            </intent-filter>
+        </provider>
+
+
     </application>
 
 </manifest>
