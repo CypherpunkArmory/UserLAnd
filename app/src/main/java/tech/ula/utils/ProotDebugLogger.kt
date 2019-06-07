@@ -20,7 +20,7 @@ class ProotDebugLogger(defaultSharedPreferences: SharedPreferences, scopedStorag
         get() = prefs.getString("pref_proot_debug_level", "-1") ?: "-1"
 
     val logName = "Proot_Debug_Log.txt"
-    private val logLocation = "$scopedStorageRootPath/$logName"
+    private val logLocation = "$scopedStorageRootPath/home/$logName"
 
     fun logStream(
         inputStream: InputStream,
