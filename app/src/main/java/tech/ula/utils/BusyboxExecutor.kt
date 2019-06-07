@@ -167,9 +167,7 @@ class BusyboxWrapper(private val ulaFiles: UlaFiles) {
                 "ROOT_PATH" to ulaFiles.filesDir.absolutePath,
                 "ROOTFS_PATH" to filesystemDir.absolutePath,
                 "PROOT_DEBUG_LEVEL" to prootDebugLevel,
-                // TODO this should change as part of Q, but we need a way to import public files
-//                "EXTRA_BINDINGS" to "-b ${ulaFiles.scopedDir.absolutePath}:/sdcard",
-                "EXTRA_BINDINGS" to "-b ${Environment.getExternalStorageDirectory()}:/sdcard",
+                "EXTRA_BINDINGS" to "-b ${ulaFiles.scopedUserDir.absolutePath}:/sdcard",
                 "OS_VERSION" to System.getProperty("os.version")
         )
     }

@@ -42,7 +42,7 @@ class UlaDocProvider : DocumentsProvider() {
     }
 
     private fun addUlaRoots(result: MatrixCursor): Cursor {
-        val baseDir = context!!.scopedStorageRoot
+        val baseDir = File(context!!.scopedStorageRoot, "home")
         result.newRow().apply {
             add(Root.COLUMN_TITLE, context!!.getString(R.string.app_name))
             // Root for Ula storage should be the files dir
