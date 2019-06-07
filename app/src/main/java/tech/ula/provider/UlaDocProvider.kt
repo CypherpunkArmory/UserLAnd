@@ -1,9 +1,7 @@
 package tech.ula.provider
 
-import android.content.res.AssetFileDescriptor
 import android.database.Cursor
 import android.database.MatrixCursor
-import android.graphics.Point
 import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract.Root
@@ -58,9 +56,9 @@ class UlaDocProvider : DocumentsProvider() {
     }
 
     override fun queryChildDocuments(
-            parentDocumentId: String?,
-            projection: Array<out String>?,
-            sortOrder: String?
+        parentDocumentId: String?,
+        projection: Array<out String>?,
+        sortOrder: String?
     ): Cursor {
         val parent: File = getFileForDocId(parentDocumentId ?: "")
         return MatrixCursor(projection ?: defaultDocumentProjection).apply {
@@ -69,7 +67,6 @@ class UlaDocProvider : DocumentsProvider() {
                         includeFile(this, file = file)
                     }
         }
-
     }
 
     override fun getDocumentType(documentId: String?): String {
@@ -123,8 +120,8 @@ class UlaDocProvider : DocumentsProvider() {
     }
 
     private fun includeFile(
-            result: MatrixCursor,
-            file: File
+        result: MatrixCursor,
+        file: File
     ) {
         if (!file.exists()) return
 
