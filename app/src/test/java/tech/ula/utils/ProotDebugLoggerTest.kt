@@ -23,6 +23,8 @@ class ProotDebugLoggerTest {
 
     @Mock lateinit var mockDefaultSharedPreferences: SharedPreferences
 
+    @Mock lateinit var mockUlaFiles: UlaFiles
+
     @Mock lateinit var mockContentResolver: ContentResolver
 
     @Mock lateinit var mockUri: Uri
@@ -33,7 +35,9 @@ class ProotDebugLoggerTest {
 
     @Before
     fun setup() {
-        prootDebugLogger = ProotDebugLogger(mockDefaultSharedPreferences, tempFolder.root.path)
+        whenever(mockUlaFiles.scopedUserDir).thenReturn(tempFolder.root)
+
+        prootDebugLogger = ProotDebugLogger(mockDefaultSharedPreferences, mockUlaFiles)
     }
 
     @Test

@@ -14,16 +14,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import tech.ula.utils.ProotDebugLogger
+import tech.ula.utils.UlaFiles
 import tech.ula.utils.defaultSharedPreferences
 import tech.ula.utils.scopedStorageRoot
+import java.io.File
 import kotlin.coroutines.CoroutineContext
 
 private const val EXPORT_REQUEST_CODE = 42
 
 class SettingsFragment : PreferenceFragmentCompat(), CoroutineScope {
 
+
     private val prootDebugLogger by lazy {
-        ProotDebugLogger(activity!!.defaultSharedPreferences, activity!!.scopedStorageRoot.path)
+        val ulaFiles = UlaFiles(activity!!.filesDir, activity!!.scopedStorageRoot, File(activity!!.applicationInfo.nativeLibraryDir))
+        ProotDebugLogger(activity!!.defaultSharedPreferences, ulaFiles)
     }
 
     private val job = Job()

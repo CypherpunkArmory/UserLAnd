@@ -32,7 +32,7 @@ class ServerService : Service() {
 
     private val busyboxExecutor by lazy {
         val ulaFiles = UlaFiles(this.filesDir, this.scopedStorageRoot, File(this.applicationInfo.nativeLibraryDir))
-        val prootDebugLogger = ProotDebugLogger(this.defaultSharedPreferences, this.scopedStorageRoot.path)
+        val prootDebugLogger = ProotDebugLogger(this.defaultSharedPreferences, ulaFiles)
         BusyboxExecutor(ulaFiles, prootDebugLogger)
     }
 
