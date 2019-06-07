@@ -1,7 +1,9 @@
 package tech.ula.provider
 
+import android.content.res.AssetFileDescriptor
 import android.database.Cursor
 import android.database.MatrixCursor
+import android.graphics.Point
 import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract.Root
@@ -11,6 +13,8 @@ import android.webkit.MimeTypeMap
 import tech.ula.R
 import tech.ula.utils.scopedStorageRoot
 import java.io.File
+import java.io.FileNotFoundException
+import java.lang.Exception
 
 class UlaDocProvider : DocumentsProvider() {
 
@@ -39,25 +43,6 @@ class UlaDocProvider : DocumentsProvider() {
         return context?.let {
             addUlaRoots(result)
         } ?: result
-    }
-
-    private fun addUlaRoots(result: MatrixCursor): Cursor {
-        val baseDir = File(context!!.scopedStorageRoot, "home")
-        result.newRow().apply {
-            add(Root.COLUMN_TITLE, context!!.getString(R.string.app_name))
-            // Root for Ula storage should be the files dir
-            add(Root.COLUMN_ROOT_ID, getDocIdForFile(baseDir))
-            add(Root.COLUMN_DOCUMENT_ID, getDocIdForFile(baseDir))
-
-            // Allow creation and searching
-            add(Root.COLUMN_FLAGS,
-                    Root.FLAG_SUPPORTS_CREATE /*or*/
-//                    Root.FLAG_SUPPORTS_SEARCH
-            )
-            add(Root.COLUMN_ICON, R.mipmap.ic_launcher)
-            add(Root.COLUMN_AVAILABLE_BYTES, baseDir.freeSpace)
-        }
-        return result
     }
 
     override fun openDocument(docId: String, mode: String, signal: CancellationSignal): ParcelFileDescriptor {
@@ -89,6 +74,37 @@ class UlaDocProvider : DocumentsProvider() {
 
     override fun getDocumentType(documentId: String?): String {
         return getMimeType(getFileForDocId(docId = documentId ?: ""))
+    }
+
+    override fun createDocument(parentDocumentId: String?, mimeType: String?, displayName: String?): String {
+        if (displayName == null) return ""
+        val parent = getFileForDocId(parentDocumentId ?: "")
+        val file = try {
+            File(parent, displayName).apply {
+                createNewFile()
+                setWritable(true)
+                setReadable(true)
+            }
+        } catch (err: Exception) {
+            throw FileNotFoundException("Failed to create $displayName")
+        }
+        return getDocIdForFile(file)
+    }
+
+    private fun addUlaRoots(result: MatrixCursor): Cursor {
+        val baseDir = File(context!!.scopedStorageRoot, "home")
+        result.newRow().apply {
+            add(Root.COLUMN_TITLE, context!!.getString(R.string.app_name))
+            // Root for Ula storage should be the files dir
+            add(Root.COLUMN_ROOT_ID, getDocIdForFile(baseDir))
+            add(Root.COLUMN_DOCUMENT_ID, getDocIdForFile(baseDir))
+
+            // Allow creation and searching
+            add(Root.COLUMN_FLAGS, Root.FLAG_SUPPORTS_CREATE)
+            add(Root.COLUMN_ICON, R.mipmap.ic_launcher)
+            add(Root.COLUMN_AVAILABLE_BYTES, baseDir.freeSpace)
+        }
+        return result
     }
 
     private fun getDocIdForFile(file: File): String {
