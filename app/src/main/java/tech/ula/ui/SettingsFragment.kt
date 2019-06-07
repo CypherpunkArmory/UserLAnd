@@ -15,7 +15,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import tech.ula.utils.ProotDebugLogger
 import tech.ula.utils.defaultSharedPreferences
-import tech.ula.utils.storageRoot
+import tech.ula.utils.scopedStorageRoot
 import kotlin.coroutines.CoroutineContext
 
 private const val EXPORT_REQUEST_CODE = 42
@@ -23,7 +23,7 @@ private const val EXPORT_REQUEST_CODE = 42
 class SettingsFragment : PreferenceFragmentCompat(), CoroutineScope {
 
     private val prootDebugLogger by lazy {
-        ProotDebugLogger(activity!!.defaultSharedPreferences, activity!!.storageRoot.path)
+        ProotDebugLogger(activity!!.defaultSharedPreferences, activity!!.scopedStorageRoot.path)
     }
 
     private val job = Job()

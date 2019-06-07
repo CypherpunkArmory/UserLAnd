@@ -9,6 +9,7 @@ import android.provider.DocumentsContract.Document
 import android.provider.DocumentsProvider
 import android.webkit.MimeTypeMap
 import tech.ula.R
+import tech.ula.utils.scopedStorageRoot
 import java.io.File
 
 class UlaDocProvider : DocumentsProvider() {
@@ -41,7 +42,7 @@ class UlaDocProvider : DocumentsProvider() {
     }
 
     private fun addUlaRoots(result: MatrixCursor): Cursor {
-        val baseDir = context!!.filesDir
+        val baseDir = context!!.scopedStorageRoot
         result.newRow().apply {
             add(Root.COLUMN_TITLE, context!!.getString(R.string.app_name))
             // Root for Ula storage should be the files dir

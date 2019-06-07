@@ -33,11 +33,11 @@ fun <A, B> zipLiveData(a: LiveData<A>, b: LiveData<B>): LiveData<Pair<A, B>> {
     }
 }
 
-inline val Context.storageRoot: File
+inline val Context.scopedStorageRoot: File
     get() = this.getExternalFilesDir(null) ?: run {
-        val storageRoot = File(this.filesDir, "storage")
-        storageRoot.mkdirs()
-        storageRoot
+        val scopedStorageRoot = File(this.filesDir, "storage")
+        scopedStorageRoot.mkdirs()
+        scopedStorageRoot
     }
 
 inline val Context.defaultSharedPreferences: SharedPreferences
