@@ -88,6 +88,12 @@ class UlaDocProvider : DocumentsProvider() {
         return getDocIdForFile(file)
     }
 
+    override fun deleteDocument(documentId: String?) {
+        if (documentId == null) return
+        val file = getFileForDocId(documentId)
+        file.delete()
+    }
+
     private fun addUlaRoots(result: MatrixCursor): Cursor {
         val baseDir = File(context!!.scopedStorageRoot, "home")
         result.newRow().apply {
