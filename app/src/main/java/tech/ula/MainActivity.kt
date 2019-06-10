@@ -69,9 +69,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private var currentFragmentDisplaysProgressDialog = false
 
     private val logger = SentryLogger()
-    private val ulaFiles by lazy { UlaFiles(this.filesDir, this.storageRoot, File(this.applicationInfo.nativeLibraryDir)) }
+    private val ulaFiles by lazy { UlaFiles(this.filesDir, this.scopedStorageRoot, File(this.applicationInfo.nativeLibraryDir)) }
     private val busyboxExecutor by lazy {
-        val prootDebugLogger = ProotDebugLogger(this.defaultSharedPreferences, this.storageRoot.path)
+        val prootDebugLogger = ProotDebugLogger(this.defaultSharedPreferences, ulaFiles)
         BusyboxExecutor(ulaFiles, prootDebugLogger)
     }
 
@@ -130,7 +130,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
         val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val downloadManagerWrapper = DownloadManagerWrapper(downloadManager)
-        val downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, filesDir, this.storageRoot)
+        val downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, filesDir, this.scopedStorageRoot)
 
         val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
 

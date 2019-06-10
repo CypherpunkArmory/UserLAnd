@@ -10,7 +10,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStream
 
-class ProotDebugLogger(defaultSharedPreferences: SharedPreferences, storageRootPath: String) {
+class ProotDebugLogger(defaultSharedPreferences: SharedPreferences, ulaFiles: UlaFiles) {
     private val prefs = defaultSharedPreferences
 
     val isEnabled: Boolean
@@ -20,7 +20,7 @@ class ProotDebugLogger(defaultSharedPreferences: SharedPreferences, storageRootP
         get() = prefs.getString("pref_proot_debug_level", "-1") ?: "-1"
 
     val logName = "Proot_Debug_Log.txt"
-    private val logLocation = "$storageRootPath/$logName"
+    private val logLocation = "${ulaFiles.scopedUserDir}/$logName"
 
     fun logStream(
         inputStream: InputStream,

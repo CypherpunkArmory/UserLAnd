@@ -12,6 +12,11 @@ class UlaFiles(
 ) {
 
     val supportDir: File = File(filesDir, "support")
+    val scopedUserDir: File = File(scopedDir, "home")
+
+    init {
+        scopedUserDir.mkdirs()
+    }
 
     val busybox = File(supportDir, "busybox")
     val proot = File(supportDir, "proot")
