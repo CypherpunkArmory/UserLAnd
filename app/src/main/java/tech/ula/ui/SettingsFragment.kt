@@ -24,7 +24,6 @@ private const val EXPORT_REQUEST_CODE = 42
 
 class SettingsFragment : PreferenceFragmentCompat(), CoroutineScope {
 
-
     private val prootDebugLogger by lazy {
         val ulaFiles = UlaFiles(activity!!.filesDir, activity!!.scopedStorageRoot, File(activity!!.applicationInfo.nativeLibraryDir))
         ProotDebugLogger(activity!!.defaultSharedPreferences, ulaFiles)
