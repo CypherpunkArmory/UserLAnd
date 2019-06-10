@@ -14,10 +14,14 @@ android {
     compileSdkVersion 28
 
     defaultConfig {
+        // Version code is generated as time since June 1, 2019. These allows for constantly
+        // sequential deployments to both production and beta tracks.
+        def vcode = (int)(((new Date().getTime()/1000) - 1559347200) / 10)
+
         applicationId "tech.ula"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 67
+        versionCode vcode
         versionName "2.5.13"
         
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

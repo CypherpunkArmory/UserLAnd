@@ -102,7 +102,15 @@ reference:
       name: Decode Play store key
       command: echo $PLAY_KEY | base64 -di > ${HOME}/play-key.json
 
-  configure_sentry: &configure_sentry
+  configure_sentry_beta: &configure_sentry_beta
+    run:
+      name: Configure Sentry for production use
+      command: |
+        mkdir -p app/src/main/resources
+        echo "dsn=$SENTRY_DSN" >> app/src/main/resources/sentry.properties
+        echo "environment=beta" >> app/src/main/resources/sentry.properties
+
+  configure_sentry_production: &configure_sentry_production
     run:
       name: Configure Sentry for production use
       command: |
@@ -138,7 +146,7 @@ jobs:
           path: app/build/outputs/apk/
           destination: /apk/
 
-  build_release:
+  build_beta_release:
     <<: *android_config
     steps:
       - *early_return_for_forked_pull_requests
@@ -148,7 +156,29 @@ jobs:
       - *save_cache
       - *export_android_key
       - *decode_android_key
-      - *configure_sentry
+      - *configure_sentry_beta
+      - run:
+          name: Run ktlint
+          command: ./gradlew ktlint
+      - run:
+          name: Build
+          command: ./gradlew -PciBuild=true :app:assembleRelease
+      - *persist_release_workspace
+      - store_artifacts:
+          path: app/build/outputs/apk/
+          destination: /apk/
+
+  build_production_release:
+    <<: *android_config
+    steps:
+      - *early_return_for_forked_pull_requests
+      - checkout
+      - *restore_cache
+      - *android_dependencies
+      - *save_cache
+      - *export_android_key
+      - *decode_android_key
+      - *configure_sentry_production
       - run:
           name: Run ktlint
           command: ./gradlew ktlint
@@ -230,7 +260,21 @@ jobs:
           path: app/build/reports/
           destination: /reports/
 
-  deploy:
+  deploy-beta:
+    <<: *android_config
+    steps:
+      - *early_return_for_forked_pull_requests
+      - checkout
+      - *restore_cache
+      - *ruby_dependencies
+      - *attach_release_workspace
+      - *export_play_key
+      - *decode_play_key
+      - run:
+          name: Deploy to Play store beta
+          command: bundle exec fastlane deploy_beta
+
+  deploy-production:
     <<: *android_config
     steps:
       - *early_return_for_forked_pull_requests
@@ -242,15 +286,20 @@ jobs:
       - *decode_play_key
       - *export_github_release_token
       - run:
-          name: Deploy to Play store
-          command: bundle exec fastlane deploy
+          name: Deploy to Play store production and Github
+          command: bundle exec fastlane deploy_production
 
 workflows:
   version: 2
   workflow:
     jobs:
       - build_debug
-      - build_release:
+      - build_beta_release:
+          filters:
+            branches:
+              only:
+                - master
+      - build_production_release:
           filters:
             branches:
               only:
@@ -265,7 +314,16 @@ workflows:
           requires:
             - test_unit
             - test_instrumented
-      - deploy:
+      - deploy-beta:
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - test_unit
+            - test_instrumented
+            - build_beta_release
+      - deploy-production:
           filters:
             branches:
               only:
@@ -273,4 +331,4 @@ workflows:
           requires:
             - test_unit
             - test_instrumented
-            - build_release
+            - build_production_release
