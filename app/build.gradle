@@ -66,7 +66,7 @@ android {
             testCoverageEnabled true
         }
         beta {
-            versionNameSuffix "-beta"
+            versionNameSuffix "-beta-$versionCode"
             debuggable false
             minifyEnabled false
             signingConfig signingConfigs.beta
@@ -116,6 +116,8 @@ tasks.withType(Test) {
 task reportVersionCode {
     new File("$projectDir/versionCode.txt").text = "$project.android.defaultConfig.versionCode"
 }
+// By running this task before builds, we guarantee that the same version is used for the fastlane
+// to supply the automated changelogs.
 preBuild.dependsOn reportVersionCode
 
 task reportVersionName {
