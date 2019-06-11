@@ -59,6 +59,13 @@ android {
             minifyEnabled false
             testCoverageEnabled true
         }
+        beta {
+            versionNameSuffix "-beta"
+            debuggable false
+            minifyEnabled false
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
         release {
             debuggable false
             minifyEnabled false
