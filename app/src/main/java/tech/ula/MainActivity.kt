@@ -57,7 +57,7 @@ import tech.ula.ui.FilesystemListFragment
 import tech.ula.model.repositories.DownloadMetadata
 import java.io.File
 
-class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection, FilesystemListFragment.ExportFilesystem {
+class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection, FilesystemListFragment.FilesystemListProgress {
 
     val className = "MainActivity"
 
@@ -555,12 +555,17 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         }
     }
 
-    override fun updateExportProgress(details: String) {
+    override fun updateFilesystemExportProgress(details: String) {
         val step = getString(R.string.progress_exporting_filesystem)
         updateProgressBar(step, details)
     }
 
-    override fun stopExportProgress() {
+    override fun updateFilesystemDeleteProgress() {
+        val step = getString(R.string.progress_deleting_filesystem)
+        updateProgressBar(step, "")
+    }
+
+    override fun stopProgressFromFilesystemList() {
         killProgressBar()
     }
 

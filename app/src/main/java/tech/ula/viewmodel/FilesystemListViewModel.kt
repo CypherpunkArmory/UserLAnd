@@ -19,11 +19,19 @@ import tech.ula.model.entities.Session
 import tech.ula.utils.ExecutionResult
 import tech.ula.utils.FailedExecution
 
-sealed class FilesystemExportStatus
-data class ExportUpdate(val details: String) : FilesystemExportStatus()
-object ExportSuccess : FilesystemExportStatus()
-data class ExportFailure(val reason: Int, val details: String = "") : FilesystemExportStatus()
-object ExportStarted : FilesystemExportStatus()
+sealed class FilesystemListViewState
+
+sealed class FilesystemExportState : FilesystemListViewState() {
+    data class Update(val details: String) : FilesystemExportState()
+    object Success : FilesystemExportState()
+    data class Failure(val reason: Int, val details: String = "") : FilesystemExportState()
+}
+
+sealed class FilesystemDeleteState : FilesystemListViewState() {
+    object InProgress : FilesystemDeleteState()
+    object Success : FilesystemDeleteState()
+    object Failure : FilesystemDeleteState()
+}
 
 class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private val sessionDao: SessionDao, private val filesystemUtility: FilesystemUtility) : ViewModel(), CoroutineScope {
 
@@ -36,9 +44,9 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
         super.onCleared()
     }
 
-    private val exportStatusLiveData = MutableLiveData<FilesystemExportStatus>()
+    private val viewState = MutableLiveData<FilesystemListViewState>()
     private val exportUpdateListener: (String) -> Unit = { details ->
-        exportStatusLiveData.postValue(ExportUpdate(details))
+        viewState.postValue(FilesystemExportState.Update(details))
     }
 
     private val unselectedFilesystem = Filesystem(id = -1, name = "UNSELECTED")
@@ -48,8 +56,8 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
         filesystemToBackup = filesystem
     }
 
-    fun getExportStatusLiveData(): LiveData<FilesystemExportStatus> {
-        return exportStatusLiveData
+    fun getViewState(): LiveData<FilesystemListViewState> {
+        return viewState
     }
 
     private val filesystems: LiveData<List<Filesystem>> by lazy {
@@ -70,7 +78,19 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
 
     fun deleteFilesystemById(id: Long, coroutineScope: CoroutineScope = this) = coroutineScope.launch {
         withContext(Dispatchers.IO) {
+            viewState.postValue(FilesystemDeleteState.InProgress)
+//            activeSessions.value?.let { list ->
+//                list.filter { it.filesystemId == id }.forEach { killSession(it) }
+//            }
+
+            try {
+                filesystemUtility.deleteFilesystem(id)
+            } catch (err: Exception) {
+                viewState.postValue(FilesystemDeleteState.Failure)
+                return@withContext
+            }
             filesystemDao.deleteFilesystemById(id)
+            viewState.postValue(FilesystemDeleteState.Success)
         }
     }
 
@@ -86,11 +106,11 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
     ) = coroutineScope.launch {
         when {
             activeSessions.value!!.isNotEmpty() -> {
-                exportStatusLiveData.postValue(ExportFailure(R.string.deactivate_sessions))
+                viewState.postValue(FilesystemExportState.Failure(R.string.deactivate_sessions))
                 return@launch
             }
             filesystemToBackup == unselectedFilesystem -> {
-                exportStatusLiveData.postValue(ExportFailure(R.string.error_export_filesystem_not_found))
+                viewState.postValue(FilesystemExportState.Failure(R.string.error_export_filesystem_not_found))
                 return@launch
             }
             else -> {
@@ -105,7 +125,7 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
         contentResolver: ContentResolver
     ) {
         withContext(Dispatchers.IO) {
-            exportStatusLiveData.postValue(ExportStarted)
+            viewState.postValue(FilesystemExportState.Update("Starting export"))
             val tempBackupName = getFilesystemBackupName(filesystemToBackup)
             val localBackup = File(filesDir, tempBackupName)
 
@@ -120,25 +140,25 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
                 }
             } catch (err: Exception) {
                 filesystemToBackup = unselectedFilesystem
-                exportStatusLiveData.postValue(ExportFailure(R.string.error_export_copy_public_external_failure))
+                viewState.postValue(FilesystemExportState.Failure(R.string.error_export_copy_public_external_failure))
                 return@withContext
             }
 
             filesystemToBackup = unselectedFilesystem
-            exportStatusLiveData.postValue(ExportSuccess)
+            viewState.postValue(FilesystemExportState.Success)
         }
     }
 
     private fun localBackupFailed(localBackup: File, result: ExecutionResult): Boolean {
         if (result is FailedExecution) {
             filesystemToBackup = unselectedFilesystem
-            exportStatusLiveData.postValue(ExportFailure(R.string.error_export_execution_failure, result.reason))
+            viewState.postValue(FilesystemExportState.Failure(R.string.error_export_execution_failure, result.reason))
             return true
         }
 
         if (!localBackup.exists() || localBackup.length() <= 0) {
             filesystemToBackup = unselectedFilesystem
-            exportStatusLiveData.postValue(ExportFailure(R.string.error_export_local_failure))
+            viewState.postValue(FilesystemExportState.Failure(R.string.error_export_local_failure))
             return true
         }
 

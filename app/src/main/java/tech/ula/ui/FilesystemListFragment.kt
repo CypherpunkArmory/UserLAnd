@@ -5,7 +5,6 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import android.content.Intent
 import android.os.Bundle
-import android.os.Environment
 import androidx.fragment.app.Fragment
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
@@ -28,16 +27,15 @@ private const val FILESYSTEM_EXPORT_REQUEST_CODE = 7
 
 class FilesystemListFragment : Fragment() {
 
-    interface ExportFilesystem {
-        fun updateExportProgress(details: String)
-        fun stopExportProgress()
+    interface FilesystemListProgress {
+        fun updateFilesystemExportProgress(details: String)
+        fun updateFilesystemDeleteProgress()
+        fun stopProgressFromFilesystemList()
     }
 
     private lateinit var activityContext: MainActivity
 
     private lateinit var filesystemList: List<Filesystem>
-
-    private val externalStorageDir = Environment.getExternalStorageDirectory()
 
     private lateinit var activeSessions: List<Session>
 
@@ -61,29 +59,11 @@ class FilesystemListFragment : Fragment() {
         }
     }
 
-    private val filesystemExportStatusObserver = Observer<FilesystemExportStatus> {
-        it?.let { exportStatus ->
-            when (exportStatus) {
-                is ExportUpdate -> {
-                    activityContext.updateExportProgress(exportStatus.details)
-                }
-                is ExportSuccess -> {
-                    activityContext.stopExportProgress()
-                    Toast.makeText(activityContext, R.string.backup_export_success, Toast.LENGTH_LONG).show()
-                }
-                is ExportFailure -> {
-                    val dialogBuilder = AlertDialog.Builder(activityContext)
-                    val reason = if (exportStatus.reason == R.string.error_export_execution_failure) {
-                        getString(exportStatus.reason, exportStatus.details)
-                    } else {
-                        getString(exportStatus.reason)
-                    }
-                    dialogBuilder.setMessage(getString(R.string.export_failure) + "\n" + reason).create().show()
-                    activityContext.stopExportProgress()
-                }
-                is ExportStarted -> {
-                    activityContext.updateExportProgress(getString(R.string.export_started))
-                }
+    private val viewStateObserver = Observer<FilesystemListViewState> {
+        it?.let { viewState ->
+            when (viewState) {
+                is FilesystemExportState -> handleExportStatus(viewState)
+                is FilesystemDeleteState -> handleDeleteStatus(viewState)
             }
         }
     }
@@ -116,7 +96,7 @@ class FilesystemListFragment : Fragment() {
 
         activityContext = activity!! as MainActivity
         filesystemListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
-        filesystemListViewModel.getExportStatusLiveData().observe(viewLifecycleOwner, filesystemExportStatusObserver)
+        filesystemListViewModel.getViewState().observe(viewLifecycleOwner, viewStateObserver)
         filesystemListViewModel.getAllActiveSessions().observe(viewLifecycleOwner, activeSessionObserver)
         registerForContextMenu(list_filesystems)
     }
@@ -179,6 +159,42 @@ class FilesystemListFragment : Fragment() {
             addCategory(Intent.CATEGORY_OPENABLE)
             type = "application/*"
             putExtra(Intent.EXTRA_TITLE, backupName)
+        }
+    }
+
+    private fun handleExportStatus(viewState: FilesystemExportState) {
+        return when (viewState) {
+            is FilesystemExportState.Update -> {
+                activityContext.updateFilesystemExportProgress(viewState.details)
+            }
+            is FilesystemExportState.Success -> {
+                activityContext.stopProgressFromFilesystemList()
+                Toast.makeText(activityContext, R.string.backup_export_success, Toast.LENGTH_LONG).show()
+            }
+            is FilesystemExportState.Failure -> {
+                val dialogBuilder = AlertDialog.Builder(activityContext)
+                val reason = if (viewState.reason == R.string.error_export_execution_failure) {
+                    getString(viewState.reason, viewState.details)
+                } else {
+                    getString(viewState.reason)
+                }
+                dialogBuilder.setMessage(getString(R.string.export_failure) + "\n" + reason).create().show()
+                activityContext.stopProgressFromFilesystemList()
+            }
+        }
+    }
+
+    private fun handleDeleteStatus(viewState: FilesystemDeleteState) {
+        return when (viewState) {
+            is FilesystemDeleteState.InProgress -> {
+                activityContext.updateFilesystemDeleteProgress()
+            }
+            is FilesystemDeleteState.Success -> {
+                activityContext.stopProgressFromFilesystemList()
+            }
+            is FilesystemDeleteState.Failure -> {
+                activityContext.stopProgressFromFilesystemList()
+            }
         }
     }
 }

@@ -141,6 +141,7 @@
     <string name="progress_starting">Starting service&#8230;</string>
     <string name="progress_clearing_support_files">Clearing all support files&#8230;</string>
     <string name="progress_exporting_filesystem">Exporting filesystem</string>
+    <string name="progress_deleting_filesystem">Deleting filesystem</string>
 
     <!-- Preferences -->
     <string name="pref_app_category">App Preferences</string>
