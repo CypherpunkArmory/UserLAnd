@@ -38,6 +38,7 @@ reference:
       paths:
         - app/build
         - app/versionCode.txt
+        - app/versionName.txt
   attach_firebase_workspace: &attach_firebase_workspace
     attach_workspace:
       at: *workspace
@@ -102,6 +103,13 @@ reference:
       name: Decode Play store key
       command: echo $PLAY_KEY | base64 -di > ${HOME}/play-key.json
 
+  place_version_information: &place_version_information
+    run:
+      name: Move version code and name files to expected location for fastlane
+      command: |
+        cp ~/workspace/app/versionCode.txt app/versionCode.txt
+        cp ~/workspace/app/versionName.txt app/versionName.txt
+
   configure_sentry_beta: &configure_sentry_beta
     run:
       name: Configure Sentry for production use
@@ -162,7 +170,7 @@ jobs:
           command: ./gradlew ktlint
       - run:
           name: Build
-          command: ./gradlew -PciBuild=true :app:assembleRelease
+          command: ./gradlew -PciBuild=true :app:assembleBeta
       - *persist_release_workspace
       - store_artifacts:
           path: app/build/outputs/apk/
@@ -270,6 +278,7 @@ jobs:
       - *attach_release_workspace
       - *export_play_key
       - *decode_play_key
+      - *place_version_information
       - run:
           name: Deploy to Play store beta
           command: bundle exec fastlane deploy_beta
@@ -284,6 +293,7 @@ jobs:
       - *attach_release_workspace
       - *export_play_key
       - *decode_play_key
+      - *place_version_information
       - *export_github_release_token
       - run:
           name: Deploy to Play store production and Github

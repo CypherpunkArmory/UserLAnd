@@ -45,6 +45,12 @@ android {
     }
 
     signingConfigs {
+        beta {
+            storeFile project.file('../keystore.jks')
+            keyAlias System.getenv('ANDROID_KEY_ALIAS')
+            storePassword System.getenv('ANDROID_STORE_PASSWORD')
+            keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+        }
         release {
             storeFile project.file('../keystore.jks')
             keyAlias System.getenv('ANDROID_KEY_ALIAS')
@@ -58,6 +64,13 @@ android {
             debuggable true
             minifyEnabled false
             testCoverageEnabled true
+        }
+        beta {
+            versionNameSuffix "-beta-$defaultConfig.versionCode"
+            debuggable false
+            minifyEnabled false
+            signingConfig signingConfigs.beta
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         release {
             debuggable false
@@ -103,10 +116,14 @@ tasks.withType(Test) {
 task reportVersionCode {
     new File("$projectDir/versionCode.txt").text = "$project.android.defaultConfig.versionCode"
 }
+// By running this task before builds, we guarantee that the same version is used for the fastlane
+// to supply the automated changelogs.
+preBuild.dependsOn reportVersionCode
 
 task reportVersionName {
     new File("$projectDir/versionName.txt").text = "$project.android.defaultConfig.versionName"
 }
+preBuild.dependsOn reportVersionName
 
 task ktlint(type: JavaExec, group: "verification") {
     description = "Check Kotlin code style."
