@@ -123,6 +123,7 @@ preBuild.dependsOn reportVersionCode
 task reportVersionName {
     new File("$projectDir/versionName.txt").text = "$project.android.defaultConfig.versionName"
 }
+preBuild.dependsOn reportVersionName
 
 task ktlint(type: JavaExec, group: "verification") {
     description = "Check Kotlin code style."
