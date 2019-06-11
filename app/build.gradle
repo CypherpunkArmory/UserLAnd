@@ -116,6 +116,7 @@ tasks.withType(Test) {
 task reportVersionCode {
     new File("$projectDir/versionCode.txt").text = "$project.android.defaultConfig.versionCode"
 }
+preBuild.dependsOn reportVersionCode
 
 task reportVersionName {
     new File("$projectDir/versionName.txt").text = "$project.android.defaultConfig.versionName"

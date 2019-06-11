@@ -18,7 +18,6 @@ platform :android do
 
   desc "Update changelogs based on latest version code"
   lane :update_changelogs do
-    gradle(task: "reportVersionCode")
     version_code = File.read("../app/versionCode.txt")
 
     changelog = changelog_from_git_commits(merge_commit_filtering: "exclude_merges", pretty: "- %s")
