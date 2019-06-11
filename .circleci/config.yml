@@ -102,6 +102,11 @@ reference:
       name: Decode Play store key
       command: echo $PLAY_KEY | base64 -di > ${HOME}/play-key.json
 
+  place_version_code: &place_version_code
+    run:
+      name: Move version code to expected location
+      command: cp ~/workspace/app/versionCode.txt app/versionCode.txt
+
   configure_sentry_beta: &configure_sentry_beta
     run:
       name: Configure Sentry for production use
@@ -270,6 +275,7 @@ jobs:
       - *attach_release_workspace
       - *export_play_key
       - *decode_play_key
+      - *place_version_code
       - run:
           name: Deploy to Play store beta
           command: bundle exec fastlane deploy_beta
@@ -284,6 +290,7 @@ jobs:
       - *attach_release_workspace
       - *export_play_key
       - *decode_play_key
+      - *place_version_code
       - *export_github_release_token
       - run:
           name: Deploy to Play store production and Github

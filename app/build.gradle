@@ -66,7 +66,7 @@ android {
             testCoverageEnabled true
         }
         beta {
-            versionNameSuffix "-beta-$versionCode"
+            versionNameSuffix "-beta-$defaultConfig.versionCode"
             debuggable false
             minifyEnabled false
             signingConfig signingConfigs.beta
