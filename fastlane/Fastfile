@@ -57,7 +57,7 @@ platform :android do
   desc "Deploy a new version to Google Play beta track"
   lane :deploy_beta do
     update_changelogs
-    supply(apk: "app/build/outputs/apk/release/app-release.apk", track: "beta")
+    supply(apk: "app/build/outputs/apk/beta/app-beta.apk", track: "beta")
   end
 
   desc "Deploy a new version to the Google Play production track and Github releases"

@@ -162,7 +162,7 @@ jobs:
           command: ./gradlew ktlint
       - run:
           name: Build
-          command: ./gradlew -PciBuild=true :app:assembleRelease
+          command: ./gradlew -PciBuild=true :app:assembleBeta
       - *persist_release_workspace
       - store_artifacts:
           path: app/build/outputs/apk/
