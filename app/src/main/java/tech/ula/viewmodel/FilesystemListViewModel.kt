@@ -18,6 +18,8 @@ import kotlin.coroutines.CoroutineContext
 import tech.ula.model.entities.Session
 import tech.ula.utils.ExecutionResult
 import tech.ula.utils.FailedExecution
+import tech.ula.utils.SentryLogger
+import java.io.IOException
 
 sealed class FilesystemListViewState
 
@@ -82,7 +84,8 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
 
             try {
                 filesystemUtility.deleteFilesystem(id)
-            } catch (err: Exception) {
+            } catch (err: IOException) {
+                SentryLogger().sendEvent("FilesystemList delete failure")
                 viewState.postValue(FilesystemDeleteState.Failure)
                 return@withContext
             }
