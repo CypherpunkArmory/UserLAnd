@@ -136,13 +136,12 @@ class FilesystemListFragment : Fragment() {
     }
 
     private fun deleteFilesystem(filesystem: Filesystem): Boolean {
-        filesystemListViewModel.deleteFilesystemById(filesystem.id)
-
         val serviceIntent = Intent(activityContext, ServerService::class.java)
         serviceIntent.putExtra("type", "filesystemIsBeingDeleted")
         serviceIntent.putExtra("filesystemId", filesystem.id)
         activityContext.startService(serviceIntent)
 
+        filesystemListViewModel.deleteFilesystemById(filesystem.id)
         return true
     }
 

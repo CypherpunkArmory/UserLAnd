@@ -79,9 +79,6 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
     fun deleteFilesystemById(id: Long, coroutineScope: CoroutineScope = this) = coroutineScope.launch {
         withContext(Dispatchers.IO) {
             viewState.postValue(FilesystemDeleteState.InProgress)
-//            activeSessions.value?.let { list ->
-//                list.filter { it.filesystemId == id }.forEach { killSession(it) }
-//            }
 
             try {
                 filesystemUtility.deleteFilesystem(id)
