@@ -15,7 +15,6 @@ import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import java.io.FileNotFoundException
-import java.lang.Exception
 import kotlin.coroutines.CoroutineContext
 
 class MainActivityViewModel(
@@ -292,9 +291,9 @@ class MainActivityViewModel(
             is LinkSetupState.Success -> { doTransitionIfRequirementsAreSelected {
                 submitSessionStartupEvent(RetrieveAssetLists(lastSelectedFilesystem))
             } }
-            is LinkSetupState.Failure.LibDirNotFound -> { state.postValue(LibDirNotFound) }
-            is LinkSetupState.Failure.LibFileNotFound -> { state.postValue(LibFileNotFound) }
-            is LinkSetupState.Failure.General -> { state.postValue(ErrorSettingUpLinks) }
+            is LinkSetupState.Failure.LibDirNotFound -> { postIllegalStateWithLog(LibDirNotFound) }
+            is LinkSetupState.Failure.LibFileNotFound -> { postIllegalStateWithLog(LibFileNotFound) }
+            is LinkSetupState.Failure.General -> { postIllegalStateWithLog(ErrorSettingUpLinks) }
         }
     }
 

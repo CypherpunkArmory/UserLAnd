@@ -27,7 +27,7 @@ class UlaFiles(
         return this.substringAfter("lib_").substringBeforeLast(".so")
     }
 
-    @Throws(Exception::class)
+    @Throws(NullPointerException::class, NoSuchFileException::class, Exception::class)
     suspend fun setupLinks() = withContext(Dispatchers.IO) {
         supportDir.mkdirs()
 

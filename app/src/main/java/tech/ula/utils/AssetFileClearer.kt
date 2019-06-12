@@ -3,7 +3,6 @@ package tech.ula.utils
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
-import java.lang.Exception
 
 class AssetFileClearer(
     private val ulaFiles: UlaFiles,
@@ -11,7 +10,7 @@ class AssetFileClearer(
     private val busyboxExecutor: BusyboxExecutor,
     private val logger: Logger = SentryLogger()
 ) {
-    @Throws(Exception::class)
+    @Throws(FileNotFoundException::class, IllegalStateException::class)
     suspend fun clearAllSupportAssets() {
         if (!ulaFiles.filesDir.exists()) {
             val exception = FileNotFoundException()
