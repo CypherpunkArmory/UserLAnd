@@ -14,6 +14,7 @@ import tech.ula.model.entities.Session
 import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import java.io.FileNotFoundException
 import java.lang.Exception
 import kotlin.coroutines.CoroutineContext
 
@@ -173,8 +174,10 @@ class MainActivityViewModel(
         try {
             assetFileClearer.clearAllSupportAssets()
             state.postValue(ProgressBarOperationComplete)
-        } catch (err: Exception) {
+        } catch (err: FileNotFoundException) {
             postIllegalStateWithLog(FailedToClearSupportFiles)
+        } catch (err: IllegalStateException) {
+            postIllegalStateWithLog(BusyboxMissing)
         }
     }
 
@@ -440,6 +443,7 @@ object FailedToCopyAssetsToFilesystem : IllegalState()
 data class FailedToExtractFilesystem(val reason: String) : IllegalState()
 object FailedToClearSupportFiles : IllegalState()
 object InsufficientAvailableStorage : IllegalState()
+object BusyboxMissing : IllegalState()
 
 sealed class UserInputRequiredState : State()
 object FilesystemCredentialsRequired : UserInputRequiredState()

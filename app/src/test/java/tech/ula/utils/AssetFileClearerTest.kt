@@ -21,41 +21,43 @@ class AssetFileClearerTest {
     @get:Rule
     val tempFolder = TemporaryFolder()
 
+    @Mock lateinit var mockUlaFiles: UlaFiles
+
     @Mock lateinit var busyboxExecutor: BusyboxExecutor
 
     @Mock lateinit var mockLogger: Logger
 
-    lateinit var filesDir: File
-    lateinit var supportDir: File
-    lateinit var debianDir: File
-    lateinit var filesystemDir: File
+    private lateinit var filesDir: File
+    private lateinit var supportDir: File
+    private lateinit var debianDir: File
+    private lateinit var filesystemDir: File
 
-    lateinit var filesystemSupportDir: File
-    lateinit var topLevelSupportAssetFile: File
-    lateinit var topLevelDebianAssetFile: File
-    lateinit var hiddenFilesystemSupportFile: File
-    lateinit var nestedFilesystemAssetFile: File
-    lateinit var randomTopLevelFile: File
-    lateinit var randomTopLevelDir: File
+    private lateinit var filesystemSupportDir: File
+    private lateinit var topLevelSupportAssetFile: File
+    private lateinit var topLevelDebianAssetFile: File
+    private lateinit var hiddenFilesystemSupportFile: File
+    private lateinit var nestedFilesystemAssetFile: File
+    private lateinit var randomTopLevelFile: File
+    private lateinit var randomTopLevelDir: File
 
-    val filesDirName = "filesDir"
-    val debianDirName = "debian"
-    val supportDirName = "support"
-    val filesystemDirName = "1"
-    val assetDirectoryNames = setOf(debianDirName, supportDirName)
-    val assetName = "asset"
-    val hiddenFileName = ".hidden_file"
+    private val filesDirName = "filesDir"
+    private val debianDirName = "debian"
+    private val supportDirName = "support"
+    private val filesystemDirName = "1"
+    private val assetDirectoryNames = setOf(debianDirName, supportDirName)
+    private val assetName = "asset"
+    private val hiddenFileName = ".hidden_file"
 
-    lateinit var assetFileClearer: AssetFileClearer
+    private lateinit var assetFileClearer: AssetFileClearer
 
     @Before
     fun setup() {
         createTestFiles()
 
-        assetFileClearer = AssetFileClearer(filesDir, assetDirectoryNames, busyboxExecutor, mockLogger)
+        assetFileClearer = AssetFileClearer(mockUlaFiles, assetDirectoryNames, busyboxExecutor, mockLogger)
     }
 
-    fun createTestFiles() {
+    private fun createTestFiles() {
         randomTopLevelFile = tempFolder.newFile()
         randomTopLevelDir = tempFolder.newFolder()
         filesDir = tempFolder.newFolder(filesDirName)
@@ -74,6 +76,9 @@ class AssetFileClearerTest {
         hiddenFilesystemSupportFile.createNewFile()
         nestedFilesystemAssetFile = File("${filesystemSupportDir.absolutePath}/$assetName")
         nestedFilesystemAssetFile.createNewFile()
+
+        whenever(mockUlaFiles.filesDir).thenReturn(filesDir)
+        whenever(mockUlaFiles.busybox).thenReturn(topLevelSupportAssetFile)
     }
 
     @Test(expected = FileNotFoundException::class)

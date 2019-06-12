@@ -67,6 +67,9 @@ class IllegalStateHandler {
             is InsufficientAvailableStorage -> {
                 LocalizationData(R.string.illegal_state_insufficient_storage)
             }
+            is BusyboxMissing -> {
+                LocalizationData(R.string.illegal_state_busybox_missing)
+            }
         }
     }
 }

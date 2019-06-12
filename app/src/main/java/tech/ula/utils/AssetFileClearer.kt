@@ -6,15 +6,20 @@ import java.io.IOException
 import java.lang.Exception
 
 class AssetFileClearer(
-    private val filesDir: File,
+    private val ulaFiles: UlaFiles,
     private val assetDirectoryNames: Set<String>,
     private val busyboxExecutor: BusyboxExecutor,
     private val logger: Logger = SentryLogger()
 ) {
     @Throws(Exception::class)
     suspend fun clearAllSupportAssets() {
-        if (!filesDir.exists()) {
+        if (!ulaFiles.filesDir.exists()) {
             val exception = FileNotFoundException()
+            logger.addExceptionBreadcrumb(exception)
+            throw exception
+        }
+        if (!ulaFiles.busybox.exists()) {
+            val exception = IllegalStateException("Busybox missing")
             logger.addExceptionBreadcrumb(exception)
             throw exception
         }
@@ -24,7 +29,7 @@ class AssetFileClearer(
 
     @Throws(IOException::class)
     private suspend fun clearTopLevelAssets(assetDirectoryNames: Set<String>) {
-        for (file in filesDir.listFiles()) {
+        for (file in ulaFiles.filesDir.listFiles()) {
             if (!file.isDirectory) continue
             if (!assetDirectoryNames.contains(file.name)) continue
             if (file.name == "support") continue
@@ -38,7 +43,7 @@ class AssetFileClearer(
 
     @Throws(IOException::class)
     private suspend fun clearFilesystemSupportAssets() {
-        for (file in filesDir.listFiles()) {
+        for (file in ulaFiles.filesDir.listFiles()) {
             if (!file.isDirectory || file.name.toIntOrNull() == null) continue
 
             val supportDirectory = File("${file.absolutePath}/support")

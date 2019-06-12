@@ -468,7 +468,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private fun handleClearSupportFiles() {
         val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
         val assetDirectoryNames = appsPreferences.getDistributionsList().plus("support")
-        val assetFileClearer = AssetFileClearer(this.filesDir, assetDirectoryNames, busyboxExecutor)
+        val assetFileClearer = AssetFileClearer(ulaFiles, assetDirectoryNames, busyboxExecutor)
         CoroutineScope(Dispatchers.Main).launch { viewModel.handleClearSupportFiles(assetFileClearer) }
     }
 
