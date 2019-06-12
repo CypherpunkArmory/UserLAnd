@@ -95,7 +95,7 @@ class AssetFileClearerTest {
         verify(busyboxExecutor, never()).recursivelyDelete(randomTopLevelDir.absolutePath)
 
         verify(busyboxExecutor).recursivelyDelete(debianDir.absolutePath)
-        verify(busyboxExecutor).recursivelyDelete(supportDir.absolutePath)
+        verify(busyboxExecutor, never()).recursivelyDelete(supportDir.absolutePath)
         verify(busyboxExecutor, never()).recursivelyDelete(topLevelDebianAssetFile.absolutePath)
         verify(busyboxExecutor, never()).recursivelyDelete(topLevelSupportAssetFile.absolutePath)
 

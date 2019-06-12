@@ -24,21 +24,11 @@ class AssetFileClearer(
 
     @Throws(IOException::class)
     private suspend fun clearTopLevelAssets(assetDirectoryNames: Set<String>) {
-        val supportDirName = "support"
         for (file in filesDir.listFiles()) {
             if (!file.isDirectory) continue
             if (!assetDirectoryNames.contains(file.name)) continue
-            // Removing the support directory must happen last since it contains busybox
-            if (file.name == supportDirName) continue
+            if (file.name == "support") continue
             if (busyboxExecutor.recursivelyDelete(file.absolutePath) !is SuccessfulExecution) {
-                val exception = IOException()
-                logger.addExceptionBreadcrumb(exception)
-                throw exception
-            }
-        }
-        val supportDir = File("${filesDir.absolutePath}/$supportDirName")
-        if (supportDir.exists()) {
-            if (busyboxExecutor.recursivelyDelete(supportDir.absolutePath) !is SuccessfulExecution) {
                 val exception = IOException()
                 logger.addExceptionBreadcrumb(exception)
                 throw exception

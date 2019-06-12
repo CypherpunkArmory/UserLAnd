@@ -146,20 +146,20 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
         notificationManager.createServiceNotificationChannel() // Android O requirement
-        try {
-            CoroutineScope(Dispatchers.Main).launch {
-                ulaFiles.setupLinks()
-            }
-        } catch (err: NoSuchFileException) {
-            logger.sendEvent(err.file.name)
-            displayGenericErrorDialog(this, R.string.general_error_title, R.string.error_library_file_missing)
-        } catch (err: NullPointerException) {
-            logger.sendEvent("NPE when looking for lib directory")
-            displayGenericErrorDialog(this, R.string.general_error_title, R.string.error_no_lib_directory)
-        } catch (err: Exception) {
-            logger.sendEvent("$err")
-            displayGenericErrorDialog(this, R.string.general_error_title, R.string.error_library_setup_failure)
-        }
+//        try {
+//            CoroutineScope(Dispatchers.Main).launch {
+//                ulaFiles.setupLinks()
+//            }
+//        } catch (err: NoSuchFileException) {
+//            logger.sendEvent(err.file.name)
+//            displayGenericErrorDialog(this, R.string.general_error_title, R.string.error_library_file_missing)
+//        } catch (err: NullPointerException) {
+//            logger.sendEvent("NPE when looking for lib directory")
+//            displayGenericErrorDialog(this, R.string.general_error_title, R.string.error_no_lib_directory)
+//        } catch (err: Exception) {
+//            logger.sendEvent("$err")
+//            displayGenericErrorDialog(this, R.string.general_error_title, R.string.error_library_setup_failure)
+//        }
 
         setNavStartDestination()
 
