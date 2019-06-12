@@ -119,6 +119,39 @@ class IllegalStateHandlerTest {
     }
 
     @Test
+    fun `LibFileNotFound returns correct id and strings`() {
+        val state = LibFileNotFound
+
+        val result = illegalStateHandler.getLocalizationData(state)
+
+        val resId = R.string.error_library_file_missing
+        val expectedResult = LocalizationData(resId, listOf())
+        assertEquals(expectedResult, result)
+    }
+
+    @Test
+    fun `LibDirNotFound returns correct id`() {
+        val state = LibDirNotFound
+
+        val result = illegalStateHandler.getLocalizationData(state)
+
+        val resId = R.string.error_no_lib_directory
+        val expectedResult = LocalizationData(resId, listOf())
+        assertEquals(expectedResult, result)
+    }
+
+    @Test
+    fun `ErrorSettingUpLinks returns correct id`() {
+        val state = ErrorSettingUpLinks
+
+        val result = illegalStateHandler.getLocalizationData(state)
+
+        val resId = R.string.error_library_setup_failure
+        val expectedResult = LocalizationData(resId, listOf())
+        assertEquals(expectedResult, result)
+    }
+
+    @Test
     fun `ErrorFetchingAssetLists returns correct id and strings`() {
         val state = ErrorFetchingAssetLists
 
