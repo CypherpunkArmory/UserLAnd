@@ -256,8 +256,11 @@ class MainActivityViewModel(
                 lastSelectedFilesystem = newState.filesystem
                 state.postValue(StartingSetup)
                 doTransitionIfRequirementsAreSelected {
-                    submitSessionStartupEvent(RetrieveAssetLists(lastSelectedFilesystem))
+                    submitSessionStartupEvent(SetupLinks)
                 }
+            }
+            is LinkSetupState -> {
+                handleLinkSetupState(newState)
             }
             is AssetRetrievalState -> {
                 handleAssetRetrievalState(newState)
@@ -280,6 +283,18 @@ class MainActivityViewModel(
             is StorageVerificationState -> {
                 handleStorageVerificationState(newState)
             }
+        }
+    }
+
+    private fun handleLinkSetupState(newState: LinkSetupState) {
+        return when (newState) {
+            is LinkSetupState.InProgress -> { state.postValue(SettingUpLinks) }
+            is LinkSetupState.Success -> { doTransitionIfRequirementsAreSelected {
+                submitSessionStartupEvent(RetrieveAssetLists(lastSelectedFilesystem))
+            } }
+            is LinkSetupState.Failure.LibDirNotFound -> { state.postValue(LibDirNotFound) }
+            is LinkSetupState.Failure.LibFileNotFound -> { state.postValue(LibFileNotFound) }
+            is LinkSetupState.Failure.General -> { state.postValue(ErrorSettingUpLinks) }
         }
     }
 
@@ -432,6 +447,9 @@ object ErrorFetchingAppDatabaseEntries : IllegalState()
 object ErrorCopyingAppScript : IllegalState()
 
 object NoSessionSelectedWhenTransitionNecessary : IllegalState()
+object LibDirNotFound : IllegalState()
+object LibFileNotFound : IllegalState()
+object ErrorSettingUpLinks : IllegalState()
 object ErrorFetchingAssetLists : IllegalState()
 data class ErrorGeneratingDownloads(val errorId: Int) : IllegalState()
 data class DownloadsDidNotCompleteSuccessfully(val reason: DownloadFailureLocalizationData) : IllegalState()
@@ -454,6 +472,7 @@ object ActiveSessionsMustBeDeactivated : UserInputRequiredState()
 
 sealed class ProgressBarUpdateState : State()
 object StartingSetup : ProgressBarUpdateState()
+object SettingUpLinks : ProgressBarUpdateState()
 object FetchingAssetLists : ProgressBarUpdateState()
 object CheckingForAssetsUpdates : ProgressBarUpdateState()
 data class DownloadProgress(val numComplete: Int, val numTotal: Int) : ProgressBarUpdateState()

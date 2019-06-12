@@ -501,6 +501,10 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 val step = getString(R.string.progress_start_step)
                 updateProgressBar(step, "")
             }
+            is SettingUpLinks -> {
+                val step = getString(R.string.progress_link_step)
+                updateProgressBar(step, "")
+            }
             is FetchingAssetLists -> {
                 val step = getString(R.string.progress_fetching_asset_lists)
                 updateProgressBar(step, "")
