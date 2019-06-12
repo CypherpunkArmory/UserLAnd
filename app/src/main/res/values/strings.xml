@@ -58,6 +58,7 @@
     <string name="error_library_file_missing">It looks like we\'re missing a required library!</string>
     <string name="error_library_setup_failure">It looks like initial setup failed. Please contact us on Github.</string>
     <string name="error_no_lib_directory">It looks like the library directory we are looking for does not exist. Please contact us on Github.</string>
+    <string name="error_filesystem_delete">Deleting filesystem failed! Try stopping all sessions and trying again.</string>
 
     <!-- Download Failure Reasons -->
     <string name="download_failure_http_error">Http Error: %1$s</string>
@@ -141,6 +142,7 @@
     <string name="progress_starting">Starting service&#8230;</string>
     <string name="progress_clearing_support_files">Clearing all support files&#8230;</string>
     <string name="progress_exporting_filesystem">Exporting filesystem</string>
+    <string name="progress_deleting_filesystem">Deleting filesystem</string>
 
     <!-- Preferences -->
     <string name="pref_app_category">App Preferences</string>

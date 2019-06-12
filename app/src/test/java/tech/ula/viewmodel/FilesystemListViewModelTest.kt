@@ -25,6 +25,7 @@ import tech.ula.utils.FilesystemUtility
 import tech.ula.utils.SuccessfulExecution
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.IOException
 
 @RunWith(MockitoJUnitRunner::class)
 class FilesystemListViewModelTest {
@@ -43,7 +44,7 @@ class FilesystemListViewModelTest {
 
     @Mock lateinit var mockActiveSessionObserver: Observer<List<Session>>
 
-    @Mock lateinit var mockExportObserver: Observer<FilesystemExportStatus>
+    @Mock lateinit var mockViewStateObserver: Observer<FilesystemListViewState>
 
     @Mock lateinit var mockUri: Uri
 
@@ -53,7 +54,7 @@ class FilesystemListViewModelTest {
 
     private lateinit var activeSessionsLiveData: MutableLiveData<List<Session>>
 
-    private lateinit var exportStatusLiveData: MutableLiveData<FilesystemExportStatus>
+    private lateinit var viewStateLiveData: MutableLiveData<FilesystemListViewState>
 
     private val filesystemName = "fsname"
     private val filesystemType = "fstype"
@@ -70,7 +71,7 @@ class FilesystemListViewModelTest {
         whenever(mockSessionDao.findActiveSessions()).thenReturn(activeSessionsLiveData)
         activeSessionsLiveData.postValue(listOf())
 
-        exportStatusLiveData = MutableLiveData()
+        viewStateLiveData = MutableLiveData()
 
         filesystemListViewModel = FilesystemListViewModel(mockFilesystemDao, mockSessionDao, mockFilesystemUtility)
     }
@@ -87,16 +88,35 @@ class FilesystemListViewModelTest {
     }
 
     @Test
-    fun `deleteFilesystemById delegates to the model layer properly`() {
+    fun `deleteFilesystemById delegates to the model layer properly and posts appropriate view states`() {
         val id = 0L
 
+        filesystemListViewModel.getViewState().observeForever(mockViewStateObserver)
         runBlocking { filesystemListViewModel.deleteFilesystemById(id, this) }
 
+        verifyBlocking(mockFilesystemUtility) { deleteFilesystem(id) }
         verify(mockFilesystemDao).deleteFilesystemById(id)
+        verify(mockViewStateObserver).onChanged(FilesystemDeleteState.InProgress)
+        verify(mockViewStateObserver).onChanged(FilesystemDeleteState.Success)
     }
 
     @Test
-    fun `startExport posts ExportFailure if attempting to export when there is an active session`() {
+    fun `deleteFilesystemById does not delete entity and posts FilesystemDeleteState Failure if execution fails`() {
+        val id = 0L
+
+        runBlocking {
+            whenever(mockFilesystemUtility.deleteFilesystem(id)).thenThrow(IOException())
+        }
+
+        filesystemListViewModel.getViewState().observeForever(mockViewStateObserver)
+        runBlocking { filesystemListViewModel.deleteFilesystemById(id, this) }
+
+        verify(mockFilesystemDao, never()).deleteFilesystemById(id)
+        verify(mockViewStateObserver).onChanged(FilesystemDeleteState.Failure)
+    }
+
+    @Test
+    fun `startExport posts FilesystemExportState Failure if attempting to export when there is an active session`() {
         val activeSession = Session(id = -1, name = "active", filesystemId = -1, active = true)
         val activeSessions = listOf(activeSession)
 
@@ -104,33 +124,33 @@ class FilesystemListViewModelTest {
 
         val filesDir = tempFolder.newFolder("files")
 
-        filesystemListViewModel.getExportStatusLiveData().observeForever(mockExportObserver)
+        filesystemListViewModel.getViewState().observeForever(mockViewStateObserver)
         runBlocking {
             filesystemListViewModel.startExport(filesDir, mockUri, mockContentResolver, this)
         }
 
-        verify(mockExportObserver).onChanged(ExportFailure(R.string.deactivate_sessions, ""))
+        verify(mockViewStateObserver).onChanged(FilesystemExportState.Failure(R.string.deactivate_sessions, ""))
     }
 
     @Test
-    fun `startExport posts ExportFailure if filesystemToBackup has not been set`() {
+    fun `startExport posts FilesystemExportState Failure if filesystemToBackup has not been set`() {
         val filesDir = tempFolder.newFolder("files")
 
         filesystemListViewModel.getAllActiveSessions().observeForever(mockActiveSessionObserver)
-        filesystemListViewModel.getExportStatusLiveData().observeForever(mockExportObserver)
+        filesystemListViewModel.getViewState().observeForever(mockViewStateObserver)
         runBlocking {
             filesystemListViewModel.startExport(filesDir, mockUri, mockContentResolver, this)
         }
 
-        verify(mockExportObserver).onChanged(ExportFailure(R.string.error_export_filesystem_not_found))
+        verify(mockViewStateObserver).onChanged(FilesystemExportState.Failure(R.string.error_export_filesystem_not_found))
     }
 
     @Test
-    fun `startExport posts ExportFailure if FilesystemUtility#compressFilesystem fails`() {
+    fun `startExport posts FilesystemExportState Failure if FilesystemUtility#compressFilesystem fails`() {
         val filesDir = tempFolder.newFolder("files")
 
         filesystemListViewModel.getAllActiveSessions().observeForever(mockActiveSessionObserver)
-        filesystemListViewModel.getExportStatusLiveData().observeForever(mockExportObserver)
+        filesystemListViewModel.getViewState().observeForever(mockViewStateObserver)
 
         val localBackupFile = File(filesDir, expectedBackupName)
         val filesystem = Filesystem(id = 0, name = filesystemName, distributionType = filesystemType)
@@ -146,15 +166,15 @@ class FilesystemListViewModelTest {
             filesystemListViewModel.startExport(filesDir, mockUri, mockContentResolver, this)
         }
 
-        verify(mockExportObserver).onChanged(ExportFailure(R.string.error_export_execution_failure, failureReason))
+        verify(mockViewStateObserver).onChanged(FilesystemExportState.Failure(R.string.error_export_execution_failure, failureReason))
     }
 
     @Test
-    fun `startExport posts ExportFailure if an intermediate local backup is not created`() {
+    fun `startExport posts FilesystemExportState Failure if an intermediate local backup is not created`() {
         val filesDir = tempFolder.newFolder("files")
 
         filesystemListViewModel.getAllActiveSessions().observeForever(mockActiveSessionObserver)
-        filesystemListViewModel.getExportStatusLiveData().observeForever(mockExportObserver)
+        filesystemListViewModel.getViewState().observeForever(mockViewStateObserver)
 
         val localBackupFile = File(filesDir, expectedBackupName)
         val filesystem = Filesystem(id = 0, name = filesystemName, distributionType = filesystemType)
@@ -168,15 +188,15 @@ class FilesystemListViewModelTest {
             filesystemListViewModel.startExport(filesDir, mockUri, mockContentResolver, this)
         }
 
-        verify(mockExportObserver).onChanged(ExportFailure(R.string.error_export_local_failure))
+        verify(mockViewStateObserver).onChanged(FilesystemExportState.Failure(R.string.error_export_local_failure))
     }
 
     @Test
-    fun `startExport posts ExportFailure if an intermediate local backup has has no data`() {
+    fun `startExport posts FilesystemExportState Failure if an intermediate local backup has has no data`() {
         val filesDir = tempFolder.newFolder("files")
 
         filesystemListViewModel.getAllActiveSessions().observeForever(mockActiveSessionObserver)
-        filesystemListViewModel.getExportStatusLiveData().observeForever(mockExportObserver)
+        filesystemListViewModel.getViewState().observeForever(mockViewStateObserver)
 
         val localBackupFile = File(filesDir, expectedBackupName)
         localBackupFile.createNewFile()
@@ -191,15 +211,15 @@ class FilesystemListViewModelTest {
             filesystemListViewModel.startExport(filesDir, mockUri, mockContentResolver, this)
         }
 
-        verify(mockExportObserver).onChanged(ExportFailure(R.string.error_export_local_failure))
+        verify(mockViewStateObserver).onChanged(FilesystemExportState.Failure(R.string.error_export_local_failure))
     }
 
     @Test
-    fun `startExport posts ExportFailure if copying to external Uri fails`() {
+    fun `startExport posts FilesystemExportState Failure if copying to external Uri fails`() {
         val filesDir = tempFolder.newFolder("files")
 
         filesystemListViewModel.getAllActiveSessions().observeForever(mockActiveSessionObserver)
-        filesystemListViewModel.getExportStatusLiveData().observeForever(mockExportObserver)
+        filesystemListViewModel.getViewState().observeForever(mockViewStateObserver)
 
         val localBackupFile = File(filesDir, expectedBackupName)
         localBackupFile.writeText("test")
@@ -217,15 +237,15 @@ class FilesystemListViewModelTest {
             filesystemListViewModel.startExport(filesDir, mockUri, mockContentResolver, this)
         }
 
-        verify(mockExportObserver).onChanged(ExportFailure(R.string.error_export_copy_public_external_failure))
+        verify(mockViewStateObserver).onChanged(FilesystemExportState.Failure(R.string.error_export_copy_public_external_failure))
     }
 
     @Test
-    fun `startExport posts ExportSuccess if execution succeeds`() {
+    fun `startExport posts FilesystemExportState Success if execution succeeds`() {
         val filesDir = tempFolder.newFolder("files")
 
         filesystemListViewModel.getAllActiveSessions().observeForever(mockActiveSessionObserver)
-        filesystemListViewModel.getExportStatusLiveData().observeForever(mockExportObserver)
+        filesystemListViewModel.getViewState().observeForever(mockViewStateObserver)
 
         val expectedText = "test"
         val localBackupFile = File(filesDir, expectedBackupName)
@@ -248,7 +268,7 @@ class FilesystemListViewModelTest {
             filesystemListViewModel.startExport(filesDir, mockUri, mockContentResolver, this)
         }
 
-        verify(mockExportObserver).onChanged(ExportSuccess)
+        verify(mockViewStateObserver).onChanged(FilesystemExportState.Success)
         assertEquals(expectedText, externalCopy.readText().trim())
     }
 }

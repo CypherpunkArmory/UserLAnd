@@ -36,10 +36,6 @@ class ServerService : Service() {
         BusyboxExecutor(ulaFiles, prootDebugLogger)
     }
 
-    private val filesystemUtility by lazy {
-        FilesystemUtility(this.filesDir.path, busyboxExecutor)
-    }
-
     private val serverUtility by lazy {
         ServerUtility(this.filesDir.path, busyboxExecutor)
     }
@@ -200,17 +196,8 @@ class ServerService : Service() {
     }
 
     private fun cleanUpFilesystem(filesystemId: Long) {
-        // TODO This could potentially be handled by the main activity (viewmodel) now
-        if (filesystemId == (-1).toLong()) {
-            val exception = IllegalStateException("Did not receive filesystemId")
-            SentryLogger().addExceptionBreadcrumb(exception)
-            throw exception
-        }
-
         activeSessions.values.filter { it.filesystemId == filesystemId }
                 .forEach { killSession(it) }
-
-        CoroutineScope(Dispatchers.Main).launch { filesystemUtility.deleteFilesystem(filesystemId) }
     }
 
     private fun sendSessionActivatedBroadcast() {
