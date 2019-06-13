@@ -108,6 +108,6 @@ class AssetFileClearerTest {
         verify(busyboxExecutor, never()).recursivelyDelete(filesystemSupportDir.absolutePath)
         verify(busyboxExecutor, never()).recursivelyDelete(hiddenFilesystemSupportFile.absolutePath)
         verify(busyboxExecutor).recursivelyDelete(nestedFilesystemAssetFile.absolutePath)
-        Unit
+        verify(mockUlaFiles).setupLinks()
     }
 }
