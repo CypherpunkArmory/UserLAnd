@@ -12,6 +12,7 @@ class AssetFileClearer(
 ) {
     @Throws(FileNotFoundException::class, IllegalStateException::class)
     suspend fun clearAllSupportAssets() {
+        ulaFiles.setupLinks()
         if (!ulaFiles.filesDir.exists()) {
             val exception = FileNotFoundException()
             logger.addExceptionBreadcrumb(exception)
