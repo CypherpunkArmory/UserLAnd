@@ -150,7 +150,7 @@ class SessionStartupFsm(
             state.postValue(LinkSetupState.Failure.General("$err"))
         }
         state.postValue(LinkSetupState.Success)
-    }
+     }
 
     private suspend fun handleRetrieveAssetLists(filesystem: Filesystem) {
         state.postValue(RetrievingAssetLists)
@@ -302,6 +302,7 @@ class SessionStartupFsm(
         }
 
         if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
+            filesystemUtility.deleteFilesystem(filesystem.id)
             state.postValue(ExtractionHasCompletedSuccessfully)
             return
         }
