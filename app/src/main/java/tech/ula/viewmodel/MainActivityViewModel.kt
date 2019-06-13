@@ -14,7 +14,7 @@ import tech.ula.model.entities.Session
 import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
-import java.lang.Exception
+import java.io.FileNotFoundException
 import kotlin.coroutines.CoroutineContext
 
 class MainActivityViewModel(
@@ -173,8 +173,10 @@ class MainActivityViewModel(
         try {
             assetFileClearer.clearAllSupportAssets()
             state.postValue(ProgressBarOperationComplete)
-        } catch (err: Exception) {
+        } catch (err: FileNotFoundException) {
             postIllegalStateWithLog(FailedToClearSupportFiles)
+        } catch (err: IllegalStateException) {
+            postIllegalStateWithLog(BusyboxMissing)
         }
     }
 
@@ -253,8 +255,11 @@ class MainActivityViewModel(
                 lastSelectedFilesystem = newState.filesystem
                 state.postValue(StartingSetup)
                 doTransitionIfRequirementsAreSelected {
-                    submitSessionStartupEvent(RetrieveAssetLists(lastSelectedFilesystem))
+                    submitSessionStartupEvent(SetupLinks)
                 }
+            }
+            is LinkSetupState -> {
+                handleLinkSetupState(newState)
             }
             is AssetRetrievalState -> {
                 handleAssetRetrievalState(newState)
@@ -277,6 +282,18 @@ class MainActivityViewModel(
             is StorageVerificationState -> {
                 handleStorageVerificationState(newState)
             }
+        }
+    }
+
+    private fun handleLinkSetupState(newState: LinkSetupState) {
+        return when (newState) {
+            is LinkSetupState.InProgress -> { state.postValue(SettingUpLinks) }
+            is LinkSetupState.Success -> { doTransitionIfRequirementsAreSelected {
+                submitSessionStartupEvent(RetrieveAssetLists(lastSelectedFilesystem))
+            } }
+            is LinkSetupState.Failure.LibDirNotFound -> { postIllegalStateWithLog(LibDirNotFound) }
+            is LinkSetupState.Failure.LibFileNotFound -> { postIllegalStateWithLog(LibFileNotFound) }
+            is LinkSetupState.Failure.General -> { postIllegalStateWithLog(ErrorSettingUpLinks) }
         }
     }
 
@@ -429,6 +446,9 @@ object ErrorFetchingAppDatabaseEntries : IllegalState()
 object ErrorCopyingAppScript : IllegalState()
 
 object NoSessionSelectedWhenTransitionNecessary : IllegalState()
+object LibDirNotFound : IllegalState()
+object LibFileNotFound : IllegalState()
+object ErrorSettingUpLinks : IllegalState()
 object ErrorFetchingAssetLists : IllegalState()
 data class ErrorGeneratingDownloads(val errorId: Int) : IllegalState()
 data class DownloadsDidNotCompleteSuccessfully(val reason: DownloadFailureLocalizationData) : IllegalState()
@@ -440,6 +460,7 @@ object FailedToCopyAssetsToFilesystem : IllegalState()
 data class FailedToExtractFilesystem(val reason: String) : IllegalState()
 object FailedToClearSupportFiles : IllegalState()
 object InsufficientAvailableStorage : IllegalState()
+object BusyboxMissing : IllegalState()
 
 sealed class UserInputRequiredState : State()
 object FilesystemCredentialsRequired : UserInputRequiredState()
@@ -450,6 +471,7 @@ object ActiveSessionsMustBeDeactivated : UserInputRequiredState()
 
 sealed class ProgressBarUpdateState : State()
 object StartingSetup : ProgressBarUpdateState()
+object SettingUpLinks : ProgressBarUpdateState()
 object FetchingAssetLists : ProgressBarUpdateState()
 object CheckingForAssetsUpdates : ProgressBarUpdateState()
 data class DownloadProgress(val numComplete: Int, val numTotal: Int) : ProgressBarUpdateState()

@@ -3,6 +3,7 @@ package tech.ula.utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.lang.NullPointerException
 
 class UlaFiles(
     val filesDir: File,
@@ -26,6 +27,7 @@ class UlaFiles(
         return this.substringAfter("lib_").substringBeforeLast(".so")
     }
 
+    @Throws(NullPointerException::class, NoSuchFileException::class, Exception::class)
     suspend fun setupLinks() = withContext(Dispatchers.IO) {
         supportDir.mkdirs()
 

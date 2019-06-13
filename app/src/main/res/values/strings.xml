@@ -110,9 +110,8 @@
     <string name="illegal_state_failed_to_extract_filesystem">Failed to extract filesystem. Try clearing support files. Failure reason: %1$s</string>
     <string name="illegal_state_failed_to_clear_support_files">Failed to clear support files.</string>
     <string name="illegal_state_insufficient_storage">Failed to detect sufficient storage.  Try increasing the available storage on your device to at least 250 MB.</string>
-
-    <!-- Misc illegal state -->
     <string name="illegal_state_unhandled_session_service_type">Trying to start a session with an unknown service type.</string>
+    <string name="illegal_state_busybox_missing">Busybox is required for this operation. Try running a session to make sure it is installed.</string>
 
     <!-- Prompts -->
     <string name="prompt_filesystem">Filesystem:</string>
@@ -130,6 +129,7 @@
 
     <!-- Progress bar messages -->
     <string name="progress_start_step">Getting things ready for you&#8230;</string>
+    <string name="progress_link_step">Settings up links&#8230;</string>
     <string name="progress_fetching_asset_lists">Fetching asset lists&#8230;</string>
     <string name="progress_checking_for_required_updates">Checking whether updates are required&#8230;</string>
     <string name="progress_downloading">Downloading required assets&#8230;</string>

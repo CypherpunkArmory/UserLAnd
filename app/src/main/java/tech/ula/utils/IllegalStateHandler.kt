@@ -34,6 +34,15 @@ class IllegalStateHandler {
             is NoSessionSelectedWhenTransitionNecessary -> {
                 LocalizationData(R.string.illegal_state_no_session_selected_when_preparation_started)
             }
+            is LibFileNotFound -> {
+                LocalizationData(R.string.error_library_file_missing)
+            }
+            is LibDirNotFound -> {
+                LocalizationData(R.string.error_no_lib_directory)
+            }
+            is ErrorSettingUpLinks -> {
+                LocalizationData(R.string.error_library_setup_failure)
+            }
             is ErrorFetchingAssetLists -> {
                 LocalizationData(R.string.illegal_state_error_fetching_asset_lists)
             }
@@ -66,6 +75,9 @@ class IllegalStateHandler {
             }
             is InsufficientAvailableStorage -> {
                 LocalizationData(R.string.illegal_state_insufficient_storage)
+            }
+            is BusyboxMissing -> {
+                LocalizationData(R.string.illegal_state_busybox_missing)
             }
         }
     }

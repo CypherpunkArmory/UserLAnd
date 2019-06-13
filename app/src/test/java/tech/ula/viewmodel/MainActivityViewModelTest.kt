@@ -19,6 +19,8 @@ import tech.ula.model.entities.Session
 import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import java.io.FileNotFoundException
+import java.lang.IllegalStateException
 
 @RunWith(MockitoJUnitRunner::class)
 class MainActivityViewModelTest {
@@ -279,7 +281,7 @@ class MainActivityViewModelTest {
         whenever(mockSessionStartupFsm.sessionsAreActive())
                 .thenReturn(false)
         whenever(mockAssetFileClearer.clearAllSupportAssets())
-                .thenThrow(Exception())
+                .thenThrow(FileNotFoundException())
 
         mainActivityViewModel.handleClearSupportFiles(mockAssetFileClearer)
 
@@ -287,6 +289,21 @@ class MainActivityViewModelTest {
         verify(mockStateObserver).onChanged(ClearingSupportFiles)
         verify(mockStateObserver).onChanged(FailedToClearSupportFiles)
         verify(mockLogger).sendIllegalStateLog(FailedToClearSupportFiles)
+    }
+
+    @Test
+    fun `Posts BusyboxMissing if busybox is missing during clearing`() = runBlocking {
+        whenever(mockSessionStartupFsm.sessionsAreActive())
+                .thenReturn(false)
+        whenever(mockAssetFileClearer.clearAllSupportAssets())
+                .thenThrow(IllegalStateException())
+
+        mainActivityViewModel.handleClearSupportFiles(mockAssetFileClearer)
+
+        verify(mockAssetFileClearer).clearAllSupportAssets()
+        verify(mockStateObserver).onChanged(ClearingSupportFiles)
+        verify(mockStateObserver).onChanged(BusyboxMissing)
+        verify(mockLogger).sendIllegalStateLog(BusyboxMissing)
     }
 
     // Private function tests.
@@ -477,7 +494,7 @@ class MainActivityViewModelTest {
     }
 
     @Test
-    fun `Updates selected session and filesystem, posts StartingSetup, and submits RetrieveAssetLists when session is ready for prep is observed`() {
+    fun `Updates selected session and filesystem, posts StartingSetup, and submits SetupLinks when session is ready for prep is observed`() {
         sessionStartupStateLiveData.postValue(SessionIsReadyForPreparation(selectedSession, selectedFilesystem))
 
         assertEquals(selectedSession, mainActivityViewModel.lastSelectedSession)
@@ -485,8 +502,53 @@ class MainActivityViewModelTest {
 
         verify(mockStateObserver).onChanged(StartingSetup)
         runBlocking {
-            verify(mockSessionStartupFsm).submitEvent(RetrieveAssetLists(selectedFilesystem), mainActivityViewModel)
+            verify(mockSessionStartupFsm).submitEvent(SetupLinks, mainActivityViewModel)
         }
+    }
+
+    @Test
+    fun `Posts SettingUpLinks when observing same state`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(LinkSetupState.InProgress)
+
+        verify(mockStateObserver).onChanged(SettingUpLinks)
+    }
+
+    @Test
+    fun `Submits next event when observing LinkSetupState Success`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(LinkSetupState.Success)
+
+        verifyBlocking(mockSessionStartupFsm) { submitEvent(RetrieveAssetLists(selectedFilesystem), mainActivityViewModel) }
+    }
+
+    @Test
+    fun `Posts LibDirNotFound when observing failure`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(LinkSetupState.Failure.LibDirNotFound)
+
+        verify(mockStateObserver).onChanged(LibDirNotFound)
+    }
+
+    @Test
+    fun `Posts LibFileNotFound when observing failure`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(LinkSetupState.Failure.LibFileNotFound)
+
+        verify(mockStateObserver).onChanged(LibFileNotFound)
+    }
+
+    @Test
+    fun `Posts ErrorSettingUpLinks when observing failure`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(LinkSetupState.Failure.General("${Exception()}"))
+
+        verify(mockStateObserver).onChanged(ErrorSettingUpLinks)
     }
 
     @Test
