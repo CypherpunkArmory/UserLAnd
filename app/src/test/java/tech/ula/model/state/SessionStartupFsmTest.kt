@@ -789,6 +789,7 @@ class SessionStartupFsmTest {
 
         verify(mockFilesystemUtility, times(1)).hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")
         verify(mockStateObserver).onChanged(ExtractionHasCompletedSuccessfully)
+        verify(mockFilesystemUtility).removeRootfsFilesFromFilesystem("${filesystem.id}")
     }
 
     @Test

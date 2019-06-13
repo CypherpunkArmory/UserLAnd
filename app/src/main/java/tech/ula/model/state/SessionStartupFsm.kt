@@ -291,6 +291,7 @@ class SessionStartupFsm(
         val filesystemDirectoryName = "${filesystem.id}"
 
         if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
+            filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
             state.postValue(ExtractionHasCompletedSuccessfully)
             return
         }
