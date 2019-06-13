@@ -302,7 +302,7 @@ class SessionStartupFsm(
         }
 
         if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
-            filesystemUtility.deleteFilesystem(filesystem.id)
+            filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
             state.postValue(ExtractionHasCompletedSuccessfully)
             return
         }

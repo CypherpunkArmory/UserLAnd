@@ -808,6 +808,7 @@ class SessionStartupFsmTest {
 
         // TODO is there some way to verify extraction steps?
         verify(mockStateObserver).onChanged(ExtractionHasCompletedSuccessfully)
+        verify(mockFilesystemUtility).removeRootfsFilesFromFilesystem("${filesystem.id}")
     }
 
     @Test
