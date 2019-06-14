@@ -54,8 +54,7 @@ platform :android do
 
   desc "Deploy a new version to the Google Play production track and Github releases"
   lane :deploy_production do
-    # github_release
-    puts changelog
-    # supply(apk: "app/build/outputs/apk/release/app-release.apk")
+    github_release
+    supply(apk: "app/build/outputs/apk/release/app-release.apk")
   end
 end
