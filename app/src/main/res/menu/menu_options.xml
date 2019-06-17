@@ -17,6 +17,11 @@
         android:title="@string/help" />
 
     <item
+        android:id="@+id/option_wiki"
+        android:title="@string/wiki"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/terms_and_conditions"
         android:title="@string/toc"
         app:showAsAction="never" />
