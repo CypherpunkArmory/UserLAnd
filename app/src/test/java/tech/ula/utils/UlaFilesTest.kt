@@ -24,7 +24,7 @@ class UlaFilesTest {
     lateinit var ulaFiles: UlaFiles
 
     @Test
-    fun `Links are setup on initialization create links from every file in the lib directory to support, stripping unnecessary name parts`() {
+    fun `Initialization links every file in the lib directory to support, stripping unnecessary name parts`() {
         testFilesDir = tempFolder.newFolder("files")
         testScopedDir = tempFolder.newFolder("scoped")
         testLibDir = tempFolder.newFolder("execLib")
