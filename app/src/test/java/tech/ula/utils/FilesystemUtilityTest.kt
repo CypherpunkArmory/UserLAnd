@@ -321,8 +321,9 @@ class FilesystemUtilityTest {
 
         runBlocking {
             filesystemUtility.deleteFilesystem(100)
-            verify(mockBusyboxExecutor, never()).recursivelyDelete(any())
         }
+
+        verify(mockBusyboxExecutor, never()).executeScript(any(), anyOrNull())
     }
 
     @Test
@@ -333,22 +334,26 @@ class FilesystemUtilityTest {
 
         runBlocking {
             filesystemUtility.deleteFilesystem(100)
-            verify(mockBusyboxExecutor, never()).recursivelyDelete(any())
         }
+
+        verify(mockBusyboxExecutor, never()).executeScript(any(), anyOrNull())
     }
 
     @Test
-    fun `Calling deleteFilesystem issues recursivelyDelete to busyboxExecutor`() {
+    fun `Calling deleteFilesystem uses correct script`() {
         val testDir = File("${tempFolder.root.path}/100")
         testDir.mkdirs()
         assertTrue(testDir.exists() && testDir.isDirectory)
 
+        val command = "support/deleteFilesystem.sh ${testDir.path}"
+        whenever(mockBusyboxExecutor.executeScript(command))
+                .thenReturn(SuccessfulExecution)
+
         runBlocking {
-            whenever(mockBusyboxExecutor.recursivelyDelete(testDir.absolutePath))
-                    .thenReturn(SuccessfulExecution)
             filesystemUtility.deleteFilesystem(100)
-            verify(mockBusyboxExecutor).recursivelyDelete(testDir.absolutePath)
         }
+
+        verify(mockBusyboxExecutor).executeScript("support/deleteFilesystem.sh ${testDir.path}")
     }
 
     @Test(expected = IOException::class)
@@ -356,10 +361,12 @@ class FilesystemUtilityTest {
         val testDir = File("${tempFolder.root.path}/100")
         testDir.mkdirs()
         assertTrue(testDir.exists() && testDir.isDirectory)
+        val command = "support/deleteFilesystem.sh ${testDir.path}"
+
+        whenever(mockBusyboxExecutor.executeScript(command))
+                .thenReturn(FailedExecution(""))
 
         runBlocking {
-            whenever(mockBusyboxExecutor.recursivelyDelete(testDir.absolutePath))
-                    .thenReturn(FailedExecution(""))
             filesystemUtility.deleteFilesystem(100)
         }
         verifyBlocking(mockBusyboxExecutor) { recursivelyDelete(testDir.absolutePath) }

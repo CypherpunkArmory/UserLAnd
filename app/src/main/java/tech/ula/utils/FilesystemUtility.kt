@@ -110,10 +110,12 @@ class FilesystemUtility(
     }
 
     @Throws(IOException::class)
-    suspend fun deleteFilesystem(filesystemId: Long) {
+    suspend fun deleteFilesystem(filesystemId: Long) = withContext(Dispatchers.IO) {
         val filesystemDirectory = File("$applicationFilesDirPath/$filesystemId")
-        if (!filesystemDirectory.exists() || !filesystemDirectory.isDirectory) return
-        val result = busyboxExecutor.recursivelyDelete(filesystemDirectory.absolutePath)
+        if (!filesystemDirectory.exists() || !filesystemDirectory.isDirectory) return@withContext
+        // CWD for this script is the files dir, running without proot
+        val command = "support/deleteFilesystem.sh ${filesystemDirectory.path}"
+        val result = busyboxExecutor.executeScript(command)
         if (result is FailedExecution) {
             val err = IOException()
             logger.addExceptionBreadcrumb(err)

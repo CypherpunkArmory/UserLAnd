@@ -241,7 +241,7 @@ class FilesystemListViewModelTest {
     }
 
     @Test
-    fun `startExport posts FilesystemExportState Success if execution succeeds`() {
+    fun `startExport posts FilesystemExportState Success if execution succeed, and deletes local intermediate`() {
         val filesDir = tempFolder.newFolder("files")
 
         filesystemListViewModel.getAllActiveSessions().observeForever(mockActiveSessionObserver)
@@ -268,6 +268,7 @@ class FilesystemListViewModelTest {
             filesystemListViewModel.startExport(filesDir, mockUri, mockContentResolver, this)
         }
 
+        assertFalse(localBackupFile.exists())
         verify(mockViewStateObserver).onChanged(FilesystemExportState.Success)
         assertEquals(expectedText, externalCopy.readText().trim())
     }

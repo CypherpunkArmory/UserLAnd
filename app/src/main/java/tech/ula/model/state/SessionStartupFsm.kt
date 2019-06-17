@@ -17,7 +17,6 @@ import java.net.UnknownHostException
 
 class SessionStartupFsm(
     ulaDatabase: UlaDatabase,
-    private val ulaFiles: UlaFiles,
     private val assetRepository: AssetRepository,
     private val filesystemUtility: FilesystemUtility,
     private val downloadUtility: DownloadUtility,
@@ -73,8 +72,7 @@ class SessionStartupFsm(
         val currentState = state.value!!
         return when (event) {
             is SessionSelected -> currentState is WaitingForSessionSelection
-            is SetupLinks -> currentState is SessionIsReadyForPreparation
-            is RetrieveAssetLists -> currentState is LinkSetupState.Success
+            is RetrieveAssetLists -> currentState is SessionIsReadyForPreparation
             is GenerateDownloads -> currentState is AssetListsRetrievalSucceeded
             is DownloadAssets -> currentState is DownloadsRequired
             is AssetDownloadComplete -> {
@@ -104,7 +102,6 @@ class SessionStartupFsm(
         }
         when (event) {
             is SessionSelected -> { handleSessionSelected(event.session) }
-            is SetupLinks -> { handleLinkSetup() }
             is RetrieveAssetLists -> { handleRetrieveAssetLists(event.filesystem) }
             is GenerateDownloads -> { handleGenerateDownloads(event.filesystem, event.assetList) }
             is DownloadAssets -> { handleDownloadAssets(event.downloadRequirements) }
@@ -136,20 +133,6 @@ class SessionStartupFsm(
 
         val filesystem = findFilesystemForSession(session)
         state.postValue(SessionIsReadyForPreparation(session, filesystem))
-    }
-
-    private suspend fun handleLinkSetup() {
-        state.postValue(LinkSetupState.InProgress)
-        try {
-            ulaFiles.setupLinks()
-        } catch (err: NoSuchFileException) {
-            state.postValue(LinkSetupState.Failure.LibFileNotFound)
-        } catch (err: NullPointerException) {
-            state.postValue(LinkSetupState.Failure.LibDirNotFound)
-        } catch (err: Exception) {
-            state.postValue(LinkSetupState.Failure.General("$err"))
-        }
-        state.postValue(LinkSetupState.Success)
     }
 
     private suspend fun handleRetrieveAssetLists(filesystem: Filesystem) {
@@ -291,6 +274,7 @@ class SessionStartupFsm(
         val filesystemDirectoryName = "${filesystem.id}"
 
         if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
+            filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
             state.postValue(ExtractionHasCompletedSuccessfully)
             return
         }
@@ -302,6 +286,7 @@ class SessionStartupFsm(
         }
 
         if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
+            filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
             state.postValue(ExtractionHasCompletedSuccessfully)
             return
         }
@@ -317,16 +302,6 @@ object WaitingForSessionSelection : SessionStartupState()
 object SingleSessionSupported : SessionStartupState()
 data class SessionIsRestartable(val session: Session) : SessionStartupState()
 data class SessionIsReadyForPreparation(val session: Session, val filesystem: Filesystem) : SessionStartupState()
-
-sealed class LinkSetupState : SessionStartupState() {
-    object InProgress : LinkSetupState()
-    object Success : LinkSetupState()
-    sealed class Failure : LinkSetupState() {
-        object LibDirNotFound : Failure()
-        object LibFileNotFound : Failure()
-        data class General(val message: String) : Failure()
-    }
-}
 
 // Asset retrieval states
 sealed class AssetRetrievalState : SessionStartupState()
@@ -373,7 +348,6 @@ object StorageVerificationCompletedSuccessfully : StorageVerificationState()
 
 sealed class SessionStartupEvent
 data class SessionSelected(val session: Session) : SessionStartupEvent()
-object SetupLinks : SessionStartupEvent()
 data class RetrieveAssetLists(val filesystem: Filesystem) : SessionStartupEvent()
 data class GenerateDownloads(val filesystem: Filesystem, val assetList: List<Asset>) : SessionStartupEvent()
 data class DownloadAssets(val downloadRequirements: List<DownloadMetadata>) : SessionStartupEvent()

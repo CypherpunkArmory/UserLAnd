@@ -190,7 +190,7 @@ ext.architectures = ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"]
 ext.libDir = "$project.projectDir/src/main/jniLibs"
 
 task downloadAssets(type: Download) {
-    def assetVersion = "v1.0.0"
+    def assetVersion = "v1.0.1"
     def baseUrl = "https://github.com/CypherpunkArmory/UserLAnd-Assets-Support/releases/download/$assetVersion"
     for (arch in architectures) {
         src "$baseUrl/$arch-assets.zip"
@@ -201,6 +201,9 @@ task downloadAssets(type: Download) {
 task fetchAssets(dependsOn: downloadAssets) {
     doLast {
         for (arch in architectures) {
+            delete {
+                "$buildDir/$arch"
+            }
             copy {
                 from zipTree("$buildDir/$arch-assets.zip")
                 into "$buildDir/$arch"
