@@ -255,11 +255,8 @@ class MainActivityViewModel(
                 lastSelectedFilesystem = newState.filesystem
                 state.postValue(StartingSetup)
                 doTransitionIfRequirementsAreSelected {
-                    submitSessionStartupEvent(SetupLinks)
+                    submitSessionStartupEvent(RetrieveAssetLists(lastSelectedFilesystem))
                 }
-            }
-            is LinkSetupState -> {
-                handleLinkSetupState(newState)
             }
             is AssetRetrievalState -> {
                 handleAssetRetrievalState(newState)
@@ -282,18 +279,6 @@ class MainActivityViewModel(
             is StorageVerificationState -> {
                 handleStorageVerificationState(newState)
             }
-        }
-    }
-
-    private fun handleLinkSetupState(newState: LinkSetupState) {
-        return when (newState) {
-            is LinkSetupState.InProgress -> { state.postValue(SettingUpLinks) }
-            is LinkSetupState.Success -> { doTransitionIfRequirementsAreSelected {
-                submitSessionStartupEvent(RetrieveAssetLists(lastSelectedFilesystem))
-            } }
-            is LinkSetupState.Failure.LibDirNotFound -> { postIllegalStateWithLog(LibDirNotFound) }
-            is LinkSetupState.Failure.LibFileNotFound -> { postIllegalStateWithLog(LibFileNotFound) }
-            is LinkSetupState.Failure.General -> { postIllegalStateWithLog(ErrorSettingUpLinks) }
         }
     }
 
@@ -446,9 +431,6 @@ object ErrorFetchingAppDatabaseEntries : IllegalState()
 object ErrorCopyingAppScript : IllegalState()
 
 object NoSessionSelectedWhenTransitionNecessary : IllegalState()
-object LibDirNotFound : IllegalState()
-object LibFileNotFound : IllegalState()
-object ErrorSettingUpLinks : IllegalState()
 object ErrorFetchingAssetLists : IllegalState()
 data class ErrorGeneratingDownloads(val errorId: Int) : IllegalState()
 data class DownloadsDidNotCompleteSuccessfully(val reason: DownloadFailureLocalizationData) : IllegalState()

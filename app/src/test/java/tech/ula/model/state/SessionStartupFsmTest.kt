@@ -36,8 +36,6 @@ class SessionStartupFsmTest {
 
     @Mock lateinit var mockUlaDatabase: UlaDatabase
 
-    @Mock lateinit var mockUlaFiles: UlaFiles
-
     @Mock lateinit var mockSessionDao: SessionDao
 
     @Mock lateinit var mockFilesystemDao: FilesystemDao
@@ -124,7 +122,6 @@ class SessionStartupFsmTest {
 
         sessionFsm = SessionStartupFsm(
                 mockUlaDatabase,
-                mockUlaFiles,
                 mockAssetRepository,
                 mockFilesystemUtility,
                 mockDownloadUtility,
@@ -157,8 +154,7 @@ class SessionStartupFsmTest {
                 val result = sessionFsm.transitionIsAcceptable(event)
                 when {
                     event is SessionSelected && state is WaitingForSessionSelection -> assertTrue(result)
-                    event is SetupLinks && state is SessionIsReadyForPreparation -> assertTrue(result)
-                    event is RetrieveAssetLists && state is LinkSetupState.Success -> assertTrue(result)
+                    event is RetrieveAssetLists && state is SessionIsReadyForPreparation -> assertTrue(result)
                     event is GenerateDownloads && state is AssetListsRetrievalSucceeded -> assertTrue(result)
                     event is DownloadAssets && state is DownloadsRequired -> assertTrue(result)
                     event is AssetDownloadComplete && (state is DownloadingAssets || state is WaitingForSessionSelection) -> assertTrue(result)
@@ -261,61 +257,8 @@ class SessionStartupFsmTest {
     }
 
     @Test
-    fun `State is LinkSetupState InProgress and Success in happy case`() {
-        sessionFsm.setState(SessionIsReadyForPreparation(inactiveSession, filesystem))
-        sessionFsm.getState().observeForever(mockStateObserver)
-
-        runBlocking {
-            sessionFsm.submitEvent(SetupLinks, this)
-        }
-
-        verify(mockStateObserver).onChanged(LinkSetupState.InProgress)
-        verify(mockStateObserver).onChanged(LinkSetupState.Success)
-    }
-
-    @Test
-    fun `State is LinkSetupState Failure LibDirNotFound if an NPE is caught`() {
-        sessionFsm.setState(SessionIsReadyForPreparation(inactiveSession, filesystem))
-        sessionFsm.getState().observeForever(mockStateObserver)
-
-        runBlocking {
-            whenever(mockUlaFiles.setupLinks()).thenThrow(NullPointerException())
-            sessionFsm.submitEvent(SetupLinks, this)
-        }
-
-        verify(mockStateObserver).onChanged(LinkSetupState.Failure.LibDirNotFound)
-    }
-
-    @Test
-    fun `State is LinkSetupState Failure LibFileNotFound if an NoSuchFileException is caught`() {
-        sessionFsm.setState(SessionIsReadyForPreparation(inactiveSession, filesystem))
-        sessionFsm.getState().observeForever(mockStateObserver)
-
-        runBlocking {
-            whenever(mockUlaFiles.setupLinks()).thenThrow(NoSuchFileException(File("")))
-            sessionFsm.submitEvent(SetupLinks, this)
-        }
-
-        verify(mockStateObserver).onChanged(LinkSetupState.Failure.LibFileNotFound)
-    }
-
-    @Test
-    fun `State is LinkSetupState Failure General if any other exception is caught`() {
-        sessionFsm.setState(SessionIsReadyForPreparation(inactiveSession, filesystem))
-        sessionFsm.getState().observeForever(mockStateObserver)
-
-        val exception = Exception()
-        runBlocking {
-            whenever(mockUlaFiles.setupLinks()).thenThrow(exception)
-            sessionFsm.submitEvent(SetupLinks, this)
-        }
-
-        verify(mockStateObserver).onChanged(LinkSetupState.Failure.General("$exception"))
-    }
-
-    @Test
     fun `State is RetrievingAssetLists and then AssetListsRetrieved`() {
-        sessionFsm.setState(LinkSetupState.Success)
+        sessionFsm.setState(SessionIsReadyForPreparation(inactiveSession, filesystem))
         sessionFsm.getState().observeForever(mockStateObserver)
 
         runBlocking {
@@ -329,7 +272,7 @@ class SessionStartupFsmTest {
 
     @Test
     fun `State is AssetListsRetrievalFailed if remote and cached assets cannot be fetched`() {
-        sessionFsm.setState(LinkSetupState.Success)
+        sessionFsm.setState(SessionIsReadyForPreparation(inactiveSession, filesystem))
         sessionFsm.getState().observeForever(mockStateObserver)
 
         runBlocking {

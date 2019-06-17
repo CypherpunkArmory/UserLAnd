@@ -494,7 +494,7 @@ class MainActivityViewModelTest {
     }
 
     @Test
-    fun `Updates selected session and filesystem, posts StartingSetup, and submits SetupLinks when session is ready for prep is observed`() {
+    fun `Updates selected session and filesystem, posts StartingSetup, and submits RetrieveAssetLists when session is ready for prep is observed`() {
         sessionStartupStateLiveData.postValue(SessionIsReadyForPreparation(selectedSession, selectedFilesystem))
 
         assertEquals(selectedSession, mainActivityViewModel.lastSelectedSession)
@@ -502,53 +502,8 @@ class MainActivityViewModelTest {
 
         verify(mockStateObserver).onChanged(StartingSetup)
         runBlocking {
-            verify(mockSessionStartupFsm).submitEvent(SetupLinks, mainActivityViewModel)
+            verify(mockSessionStartupFsm).submitEvent(RetrieveAssetLists(selectedFilesystem), mainActivityViewModel)
         }
-    }
-
-    @Test
-    fun `Posts SettingUpLinks when observing same state`() {
-        makeSessionSelections()
-
-        sessionStartupStateLiveData.postValue(LinkSetupState.InProgress)
-
-        verify(mockStateObserver).onChanged(SettingUpLinks)
-    }
-
-    @Test
-    fun `Submits next event when observing LinkSetupState Success`() {
-        makeSessionSelections()
-
-        sessionStartupStateLiveData.postValue(LinkSetupState.Success)
-
-        verifyBlocking(mockSessionStartupFsm) { submitEvent(RetrieveAssetLists(selectedFilesystem), mainActivityViewModel) }
-    }
-
-    @Test
-    fun `Posts LibDirNotFound when observing failure`() {
-        makeSessionSelections()
-
-        sessionStartupStateLiveData.postValue(LinkSetupState.Failure.LibDirNotFound)
-
-        verify(mockStateObserver).onChanged(LibDirNotFound)
-    }
-
-    @Test
-    fun `Posts LibFileNotFound when observing failure`() {
-        makeSessionSelections()
-
-        sessionStartupStateLiveData.postValue(LinkSetupState.Failure.LibFileNotFound)
-
-        verify(mockStateObserver).onChanged(LibFileNotFound)
-    }
-
-    @Test
-    fun `Posts ErrorSettingUpLinks when observing failure`() {
-        makeSessionSelections()
-
-        sessionStartupStateLiveData.postValue(LinkSetupState.Failure.General("${Exception()}"))
-
-        verify(mockStateObserver).onChanged(ErrorSettingUpLinks)
     }
 
     @Test

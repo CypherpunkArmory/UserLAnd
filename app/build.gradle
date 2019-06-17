@@ -201,6 +201,9 @@ task downloadAssets(type: Download) {
 task fetchAssets(dependsOn: downloadAssets) {
     doLast {
         for (arch in architectures) {
+            delete {
+                "$buildDir/$arch"
+            }
             copy {
                 from zipTree("$buildDir/$arch-assets.zip")
                 into "$buildDir/$arch"

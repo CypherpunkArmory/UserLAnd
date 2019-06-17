@@ -25,8 +25,8 @@ class UlaFilesTest {
 
     lateinit var ulaFiles: UlaFiles
 
-    @Before
-    fun setup() {
+    @Test
+    fun `Links are setup on initialization create links from every file in the lib directory to support, stripping unnecessary name parts`() {
         testFilesDir = tempFolder.newFolder("files")
         testScopedDir = tempFolder.newFolder("scoped")
         testLibDir = tempFolder.newFolder("execLib")
@@ -34,11 +34,6 @@ class UlaFilesTest {
 
         mockSymlinker = mock()
 
-        ulaFiles = UlaFiles(testFilesDir, testScopedDir, testLibDir, mockSymlinker)
-    }
-
-    @Test
-    fun `setupLinks create links from every file in the lib directory to support, stripping unnecessary name parts`() {
         val expectedText1 = "text1"
         val libFile1 = File(testLibDir, "lib_1.so")
         libFile1.writeText(expectedText1)
@@ -60,9 +55,7 @@ class UlaFilesTest {
                     Files.createSymbolicLink(expectedSupportFile2.toPath(), libFile2.toPath())
                 }
 
-        runBlocking {
-            ulaFiles.setupLinks()
-        }
+        ulaFiles = UlaFiles(testFilesDir, testScopedDir, testLibDir, mockSymlinker)
 
         assertTrue(expectedSupportFile1.exists())
         assertTrue(expectedSupportFile2.exists())
