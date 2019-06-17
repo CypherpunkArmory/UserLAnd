@@ -145,6 +145,7 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
             }
 
             filesystemToBackup = unselectedFilesystem
+            localBackup.delete()
             viewState.postValue(FilesystemExportState.Success)
         }
     }
