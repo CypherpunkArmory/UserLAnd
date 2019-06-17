@@ -22,9 +22,7 @@ import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
-import java.io.File
 import java.io.IOException
-import java.lang.NullPointerException
 import kotlin.Exception
 
 @RunWith(MockitoJUnitRunner::class)
