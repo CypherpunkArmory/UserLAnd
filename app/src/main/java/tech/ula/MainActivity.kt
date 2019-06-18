@@ -222,8 +222,18 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                         dialog.dismiss()
                         handler.messageHasBeenDelivered()
                     }
+                    .setNeutralButton(R.string.wiki) {
+                        dialog, _ ->
+                        dialog.dismiss()
+                        sendWikiIntent()
+                    }
                     .create().show()
         }
+    }
+
+    private fun sendWikiIntent() {
+        val intent = Intent("android.intent.action.VIEW", Uri.parse("https://github.com/CypherpunkArmory/UserLAnd/wiki"))
+        startActivity(intent)
     }
 
     private fun handleUserFeedback(viewHolder: ViewGroup) {
@@ -273,8 +283,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             startActivity(intent)
         }
         if (item.itemId == R.id.option_wiki) {
-            val intent = Intent("android.intent.action.VIEW", Uri.parse("https://github.com/CypherpunkArmory/UserLAnd/wiki"))
-            startActivity(intent)
+            sendWikiIntent()
         }
         if (item.itemId == R.id.clear_support_files) {
             displayClearSupportFilesDialog()
