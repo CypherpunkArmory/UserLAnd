@@ -3,7 +3,7 @@ package tech.ula.utils
 import android.content.SharedPreferences
 import tech.ula.BuildConfig
 
-class QWarningHandler(private val prefs: SharedPreferences) {
+class QWarningHandler(private val prefs: SharedPreferences, private val ulaFiles: UlaFiles) {
 
     companion object {
         val prefsString = "q_warning_preferences"
@@ -13,10 +13,12 @@ class QWarningHandler(private val prefs: SharedPreferences) {
     private val hasBeenDisplayedKey = "messageHasBeenDisplayed"
 
     fun messageShouldBeDisplayed(): Boolean {
-        return versionDoesNotMatchRequirement() && !messageHasBeenDisplayed()
+        return versionDoesNotMatchRequirement() &&
+                !messageHasPreviouslyBeenDisplayed() &&
+                userHasFilesystems()
     }
 
-    fun messageHasBeenDelivered() {
+    fun messageHasBeenDisplayed() {
         setCachedVersion()
         setMessageDisplayed()
     }
@@ -25,7 +27,13 @@ class QWarningHandler(private val prefs: SharedPreferences) {
         return prefs.getString(versionKey, "") ?: "" < "v2.1.5"
     }
 
-    private fun messageHasBeenDisplayed(): Boolean {
+    private fun userHasFilesystems(): Boolean {
+        val hasFilesystems = ulaFiles.filesDir.listFiles().mapNotNull { it.name.toIntOrNull() }.isNotEmpty()
+        if (hasFilesystems) setMessageDisplayed()
+        return hasFilesystems
+    }
+
+    private fun messageHasPreviouslyBeenDisplayed(): Boolean {
         return prefs.getBoolean(hasBeenDisplayedKey, false)
     }
 

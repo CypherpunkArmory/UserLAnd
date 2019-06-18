@@ -213,14 +213,13 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleQWarning() {
-        val handler = QWarningHandler(this.getSharedPreferences(QWarningHandler.prefsString, Context.MODE_PRIVATE))
+        val handler = QWarningHandler(this.getSharedPreferences(QWarningHandler.prefsString, Context.MODE_PRIVATE), ulaFiles)
         if (handler.messageShouldBeDisplayed()) {
             AlertDialog.Builder(this)
                     .setTitle(R.string.q_warning_title)
                     .setMessage(R.string.q_warning_message)
                     .setPositiveButton(R.string.button_ok) { dialog, _ ->
                         dialog.dismiss()
-                        handler.messageHasBeenDelivered()
                     }
                     .setNeutralButton(R.string.wiki) {
                         dialog, _ ->
@@ -228,6 +227,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                         sendWikiIntent()
                     }
                     .create().show()
+            handler.messageHasBeenDisplayed()
         }
     }
 
