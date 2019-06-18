@@ -28,7 +28,7 @@ platform :android do
 
   sh("mkdir", "-p", changelogs_dir)
   File.open(changelog_file, 'w') do |file|
-    file.write changelog.truncate(100, omission: ' ... see full notes on Github')
+    file.write changelog.truncate(500, omission: ' ... see full notes on Github')
   end
 
   desc "Release to Github"
