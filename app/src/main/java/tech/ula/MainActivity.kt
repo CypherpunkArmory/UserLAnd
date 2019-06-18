@@ -164,6 +164,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         if (userFeedbackUtility.askingForFeedbackIsAppropriate())
             setupReviewRequestUI()
 
+        handleQWarning()
+
         viewModel.getState().observe(this, stateObserver)
     }
 
@@ -207,6 +209,20 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             negativeBtn.setOnClickListener {
                 handleUserFeedback(viewHolder)
             }
+        }
+    }
+
+    private fun handleQWarning() {
+        val handler = QWarningHandler(this.getSharedPreferences(QWarningHandler.prefsString, Context.MODE_PRIVATE))
+        if (handler.messageShouldBeDisplayed()) {
+            AlertDialog.Builder(this)
+                    .setTitle(R.string.q_warning_title)
+                    .setMessage(R.string.q_warning_message)
+                    .setPositiveButton(R.string.button_ok) { dialog, _ ->
+                        dialog.dismiss()
+                        handler.messageHasBeenDelivered()
+                    }
+                    .create().show()
         }
     }
 
