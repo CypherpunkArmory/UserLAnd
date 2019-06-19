@@ -38,14 +38,14 @@ class QWarningHandler(private val prefs: SharedPreferences, private val ulaFiles
     }
 
     private fun setCachedVersion() {
-        with (prefs.edit()) {
+        with(prefs.edit()) {
             putString(versionKey, BuildConfig.VERSION_NAME)
             apply()
         }
     }
 
     private fun setMessageDisplayed() {
-        with (prefs.edit()) {
+        with(prefs.edit()) {
             putBoolean(hasBeenDisplayedKey, true)
             apply()
         }
