@@ -13,6 +13,7 @@ import android.widget.* // ktlint-disable no-wildcard-imports
 import androidx.core.app.Person.fromBundle
 import androidx.core.os.bundleOf
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.navArgs
 import kotlinx.android.synthetic.main.frag_session_edit.* // ktlint-disable no-wildcard-imports
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
@@ -24,18 +25,9 @@ import tech.ula.viewmodel.SessionEditViewmodelFactory
 class SessionEditFragment : Fragment() {
 
     private lateinit var activityContext: Activity
-
-    private val session: Session by lazy {
-//        arguments?.getParcelable("session")
-//        arguments!!.getParcelable("session")!! as Session
-        val session: Session = arguments!!.getParcelable("session")!!
-        session
-//        fromBundle(arguments!!).session
-    }
-
-    private val editExisting: Boolean by lazy {
-        arguments?.getBoolean("editExisting") ?: false
-    }
+    private val args: SessionEditFragmentArgs by navArgs()
+    private val session: Session = args.session!!
+    private val editExisting = args.editExisting
 
     private var filesystemList: List<Filesystem> = emptyList()
 

@@ -167,7 +167,7 @@ class BusyboxWrapper(private val ulaFiles: UlaFiles) {
                 "ROOTFS_PATH" to filesystemDir.absolutePath,
                 "PROOT_DEBUG_LEVEL" to prootDebugLevel,
                 "EXTRA_BINDINGS" to "-b ${ulaFiles.scopedUserDir.absolutePath}:/sdcard",
-                "OS_VERSION" to System.getProperty("os.version")
+                "OS_VERSION" to System.getProperty("os.version")!!
         )
     }
 

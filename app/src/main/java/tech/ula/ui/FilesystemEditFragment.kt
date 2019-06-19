@@ -23,6 +23,7 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.navArgs
 import kotlinx.android.synthetic.main.frag_filesystem_edit.*
 import tech.ula.MainActivity
 import tech.ula.R
@@ -44,14 +45,10 @@ class FilesystemEditFragment : Fragment() {
 
     private val IMPORT_FILESYSTEM_REQUEST_CODE = 5
 
-//    private val filesystem: Filesystem by lazy {
-//        arguments?.getParcelable("filesystem") as Filesystem
-//    }
-
-    private val editExisting: Boolean by lazy {
-        arguments?.getBoolean("editExisting") ?: false
-    }
-
+    private val args: FilesystemEditFragmentArgs by navArgs()
+    private val filesystem = args.filesystem!!
+    private val editExisting = args.editExisting
+    
     private val permissionRequestCode: Int by lazy {
         getString(R.string.permission_request_code).toInt()
     }

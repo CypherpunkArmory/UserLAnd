@@ -11,6 +11,7 @@ import android.widget.AdapterView
 import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 import kotlinx.android.synthetic.main.frag_filesystem_list.* // ktlint-disable no-wildcard-imports
 import tech.ula.MainActivity
 import tech.ula.R
@@ -131,7 +132,7 @@ class FilesystemListFragment : Fragment() {
     private fun editFilesystem(filesystem: Filesystem): Boolean {
         val editExisting = filesystem.name != ""
         val bundle = bundleOf("filesystem" to filesystem, "editExisting" to editExisting)
-        NavHostFragment.findNavController(this).navigate(R.id.filesystem_edit_fragment, bundle)
+        this.findNavController().navigate(R.id.action_filesystem_list_to_filesystem_edit, bundle)
         return true
     }
 
