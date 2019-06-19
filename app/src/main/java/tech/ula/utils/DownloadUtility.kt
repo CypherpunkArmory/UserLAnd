@@ -108,7 +108,8 @@ class DownloadUtility(
     suspend fun prepareDownloadsForUse(archiverFactory: ArchiveFactoryWrapper = ArchiveFactoryWrapper()) = withContext(Dispatchers.IO) {
         val stagingDirectory = File("${applicationFilesDir.path}/staging")
         stagingDirectory.mkdirs()
-        downloadDirectory.listFiles().forEach {
+        val downloadFiles = downloadDirectory.listFiles() ?: return@withContext
+        downloadFiles.forEach {
             if (it.name.contains("rootfs.tar.gz")) {
                 moveRootfsAssetInternal(it)
                 return@forEach
@@ -148,7 +149,8 @@ class DownloadUtility(
 
         val archiver = archiverFactory.createArchiver(stagingTarget)
         archiver.extract(stagingTarget, destination)
-        for (file in destination.listFiles()) {
+        val extractedFiles = destination.listFiles() ?: return@withContext
+        for (file in extractedFiles) {
             makePermissionsUsable(destination.absolutePath, file.name)
         }
         assetPreferences.setLatestDownloadVersion(repo, version)

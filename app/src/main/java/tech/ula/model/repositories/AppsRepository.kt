@@ -41,7 +41,7 @@ class AppsRepository(
             }
         } catch (err: Exception) {
             refreshStatus.postValue(RefreshStatus.FAILED)
-            Log.e("refresh", err.message)
+            Log.e("refresh", err.message ?: "")
             return@withContext
         }
         refreshStatus.postValue(RefreshStatus.FINISHED)

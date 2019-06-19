@@ -28,7 +28,8 @@ class AssetFileClearer(
 
     @Throws(IOException::class)
     private suspend fun clearTopLevelAssets(assetDirectoryNames: Set<String>) {
-        for (file in ulaFiles.filesDir.listFiles()) {
+        val files = ulaFiles.filesDir.listFiles() ?: return
+        for (file in files) {
             if (!file.isDirectory) continue
             if (!assetDirectoryNames.contains(file.name)) continue
             if (file.name == "support") continue
@@ -42,13 +43,15 @@ class AssetFileClearer(
 
     @Throws(IOException::class)
     private suspend fun clearFilesystemSupportAssets() {
-        for (file in ulaFiles.filesDir.listFiles()) {
+        val files = ulaFiles.filesDir.listFiles() ?: return
+        for (file in files) {
             if (!file.isDirectory || file.name.toIntOrNull() == null) continue
 
             val supportDirectory = File("${file.absolutePath}/support")
             if (!supportDirectory.exists() || !supportDirectory.isDirectory) continue
 
-            for (supportFile in supportDirectory.listFiles()) {
+            val supportFiles = supportDirectory.listFiles() ?: continue
+            for (supportFile in supportFiles) {
                 // Exclude directories and hidden files.
                 if (supportFile.isDirectory || supportFile.name.first() == '.') continue
                 // Use deleteRecursively to match functionality above

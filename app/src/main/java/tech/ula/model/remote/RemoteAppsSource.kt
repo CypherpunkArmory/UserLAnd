@@ -66,10 +66,10 @@ class GithubAppsFetcher(
 
     override suspend fun fetchAppIcon(app: App) {
         val directoryAndFilename = "${app.name}/${app.name}.png"
-        val url = "$protocol$baseUrl/$directoryAndFilename"
         val file = File("$applicationFilesDir/apps/$directoryAndFilename")
-        file.parentFile.mkdirs()
+        file.parentFile!!.mkdirs()
         file.createNewFile()
+        val url = "$protocol$baseUrl/$directoryAndFilename"
         val inputStream = connectionUtility.getUrlInputStream(url)
         val bitmap: Bitmap = BitmapFactory.decodeStream(inputStream)
         val outputStream = file.outputStream()
@@ -82,7 +82,7 @@ class GithubAppsFetcher(
         val directoryAndFilename = "${app.name}/${app.name}.txt"
         val url = "$protocol$baseUrl/$directoryAndFilename"
         val file = File("$applicationFilesDir/apps/$directoryAndFilename")
-        file.parentFile.mkdirs()
+        file.parentFile!!.mkdirs()
         file.createNewFile()
         val contents = URL(url).readText()
         file.writeText(contents)
@@ -92,7 +92,7 @@ class GithubAppsFetcher(
         val directoryAndFilename = "${app.name}/${app.name}.sh"
         val url = "$protocol$baseUrl/$directoryAndFilename"
         val file = File("$applicationFilesDir/apps/$directoryAndFilename")
-        file.parentFile.mkdirs()
+        file.parentFile!!.mkdirs()
         file.createNewFile()
         val contents = URL(url).readText()
         file.writeText(contents)

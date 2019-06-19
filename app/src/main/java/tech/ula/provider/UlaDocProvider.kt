@@ -62,8 +62,8 @@ class UlaDocProvider : DocumentsProvider() {
     ): Cursor {
         val parent: File = getFileForDocId(parentDocumentId ?: "")
         return MatrixCursor(projection ?: defaultDocumentProjection).apply {
-            parent.listFiles()
-                    .forEach { file ->
+            val files = parent.listFiles() ?: return@apply
+            files.forEach { file ->
                         includeFile(this, file = file)
                     }
         }
