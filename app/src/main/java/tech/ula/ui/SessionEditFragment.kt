@@ -12,6 +12,7 @@ import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.* // ktlint-disable no-wildcard-imports
 import androidx.core.os.bundleOf
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import kotlinx.android.synthetic.main.frag_session_edit.* // ktlint-disable no-wildcard-imports
 import tech.ula.R
@@ -129,7 +130,8 @@ class SessionEditFragment : Fragment() {
                         is FilesystemDropdownItem.NonFilesystemItem -> {
                             if (item.text == "Create new") {
                                 val bundle = bundleOf("filesystem" to Filesystem(0), "editExisting" to false)
-                                NavHostFragment.findNavController(this@SessionEditFragment).navigate(R.id.filesystem_edit_fragment, bundle)
+                                this@SessionEditFragment.findNavController()
+                                        .navigate(R.id.filesystem_edit_fragment, bundle)
                             } else { }
                         }
                         is FilesystemDropdownItem.FilesystemItem -> {
