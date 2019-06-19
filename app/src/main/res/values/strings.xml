@@ -250,6 +250,15 @@
     <string name="review_ask_for_rating">How about a rating on the Play Store, then?</string>
     <string name="review_ask_for_feedback">Would you mind giving us some feedback on Github?</string>
 
+    <!-- Q Warning -->
+    <string name="q_warning_title">File access has changed!</string>
+    <string name="q_warning_message">
+        The next version of Android, Q, is making improvements to security which affect our app and
+        how our users are able to get files in and out of UserLAnd filesystems. In order to comply
+        with these changes, using \"/sdcard\" to move files in and out will no longer behave as it used
+        to. Please visit our wiki on our Github to learn more.
+    </string>
+
     <!-- Advanced options -->
     <string name="desc_import_backups_should_use_same_settings">Fill out the same: \n\n\u2022 username \n\u2022 password \n\u2022 VNC password \n\u2022 distribution \n\n as the backup to ensure smooth functionality</string>
   

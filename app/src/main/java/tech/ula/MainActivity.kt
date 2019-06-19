@@ -164,6 +164,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         if (userFeedbackUtility.askingForFeedbackIsAppropriate())
             setupReviewRequestUI()
 
+        handleQWarning()
+
         viewModel.getState().observe(this, stateObserver)
     }
 
@@ -208,6 +210,30 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 handleUserFeedback(viewHolder)
             }
         }
+    }
+
+    private fun handleQWarning() {
+        val handler = QWarningHandler(this.getSharedPreferences(QWarningHandler.prefsString, Context.MODE_PRIVATE), ulaFiles)
+        if (handler.messageShouldBeDisplayed()) {
+            AlertDialog.Builder(this)
+                    .setTitle(R.string.q_warning_title)
+                    .setMessage(R.string.q_warning_message)
+                    .setPositiveButton(R.string.button_ok) { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    .setNeutralButton(R.string.wiki) {
+                        dialog, _ ->
+                        dialog.dismiss()
+                        sendWikiIntent()
+                    }
+                    .create().show()
+            handler.messageHasBeenDisplayed()
+        }
+    }
+
+    private fun sendWikiIntent() {
+        val intent = Intent("android.intent.action.VIEW", Uri.parse("https://github.com/CypherpunkArmory/UserLAnd/wiki"))
+        startActivity(intent)
     }
 
     private fun handleUserFeedback(viewHolder: ViewGroup) {
@@ -257,8 +283,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             startActivity(intent)
         }
         if (item.itemId == R.id.option_wiki) {
-            val intent = Intent("android.intent.action.VIEW", Uri.parse("https://github.com/CypherpunkArmory/UserLAnd/wiki"))
-            startActivity(intent)
+            sendWikiIntent()
         }
         if (item.itemId == R.id.clear_support_files) {
             displayClearSupportFilesDialog()
