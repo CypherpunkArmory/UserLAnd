@@ -5,8 +5,8 @@ import java.lang.NullPointerException
 
 class UlaFiles(
         val filesDir: File,
-        private val scopedDir: File,
-        private val libDir: File,
+        val scopedDir: File,
+        val libDir: File,
         private val symlinker: Symlinker = Symlinker()
 ) {
 
