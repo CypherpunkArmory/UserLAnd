@@ -22,6 +22,7 @@ import android.view.LayoutInflater
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.navArgs
 import kotlinx.android.synthetic.main.frag_filesystem_edit.*
@@ -62,10 +63,14 @@ class FilesystemEditFragment : Fragment() {
         }
     }
 
-    private val filesystemEditViewModel: FilesystemEditViewModel by lazy {
-        val ulaDatabase = UlaDatabase.getInstance(activityContext)
-        ViewModelProviders.of(this, FilesystemEditViewmodelFactory(ulaDatabase)).get(FilesystemEditViewModel::class.java)
-    }
+    private val viewModel by viewModels<FilesystemEditViewModel>(factoryProducer = {
+        FilesystemEditViewmodelFactory(UlaDatabase.getInstance(activityContext))
+    })
+
+//    private val filesystemEditViewModel: FilesystemEditViewModel by lazy {
+//        val ulaDatabase = UlaDatabase.getInstance(activityContext)
+//        ViewModelProviders.of(this, FilesystemEditViewmodelFactory(ulaDatabase)).get(FilesystemEditViewModel::class.java)
+//    }
 
     private val distributionList by lazy {
         AppsPreferences(activityContext.getSharedPreferences("apps", Context.MODE_PRIVATE))
@@ -94,7 +99,7 @@ class FilesystemEditFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         activityContext = activity!! as MainActivity
-        filesystemEditViewModel.getImportStatusLiveData().observe(viewLifecycleOwner, filesystemImportStatusObserver)
+        viewModel.getImportStatusLiveData().observe(viewLifecycleOwner, filesystemImportStatusObserver)
 
         if (distributionList.isNotEmpty()) {
             spinner_filesystem_type.adapter = ArrayAdapter(activityContext,
@@ -242,7 +247,7 @@ class FilesystemEditFragment : Fragment() {
         super.onActivityResult(requestCode, resultCode, returnIntent)
         if (requestCode == IMPORT_FILESYSTEM_REQUEST_CODE) {
             returnIntent?.data?.let { uri ->
-                filesystemEditViewModel.backupUri = uri
+                viewModel.backupUri = uri
                 text_backup_filename.text = uri.lastPathSegment
             }
         }
@@ -255,7 +260,7 @@ class FilesystemEditFragment : Fragment() {
         }
 
         if (editExisting) {
-            filesystemEditViewModel.updateFilesystem(filesystem)
+            viewModel.updateFilesystem(filesystem)
             navController.popBackStack()
         } else {
             try {
@@ -265,9 +270,9 @@ class FilesystemEditFragment : Fragment() {
                 return true
             }
             if (filesystem.isCreatedFromBackup) {
-                filesystemEditViewModel.insertFilesystemFromBackup(activityContext.contentResolver, filesystem, activityContext.filesDir)
+                viewModel.insertFilesystemFromBackup(activityContext.contentResolver, filesystem, activityContext.filesDir)
             } else {
-                filesystemEditViewModel.insertFilesystem(filesystem)
+                viewModel.insertFilesystem(filesystem)
             }
             navController.popBackStack()
         }
