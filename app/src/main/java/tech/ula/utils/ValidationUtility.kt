@@ -68,8 +68,7 @@ class ValidationUtility {
 
         val compiledRegex = Pattern.compile(filesystemNameRegex)
         val matcher = compiledRegex.matcher(filesystemName)
-        val hasValidCharacters = matcher.matches()
-        return hasValidCharacters
+        return matcher.matches()
     }
 
     private fun validateUsernameCharacters(username: String): Boolean {
@@ -77,8 +76,7 @@ class ValidationUtility {
 
         val compiledRegex = Pattern.compile(usernameRegex)
         val matcher = compiledRegex.matcher(username)
-        val hasValidCharacters = matcher.matches()
-        return hasValidCharacters
+        return matcher.matches()
     }
 
     private fun validatePasswordCharacters(password: String): Boolean {
@@ -89,8 +87,7 @@ class ValidationUtility {
 
         pattern = Pattern.compile(passwordRegex)
         matcher = pattern.matcher(password)
-        val hasValidCharacters = matcher.matches()
-        return hasValidCharacters
+        return matcher.matches()
     }
 }
 

@@ -2,20 +2,20 @@ package tech.ula.utils
 
 class LogUtility {
 
-    fun e(tag: String, message: String) {
-        System.out.println("ERROR: $tag: $message")
+    private fun e(tag: String, message: String) {
+        println("ERROR: $tag: $message")
     }
 
     fun w(tag: String, message: String) {
-        System.out.println("WARN: $tag: $message")
+        println("WARN: $tag: $message")
     }
 
     fun v(tag: String, message: String) {
-        System.out.println("INFO: $tag: $message")
+        println("INFO: $tag: $message")
     }
 
     fun d(tag: String, message: String) {
-        System.out.println("DEBUG: $tag: $message")
+        println("DEBUG: $tag: $message")
     }
 
     fun logRuntimeErrorForCommand(functionName: String, command: String, err: String) {

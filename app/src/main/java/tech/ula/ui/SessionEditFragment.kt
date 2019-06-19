@@ -10,7 +10,6 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.* // ktlint-disable no-wildcard-imports
-import androidx.core.app.Person.fromBundle
 import androidx.core.os.bundleOf
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.navArgs
@@ -26,7 +25,7 @@ class SessionEditFragment : Fragment() {
 
     private lateinit var activityContext: Activity
     private val args: SessionEditFragmentArgs by navArgs()
-    private val session: Session by lazy { args.session!!}
+    private val session: Session by lazy { args.session!! }
     private val editExisting by lazy { args.editExisting }
 
     private var filesystemList: List<Filesystem> = emptyList()

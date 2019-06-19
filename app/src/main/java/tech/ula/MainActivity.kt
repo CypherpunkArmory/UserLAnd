@@ -17,7 +17,6 @@ import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.os.StatFs
 import com.google.android.material.textfield.TextInputEditText
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -126,7 +125,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val assetRepository = AssetRepository(filesDir.path, assetPreferences)
 
         val filesystemUtility = FilesystemUtility(filesDir.path, busyboxExecutor)
-        val storageUtility = StorageUtility(StatFs(Environment.getExternalStorageDirectory().path))
+        val storageUtility = StorageUtility(StatFs(filesDir.path))
 
         val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val downloadManagerWrapper = DownloadManagerWrapper(downloadManager)
@@ -392,7 +391,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         super.onActivityResult(requestCode, resultCode, data)
         data?.let {
             val session = viewModel.lastSelectedSession
-            val result = data.getStringExtra("run")
+            val result = data.getStringExtra("run") ?: ""
             if (session.serviceType == "xsdl" && result.isNotEmpty()) {
                 startSession(session)
             }
@@ -624,7 +623,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         for (network in connectivityManager.allNetworks) {
             val capabilities = connectivityManager.getNetworkCapabilities(network)
-            if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) return true
+            if (capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true) return true
         }
         return false
     }
@@ -667,8 +666,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         dialog.setPositiveButton(R.string.button_continue, null)
         val customDialog = dialog.create()
 
-        customDialog.setOnShowListener { _ ->
-            customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { _ ->
+        customDialog.setOnShowListener {
+            customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val username = customDialog.find<TextInputEditText>(R.id.text_input_username).text.toString()
                 val password = customDialog.find<TextInputEditText>(R.id.text_input_password).text.toString()
                 val vncPassword = customDialog.find<TextInputEditText>(R.id.text_input_vnc_password).text.toString()

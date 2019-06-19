@@ -46,25 +46,25 @@ class AppsStartupFsmTest {
 
     @Mock lateinit var mockStateObserver: Observer<AppsStartupState>
 
-    lateinit var appsFsm: AppsStartupFsm
+    private lateinit var appsFsm: AppsStartupFsm
 
     // Test setup variables
-    val appsFilesystemName = "apps"
-    val appsFilesystemType = "type"
-    val appName = "app"
+    private val appsFilesystemName = "apps"
+    private val appsFilesystemType = "type"
+    private val appName = "app"
 
     val defaultUsername = "user"
     val defaultPassword = "password"
-    val appsFilesystem = Filesystem(id = 0, name = appsFilesystemName, distributionType = appsFilesystemType, isAppsFilesystem = true)
-    val appsFilesystemWithCredentials = Filesystem(id = 0, name = appsFilesystemName, distributionType = appsFilesystemType, isAppsFilesystem = true, defaultUsername = defaultUsername, defaultPassword = defaultPassword, defaultVncPassword = defaultPassword)
+    private val appsFilesystem = Filesystem(id = 0, name = appsFilesystemName, distributionType = appsFilesystemType, isAppsFilesystem = true)
+    private val appsFilesystemWithCredentials = Filesystem(id = 0, name = appsFilesystemName, distributionType = appsFilesystemType, isAppsFilesystem = true, defaultUsername = defaultUsername, defaultPassword = defaultPassword, defaultVncPassword = defaultPassword)
 
-    val appSession = Session(id = 0, name = appName, filesystemId = 0, isAppsSession = true)
+    private val appSession = Session(id = 0, name = appName, filesystemId = 0, isAppsSession = true)
 
-    val app = App(name = appName, filesystemRequired = appsFilesystemType)
+    private val app = App(name = appName, filesystemRequired = appsFilesystemType)
 
-    val incorrectTransitionEvent = AppSelected(app)
-    val incorrectTransitionState = FetchingDatabaseEntries
-    val possibleEvents = listOf(
+    private val incorrectTransitionEvent = AppSelected(app)
+    private val incorrectTransitionState = FetchingDatabaseEntries
+    private val possibleEvents = listOf(
             AppSelected(app),
             CheckAppsFilesystemCredentials(appsFilesystem),
             SubmitAppsFilesystemCredentials(appsFilesystem, "", "", ""),
@@ -74,7 +74,7 @@ class AppsStartupFsmTest {
             SyncDatabaseEntries(app, appSession, appsFilesystem),
             ResetAppState
     )
-    val possibleStates = listOf(
+    private val possibleStates = listOf(
             IncorrectAppTransition(incorrectTransitionEvent, incorrectTransitionState),
             WaitingForAppSelection,
             FetchingDatabaseEntries,

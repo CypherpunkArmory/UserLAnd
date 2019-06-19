@@ -65,7 +65,7 @@ class GithubApiClient(
         val base = urlProvider.getBaseUrl()
         val url = base + "repos/CypherpunkArmory/UserLAnd-Assets-$repo/releases/$releaseToUse"
         val moshi = Moshi.Builder().build()
-        val adapter = moshi.adapter<ReleasesResponse>(ReleasesResponse::class.java)
+        val adapter = moshi.adapter(ReleasesResponse::class.java)
         val request = Request.Builder()
                 .url(url)
                 .build()

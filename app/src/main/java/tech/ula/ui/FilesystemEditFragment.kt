@@ -27,7 +27,6 @@ import androidx.navigation.fragment.navArgs
 import kotlinx.android.synthetic.main.frag_filesystem_edit.*
 import tech.ula.MainActivity
 import tech.ula.R
-import tech.ula.model.entities.Filesystem
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.AppsPreferences
 import tech.ula.utils.BuildWrapper
@@ -152,6 +151,7 @@ class FilesystemEditFragment : Fragment() {
             override fun afterTextChanged(p0: Editable?) {
                 filesystem.name = p0.toString()
             }
+
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
         })
@@ -161,6 +161,7 @@ class FilesystemEditFragment : Fragment() {
 
                 filesystem.defaultUsername = p0.toString()
             }
+
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
         })
@@ -169,6 +170,7 @@ class FilesystemEditFragment : Fragment() {
             override fun afterTextChanged(p0: Editable?) {
                 filesystem.defaultPassword = p0.toString()
             }
+
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
         })
@@ -177,6 +179,7 @@ class FilesystemEditFragment : Fragment() {
             override fun afterTextChanged(p0: Editable?) {
                 filesystem.defaultVncPassword = p0.toString()
             }
+
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
         })
@@ -223,15 +226,13 @@ class FilesystemEditFragment : Fragment() {
         val builder = AlertDialog.Builder(activityContext)
         builder.setMessage(R.string.alert_permissions_necessary_message)
                 .setTitle(R.string.alert_permissions_necessary_title)
-                .setPositiveButton(R.string.button_ok) {
-                    dialog, _ ->
+                .setPositiveButton(R.string.button_ok) { dialog, _ ->
                     requestPermissions(arrayOf(
                             Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),
                             permissionRequestCode)
                     dialog.dismiss()
                 }
-                .setNegativeButton(R.string.alert_permissions_necessary_cancel_button) {
-                    dialog, _ ->
+                .setNegativeButton(R.string.alert_permissions_necessary_cancel_button) { dialog, _ ->
                     dialog.dismiss()
                 }
         builder.create().show()

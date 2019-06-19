@@ -9,8 +9,6 @@ import androidx.fragment.app.Fragment
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
 import android.widget.Toast
-import androidx.core.os.bundleOf
-import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import kotlinx.android.synthetic.main.frag_filesystem_list.* // ktlint-disable no-wildcard-imports
 import tech.ula.MainActivity

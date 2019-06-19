@@ -7,7 +7,7 @@ buildscript {
     }
 
     ext {
-        kotlin_version = '1.3.31'
+        kotlin_version = '1.3.4'
         android_plugin = '3.4.1'
         jacoco_version = '0.8.4'
         navigation_version = '2.1.0-alpha05'

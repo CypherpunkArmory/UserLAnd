@@ -16,7 +16,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.MenuInflater
 import androidx.core.os.bundleOf
-import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import kotlinx.android.synthetic.main.frag_app_list.* // ktlint-disable no-wildcard-imports
 import tech.ula.MainActivity

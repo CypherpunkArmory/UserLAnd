@@ -16,12 +16,12 @@ class UlaFilesTest {
 
     @Mock lateinit var mockSymlinker: Symlinker
 
-    lateinit var testFilesDir: File
-    lateinit var testScopedDir: File
-    lateinit var testLibDir: File
-    lateinit var testSupportDir: File
+    private lateinit var testFilesDir: File
+    private lateinit var testScopedDir: File
+    private lateinit var testLibDir: File
+    private lateinit var testSupportDir: File
 
-    lateinit var ulaFiles: UlaFiles
+    private lateinit var ulaFiles: UlaFiles
 
     @Test
     fun `Initialization links every file in the lib directory to support, stripping unnecessary name parts`() {

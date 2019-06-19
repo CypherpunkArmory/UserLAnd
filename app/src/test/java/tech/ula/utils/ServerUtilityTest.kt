@@ -23,15 +23,15 @@ class ServerUtilityTest {
 
     @Mock lateinit var mockProcess: Process
 
-    lateinit var sshPidFile: File
-    lateinit var vncPidFile: File
-    lateinit var xsdlPidFile: File
+    private lateinit var sshPidFile: File
+    private lateinit var vncPidFile: File
+    private lateinit var xsdlPidFile: File
 
     private val filesystemId = 0L
     private val filesystemDirName = "0"
     private val fakePid = 100L
 
-    lateinit var serverUtility: ServerUtility
+    private lateinit var serverUtility: ServerUtility
 
     private fun createSshPidFile() {
         val folder = tempFolder.newFolder(filesystemDirName, "run")

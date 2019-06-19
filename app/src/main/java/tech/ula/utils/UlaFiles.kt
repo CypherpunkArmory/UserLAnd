@@ -4,10 +4,10 @@ import java.io.File
 import java.lang.NullPointerException
 
 class UlaFiles(
-    val filesDir: File,
-    val scopedDir: File,
-    val libDir: File,
-    private val symlinker: Symlinker = Symlinker()
+        val filesDir: File,
+        private val scopedDir: File,
+        private val libDir: File,
+        private val symlinker: Symlinker = Symlinker()
 ) {
 
     val supportDir: File = File(filesDir, "support")

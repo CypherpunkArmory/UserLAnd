@@ -74,7 +74,7 @@ class FilesystemEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(
                 val streamOutput = FileOutputStream(destination)
                 inputStream.use { input ->
                     streamOutput.use { fileOut ->
-                        input!!.copyTo(fileOut)
+                        input.copyTo(fileOut)
                     }
                 }
             } catch (e: Exception) {

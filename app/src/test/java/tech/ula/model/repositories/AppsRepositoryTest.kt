@@ -28,7 +28,7 @@ class AppsRepositoryTest {
     @Mock
     lateinit var appsPreferences: AppsPreferences
 
-    lateinit var appsRepository: AppsRepository
+    private lateinit var appsRepository: AppsRepository
 
     @Before
     fun setup() {

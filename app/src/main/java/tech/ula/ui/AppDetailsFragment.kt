@@ -13,7 +13,6 @@ import android.widget.TextView
 import androidx.navigation.fragment.navArgs
 import kotlinx.android.synthetic.main.frag_app_details.* // ktlint-disable no-wildcard-imports
 import tech.ula.R
-import tech.ula.model.entities.App
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 
 class AppDetailsFragment : Fragment() {
