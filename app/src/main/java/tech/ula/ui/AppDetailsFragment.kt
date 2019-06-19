@@ -21,9 +21,7 @@ class AppDetailsFragment : Fragment() {
     private lateinit var activityContext: Activity
 
     private val args: AppDetailsFragmentArgs by navArgs()
-    private val app by lazy {
-        args.app!!
-    }
+    private val app by lazy { args.app!! }
 
     private val appsPreferences by lazy {
         AppsPreferences(activityContext.getSharedPreferences("apps", Context.MODE_PRIVATE))

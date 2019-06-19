@@ -148,8 +148,8 @@ class SessionListFragment : Fragment() {
 
     private fun editSession(session: Session): Boolean {
         val editExisting = session.name != ""
-        val bundle = bundleOf("session" to session, "editExisting" to editExisting)
-        this.findNavController().navigate(R.id.action_session_list_to_session_edit, bundle)
+        val action = SessionListFragmentDirections.actionSessionListToSessionEdit(session, editExisting)
+        this.findNavController().navigate(action)
         return true
     }
 

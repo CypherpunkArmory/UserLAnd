@@ -46,9 +46,9 @@ class FilesystemEditFragment : Fragment() {
     private val IMPORT_FILESYSTEM_REQUEST_CODE = 5
 
     private val args: FilesystemEditFragmentArgs by navArgs()
-    private val filesystem = args.filesystem!!
-    private val editExisting = args.editExisting
-    
+    private val filesystem by lazy { args.filesystem!! }
+    private val editExisting by lazy { args.editExisting }
+
     private val permissionRequestCode: Int by lazy {
         getString(R.string.permission_request_code).toInt()
     }

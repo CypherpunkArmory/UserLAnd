@@ -26,8 +26,8 @@ class SessionEditFragment : Fragment() {
 
     private lateinit var activityContext: Activity
     private val args: SessionEditFragmentArgs by navArgs()
-    private val session: Session = args.session!!
-    private val editExisting = args.editExisting
+    private val session: Session by lazy { args.session!!}
+    private val editExisting by lazy { args.editExisting }
 
     private var filesystemList: List<Filesystem> = emptyList()
 

@@ -32,7 +32,7 @@
         tools:layout="@layout/frag_session_list" >
         <action
             android:id="@+id/action_session_list_to_session_edit"
-            app:destination="@id/session_list_fragment" />
+            app:destination="@id/session_edit_fragment" />
     </fragment>
 
     <fragment

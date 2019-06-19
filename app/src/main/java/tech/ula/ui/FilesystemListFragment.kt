@@ -131,8 +131,8 @@ class FilesystemListFragment : Fragment() {
 
     private fun editFilesystem(filesystem: Filesystem): Boolean {
         val editExisting = filesystem.name != ""
-        val bundle = bundleOf("filesystem" to filesystem, "editExisting" to editExisting)
-        this.findNavController().navigate(R.id.action_filesystem_list_to_filesystem_edit, bundle)
+        val action = FilesystemListFragmentDirections.actionFilesystemListToFilesystemEdit(filesystem, editExisting)
+        this.findNavController().navigate(action)
         return true
     }
 
