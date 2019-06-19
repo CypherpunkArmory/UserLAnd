@@ -7,13 +7,21 @@
         android:name="tech.ula.ui.AppListFragment"
         android:label="@string/apps"
         tools:layout="@layout/frag_app_list" >
+        <action
+            android:id="@+id/action_app_list_to_app_details"
+            app:destination="@id/app_details_fragment" />
     </fragment>
 
     <fragment
-        android:id="@+id/menu_item_app_details"
+        android:id="@+id/app_details_fragment"
         android:name="tech.ula.ui.AppDetailsFragment"
         android:label="App Description"
         tools:layout="@layout/frag_app_details" >
+        <argument
+            android:name="app"
+            android:defaultValue="@null"
+            app:argType="tech.ula.model.entities.App"
+            app:nullable="true" />
     </fragment>
 
     <fragment
@@ -21,16 +29,28 @@
         android:name="tech.ula.ui.SessionListFragment"
         android:label="@string/sessions"
         tools:layout="@layout/frag_session_list" >
-        <argument android:name="session" android:defaultValue="null" />
-        <argument android:name="editExisting" android:defaultValue="false"/>
+        <action
+            android:id="@+id/action_session_list_to_session_edit"
+            app:destination="@id/session_list_fragment" />
     </fragment>
 
     <fragment
         android:id="@+id/session_edit_fragment"
         android:name="tech.ula.ui.SessionEditFragment"
         android:label="@string/edit_session"
-        tools:layout="@layout/frag_session_edit" />
-
+        tools:layout="@layout/frag_session_edit" >
+        <argument
+            android:name="session"
+            android:defaultValue="@null"
+            app:argType="tech.ula.model.entities.Session"
+            app:nullable="true"
+            />
+        <argument
+            android:name="editExisting"
+            android:defaultValue="false"
+            app:argType="boolean"/>
+    </fragment>
+    
     <fragment
         android:id="@+id/filesystem_list_fragment"
         android:name="tech.ula.ui.FilesystemListFragment"

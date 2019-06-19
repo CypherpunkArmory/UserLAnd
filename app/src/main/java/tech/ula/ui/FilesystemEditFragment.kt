@@ -44,9 +44,9 @@ class FilesystemEditFragment : Fragment() {
 
     private val IMPORT_FILESYSTEM_REQUEST_CODE = 5
 
-    private val filesystem: Filesystem by lazy {
-        arguments?.getParcelable("filesystem") as Filesystem
-    }
+//    private val filesystem: Filesystem by lazy {
+//        arguments?.getParcelable("filesystem") as Filesystem
+//    }
 
     private val editExisting: Boolean by lazy {
         arguments?.getBoolean("editExisting") ?: false

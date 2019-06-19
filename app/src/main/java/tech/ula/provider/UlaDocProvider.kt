@@ -43,7 +43,7 @@ class UlaDocProvider : DocumentsProvider() {
         } ?: result
     }
 
-    override fun openDocument(docId: String, mode: String, signal: CancellationSignal): ParcelFileDescriptor {
+    override fun openDocument(docId: String, mode: String, signal: CancellationSignal?): ParcelFileDescriptor {
         val file = getFileForDocId(docId)
         val accessMode = ParcelFileDescriptor.parseMode(mode)
         return ParcelFileDescriptor.open(file, accessMode)

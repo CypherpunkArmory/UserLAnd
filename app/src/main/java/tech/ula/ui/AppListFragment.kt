@@ -17,6 +17,7 @@ import android.view.MenuItem
 import android.view.MenuInflater
 import androidx.core.os.bundleOf
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 import kotlinx.android.synthetic.main.frag_app_list.* // ktlint-disable no-wildcard-imports
 import tech.ula.MainActivity
 import tech.ula.R
@@ -173,7 +174,7 @@ class AppListFragment : Fragment(),
 
     private fun showAppDetails(app: App): Boolean {
         val bundle = bundleOf("app" to app)
-        NavHostFragment.findNavController(this).navigate(R.id.menu_item_app_details, bundle)
+        this.findNavController().navigate(R.id.action_app_list_to_app_details, bundle)
         return true
     }
 

@@ -10,6 +10,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.* // ktlint-disable no-wildcard-imports
+import androidx.core.app.Person.fromBundle
 import androidx.core.os.bundleOf
 import androidx.navigation.fragment.NavHostFragment
 import kotlinx.android.synthetic.main.frag_session_edit.* // ktlint-disable no-wildcard-imports
@@ -25,7 +26,11 @@ class SessionEditFragment : Fragment() {
     private lateinit var activityContext: Activity
 
     private val session: Session by lazy {
-        arguments?.getParcelable("session") as Session
+//        arguments?.getParcelable("session")
+//        arguments!!.getParcelable("session")!! as Session
+        val session: Session = arguments!!.getParcelable("session")!!
+        session
+//        fromBundle(arguments!!).session
     }
 
     private val editExisting: Boolean by lazy {

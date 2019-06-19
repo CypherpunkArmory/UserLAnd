@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.RadioButton
 import android.widget.TextView
+import androidx.navigation.fragment.navArgs
 import kotlinx.android.synthetic.main.frag_app_details.* // ktlint-disable no-wildcard-imports
 import tech.ula.R
 import tech.ula.model.entities.App
@@ -19,8 +20,9 @@ class AppDetailsFragment : Fragment() {
 
     private lateinit var activityContext: Activity
 
-    private val app: App by lazy {
-        arguments?.getParcelable("app") as App
+    private val args: AppDetailsFragmentArgs by navArgs()
+    private val app by lazy {
+        args.app!!
     }
 
     private val appsPreferences by lazy {
