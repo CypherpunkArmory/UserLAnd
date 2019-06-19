@@ -6,7 +6,7 @@ import java.io.File
 class ServerUtility(
     private val applicationFilesDirPath: String,
     private val busyboxExecutor: BusyboxExecutor,
-    private val logger: LogUtility = LogUtility()
+    private val logger: Logger = SentryLogger()
 ) {
 
     fun Process.pid(): Long {
@@ -62,7 +62,9 @@ class ServerUtility(
         return when (result) {
             is OngoingExecution -> result.process.pid()
             is FailedExecution -> {
-                logger.logRuntimeErrorForCommand(functionName = "startSSHServer", command = command, err = result.reason)
+                val details = "func: startSshServer err: ${result.reason}"
+                val breadcrumb = UlaBreadcrumb("ServerUtility", BreadcrumbType.RuntimeError, details)
+                logger.addBreadcrumb(breadcrumb)
                 -1
             }
             else -> -1
@@ -86,7 +88,9 @@ class ServerUtility(
         return when (result) {
             is OngoingExecution -> result.process.pid()
             is FailedExecution -> {
-                logger.logRuntimeErrorForCommand(functionName = "startVNCServer", command = command, err = result.reason)
+                val details = "func: startVncServer err: ${result.reason}"
+                val breadcrumb = UlaBreadcrumb("ServerUtility", BreadcrumbType.RuntimeError, details)
+                logger.addBreadcrumb(breadcrumb)
                 -1
             }
             else -> -1
@@ -109,7 +113,9 @@ class ServerUtility(
         return when (result) {
             is OngoingExecution -> result.process.pid()
             is FailedExecution -> {
-                logger.logRuntimeErrorForCommand(functionName = "setDisplayNumberAndStartTwm", command = command, err = result.reason)
+                val details = "func: setDisplayNumberAndStartTwm err: ${result.reason}"
+                val breadcrumb = UlaBreadcrumb("ServerUtility", BreadcrumbType.RuntimeError, details)
+                logger.addBreadcrumb(breadcrumb)
                 -1
             }
             else -> -1
@@ -120,7 +126,9 @@ class ServerUtility(
         val command = "support/killProcTree.sh ${session.pid} ${session.pid()}"
         val result = busyboxExecutor.executeScript(command)
         if (result is FailedExecution) {
-            logger.logRuntimeErrorForCommand(functionName = "stopService", command = command, err = result.reason)
+            val details = "func: stopService err: ${result.reason}"
+            val breadcrumb = UlaBreadcrumb("ServerUtility", BreadcrumbType.RuntimeError, details)
+            logger.addBreadcrumb(breadcrumb)
         }
     }
 
@@ -133,7 +141,9 @@ class ServerUtility(
         return when (result) {
             is SuccessfulExecution -> true
             is FailedExecution -> {
-                logger.logRuntimeErrorForCommand(functionName = "isServerRunning", command = command, err = result.reason)
+                val details = "func: isServerRunning err: ${result.reason}"
+                val breadcrumb = UlaBreadcrumb("ServerUtility", BreadcrumbType.RuntimeError, details)
+                logger.addBreadcrumb(breadcrumb)
                 false
             }
             else -> false
