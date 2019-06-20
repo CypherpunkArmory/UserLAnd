@@ -356,7 +356,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private fun getDeviceDimensions(session: Session) {
         val deviceDimensions = DeviceDimensions()
         val windowManager = applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        deviceDimensions.getDeviceDimensions(windowManager, DisplayMetrics())
+
+        deviceDimensions.getDeviceDimensions(windowManager, DisplayMetrics(), applicationContext)
         session.geometry = deviceDimensions.getGeometry()
     }
 
