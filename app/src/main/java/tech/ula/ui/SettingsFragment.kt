@@ -6,7 +6,6 @@ import android.graphics.drawable.Drawable
 import android.os.Bundle
 import tech.ula.R
 import androidx.preference.PreferenceFragmentCompat
-import android.widget.Toast
 import androidx.preference.Preference
 import tech.ula.utils.ProotDebugLogger
 import tech.ula.utils.UlaFiles
