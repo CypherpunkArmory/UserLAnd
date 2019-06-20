@@ -27,7 +27,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
         val deleteFilePreference: Preference = findPreference("pref_proot_delete_debug_file")!!
         deleteFilePreference.setOnPreferenceClickListener {
             prootDebugLogger.deleteLogs()
-            Toast.makeText(activity, R.string.debug_log_deleted, Toast.LENGTH_LONG).show()
             true
         }
     }
