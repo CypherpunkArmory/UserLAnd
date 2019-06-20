@@ -8,8 +8,10 @@ import android.content.Context
 import android.content.ContentResolver
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.content.res.Resources
 import android.database.Cursor
+import android.graphics.Point
 import android.net.Uri
 import android.os.Build
 import android.os.StatFs
@@ -387,20 +389,38 @@ class LocalFileLocator(private val applicationFilesDir: String, private val reso
 }
 
 class DeviceDimensions {
-    private var width = 720
-    private var height = 1480
+    private var height = 720
+    private var width = 1480
 
-    fun getDeviceDimensions(windowManager: WindowManager, displayMetrics: DisplayMetrics) {
-        windowManager.defaultDisplay.getMetrics(displayMetrics)
-        width = displayMetrics.widthPixels
+    fun saveDeviceDimensions(windowManager: WindowManager, displayMetrics: DisplayMetrics, orientation: Int) {
+        val navBarSize = getNavigationBarSize(windowManager)
+        windowManager.defaultDisplay.getRealMetrics(displayMetrics)
         height = displayMetrics.heightPixels
+        width = displayMetrics.widthPixels
+        windowManager.defaultDisplay.getMetrics(displayMetrics)
+
+        when (orientation) {
+            Configuration.ORIENTATION_PORTRAIT -> if (navBarSize.y > 0) height += navBarSize.y
+            Configuration.ORIENTATION_LANDSCAPE -> if (navBarSize.x > 0) width += navBarSize.x
+            else -> return
+        }
     }
 
-    fun getGeometry(): String {
+    fun getScreenResolution(): String {
         return when (height > width) {
             true -> "${height}x$width"
             false -> "${width}x$height"
         }
+    }
+
+    private fun getNavigationBarSize(windowManager: WindowManager): Point {
+        val display = windowManager.defaultDisplay
+        val appSize = Point()
+        val screenSize = Point()
+        display.getSize(appSize)
+        display.getRealSize(screenSize)
+
+        return Point(screenSize.x - appSize.x, screenSize.y - appSize.y)
     }
 }
 

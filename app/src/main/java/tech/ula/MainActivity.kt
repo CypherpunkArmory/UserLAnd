@@ -345,18 +345,20 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 sendXsdlIntentToSetDisplayNumberAndExpectResult()
             }
             "vnc" -> {
-                getDeviceDimensions(session)
+                setVncResolution(session)
                 startSession(session)
             }
             else -> startSession(session)
         }
     }
 
-    private fun getDeviceDimensions(session: Session) {
+    private fun setVncResolution(session: Session) {
         val deviceDimensions = DeviceDimensions()
         val windowManager = applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        deviceDimensions.getDeviceDimensions(windowManager, DisplayMetrics())
-        session.geometry = deviceDimensions.getGeometry()
+
+        val orientation = applicationContext.resources.configuration.orientation
+        deviceDimensions.saveDeviceDimensions(windowManager, DisplayMetrics(), orientation)
+        session.geometry = deviceDimensions.getScreenResolution()
     }
 
     private fun startSession(session: Session) {
