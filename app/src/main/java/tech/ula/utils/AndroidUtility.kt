@@ -397,14 +397,14 @@ class DeviceDimensions {
         const val landscape = "SCREEN_ORIENTATION_LANDSCAPE"
     }
 
-    fun getDeviceDimensions(windowManager: WindowManager, displayMetrics: DisplayMetrics, context: Context) {
+    fun getDeviceDimensions(windowManager: WindowManager, displayMetrics: DisplayMetrics, orientation: Int) {
         val navBarSize = getNavigationBarSize(windowManager)
         windowManager.defaultDisplay.getRealMetrics(displayMetrics)
         height = displayMetrics.heightPixels
         width = displayMetrics.widthPixels
         windowManager.defaultDisplay.getMetrics(displayMetrics)
 
-        when (checkOrientation(context)) {
+        when (checkOrientation(orientation)) {
             portrait -> if (navBarSize.y > 0) height += navBarSize.y
             landscape -> if (navBarSize.x > 0) width += navBarSize.x
         }
@@ -420,8 +420,8 @@ class DeviceDimensions {
         return Point(realScreenSize.x - appUsableSize.x, realScreenSize.y - appUsableSize.y)
     }
 
-    private fun checkOrientation(context: Context): String {
-        return when (context.resources.configuration.orientation) {
+    private fun checkOrientation(orientation: Int): String {
+        return when (orientation) {
             Configuration.ORIENTATION_PORTRAIT -> portrait
             else -> landscape
         }
