@@ -8,8 +8,10 @@ import android.content.Context
 import android.content.ContentResolver
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.content.res.Resources
 import android.database.Cursor
+import android.graphics.Point
 import android.net.Uri
 import android.os.Build
 import android.os.StatFs
@@ -387,13 +389,42 @@ class LocalFileLocator(private val applicationFilesDir: String, private val reso
 }
 
 class DeviceDimensions {
-    private var width = 720
-    private var height = 1480
+    private var height = 720
+    private var width = 1480
 
-    fun getDeviceDimensions(windowManager: WindowManager, displayMetrics: DisplayMetrics) {
-        windowManager.defaultDisplay.getMetrics(displayMetrics)
-        width = displayMetrics.widthPixels
+    companion object {
+        const val portrait = "SCREEN_ORIENTATION_PORTRAIT"
+        const val landscape = "SCREEN_ORIENTATION_LANDSCAPE"
+    }
+
+    fun getDeviceDimensions(windowManager: WindowManager, displayMetrics: DisplayMetrics, context: Context) {
+        val navBarSize = getNavigationBarSize(windowManager)
+        windowManager.defaultDisplay.getRealMetrics(displayMetrics)
         height = displayMetrics.heightPixels
+        width = displayMetrics.widthPixels
+        windowManager.defaultDisplay.getMetrics(displayMetrics)
+
+        when (checkOrientation(context)) {
+            portrait -> if (navBarSize.y > 0) height += navBarSize.y
+            landscape -> if (navBarSize.x > 0) width += navBarSize.x
+        }
+    }
+
+    private fun getNavigationBarSize(windowManager: WindowManager): Point {
+        val appUsableSize = Point()
+        val realScreenSize = Point()
+        val display = windowManager.defaultDisplay
+        display.getSize(appUsableSize)
+        display.getRealSize(realScreenSize)
+
+        return Point(realScreenSize.x - appUsableSize.x, realScreenSize.y - appUsableSize. y)
+    }
+
+    private fun checkOrientation(context: Context): String {
+        return when (context.resources.configuration.orientation) {
+            Configuration.ORIENTATION_PORTRAIT -> portrait
+            else -> landscape
+        }
     }
 
     fun getGeometry(): String {
