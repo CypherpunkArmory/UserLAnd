@@ -28,7 +28,8 @@ class QWarningHandler(private val prefs: SharedPreferences, private val ulaFiles
     }
 
     private fun userHasFilesystems(): Boolean {
-        val hasFilesystems = ulaFiles.filesDir.listFiles().mapNotNull { it.name.toIntOrNull() }.isNotEmpty()
+        val files = ulaFiles.filesDir.listFiles() ?: return false
+        val hasFilesystems = files.mapNotNull { it.name.toIntOrNull() }.isNotEmpty()
         if (hasFilesystems) setMessageDisplayed()
         return hasFilesystems
     }

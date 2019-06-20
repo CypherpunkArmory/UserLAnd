@@ -33,7 +33,7 @@ class SessionEditViewModelTest {
 
     private lateinit var filesystemsLiveData: MutableLiveData<List<Filesystem>>
 
-    lateinit var sessionEditViewModel: SessionEditViewModel
+    private lateinit var sessionEditViewModel: SessionEditViewModel
 
     @Before
     fun setup() {

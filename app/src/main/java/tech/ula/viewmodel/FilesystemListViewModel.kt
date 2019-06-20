@@ -18,7 +18,6 @@ import kotlin.coroutines.CoroutineContext
 import tech.ula.model.entities.Session
 import tech.ula.utils.ExecutionResult
 import tech.ula.utils.FailedExecution
-import tech.ula.utils.SentryLogger
 import java.io.IOException
 
 sealed class FilesystemListViewState
@@ -35,7 +34,11 @@ sealed class FilesystemDeleteState : FilesystemListViewState() {
     object Failure : FilesystemDeleteState()
 }
 
-class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private val sessionDao: SessionDao, private val filesystemUtility: FilesystemUtility) : ViewModel(), CoroutineScope {
+class FilesystemListViewModel(
+    private val filesystemDao: FilesystemDao,
+    private val sessionDao: SessionDao,
+    private val filesystemUtility: FilesystemUtility
+) : ViewModel(), CoroutineScope {
 
     private val job = Job()
     override val coroutineContext: CoroutineContext
@@ -85,7 +88,6 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
             try {
                 filesystemUtility.deleteFilesystem(id)
             } catch (err: IOException) {
-                SentryLogger().sendEvent("FilesystemList delete failure")
                 viewState.postValue(FilesystemDeleteState.Failure)
                 return@withContext
             }
@@ -169,6 +171,7 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
 
 class FilesystemListViewmodelFactory(private val filesystemDao: FilesystemDao, private val sessionDao: SessionDao, private val filesystemUtility: FilesystemUtility) : ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        @Suppress("UNCHECKED_CAST")
         return FilesystemListViewModel(filesystemDao, sessionDao, filesystemUtility) as T
     }
 }

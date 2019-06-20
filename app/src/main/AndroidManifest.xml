@@ -19,6 +19,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
+        android:extractNativeLibs="true"
         tools:replace="android:allowBackup, android:label, android:supportsRtl, android:theme">
 
         <activity android:name=".MainActivity" android:launchMode="singleTask">

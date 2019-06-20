@@ -41,6 +41,7 @@ class AppListViewModel(
 
 class AppListViewModelFactory(private val appsRepository: AppsRepository) : ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        @Suppress("UNCHECKED_CAST")
         return AppListViewModel(appsRepository) as T
     }
 }

@@ -103,7 +103,8 @@ class FilesystemUtility(
         val supportDirectory = File(getSupportDirectoryPath(targetDirectoryName))
         if (!supportDirectory.exists() || !supportDirectory.isDirectory) return false
 
-        val supportDirectoryFileNames = supportDirectory.listFiles().map { it.name }
+        val supportFiles = supportDirectory.listFiles() ?: return false
+        val supportDirectoryFileNames = supportFiles.map { it.name }
         return distributionAssetList.all {
             supportDirectoryFileNames.contains(it.name)
         }

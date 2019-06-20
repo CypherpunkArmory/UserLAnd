@@ -19,7 +19,7 @@ import java.io.File
 class ServerService : Service() {
 
     companion object {
-        const val SERVER_SERVICE_RESULT = "tech.ula.ServerService.RESULT"
+        const val SERVER_SERVICE_RESULT: String = "tech.ula.ServerService.RESULT"
     }
 
     private val activeSessions: MutableMap<Long, Session> = mutableMapOf()
@@ -51,23 +51,22 @@ class ServerService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
-        val intentType = intent?.getStringExtra("type")
-        when (intentType) {
+        when (intent?.getStringExtra("type")) {
             "start" -> {
                 val coroutineScope = CoroutineScope(Dispatchers.Default)
-                val session: Session = intent.getParcelableExtra("session")
+                val session: Session = intent.getParcelableExtra("session")!!
                 coroutineScope.launch { startSession(session) }
             }
             "stopApp" -> {
-                val app: App = intent.getParcelableExtra("app")
+                val app: App = intent.getParcelableExtra("app")!!
                 stopApp(app)
             }
             "restartRunningSession" -> {
-                val session: Session = intent.getParcelableExtra("session")
+                val session: Session = intent.getParcelableExtra("session")!!
                 startClient(session)
             }
             "kill" -> {
-                val session: Session = intent.getParcelableExtra("session")
+                val session: Session = intent.getParcelableExtra("session")!!
                 killSession(session)
             }
             "filesystemIsBeingDeleted" -> {
@@ -81,7 +80,7 @@ class ServerService : Service() {
             }
         }
 
-        return Service.START_STICKY
+        return START_STICKY
     }
 
     // Used in conjunction with manifest attribute `android:stopWithTask="true"`
@@ -126,8 +125,7 @@ class ServerService : Service() {
     }
 
     private fun stopApp(app: App) {
-        val appSessions = activeSessions.filter {
-            (_, session) ->
+        val appSessions = activeSessions.filter { (_, session) ->
             session.name == app.name
         }
         appSessions.forEach { (_, session) ->
@@ -182,7 +180,7 @@ class ServerService : Service() {
 
     private fun clientIsPresent(intent: Intent): Boolean {
         val activities = packageManager.queryIntentActivities(intent, 0)
-        return(activities.size > 0)
+        return (activities.size > 0)
     }
 
     private fun getClient(packageName: String) {

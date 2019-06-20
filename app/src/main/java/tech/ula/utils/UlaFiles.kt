@@ -31,7 +31,7 @@ class UlaFiles(
     private fun setupLinks() {
         supportDir.mkdirs()
 
-        libDir.listFiles().forEach { libFile ->
+        libDir.listFiles()!!.forEach { libFile ->
             val name = libFile.name.toSupportName()
             val linkFile = File(supportDir, name)
             linkFile.delete()

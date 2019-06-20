@@ -25,10 +25,6 @@ interface SessionDao {
     @Query("select * from session where active = 1")
     fun findActiveSessions(): LiveData<List<Session>>
 
-    // TODO test
-    @Query("select * from session where active = 1 and isAppsSession = 1")
-    fun findActiveAppsSessions(): LiveData<List<Session>>
-
     @Insert(onConflict = OnConflictStrategy.ABORT)
     fun insertSession(session: Session)
 

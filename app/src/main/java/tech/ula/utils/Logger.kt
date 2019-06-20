@@ -1,6 +1,7 @@
 package tech.ula.utils
 
 import android.content.Context
+import android.util.Log
 import io.sentry.Sentry
 import io.sentry.android.AndroidSentryClientFactory
 import io.sentry.event.BreadcrumbBuilder
@@ -29,6 +30,11 @@ sealed class BreadcrumbType {
     object ObservedState : BreadcrumbType() {
         override fun toString(): String {
             return "State observed"
+        }
+    }
+    object RuntimeError : BreadcrumbType() {
+        override fun toString(): String {
+            return "Runtime error"
         }
     }
 }
@@ -64,6 +70,7 @@ class SentryLogger : Logger {
                 .setMessage(value)
                 .build()
         Sentry.getContext().recordBreadcrumb(sentryBreadcrumb)
+        Log.i("Breadcrumb", "$key $value")
     }
 
     override fun addExceptionBreadcrumb(err: Exception) {
@@ -85,6 +92,7 @@ class SentryLogger : Logger {
                 .withMessage(message)
                 .withLevel(Event.Level.ERROR)
         Sentry.capture(event)
+        Log.e("ILLEGAL_STATE", message)
     }
 
     override fun sendEvent(message: String) {
@@ -92,5 +100,6 @@ class SentryLogger : Logger {
                 .withMessage(message)
                 .withLevel(Event.Level.ERROR)
         Sentry.capture(event)
+        Log.e("EVENT", message)
     }
 }
