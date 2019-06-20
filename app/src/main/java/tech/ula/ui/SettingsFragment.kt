@@ -1,6 +1,5 @@
 package tech.ula.ui
 
-import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
@@ -9,16 +8,11 @@ import tech.ula.R
 import androidx.preference.PreferenceFragmentCompat
 import android.widget.Toast
 import androidx.preference.Preference
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import tech.ula.utils.ProotDebugLogger
 import tech.ula.utils.UlaFiles
 import tech.ula.utils.defaultSharedPreferences
 import tech.ula.utils.scopedStorageRoot
 import java.io.File
-import kotlin.coroutines.CoroutineContext
 
 class SettingsFragment : PreferenceFragmentCompat() {
 
