@@ -9,6 +9,7 @@ import android.provider.DocumentsContract.Document
 import android.provider.DocumentsProvider
 import android.webkit.MimeTypeMap
 import tech.ula.R
+import tech.ula.utils.UlaFiles
 import tech.ula.utils.scopedStorageRoot
 import java.io.File
 import java.io.FileNotFoundException
@@ -33,6 +34,10 @@ class UlaDocProvider : DocumentsProvider() {
             Document.COLUMN_FLAGS,
             Document.COLUMN_SIZE
     )
+
+    private val ulaFiles by lazy {
+        UlaFiles(context!!.filesDir, context!!.scopedStorageRoot, File(context!!.applicationInfo.nativeLibraryDir))
+    }
 
     override fun onCreate(): Boolean { return true }
 
@@ -95,7 +100,7 @@ class UlaDocProvider : DocumentsProvider() {
     }
 
     private fun addUlaRoots(result: MatrixCursor): Cursor {
-        val baseDir = File(context!!.scopedStorageRoot, "home")
+        val baseDir = ulaFiles.scopedUserDir
         result.newRow().apply {
             add(Root.COLUMN_TITLE, context!!.getString(R.string.app_name))
             // Root for Ula storage should be the files dir
