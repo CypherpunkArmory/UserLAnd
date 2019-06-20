@@ -392,11 +392,6 @@ class DeviceDimensions {
     private var height = 720
     private var width = 1480
 
-    companion object {
-        const val portrait = "SCREEN_ORIENTATION_PORTRAIT"
-        const val landscape = "SCREEN_ORIENTATION_LANDSCAPE"
-    }
-
     fun saveDeviceDimensions(windowManager: WindowManager, displayMetrics: DisplayMetrics, orientation: Int) {
         val navBarSize = getNavigationBarSize(windowManager)
         windowManager.defaultDisplay.getRealMetrics(displayMetrics)
@@ -404,26 +399,10 @@ class DeviceDimensions {
         width = displayMetrics.widthPixels
         windowManager.defaultDisplay.getMetrics(displayMetrics)
 
-        when (checkOrientation(orientation)) {
-            portrait -> if (navBarSize.y > 0) height += navBarSize.y
-            landscape -> if (navBarSize.x > 0) width += navBarSize.x
-        }
-    }
-
-    private fun getNavigationBarSize(windowManager: WindowManager): Point {
-        val appUsableSize = Point()
-        val realScreenSize = Point()
-        val display = windowManager.defaultDisplay
-        display.getSize(appUsableSize)
-        display.getRealSize(realScreenSize)
-
-        return Point(realScreenSize.x - appUsableSize.x, realScreenSize.y - appUsableSize.y)
-    }
-
-    private fun checkOrientation(orientation: Int): String {
-        return when (orientation) {
-            Configuration.ORIENTATION_PORTRAIT -> portrait
-            else -> landscape
+        when (orientation) {
+            Configuration.ORIENTATION_PORTRAIT -> if (navBarSize.y > 0) height += navBarSize.y
+            Configuration.ORIENTATION_LANDSCAPE -> if (navBarSize.x > 0) width += navBarSize.x
+            else -> return
         }
     }
 
@@ -432,6 +411,16 @@ class DeviceDimensions {
             true -> "${height}x$width"
             false -> "${width}x$height"
         }
+    }
+
+    private fun getNavigationBarSize(windowManager: WindowManager): Point {
+        val display = windowManager.defaultDisplay
+        val appSize = Point()
+        val screenSize = Point()
+        display.getSize(appSize)
+        display.getRealSize(screenSize)
+
+        return Point(screenSize.x - appSize.x, screenSize.y - appSize.y)
     }
 }
 
