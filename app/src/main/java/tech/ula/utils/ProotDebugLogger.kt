@@ -10,7 +10,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStream
 
-class ProotDebugLogger(defaultSharedPreferences: SharedPreferences, ulaFiles: UlaFiles) {
+class ProotDebugLogger(defaultSharedPreferences: SharedPreferences, private val ulaFiles: UlaFiles) {
     private val prefs = defaultSharedPreferences
 
     val isEnabled: Boolean
@@ -19,7 +19,7 @@ class ProotDebugLogger(defaultSharedPreferences: SharedPreferences, ulaFiles: Ul
     val verbosityLevel
         get() = prefs.getString("pref_proot_debug_level", "-1") ?: "-1"
 
-    val logName = "Proot_Debug_Log.txt"
+    private val logName = "Proot_Debug_Log.txt"
     private val logLocation = "${ulaFiles.scopedUserDir}/$logName"
 
     fun logStream(
@@ -39,20 +39,10 @@ class ProotDebugLogger(defaultSharedPreferences: SharedPreferences, ulaFiles: Ul
         writer.close()
     }
 
-    suspend fun copyLogToDestination(uri: Uri, contentResolver: ContentResolver): Boolean = withContext(Dispatchers.IO) {
-        val logFile = File(logLocation)
-        try {
-            contentResolver.openOutputStream(uri, "w")?.use { outputStream ->
-                    outputStream.write(logFile.readText().toByteArray())
-            }
-            return@withContext true
-        } catch (err: Exception) {
-            return@withContext false
+    fun deleteLogs() {
+        val scopedFiles = ulaFiles.scopedUserDir.listFiles() ?: return
+        for (file in scopedFiles) {
+            if (file.name.contains(logName)) file.delete()
         }
-    }
-
-    fun deleteLog() {
-        val logFile = File(logLocation)
-        if (logFile.exists()) logFile.delete()
     }
 }
