@@ -19,7 +19,7 @@ class ServerUtilityTest {
 
     @Mock lateinit var mockBusyboxExecutor: BusyboxExecutor
 
-    @Mock lateinit var mockLogUtility: LogUtility
+    @Mock lateinit var mockLogger: Logger
 
     @Mock lateinit var mockProcess: Process
 
@@ -55,7 +55,7 @@ class ServerUtilityTest {
     fun setup() {
         whenever(mockProcess.toString()).thenReturn("pid=$fakePid],")
 
-        serverUtility = ServerUtility(tempFolder.root.path, mockBusyboxExecutor, mockLogUtility)
+        serverUtility = ServerUtility(tempFolder.root.path, mockBusyboxExecutor, mockLogger)
     }
 
     @Test
@@ -103,7 +103,7 @@ class ServerUtilityTest {
 
         assertFalse(sshPidFile.exists())
         assertEquals(-1, result)
-        verify(mockLogUtility).logRuntimeErrorForCommand("startSSHServer", command, reason)
+        verify(mockLogger).addBreadcrumb(any())
     }
 
     @Test
@@ -155,7 +155,7 @@ class ServerUtilityTest {
 
         assertFalse(vncPidFile.exists())
         assertEquals(-1, result)
-        verify(mockLogUtility).logRuntimeErrorForCommand("startVNCServer", command, reason)
+        verify(mockLogger).addBreadcrumb(any())
     }
 
     @Test
@@ -213,7 +213,7 @@ class ServerUtilityTest {
 
         assertFalse(xsdlPidFile.exists())
         assertEquals(-1, result)
-        verify(mockLogUtility).logRuntimeErrorForCommand("setDisplayNumberAndStartTwm", command, reason)
+        verify(mockLogger).addBreadcrumb(any())
     }
 
     @Test
@@ -235,7 +235,7 @@ class ServerUtilityTest {
 
         serverUtility.stopService(session)
 
-        verify(mockLogUtility).logRuntimeErrorForCommand("stopService", command, reason)
+        verify(mockLogger).addBreadcrumb(any())
     }
 
     @Test
@@ -246,7 +246,7 @@ class ServerUtilityTest {
 
         assertTrue(result)
         verify(mockBusyboxExecutor, never()).executeScript(anyOrNull(), anyOrNull())
-        verify(mockLogUtility, never()).logRuntimeErrorForCommand(anyOrNull(), anyOrNull(), anyOrNull())
+        verify(mockLogger, never()).addBreadcrumb(any())
     }
 
     @Test
@@ -275,6 +275,6 @@ class ServerUtilityTest {
         val result = serverUtility.isServerRunning(session)
 
         assertFalse(result)
-        verify(mockLogUtility).logRuntimeErrorForCommand("isServerRunning", command, reason)
+        verify(mockLogger).addBreadcrumb(any())
     }
 }
