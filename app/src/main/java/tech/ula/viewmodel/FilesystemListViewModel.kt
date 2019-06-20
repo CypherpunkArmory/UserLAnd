@@ -18,7 +18,6 @@ import kotlin.coroutines.CoroutineContext
 import tech.ula.model.entities.Session
 import tech.ula.utils.ExecutionResult
 import tech.ula.utils.FailedExecution
-import tech.ula.utils.SentryLogger
 import java.io.IOException
 
 sealed class FilesystemListViewState
@@ -36,9 +35,9 @@ sealed class FilesystemDeleteState : FilesystemListViewState() {
 }
 
 class FilesystemListViewModel(
-        private val filesystemDao: FilesystemDao,
-        private val sessionDao: SessionDao,
-        private val filesystemUtility: FilesystemUtility
+    private val filesystemDao: FilesystemDao,
+    private val sessionDao: SessionDao,
+    private val filesystemUtility: FilesystemUtility
 ) : ViewModel(), CoroutineScope {
 
     private val job = Job()
