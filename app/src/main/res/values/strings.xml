@@ -155,8 +155,7 @@
     <string name="pref_proot_debugging_level_title">Debug Verbosity Level</string>
     <string name="pref_proot_debugging_level_summary">The higher the number, the greater the verbosity.</string>
     <string name="pref_proot_debugging_level_default">-1</string>
-    <string name="pref_proot_export_debug_file_title">Export Debug File</string>
-    <string name="pref_proot_delete_debug_file_title">Delete Debug File</string>
+    <string name="pref_proot_delete_debug_file_title">Delete Old Debug Files</string>
 
     <!-- Help Activity -->
     <string name="github_message">Experiencing bugs or want to request a feature? Our Github page is the best place to go to get a fast response.</string>

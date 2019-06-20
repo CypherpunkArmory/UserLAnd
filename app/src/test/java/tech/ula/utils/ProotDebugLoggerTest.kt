@@ -1,8 +1,6 @@
 package tech.ula.utils
 
-import android.content.ContentResolver
 import android.content.SharedPreferences
-import android.net.Uri
 import com.nhaarman.mockitokotlin2.whenever
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
@@ -14,7 +12,6 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import java.io.File
-import java.io.FileNotFoundException
 
 @RunWith(MockitoJUnitRunner::class)
 class ProotDebugLoggerTest {
@@ -24,10 +21,6 @@ class ProotDebugLoggerTest {
     @Mock lateinit var mockDefaultSharedPreferences: SharedPreferences
 
     @Mock lateinit var mockUlaFiles: UlaFiles
-
-    @Mock lateinit var mockContentResolver: ContentResolver
-
-    @Mock lateinit var mockUri: Uri
 
     private val logName = "Proot_Debug_Log.txt"
 
@@ -88,33 +81,15 @@ class ProotDebugLoggerTest {
     }
 
     @Test
-    fun `copyLogToDestination copies log to a URI-specified destination and returns true on success`() {
-        val originalText = "copy world"
-        val logFile = File(tempFolder.root, logName)
+    fun `deleteLogs deletes all files containing log name`() {
+        val logFile1 = File(tempFolder.root, "$logName-1")
+        val logFile2 = File(tempFolder.root, "$logName-2")
+        logFile1.createNewFile()
+        logFile2.createNewFile()
 
-        logFile.writeText(originalText)
+        prootDebugLogger.deleteLogs()
 
-        val destinationFile = File(tempFolder.root, "destination")
-
-        whenever(mockContentResolver.openOutputStream(mockUri, "w"))
-                .thenReturn(destinationFile.outputStream())
-
-        val result = runBlocking { prootDebugLogger.copyLogToDestination(mockUri, mockContentResolver) }
-
-        assertEquals(originalText, destinationFile.readText().trim())
-        assertTrue(result)
-    }
-
-    @Test
-    fun `copyLogToDestination returns false on failure if log file does not exist`() {
-        val destinationFile = File(tempFolder.root, "destination")
-
-        whenever(mockContentResolver.openOutputStream(mockUri, "w"))
-                .thenThrow(FileNotFoundException())
-
-        val result = runBlocking { prootDebugLogger.copyLogToDestination(mockUri, mockContentResolver) }
-
-        assertFalse(destinationFile.exists())
-        assertFalse(result)
+        assertFalse(logFile1.exists())
+        assertFalse(logFile2.exists())
     }
 }
