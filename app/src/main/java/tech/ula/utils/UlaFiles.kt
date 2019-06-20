@@ -11,7 +11,7 @@ class UlaFiles(
 ) {
 
     val supportDir: File = File(filesDir, "support")
-    val scopedUserDir: File = File(scopedDir, "home")
+    val scopedUserDir: File = File(scopedDir, "storage")
 
     init {
         scopedUserDir.mkdirs()
