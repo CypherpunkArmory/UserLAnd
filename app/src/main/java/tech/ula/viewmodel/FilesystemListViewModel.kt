@@ -35,7 +35,11 @@ sealed class FilesystemDeleteState : FilesystemListViewState() {
     object Failure : FilesystemDeleteState()
 }
 
-class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private val sessionDao: SessionDao, private val filesystemUtility: FilesystemUtility) : ViewModel(), CoroutineScope {
+class FilesystemListViewModel(
+        private val filesystemDao: FilesystemDao,
+        private val sessionDao: SessionDao,
+        private val filesystemUtility: FilesystemUtility
+) : ViewModel(), CoroutineScope {
 
     private val job = Job()
     override val coroutineContext: CoroutineContext
@@ -85,7 +89,6 @@ class FilesystemListViewModel(private val filesystemDao: FilesystemDao, private 
             try {
                 filesystemUtility.deleteFilesystem(id)
             } catch (err: IOException) {
-                SentryLogger().sendEvent("FilesystemList delete failure")
                 viewState.postValue(FilesystemDeleteState.Failure)
                 return@withContext
             }
