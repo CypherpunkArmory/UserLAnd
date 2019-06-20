@@ -16,21 +16,21 @@ import org.mockito.junit.MockitoJUnitRunner
 class DeviceDimensionsTest {
 
     @Mock
-    lateinit var deviceDimensions: DeviceDimensions
+    lateinit var mockDeviceDimensions: DeviceDimensions
 
     @Mock
-    lateinit var windowManager: WindowManager
+    lateinit var mockWindowManager: WindowManager
 
     @Mock
-    lateinit var displayMetrics: DisplayMetrics
+    lateinit var mockDisplayMetrics: DisplayMetrics
 
     @Mock
-    lateinit var defaultDisplay: Display
+    lateinit var mockDisplay: Display
 
     @Before
     fun setup() {
-        deviceDimensions = DeviceDimensions()
-        whenever(windowManager.defaultDisplay).thenReturn(defaultDisplay)
+        mockDeviceDimensions = DeviceDimensions()
+        whenever(mockWindowManager.defaultDisplay).thenReturn(mockDisplay)
     }
 
     private fun setDimensions(displayMetrics: DisplayMetrics, width: Int, height: Int) {
@@ -40,17 +40,17 @@ class DeviceDimensionsTest {
 
     @Test
     fun `Device dimensions that are taller in height will have the height value first`() {
-        setDimensions(displayMetrics, width = 100, height = 200)
-        deviceDimensions.getDeviceDimensions(windowManager, displayMetrics, Configuration.ORIENTATION_PORTRAIT)
-        val geometry = deviceDimensions.getGeometry()
+        setDimensions(mockDisplayMetrics, width = 100, height = 200)
+        mockDeviceDimensions.saveDeviceDimensions(mockWindowManager, mockDisplayMetrics, Configuration.ORIENTATION_PORTRAIT)
+        val geometry = mockDeviceDimensions.getScreenResolution()
         assertEquals(geometry, "200x100")
     }
 
     @Test
     fun `Device dimensions that are longer in width will have the width value first`() {
-        setDimensions(displayMetrics, width = 300, height = 200)
-        deviceDimensions.getDeviceDimensions(windowManager, displayMetrics, Configuration.ORIENTATION_PORTRAIT)
-        val geometry = deviceDimensions.getGeometry()
+        setDimensions(mockDisplayMetrics, width = 300, height = 200)
+        mockDeviceDimensions.saveDeviceDimensions(mockWindowManager, mockDisplayMetrics, Configuration.ORIENTATION_PORTRAIT)
+        val geometry = mockDeviceDimensions.getScreenResolution()
         assertEquals(geometry, "300x200")
     }
 }
