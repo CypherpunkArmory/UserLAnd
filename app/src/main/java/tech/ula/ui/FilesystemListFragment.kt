@@ -83,8 +83,10 @@ class FilesystemListFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return if (item.itemId == R.id.menu_item_add) editFilesystem(Filesystem(0))
-        else super.onOptionsItemSelected(item)
+        return if (item.itemId == R.id.menu_item_add) {
+            editFilesystem(Filesystem(0))
+            true
+        } else super.onOptionsItemSelected(item)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -110,12 +112,13 @@ class FilesystemListFragment : Fragment() {
         val menuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
         val position = menuInfo.position
         val filesystem = filesystemList[position]
-        return when (item.itemId) {
+        when (item.itemId) {
             R.id.menu_item_filesystem_edit -> editFilesystem(filesystem)
             R.id.menu_item_filesystem_delete -> deleteFilesystem(filesystem)
             R.id.menu_item_filesystem_export -> exportFilesystem(filesystem)
             else -> super.onContextItemSelected(item)
         }
+        return true
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -128,29 +131,30 @@ class FilesystemListFragment : Fragment() {
         }
     }
 
-    private fun editFilesystem(filesystem: Filesystem): Boolean {
+    private fun editFilesystem(filesystem: Filesystem) {
         val editExisting = filesystem.name != ""
         val bundle = bundleOf("filesystem" to filesystem, "editExisting" to editExisting)
         this.findNavController().navigate(R.id.filesystem_edit_fragment, bundle)
-        return true
     }
 
-    private fun deleteFilesystem(filesystem: Filesystem): Boolean {
+    private fun deleteFilesystem(filesystem: Filesystem) {
         val serviceIntent = Intent(activityContext, ServerService::class.java)
         serviceIntent.putExtra("type", "filesystemIsBeingDeleted")
         serviceIntent.putExtra("filesystemId", filesystem.id)
         activityContext.startService(serviceIntent)
 
         filesystemListViewModel.deleteFilesystemById(filesystem.id)
-        return true
     }
 
-    private fun exportFilesystem(filesystem: Filesystem): Boolean {
+    private fun exportFilesystem(filesystem: Filesystem) {
+        if (!PermissionHandler.permissionsAreGranted(activityContext)) {
+            PermissionHandler.showPermissionsNecessaryDialog(activityContext)
+            return
+        }
         val suggestedFilesystemBackupName = filesystemListViewModel.getFilesystemBackupName(filesystem)
         val intent = createExportExternalIntent(suggestedFilesystemBackupName)
         filesystemListViewModel.setFilesystemToBackup(filesystem)
         startActivityForResult(intent, FILESYSTEM_EXPORT_REQUEST_CODE)
-        return true
     }
 
     private fun createExportExternalIntent(backupName: String): Intent {

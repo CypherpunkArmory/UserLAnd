@@ -1,7 +1,5 @@
 package tech.ula
 
-import android.Manifest
-import android.annotation.TargetApi
 import android.app.AlertDialog
 import android.app.DownloadManager
 import androidx.lifecycle.Observer
@@ -10,7 +8,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
@@ -59,10 +56,6 @@ import java.io.File
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection, FilesystemListFragment.FilesystemListProgress {
 
     val className = "MainActivity"
-
-    private val permissionRequestCode: Int by lazy {
-        getString(R.string.permission_request_code).toInt()
-    }
 
     private var progressBarIsVisible = false
     private var currentFragmentDisplaysProgressDialog = false
@@ -301,8 +294,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     override fun appHasBeenSelected(app: App) {
-        if (!arePermissionsGranted(this)) {
-            showPermissionsNecessaryDialog()
+        if (!PermissionHandler.permissionsAreGranted(this)) {
+            PermissionHandler.showPermissionsNecessaryDialog(this)
             viewModel.waitForPermissions(appToContinue = app)
             return
         }
@@ -310,8 +303,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     override fun sessionHasBeenSelected(session: Session) {
-        if (!arePermissionsGranted(this)) {
-            showPermissionsNecessaryDialog()
+        if (!PermissionHandler.permissionsAreGranted(this)) {
+            PermissionHandler.showPermissionsNecessaryDialog(this)
             viewModel.waitForPermissions(sessionToContinue = session)
             return
         }
@@ -488,40 +481,12 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         CoroutineScope(Dispatchers.Main).launch { viewModel.handleClearSupportFiles(assetFileClearer) }
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
-    private fun showPermissionsNecessaryDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setMessage(R.string.alert_permissions_necessary_message)
-                .setTitle(R.string.alert_permissions_necessary_title)
-                .setPositiveButton(R.string.button_ok) {
-                    dialog, _ ->
-                    requestPermissions(arrayOf(
-                            Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                            permissionRequestCode)
-                    dialog.dismiss()
-                }
-                .setNegativeButton(R.string.alert_permissions_necessary_cancel_button) {
-                    dialog, _ ->
-                    dialog.dismiss()
-                }
-        builder.create().show()
-    }
-
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            permissionRequestCode -> {
-
-                val grantedPermissions = (grantResults.isNotEmpty() &&
-                        grantResults[0] == PackageManager.PERMISSION_GRANTED &&
-                        grantResults[1] == PackageManager.PERMISSION_GRANTED)
-
-                if (grantedPermissions) {
-                    viewModel.permissionsHaveBeenGranted()
-                } else {
-                    showPermissionsNecessaryDialog()
-                }
-            }
+        if (PermissionHandler.permissionsWereGranted(requestCode, grantResults)) {
+            viewModel.permissionsHaveBeenGranted()
+        } else {
+            PermissionHandler.showPermissionsNecessaryDialog(this)
         }
     }
 

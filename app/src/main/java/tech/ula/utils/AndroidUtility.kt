@@ -1,13 +1,11 @@
 package tech.ula.utils
 
-import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.DownloadManager
 import android.content.Context
 import android.content.ContentResolver
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.database.Cursor
@@ -16,7 +14,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.StatFs
 import android.system.Os
-import androidx.core.content.ContextCompat
 import android.util.DisplayMetrics
 import android.view.WindowManager
 import tech.ula.R
@@ -38,14 +35,6 @@ fun makePermissionsUsable(containingDirectoryPath: String, filename: String) {
 
     val process = pb.start()
     process.waitFor()
-}
-
-fun arePermissionsGranted(context: Context): Boolean {
-    return (ContextCompat.checkSelfPermission(context,
-            Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-
-            ContextCompat.checkSelfPermission(context,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
 }
 
 fun displayGenericErrorDialog(activity: Activity, titleId: Int, messageId: Int, callback: (() -> Unit) = {}) {
