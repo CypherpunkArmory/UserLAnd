@@ -417,7 +417,7 @@ class DeviceDimensions {
         display.getSize(appUsableSize)
         display.getRealSize(realScreenSize)
 
-        return Point(realScreenSize.x - appUsableSize.x, realScreenSize.y - appUsableSize. y)
+        return Point(realScreenSize.x - appUsableSize.x, realScreenSize.y - appUsableSize.y)
     }
 
     private fun checkOrientation(context: Context): String {
