@@ -397,7 +397,7 @@ class DeviceDimensions {
         const val landscape = "SCREEN_ORIENTATION_LANDSCAPE"
     }
 
-    fun getDeviceDimensions(windowManager: WindowManager, displayMetrics: DisplayMetrics, orientation: Int) {
+    fun saveDeviceDimensions(windowManager: WindowManager, displayMetrics: DisplayMetrics, orientation: Int) {
         val navBarSize = getNavigationBarSize(windowManager)
         windowManager.defaultDisplay.getRealMetrics(displayMetrics)
         height = displayMetrics.heightPixels
@@ -427,7 +427,7 @@ class DeviceDimensions {
         }
     }
 
-    fun getGeometry(): String {
+    fun getScreenResolution(): String {
         return when (height > width) {
             true -> "${height}x$width"
             false -> "${width}x$height"
