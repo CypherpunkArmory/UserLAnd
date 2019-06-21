@@ -116,8 +116,7 @@ class UserFeedbackPrompter(private val activity: Activity) : UserPrompter {
         get() = userHasGivenFeedback
 
     override fun viewShouldBeShown(): Boolean {
-        return true
-//        return askingForFeedbackIsAppropriate()
+        return askingForFeedbackIsAppropriate()
     }
 
     private fun askingForFeedbackIsAppropriate(): Boolean {
@@ -170,12 +169,14 @@ class UserFeedbackPrompter(private val activity: Activity) : UserPrompter {
 }
 
 class CollectionOptInPrompter(activity: Activity) : UserPrompter {
+    private val prefs = activity.defaultSharedPreferences
+    private val logger = SentryLogger()
+
     companion object {
         const val userHasOptedInPreference = "pref_opt_in"
+
         const val userHasBeenPromptedToOptIn = "optInChecked"
     }
-
-    private val prefs = activity.defaultSharedPreferences
 
     override val initialPrompt: Int
         get() = R.string.opt_in_help_prompt
@@ -207,11 +208,15 @@ class CollectionOptInPrompter(activity: Activity) : UserPrompter {
         get() = userHasBeenPrompted
 
     override fun viewShouldBeShown(): Boolean {
-        return true
-//        return !prefs.getBoolean(userHasBeenPromptedToOptIn, false)
+        return !prefs.getBoolean(userHasBeenPromptedToOptIn, false)
+    }
+
+    fun userHasOptedIn(): Boolean {
+        return prefs.getBoolean(userHasOptedInPreference, false)
     }
 
     private val setOptInOn = {
+        logger.initialize(activity)
         with (prefs.edit()) {
             putBoolean(userHasOptedInPreference, true)
             apply()

@@ -137,7 +137,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        logger.initialize(applicationContext)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
         notificationManager.createServiceNotificationChannel() // Android O requirement
@@ -165,6 +164,10 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         }
 
         handleQWarning()
+
+        if (optInPrompter.userHasOptedIn()) {
+            logger.initialize(this)
+        }
 
         viewModel.getState().observe(this, stateObserver)
     }
