@@ -48,7 +48,6 @@ import tech.ula.ui.AppListFragment
 import tech.ula.ui.SessionListFragment
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
-import kotlinx.android.synthetic.main.dia_app_select_client.*
 import tech.ula.ui.FilesystemListFragment
 import tech.ula.model.repositories.DownloadMetadata
 import java.io.File
@@ -75,8 +74,12 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         NotificationUtility(this)
     }
 
-    private val userFeedbackUtility by lazy {
-        UserFeedbackUtility(this.getSharedPreferences("usage", Context.MODE_PRIVATE))
+    private val userFeedbackPrompter by lazy {
+        UserFeedbackPrompter(this)
+    }
+
+    private val optInPrompter by lazy {
+        CollectionOptInPrompter(this)
     }
 
     private val downloadBroadcastReceiver = object : BroadcastReceiver() {
@@ -152,56 +155,18 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
         setupWithNavController(bottom_nav_view, navController)
 
-        userFeedbackUtility.incrementNumberOfTimesOpened()
-        if (userFeedbackUtility.askingForFeedbackIsAppropriate())
-            setupReviewRequestUI()
+        val promptViewHolder = findViewById<ViewGroup>(R.id.layout_user_prompt_insert)
+        if (userFeedbackPrompter.viewShouldBeShown()) {
+            userFeedbackPrompter.showView(promptViewHolder, this)
+        }
+
+        if (optInPrompter.viewShouldBeShown()) {
+            optInPrompter.showView(promptViewHolder, this)
+        }
 
         handleQWarning()
 
         viewModel.getState().observe(this, stateObserver)
-    }
-
-    private fun setupReviewRequestUI() {
-        val viewHolder = findViewById<ViewGroup>(R.id.request_review_insert_point)
-        layoutInflater.inflate(R.layout.list_item_review_request, viewHolder)
-
-        val requestQuestion = viewHolder.findViewById<TextView>(R.id.prompt_review_question)
-        val negativeBtn = viewHolder.findViewById<Button>(R.id.btn_negative_response)
-        val positiveBtn = viewHolder.findViewById<Button>(R.id.btn_positive_response)
-
-        positiveBtn.setOnClickListener {
-            requestQuestion.text = getString(R.string.review_ask_for_rating)
-            positiveBtn.text = getString(R.string.button_positive)
-            negativeBtn.text = getString(R.string.button_refuse)
-
-            positiveBtn.setOnClickListener {
-                handleUserFeedback(viewHolder)
-                val userlandPlayStoreURI = "https://play.google.com/store/apps/details?id=tech.ula"
-                val intent = Intent("android.intent.action.VIEW", Uri.parse(userlandPlayStoreURI))
-                startActivity(intent)
-            }
-
-            negativeBtn.setOnClickListener {
-                handleUserFeedback(viewHolder)
-            }
-        }
-
-        negativeBtn.setOnClickListener {
-            requestQuestion.text = getString(R.string.review_ask_for_feedback)
-            positiveBtn.text = getString(R.string.button_positive)
-            negativeBtn.text = getString(R.string.button_negative)
-
-            positiveBtn.setOnClickListener {
-                handleUserFeedback(viewHolder)
-                val githubURI = "https://github.com/CypherpunkArmory/UserLAnd"
-                val intent = Intent("android.intent.action.VIEW", Uri.parse(githubURI))
-                startActivity(intent)
-            }
-
-            negativeBtn.setOnClickListener {
-                handleUserFeedback(viewHolder)
-            }
-        }
     }
 
     private fun handleQWarning() {
@@ -226,11 +191,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private fun sendWikiIntent() {
         val intent = Intent("android.intent.action.VIEW", Uri.parse("https://github.com/CypherpunkArmory/UserLAnd/wiki"))
         startActivity(intent)
-    }
-
-    private fun handleUserFeedback(viewHolder: ViewGroup) {
-        userFeedbackUtility.userHasGivenFeedback()
-        viewHolder.removeAllViews()
     }
 
     private fun setNavStartDestination() {

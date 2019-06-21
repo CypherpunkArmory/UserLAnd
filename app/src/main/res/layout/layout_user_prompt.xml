@@ -8,7 +8,7 @@
     android:weightSum="1">
 
     <TextView
-        android:id="@+id/prompt_review_question"
+        android:id="@+id/text_prompt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="4dp"
