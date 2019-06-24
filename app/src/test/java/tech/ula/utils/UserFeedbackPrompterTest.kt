@@ -2,18 +2,26 @@ package tech.ula.utils
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
+import android.net.Uri
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
+import tech.ula.R
 
 @RunWith(MockitoJUnitRunner::class)
-class UserPrompterTest {
+class UserFeedbackPrompterTest {
+
+    @get:Rule
+    val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     @Mock lateinit var mockActivity: Activity
 
@@ -23,7 +31,7 @@ class UserPrompterTest {
 
     private val minimumTimesAppOpenedToShowReview = 16
 
-    lateinit var prompter: UserPrompter
+    lateinit var prompter: UserFeedbackPrompter
 
     private fun appOpenedNumberOfDaysAgo(days: Int) {
         val millisecondsInOneDay = 86400000L
@@ -42,7 +50,8 @@ class UserPrompterTest {
                 .thenReturn(userGaveFeedback)
     }
 
-    private fun initUserFeedbackPrompter() {
+    @Before
+    fun setup() {
         whenever(mockActivity.getSharedPreferences(UserFeedbackPrompter.prefString, Context.MODE_PRIVATE))
                 .thenReturn(mockSharedPrefs)
         whenever(mockSharedPrefs.edit()).thenReturn(mockSharedPrefsEditor)
@@ -50,12 +59,25 @@ class UserPrompterTest {
     }
 
     @Test
+    fun `View snapshot`() {
+        assertEquals(R.string.review_is_user_enjoying, prompter.initialPrompt)
+        assertEquals(R.string.button_yes, prompter.initialPosBtnText)
+        assertEquals(R.string.button_negative, prompter.initialNegBtnText)
+
+        assertEquals(R.string.review_ask_for_rating, prompter.primaryRequest)
+        assertEquals(R.string.button_positive, prompter.primaryPosBtnText)
+        assertEquals(R.string.button_refuse, prompter.primaryNegBtnText)
+
+        assertEquals(R.string.review_ask_for_feedback, prompter.secondaryRequest)
+        assertEquals(R.string.button_positive, prompter.secondaryPosBtnText)
+        assertEquals(R.string.button_negative, prompter.secondaryNegBtnText)
+    }
+
+    @Test
     fun `Asking for feedback is not appropriate if app opened for first time today`() {
         setTimesAppOpened(minimumTimesAppOpenedToShowReview)
         setUserGaveFeedback(false)
         appOpenedNumberOfDaysAgo(0)
-
-        initUserFeedbackPrompter()
 
         assertFalse(prompter.viewShouldBeShown())
     }
@@ -66,8 +88,6 @@ class UserPrompterTest {
         setUserGaveFeedback(false)
         appOpenedNumberOfDaysAgo(4)
 
-        initUserFeedbackPrompter()
-
         assertTrue(prompter.viewShouldBeShown())
     }
 
@@ -76,8 +96,6 @@ class UserPrompterTest {
         setTimesAppOpened(minimumTimesAppOpenedToShowReview)
         setUserGaveFeedback(false)
         appOpenedNumberOfDaysAgo(2)
-
-        initUserFeedbackPrompter()
 
         assertFalse(prompter.viewShouldBeShown())
     }
@@ -88,8 +106,6 @@ class UserPrompterTest {
         setUserGaveFeedback(true)
         appOpenedNumberOfDaysAgo(3)
 
-        initUserFeedbackPrompter()
-
         assertFalse(prompter.viewShouldBeShown())
     }
 
@@ -98,8 +114,6 @@ class UserPrompterTest {
         setTimesAppOpened(minimumTimesAppOpenedToShowReview - 5)
         setUserGaveFeedback(false)
         appOpenedNumberOfDaysAgo(3)
-
-        initUserFeedbackPrompter()
 
         assertFalse(prompter.viewShouldBeShown())
     }
