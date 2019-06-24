@@ -20,9 +20,6 @@ import tech.ula.R
 @RunWith(MockitoJUnitRunner::class)
 class UserFeedbackPrompterTest {
 
-    @get:Rule
-    val instantTaskExecutorRule = InstantTaskExecutorRule()
-
     @Mock lateinit var mockActivity: Activity
 
     @Mock lateinit var mockSharedPrefs: SharedPreferences

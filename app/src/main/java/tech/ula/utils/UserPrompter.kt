@@ -179,7 +179,7 @@ class CollectionOptInPrompter(activity: Activity) : UserPrompter {
     companion object {
         const val userHasOptedInPreference = "pref_opt_in"
 
-        const val userHasBeenPromptedToOptIn = "optInChecked"
+        const val userHasBeenPromptedToOptIn = "opt_in_checked"
     }
 
     override val initialPrompt: Int
