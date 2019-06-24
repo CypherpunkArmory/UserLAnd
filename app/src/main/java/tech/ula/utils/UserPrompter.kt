@@ -130,7 +130,7 @@ class UserFeedbackPrompter(private val activity: Activity) : UserPrompter {
     }
 
     private val userHasGivenFeedback = {
-        with (prefs.edit()) {
+        with(prefs.edit()) {
             putBoolean(userGaveFeedbackKey, true)
             apply()
         }
@@ -160,7 +160,7 @@ class UserFeedbackPrompter(private val activity: Activity) : UserPrompter {
     }
 
     private fun setNumberOfTimesOpened(numberTimesOpened: Int) {
-        with (prefs.edit()) {
+        with(prefs.edit()) {
             if (numberTimesOpened == 1) putLong(dateTimeFirstOpenKey, System.currentTimeMillis())
             putInt(numberOfTimesOpenedKey, numberTimesOpened)
             apply()

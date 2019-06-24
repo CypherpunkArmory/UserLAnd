@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
-import org.junit.Assert.*
+import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
