@@ -1,5 +1,7 @@
 package tech.ula.utils
 
+import android.app.Activity
+import android.content.Context
 import android.content.SharedPreferences
 import com.nhaarman.mockitokotlin2.whenever
 import org.junit.Assert.assertFalse
@@ -11,36 +13,40 @@ import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 
 @RunWith(MockitoJUnitRunner::class)
-class UserFeedbackUtilityTest {
+class UserPrompterTest {
 
-    @Mock
-    lateinit var userFeedbackUtility: UserFeedbackUtility
+    @Mock lateinit var mockActivity: Activity
 
-    @Mock
-    lateinit var sharedPrefs: SharedPreferences
+    @Mock lateinit var mockSharedPrefs: SharedPreferences
+
+    @Mock lateinit var mockSharedPrefsEditor: SharedPreferences.Editor
 
     private val minimumTimesAppOpenedToShowReview = 16
 
-    @Before
-    fun setup() {
-        userFeedbackUtility = UserFeedbackUtility(sharedPrefs)
-    }
+    lateinit var prompter: UserPrompter
 
     private fun appOpenedNumberOfDaysAgo(days: Int) {
         val millisecondsInOneDay = 86400000L
         val millisecondsNow = System.currentTimeMillis()
-        whenever(sharedPrefs.getLong("dateTimeFirstOpen", 0))
+        whenever(mockSharedPrefs.getLong("dateTimeFirstOpen", 0))
                 .thenReturn(millisecondsNow - (millisecondsInOneDay * days))
     }
 
     private fun setTimesAppOpened(numberOfTimesOpened: Int) {
-        whenever(sharedPrefs.getInt("numberOfTimesOpened", 1))
+        whenever(mockSharedPrefs.getInt("numberOfTimesOpened", 0))
                 .thenReturn(numberOfTimesOpened)
     }
 
     private fun setUserGaveFeedback(userGaveFeedback: Boolean) {
-        whenever(sharedPrefs.getBoolean("userGaveFeedback", false))
+        whenever(mockSharedPrefs.getBoolean("userGaveFeedback", false))
                 .thenReturn(userGaveFeedback)
+    }
+
+    private fun initUserFeedbackPrompter() {
+        whenever(mockActivity.getSharedPreferences(UserFeedbackPrompter.prefString, Context.MODE_PRIVATE))
+                .thenReturn(mockSharedPrefs)
+        whenever(mockSharedPrefs.edit()).thenReturn(mockSharedPrefsEditor)
+        prompter = UserFeedbackPrompter(mockActivity)
     }
 
     @Test
@@ -49,7 +55,9 @@ class UserFeedbackUtilityTest {
         setUserGaveFeedback(false)
         appOpenedNumberOfDaysAgo(0)
 
-        assertFalse(userFeedbackUtility.askingForFeedbackIsAppropriate())
+        initUserFeedbackPrompter()
+
+        assertFalse(prompter.viewShouldBeShown())
     }
 
     @Test
@@ -58,7 +66,9 @@ class UserFeedbackUtilityTest {
         setUserGaveFeedback(false)
         appOpenedNumberOfDaysAgo(4)
 
-        assertTrue(userFeedbackUtility.askingForFeedbackIsAppropriate())
+        initUserFeedbackPrompter()
+
+        assertTrue(prompter.viewShouldBeShown())
     }
 
     @Test
@@ -67,7 +77,9 @@ class UserFeedbackUtilityTest {
         setUserGaveFeedback(false)
         appOpenedNumberOfDaysAgo(2)
 
-        assertFalse(userFeedbackUtility.askingForFeedbackIsAppropriate())
+        initUserFeedbackPrompter()
+
+        assertFalse(prompter.viewShouldBeShown())
     }
 
     @Test
@@ -76,7 +88,9 @@ class UserFeedbackUtilityTest {
         setUserGaveFeedback(true)
         appOpenedNumberOfDaysAgo(3)
 
-        assertFalse(userFeedbackUtility.askingForFeedbackIsAppropriate())
+        initUserFeedbackPrompter()
+
+        assertFalse(prompter.viewShouldBeShown())
     }
 
     @Test
@@ -85,6 +99,8 @@ class UserFeedbackUtilityTest {
         setUserGaveFeedback(false)
         appOpenedNumberOfDaysAgo(3)
 
-        assertFalse(userFeedbackUtility.askingForFeedbackIsAppropriate())
+        initUserFeedbackPrompter()
+
+        assertFalse(prompter.viewShouldBeShown())
     }
 }

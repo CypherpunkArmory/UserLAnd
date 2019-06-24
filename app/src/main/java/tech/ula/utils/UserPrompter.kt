@@ -3,7 +3,6 @@ package tech.ula.utils
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.net.Uri
 import android.view.ViewGroup
 import android.widget.Button
@@ -38,36 +37,36 @@ interface UserPrompter {
         prompt.text = activity.getString(initialPrompt)
 
         posBtn.text = activity.getString(initialPosBtnText)
-        posBtn.setOnClickListener initial@ {
+        posBtn.setOnClickListener initial@{
             prompt.text = activity.getString(primaryRequest)
 
             posBtn.text = activity.getString(primaryPosBtnText)
-            posBtn.setOnClickListener primary@ {
+            posBtn.setOnClickListener primary@{
                 primaryPositiveBtnAction()
                 finishedAction()
                 viewGroup.removeView(view)
             }
 
             negBtn.text = activity.getString(primaryNegBtnText)
-            negBtn.setOnClickListener primary@ {
+            negBtn.setOnClickListener primary@{
                 finishedAction()
                 viewGroup.removeView(view)
             }
         }
 
         negBtn.text = activity.getString(initialNegBtnText)
-        negBtn.setOnClickListener initial@ {
+        negBtn.setOnClickListener initial@{
             prompt.text = activity.getString(secondaryRequest)
 
             posBtn.text = activity.getString(secondaryPosBtnText)
-            posBtn.setOnClickListener secondary@ {
+            posBtn.setOnClickListener secondary@{
                 secondaryPositiveBtnAction()
                 finishedAction()
                 viewGroup.removeView(view)
             }
 
             negBtn.text = activity.getString(secondaryNegBtnText)
-            negBtn.setOnClickListener secondary@ {
+            negBtn.setOnClickListener secondary@{
                 finishedAction()
                 viewGroup.removeView(view)
             }
@@ -78,8 +77,11 @@ interface UserPrompter {
 }
 
 class UserFeedbackPrompter(private val activity: Activity) : UserPrompter {
-    private val prefString = "usage"
+    companion object {
+        const val prefString = "usage"
+    }
     private val prefs = activity.getSharedPreferences(prefString, Context.MODE_PRIVATE)
+
     private val numberOfTimesOpenedKey = "numberOfTimesOpened"
     private val userGaveFeedbackKey = "userGaveFeedback"
     private val dateTimeFirstOpenKey = "dateTimeFirstOpen"
@@ -115,22 +117,6 @@ class UserFeedbackPrompter(private val activity: Activity) : UserPrompter {
     override val finishedAction: () -> Unit
         get() = userHasGivenFeedback
 
-    override fun viewShouldBeShown(): Boolean {
-        return askingForFeedbackIsAppropriate()
-    }
-
-    private fun askingForFeedbackIsAppropriate(): Boolean {
-        return getIsSufficientTimeElapsedSinceFirstOpen() && numberOfTimesOpenedIsGreaterThanThreshold() && !getUserGaveFeedback()
-    }
-
-    private fun incrementNumberOfTimesOpened(numberTimesOpened: Int) {
-        with(prefs.edit()) {
-            if (numberTimesOpened == 1) putLong(dateTimeFirstOpenKey, System.currentTimeMillis())
-            putInt(numberOfTimesOpenedKey, numberTimesOpened + 1)
-            apply()
-        }
-    }
-
     private val sendReviewIntent = {
         val userlandPlayStoreURI = "https://play.google.com/store/apps/details?id=tech.ula"
         val intent = Intent("android.intent.action.VIEW", Uri.parse(userlandPlayStoreURI))
@@ -144,14 +130,20 @@ class UserFeedbackPrompter(private val activity: Activity) : UserPrompter {
     }
 
     private val userHasGivenFeedback = {
-        with(prefs.edit()) {
+        with (prefs.edit()) {
             putBoolean(userGaveFeedbackKey, true)
             apply()
         }
     }
 
-    private fun getUserGaveFeedback(): Boolean {
-        return prefs.getBoolean(userGaveFeedbackKey, false)
+    override fun viewShouldBeShown(): Boolean {
+        return askingForFeedbackIsAppropriate()
+    }
+
+    private fun askingForFeedbackIsAppropriate(): Boolean {
+        return getIsSufficientTimeElapsedSinceFirstOpen() &&
+                numberOfTimesOpenedIsGreaterThanThreshold() &&
+                !getUserGaveFeedback()
     }
 
     private fun getIsSufficientTimeElapsedSinceFirstOpen(): Boolean {
@@ -163,8 +155,20 @@ class UserFeedbackPrompter(private val activity: Activity) : UserPrompter {
 
     private fun numberOfTimesOpenedIsGreaterThanThreshold(): Boolean {
         val numberTimesOpened = prefs.getInt(numberOfTimesOpenedKey, 0) + 1
-        incrementNumberOfTimesOpened(numberTimesOpened)
+        setNumberOfTimesOpened(numberTimesOpened)
         return numberTimesOpened > minimumNumberOfOpensBeforeReviewRequest
+    }
+
+    private fun setNumberOfTimesOpened(numberTimesOpened: Int) {
+        with (prefs.edit()) {
+            if (numberTimesOpened == 1) putLong(dateTimeFirstOpenKey, System.currentTimeMillis())
+            putInt(numberOfTimesOpenedKey, numberTimesOpened)
+            apply()
+        }
+    }
+
+    private fun getUserGaveFeedback(): Boolean {
+        return prefs.getBoolean(userGaveFeedbackKey, false)
     }
 }
 
@@ -217,14 +221,14 @@ class CollectionOptInPrompter(activity: Activity) : UserPrompter {
 
     private val setOptInOn = {
         logger.initialize(activity)
-        with (prefs.edit()) {
+        with(prefs.edit()) {
             putBoolean(userHasOptedInPreference, true)
             apply()
         }
     }
 
     private val userHasBeenPrompted = {
-        with (prefs.edit()) {
+        with(prefs.edit()) {
             putBoolean(userHasBeenPromptedToOptIn, true)
             apply()
         }

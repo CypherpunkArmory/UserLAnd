@@ -41,6 +41,7 @@ inline val Context.scopedStorageRoot: File
     }
 
 inline val Context.defaultSharedPreferences: SharedPreferences
+//    get() = this.getSharedPreferences("${this.packageName}_preferences", Context.MODE_PRIVATE)
     get() = PreferenceManager.getDefaultSharedPreferences(this)
 
 inline fun <reified T : View> View.find(@IdRes id: Int): T = findViewById(id)
