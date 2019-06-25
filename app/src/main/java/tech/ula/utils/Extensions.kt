@@ -7,7 +7,6 @@ import android.view.View
 import androidx.annotation.IdRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
-import androidx.preference.PreferenceManager
 import java.io.File
 
 fun <A, B> zipLiveData(a: LiveData<A>, b: LiveData<B>): LiveData<Pair<A, B>> {
@@ -41,7 +40,7 @@ inline val Context.scopedStorageRoot: File
     }
 
 inline val Context.defaultSharedPreferences: SharedPreferences
-    get() = PreferenceManager.getDefaultSharedPreferences(this)
+    get() = this.getSharedPreferences("${this.packageName}_preferences", Context.MODE_PRIVATE)
 
 inline fun <reified T : View> View.find(@IdRes id: Int): T = findViewById(id)
 inline fun <reified T : View> Dialog.find(@IdRes id: Int): T = findViewById(id)
