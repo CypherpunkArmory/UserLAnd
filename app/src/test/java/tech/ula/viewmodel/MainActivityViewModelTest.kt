@@ -266,6 +266,25 @@ class MainActivityViewModelTest {
     }
 
     @Test
+    fun `handleSessionHasBeenActivated resets startup state`() {
+        mainActivityViewModel.lastSelectedApp = selectedApp
+        mainActivityViewModel.lastSelectedSession = selectedSession
+        mainActivityViewModel.lastSelectedFilesystem = selectedFilesystem
+
+        mainActivityViewModel.handleSessionHasBeenActivated()
+
+        assertEquals(mainActivityViewModel.lastSelectedApp, unselectedApp)
+        assertEquals(mainActivityViewModel.lastSelectedSession, unselectedSession)
+        assertEquals(mainActivityViewModel.lastSelectedFilesystem, unselectedFilesystem)
+
+        verify(mockStateObserver).onChanged(WaitingForInput)
+        runBlocking {
+            verify(mockAppsStartupFsm).submitEvent(ResetAppState, mainActivityViewModel)
+            verify(mockSessionStartupFsm).submitEvent(ResetSessionState, mainActivityViewModel)
+        }
+    }
+
+    @Test
     fun `Posts ClearingSupportFiles and ProgressBarOperationComplete if clearing succeeds`() = runBlocking {
         whenever(mockSessionStartupFsm.sessionsAreActive())
                 .thenReturn(false)
@@ -756,20 +775,12 @@ class MainActivityViewModelTest {
     }
 
     @Test
-    fun `Posts SessionCanBeStarted and resets state when observing ExtractionHasCompletedSuccessfully`() {
+    fun `Posts SessionCanBeStarted  when observing ExtractionHasCompletedSuccessfully`() {
         makeSessionSelections()
 
         sessionStartupStateLiveData.postValue(ExtractionHasCompletedSuccessfully)
 
         verify(mockStateObserver).onChanged(SessionCanBeStarted(selectedSession))
-        assertEquals(unselectedApp, mainActivityViewModel.lastSelectedApp)
-        assertEquals(unselectedSession, mainActivityViewModel.lastSelectedSession)
-        assertEquals(unselectedFilesystem, mainActivityViewModel.lastSelectedFilesystem)
-        runBlocking {
-            verify(mockStateObserver).onChanged(WaitingForInput)
-            verify(mockSessionStartupFsm).submitEvent(ResetSessionState, mainActivityViewModel)
-            verify(mockAppsStartupFsm).submitEvent(ResetAppState, mainActivityViewModel)
-        }
     }
 
     @Test
