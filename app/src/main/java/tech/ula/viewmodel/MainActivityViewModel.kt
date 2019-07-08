@@ -164,6 +164,10 @@ class MainActivityViewModel(
         submitSessionStartupEvent(DownloadAssets(downloadRequirements))
     }
 
+    fun handleSessionHasBeenActivated() {
+        resetStartupState()
+    }
+
     suspend fun handleClearSupportFiles(assetFileClearer: AssetFileClearer) {
         if (sessionStartupFsm.sessionsAreActive()) {
             state.postValue(ActiveSessionsMustBeDeactivated)
@@ -367,7 +371,6 @@ class MainActivityViewModel(
             is ExtractingFilesystem -> state.postValue(FilesystemExtractionStep(newState.extractionTarget))
             is ExtractionHasCompletedSuccessfully -> { doTransitionIfRequirementsAreSelected {
                 state.value = SessionCanBeStarted(lastSelectedSession)
-                resetStartupState()
             } }
             is ExtractionFailed -> postIllegalStateWithLog(FailedToExtractFilesystem(newState.reason))
         }

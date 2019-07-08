@@ -360,6 +360,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleSessionHasBeenActivated() {
+        viewModel.handleSessionHasBeenActivated()
         killProgressBar()
     }
 
