@@ -220,9 +220,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         super.onResume()
 
         viewModel.handleOnResume()
-        val intent = Intent(this, ServerService::class.java)
-                .putExtra("type", "isProgressBarActive")
-        this.startService(intent)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
