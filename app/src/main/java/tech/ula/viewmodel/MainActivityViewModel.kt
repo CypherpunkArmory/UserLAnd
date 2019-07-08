@@ -41,7 +41,9 @@ class MainActivityViewModel(
 
     private val sessionState = sessionStartupFsm.getState()
 
-    private val state = MediatorLiveData<State>()
+    private val state = MediatorLiveData<State>().apply {
+        postValue(WaitingForInput)
+    }
 
     private fun postIllegalStateWithLog(newState: IllegalState) {
         logger.sendIllegalStateLog(newState)

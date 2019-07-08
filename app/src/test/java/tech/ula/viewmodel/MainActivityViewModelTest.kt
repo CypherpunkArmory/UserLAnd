@@ -84,8 +84,8 @@ class MainActivityViewModelTest {
     }
 
     @Test
-    fun `State does not initially publish onChanged event`() {
-        verify(mockStateObserver, never()).onChanged(any())
+    fun `State is initially WaitingForInput`() {
+        verify(mockStateObserver).onChanged(WaitingForInput)
     }
 
     @Test
