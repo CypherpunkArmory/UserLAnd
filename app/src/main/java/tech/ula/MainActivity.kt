@@ -141,15 +141,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         notificationManager.createServiceNotificationChannel() // Android O requirement
 
         setNavStartDestination()
-
-        navController.addOnDestinationChangedListener { _, destination, _ ->
-            currentFragmentDisplaysProgressDialog =
-                    destination.label == getString(R.string.sessions) ||
-                    destination.label == getString(R.string.apps) ||
-                    destination.label == getString(R.string.filesystems)
-            if (!currentFragmentDisplaysProgressDialog) killProgressBar()
-            else if (progressBarIsVisible) displayProgressBar()
-        }
+        setProgressDialogNavListeners()
 
         setupWithNavController(bottom_nav_view, navController)
 
@@ -171,6 +163,27 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         viewModel.getState().observe(this, stateObserver)
     }
 
+    private fun setNavStartDestination() {
+        val userPreference = defaultSharedPreferences.getString("pref_default_nav_location", "Apps")
+        val graph = navController.navInflater.inflate(R.navigation.nav_graph)
+        graph.startDestination = when (userPreference) {
+            getString(R.string.sessions) -> R.id.session_list_fragment
+            else -> R.id.app_list_fragment
+        }
+        navController.graph = graph
+    }
+
+    private fun setProgressDialogNavListeners() {
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            currentFragmentDisplaysProgressDialog =
+                    destination.label == getString(R.string.sessions) ||
+                            destination.label == getString(R.string.apps) ||
+                            destination.label == getString(R.string.filesystems)
+            if (!currentFragmentDisplaysProgressDialog) killProgressBar()
+            else if (progressBarIsVisible) displayProgressBar()
+        }
+    }
+
     private fun handleQWarning() {
         val handler = QWarningHandler(this.getSharedPreferences(QWarningHandler.prefsString, Context.MODE_PRIVATE), ulaFiles)
         if (handler.messageShouldBeDisplayed()) {
@@ -188,24 +201,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                     .create().show()
             handler.messageHasBeenDisplayed()
         }
-    }
-
-    private fun sendWikiIntent() {
-        val intent = Intent("android.intent.action.VIEW", Uri.parse("https://github.com/CypherpunkArmory/UserLAnd/wiki"))
-        startActivity(intent)
-    }
-
-    private fun setNavStartDestination() {
-        val navHostFragment = nav_host_fragment as NavHostFragment
-        val inflater = navHostFragment.navController.navInflater
-        val graph = inflater.inflate(R.navigation.nav_graph)
-
-        val userPreference = defaultSharedPreferences.getString("pref_default_nav_location", "Apps")
-        graph.startDestination = when (userPreference) {
-            getString(R.string.sessions) -> R.id.session_list_fragment
-            else -> R.id.app_list_fragment
-        }
-        navHostFragment.navController.graph = graph
     }
 
     override fun onSupportNavigateUp() = navController.navigateUp()
@@ -245,6 +240,11 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         return NavigationUI.onNavDestinationSelected(item,
                 Navigation.findNavController(this, R.id.nav_host_fragment)) ||
                 super.onOptionsItemSelected(item)
+    }
+
+    private fun sendWikiIntent() {
+        val intent = Intent("android.intent.action.VIEW", Uri.parse("https://github.com/CypherpunkArmory/UserLAnd/wiki"))
+        startActivity(intent)
     }
 
     override fun onStop() {
