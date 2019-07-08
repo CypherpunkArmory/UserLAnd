@@ -372,7 +372,7 @@ class MainActivityViewModel(
         return when (newState) {
             is ExtractingFilesystem -> state.postValue(FilesystemExtractionStep(newState.extractionTarget))
             is ExtractionHasCompletedSuccessfully -> { doTransitionIfRequirementsAreSelected {
-                state.value = SessionCanBeStarted(lastSelectedSession)
+                state.postValue(SessionCanBeStarted(lastSelectedSession))
             } }
             is ExtractionFailed -> postIllegalStateWithLog(FailedToExtractFilesystem(newState.reason))
         }
