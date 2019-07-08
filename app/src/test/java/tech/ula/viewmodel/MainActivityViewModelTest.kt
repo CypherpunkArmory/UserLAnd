@@ -240,6 +240,7 @@ class MainActivityViewModelTest {
         assertEquals(mainActivityViewModel.lastSelectedFilesystem, unselectedFilesystem)
 
         runBlocking {
+            verify(mockStateObserver).onChanged(WaitingForInput)
             verify(mockAppsStartupFsm).submitEvent(ResetAppState, mainActivityViewModel)
             verify(mockSessionStartupFsm).submitEvent(ResetSessionState, mainActivityViewModel)
         }
@@ -664,6 +665,7 @@ class MainActivityViewModelTest {
         assertEquals(unselectedSession, mainActivityViewModel.lastSelectedSession)
         assertEquals(unselectedFilesystem, mainActivityViewModel.lastSelectedFilesystem)
         runBlocking {
+            verify(mockStateObserver).onChanged(WaitingForInput)
             verify(mockSessionStartupFsm).submitEvent(ResetSessionState, mainActivityViewModel)
             verify(mockAppsStartupFsm).submitEvent(ResetAppState, mainActivityViewModel)
         }
@@ -764,6 +766,7 @@ class MainActivityViewModelTest {
         assertEquals(unselectedSession, mainActivityViewModel.lastSelectedSession)
         assertEquals(unselectedFilesystem, mainActivityViewModel.lastSelectedFilesystem)
         runBlocking {
+            verify(mockStateObserver).onChanged(WaitingForInput)
             verify(mockSessionStartupFsm).submitEvent(ResetSessionState, mainActivityViewModel)
             verify(mockAppsStartupFsm).submitEvent(ResetAppState, mainActivityViewModel)
         }

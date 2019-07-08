@@ -366,7 +366,7 @@ class MainActivityViewModel(
         return when (newState) {
             is ExtractingFilesystem -> state.postValue(FilesystemExtractionStep(newState.extractionTarget))
             is ExtractionHasCompletedSuccessfully -> { doTransitionIfRequirementsAreSelected {
-                state.postValue(SessionCanBeStarted(lastSelectedSession))
+                state.value = SessionCanBeStarted(lastSelectedSession)
                 resetStartupState()
             } }
             is ExtractionFailed -> postIllegalStateWithLog(FailedToExtractFilesystem(newState.reason))
@@ -377,6 +377,7 @@ class MainActivityViewModel(
         lastSelectedApp = unselectedApp
         lastSelectedSession = unselectedSession
         lastSelectedFilesystem = unselectedFilesystem
+        state.postValue(WaitingForInput)
         submitAppsStartupEvent(ResetAppState)
         submitSessionStartupEvent(ResetSessionState)
     }
@@ -415,6 +416,7 @@ class MainActivityViewModel(
 }
 
 sealed class State
+object WaitingForInput : State()
 object CanOnlyStartSingleSession : State()
 data class SessionCanBeStarted(val session: Session) : State()
 data class SessionCanBeRestarted(val session: Session) : State()

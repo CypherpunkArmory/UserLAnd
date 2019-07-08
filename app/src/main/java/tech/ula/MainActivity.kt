@@ -271,6 +271,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     private fun handleStateUpdate(newState: State) {
         return when (newState) {
+            is WaitingForInput -> { killProgressBar() }
             is CanOnlyStartSingleSession -> { showToast(R.string.single_session_supported) }
             is SessionCanBeStarted -> { prepareSessionForStart(newState.session) }
             is SessionCanBeRestarted -> { restartRunningSession(newState.session) }
