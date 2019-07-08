@@ -3,7 +3,6 @@ package tech.ula.utils
 import android.app.Dialog
 import android.content.Context
 import android.content.SharedPreferences
-import android.preference.PreferenceManager
 import android.view.View
 import androidx.annotation.IdRes
 import androidx.lifecycle.LiveData
@@ -33,15 +32,15 @@ fun <A, B> zipLiveData(a: LiveData<A>, b: LiveData<B>): LiveData<Pair<A, B>> {
     }
 }
 
-inline val Context.storageRoot: File
+inline val Context.scopedStorageRoot: File
     get() = this.getExternalFilesDir(null) ?: run {
-        val storageRoot = File(this.filesDir, "storage")
-        storageRoot.mkdirs()
-        storageRoot
+        val scopedStorageRoot = File(this.filesDir, "storage")
+        scopedStorageRoot.mkdirs()
+        scopedStorageRoot
     }
 
 inline val Context.defaultSharedPreferences: SharedPreferences
-    get() = PreferenceManager.getDefaultSharedPreferences(this)
+    get() = this.getSharedPreferences("${this.packageName}_preferences", Context.MODE_PRIVATE)
 
 inline fun <reified T : View> View.find(@IdRes id: Int): T = findViewById(id)
 inline fun <reified T : View> Dialog.find(@IdRes id: Int): T = findViewById(id)

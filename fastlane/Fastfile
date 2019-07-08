@@ -10,53 +10,50 @@
 #     https://docs.fastlane.tools/plugins/available-plugins
 #
 
+require "active_support"
+require "active_support/core_ext"
+
 update_fastlane
 
 default_platform(:android)
 
 platform :android do
 
-  desc "Update changelogs based on latest version code"
-  lane :update_changelogs do
-    gradle(task: "reportVersionCode")
-    version_code = File.read("../app/versionCode.txt")
+  version_code = File.read("../app/versionCode.txt")
 
-    changelog = changelog_from_git_commits(merge_commit_filtering: "exclude_merges", pretty: "- %s")
+  changelog = changelog_from_git_commits(merge_commit_filtering: "exclude_merges", pretty: "- %s")
 
-    changelogs_dir = "metadata/android/en-US/changelogs"
-    changelog_file = changelogs_dir + "/" + version_code + ".txt"
+  changelogs_dir = "metadata/android/en-US/changelogs"
+  changelog_file = changelogs_dir + "/" + version_code + ".txt"
 
-    sh("mkdir", "-p", changelogs_dir)
-    File.open(changelog_file, 'w') do |file|
-      file.write changelog
-    end
+  sh("mkdir", "-p", changelogs_dir)
+  File.open(changelog_file, 'w') do |file|
+    file.write changelog.truncate(500, omission: ' ... see full notes on Github')
   end
 
-    desc "Release to Github"
-    lane :github_release do
-      gradle(task: "reportVersionCode")
-      version_code = File.read("../app/versionCode.txt")
-      changelogs_dir = "metadata/android/en-US/changelogs"
-      changelog_file = changelogs_dir + "/" + version_code + ".txt"
+  desc "Release to Github"
+  lane :github_release do
+    version_name = File.read("../app/versionName.txt")
+    release_name = "v" + version_name
 
-      gradle(task: "reportVersionName")
-      version_name = File.read("../app/versionName.txt")
-      release_name = "v" + version_name
+    set_github_release(
+      repository_name: "CypherpunkArmory/UserLAnd",
+      api_token: ENV["GITHUB_RELEASE_TOKEN"],
+      name: release_name,
+      tag_name: release_name,
+      description: (changelog rescue "No changelog provided"),
+      commitish: "releases",
+      upload_assets: ["app/build/outputs/apk/release/app-release.apk"]
+    )
+  end
 
-      set_github_release(
-        repository_name: "CypherpunkArmory/UserLAnd",
-        api_token: ENV["GITHUB_RELEASE_TOKEN"],
-        name: release_name,
-        tag_name: release_name,
-        description: (File.read(changelog_file) rescue "No changelog provided"),
-        commitish: "releases",
-        upload_assets: ["app/build/outputs/apk/release/app-release.apk"]
-      )
-    end
+  desc "Deploy a new version to Google Play beta track"
+  lane :deploy_beta do
+    supply(apk: "app/build/outputs/apk/beta/app-beta.apk", track: "beta")
+  end
 
-  desc "Deploy a new version to the Google Play"
-  lane :deploy do
-    update_changelogs
+  desc "Deploy a new version to the Google Play production track and Github releases"
+  lane :deploy_production do
     github_release
     supply(apk: "app/build/outputs/apk/release/app-release.apk")
   end

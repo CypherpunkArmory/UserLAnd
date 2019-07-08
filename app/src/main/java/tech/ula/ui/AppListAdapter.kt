@@ -230,7 +230,7 @@ class AppsListDiffCallBack(
     private val newActiveApps: List<App> = oldActiveApps
 ) : DiffUtil.Callback() {
 
-    var activeStateChange = false
+    private var activeStateChange = false
 
     override fun getOldListSize(): Int {
         return oldAppsItemList.size

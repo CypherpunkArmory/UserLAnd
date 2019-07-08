@@ -1,20 +1,19 @@
 package tech.ula.utils
 
-import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.DownloadManager
 import android.content.Context
 import android.content.ContentResolver
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.content.res.Resources
 import android.database.Cursor
+import android.graphics.Point
 import android.net.Uri
 import android.os.Build
 import android.os.StatFs
 import android.system.Os
-import androidx.core.content.ContextCompat
 import android.util.DisplayMetrics
 import android.view.WindowManager
 import tech.ula.R
@@ -36,14 +35,6 @@ fun makePermissionsUsable(containingDirectoryPath: String, filename: String) {
 
     val process = pb.start()
     process.waitFor()
-}
-
-fun arePermissionsGranted(context: Context): Boolean {
-    return (ContextCompat.checkSelfPermission(context,
-            Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-
-            ContextCompat.checkSelfPermission(context,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
 }
 
 fun displayGenericErrorDialog(activity: Activity, titleId: Int, messageId: Int, callback: (() -> Unit) = {}) {
@@ -387,63 +378,37 @@ class LocalFileLocator(private val applicationFilesDir: String, private val reso
 }
 
 class DeviceDimensions {
-    private var width = 720
-    private var height = 1480
+    private var height = 720
+    private var width = 1480
 
-    fun getDeviceDimensions(windowManager: WindowManager, displayMetrics: DisplayMetrics) {
-        windowManager.defaultDisplay.getMetrics(displayMetrics)
-        width = displayMetrics.widthPixels
+    fun saveDeviceDimensions(windowManager: WindowManager, displayMetrics: DisplayMetrics, orientation: Int) {
+        val navBarSize = getNavigationBarSize(windowManager)
+        windowManager.defaultDisplay.getRealMetrics(displayMetrics)
         height = displayMetrics.heightPixels
+        width = displayMetrics.widthPixels
+        windowManager.defaultDisplay.getMetrics(displayMetrics)
+
+        when (orientation) {
+            Configuration.ORIENTATION_PORTRAIT -> if (navBarSize.y > 0) height += navBarSize.y
+            Configuration.ORIENTATION_LANDSCAPE -> if (navBarSize.x > 0) width += navBarSize.x
+            else -> return
+        }
     }
 
-    fun getGeometry(): String {
+    fun getScreenResolution(): String {
         return when (height > width) {
             true -> "${height}x$width"
             false -> "${width}x$height"
         }
     }
-}
 
-class UserFeedbackUtility(private val prefs: SharedPreferences) {
-    private val numberOfTimesOpenedKey = "numberOfTimesOpened"
-    private val userGaveFeedbackKey = "userGaveFeedback"
-    private val dateTimeFirstOpenKey = "dateTimeFirstOpen"
-    private val millisecondsInThreeDays = 259200000L
-    private val minimumNumberOfOpensBeforeReviewRequest = 15
+    private fun getNavigationBarSize(windowManager: WindowManager): Point {
+        val display = windowManager.defaultDisplay
+        val appSize = Point()
+        val screenSize = Point()
+        display.getSize(appSize)
+        display.getRealSize(screenSize)
 
-    fun askingForFeedbackIsAppropriate(): Boolean {
-        return getIsSufficientTimeElapsedSinceFirstOpen() && numberOfTimesOpenedIsGreaterThanThreshold() && !getUserGaveFeedback()
-    }
-
-    fun incrementNumberOfTimesOpened() {
-        with(prefs.edit()) {
-            val numberTimesOpened = prefs.getInt(numberOfTimesOpenedKey, 1)
-            if (numberTimesOpened == 1) putLong(dateTimeFirstOpenKey, System.currentTimeMillis())
-            putInt(numberOfTimesOpenedKey, numberTimesOpened + 1)
-            apply()
-        }
-    }
-
-    fun userHasGivenFeedback() {
-        with(prefs.edit()) {
-            putBoolean(userGaveFeedbackKey, true)
-            apply()
-        }
-    }
-
-    private fun getUserGaveFeedback(): Boolean {
-        return prefs.getBoolean(userGaveFeedbackKey, false)
-    }
-
-    private fun getIsSufficientTimeElapsedSinceFirstOpen(): Boolean {
-        val dateTimeFirstOpened = prefs.getLong(dateTimeFirstOpenKey, 0L)
-        val dateTimeWithSufficientTimeElapsed = dateTimeFirstOpened + millisecondsInThreeDays
-
-        return (System.currentTimeMillis() > dateTimeWithSufficientTimeElapsed)
-    }
-
-    private fun numberOfTimesOpenedIsGreaterThanThreshold(): Boolean {
-        val numberTimesOpened = prefs.getInt(numberOfTimesOpenedKey, 1)
-        return numberTimesOpened > minimumNumberOfOpensBeforeReviewRequest
+        return Point(screenSize.x - appSize.x, screenSize.y - appSize.y)
     }
 }

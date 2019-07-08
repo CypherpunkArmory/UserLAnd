@@ -1,8 +1,7 @@
 package tech.ula.utils
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.File
+import java.lang.NullPointerException
 
 class UlaFiles(
     val filesDir: File,
@@ -12,6 +11,13 @@ class UlaFiles(
 ) {
 
     val supportDir: File = File(filesDir, "support")
+    val scopedUserDir: File = File(scopedDir, "storage")
+
+    init {
+        scopedUserDir.mkdirs()
+
+        setupLinks()
+    }
 
     val busybox = File(supportDir, "busybox")
     val proot = File(supportDir, "proot")
@@ -21,10 +27,11 @@ class UlaFiles(
         return this.substringAfter("lib_").substringBeforeLast(".so")
     }
 
-    suspend fun setupLinks() = withContext(Dispatchers.IO) {
+    @Throws(NullPointerException::class, NoSuchFileException::class, Exception::class)
+    private fun setupLinks() {
         supportDir.mkdirs()
 
-        libDir.listFiles().forEach { libFile ->
+        libDir.listFiles()!!.forEach { libFile ->
             val name = libFile.name.toSupportName()
             val linkFile = File(supportDir, name)
             linkFile.delete()

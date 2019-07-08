@@ -3,18 +3,22 @@ package tech.ula.utils
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
-import java.lang.Exception
 
 class AssetFileClearer(
-    private val filesDir: File,
+    private val ulaFiles: UlaFiles,
     private val assetDirectoryNames: Set<String>,
     private val busyboxExecutor: BusyboxExecutor,
     private val logger: Logger = SentryLogger()
 ) {
-    @Throws(Exception::class)
+    @Throws(FileNotFoundException::class, IllegalStateException::class)
     suspend fun clearAllSupportAssets() {
-        if (!filesDir.exists()) {
+        if (!ulaFiles.filesDir.exists()) {
             val exception = FileNotFoundException()
+            logger.addExceptionBreadcrumb(exception)
+            throw exception
+        }
+        if (!ulaFiles.busybox.exists()) {
+            val exception = IllegalStateException("Busybox missing")
             logger.addExceptionBreadcrumb(exception)
             throw exception
         }
@@ -24,21 +28,12 @@ class AssetFileClearer(
 
     @Throws(IOException::class)
     private suspend fun clearTopLevelAssets(assetDirectoryNames: Set<String>) {
-        val supportDirName = "support"
-        for (file in filesDir.listFiles()) {
+        val files = ulaFiles.filesDir.listFiles() ?: return
+        for (file in files) {
             if (!file.isDirectory) continue
             if (!assetDirectoryNames.contains(file.name)) continue
-            // Removing the support directory must happen last since it contains busybox
-            if (file.name == supportDirName) continue
+            if (file.name == "support") continue
             if (busyboxExecutor.recursivelyDelete(file.absolutePath) !is SuccessfulExecution) {
-                val exception = IOException()
-                logger.addExceptionBreadcrumb(exception)
-                throw exception
-            }
-        }
-        val supportDir = File("${filesDir.absolutePath}/$supportDirName")
-        if (supportDir.exists()) {
-            if (busyboxExecutor.recursivelyDelete(supportDir.absolutePath) !is SuccessfulExecution) {
                 val exception = IOException()
                 logger.addExceptionBreadcrumb(exception)
                 throw exception
@@ -48,13 +43,15 @@ class AssetFileClearer(
 
     @Throws(IOException::class)
     private suspend fun clearFilesystemSupportAssets() {
-        for (file in filesDir.listFiles()) {
+        val files = ulaFiles.filesDir.listFiles() ?: return
+        for (file in files) {
             if (!file.isDirectory || file.name.toIntOrNull() == null) continue
 
             val supportDirectory = File("${file.absolutePath}/support")
             if (!supportDirectory.exists() || !supportDirectory.isDirectory) continue
 
-            for (supportFile in supportDirectory.listFiles()) {
+            val supportFiles = supportDirectory.listFiles() ?: continue
+            for (supportFile in supportFiles) {
                 // Exclude directories and hidden files.
                 if (supportFile.isDirectory || supportFile.name.first() == '.') continue
                 // Use deleteRecursively to match functionality above

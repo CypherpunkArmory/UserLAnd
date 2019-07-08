@@ -13,6 +13,12 @@
             android:entryValues="@array/default_landing_pages"
             android:defaultValue="@string/apps"
             app:iconSpaceReserved="false"/>
+        <CheckBoxPreference
+            android:key="pref_opt_in"
+            android:title="@string/opt_in_preference"
+            android:summary="@string/opt_in_preference_summary"
+            android:defaultValue="false"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
     <PreferenceCategory
         android:title="@string/pref_proot_category"
@@ -33,11 +39,6 @@
             android:entryValues="@array/proot_debug_levels"
             android:defaultValue="@string/pref_proot_debugging_level_default"
             app:iconSpaceReserved="false"/>
-        <Preference
-            android:dependency="pref_proot_debug_enabled"
-            android:key="pref_proot_export_debug_file"
-            android:title="@string/pref_proot_export_debug_file_title"
-            app:iconSpaceReserved="false" />
         <Preference
             android:dependency="pref_proot_debug_enabled"
             android:key="pref_proot_delete_debug_file"

@@ -93,7 +93,7 @@ class GithubApiClientTest {
 
     @Test
     fun `JsonClass correctly generate ReleasesResponse`() {
-        val adapter = moshi.adapter<GithubApiClient.ReleasesResponse>(GithubApiClient.ReleasesResponse::class.java)
+        val adapter = moshi.adapter(GithubApiClient.ReleasesResponse::class.java)
         val releasesResponse: GithubApiClient.ReleasesResponse = adapter.fromJson(json)!!
 
         assertEquals(testUrl, releasesResponse.url)

@@ -22,11 +22,11 @@ class BusyboxExecutorTest {
 
     @Mock lateinit var mockUlaFiles: UlaFiles
 
-    lateinit var mockFilesDir: File
+    private lateinit var mockFilesDir: File
 
-    lateinit var mockExternalStorage: File
+    private lateinit var mockExternalStorage: File
 
-    lateinit var mockFilesystemDir: File
+    private lateinit var mockFilesystemDir: File
 
     @Mock lateinit var mockProotDebugLogger: ProotDebugLogger
 

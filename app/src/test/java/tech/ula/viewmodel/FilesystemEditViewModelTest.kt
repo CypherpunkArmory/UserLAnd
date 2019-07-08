@@ -42,7 +42,7 @@ class FilesystemEditViewModelTest {
 
     @Mock lateinit var mockBackupUri: Uri
 
-    lateinit var filesystemEditViewModel: FilesystemEditViewModel
+    private lateinit var filesystemEditViewModel: FilesystemEditViewModel
 
     @Before
     fun setup() {

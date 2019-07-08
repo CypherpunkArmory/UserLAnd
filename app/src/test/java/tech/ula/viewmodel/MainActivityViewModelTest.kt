@@ -19,6 +19,8 @@ import tech.ula.model.entities.Session
 import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import java.io.FileNotFoundException
+import java.lang.IllegalStateException
 
 @RunWith(MockitoJUnitRunner::class)
 class MainActivityViewModelTest {
@@ -279,7 +281,7 @@ class MainActivityViewModelTest {
         whenever(mockSessionStartupFsm.sessionsAreActive())
                 .thenReturn(false)
         whenever(mockAssetFileClearer.clearAllSupportAssets())
-                .thenThrow(Exception())
+                .thenThrow(FileNotFoundException())
 
         mainActivityViewModel.handleClearSupportFiles(mockAssetFileClearer)
 
@@ -287,6 +289,21 @@ class MainActivityViewModelTest {
         verify(mockStateObserver).onChanged(ClearingSupportFiles)
         verify(mockStateObserver).onChanged(FailedToClearSupportFiles)
         verify(mockLogger).sendIllegalStateLog(FailedToClearSupportFiles)
+    }
+
+    @Test
+    fun `Posts BusyboxMissing if busybox is missing during clearing`() = runBlocking {
+        whenever(mockSessionStartupFsm.sessionsAreActive())
+                .thenReturn(false)
+        whenever(mockAssetFileClearer.clearAllSupportAssets())
+                .thenThrow(IllegalStateException())
+
+        mainActivityViewModel.handleClearSupportFiles(mockAssetFileClearer)
+
+        verify(mockAssetFileClearer).clearAllSupportAssets()
+        verify(mockStateObserver).onChanged(ClearingSupportFiles)
+        verify(mockStateObserver).onChanged(BusyboxMissing)
+        verify(mockLogger).sendIllegalStateLog(BusyboxMissing)
     }
 
     // Private function tests.

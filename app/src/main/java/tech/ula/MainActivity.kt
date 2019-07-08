@@ -1,7 +1,5 @@
 package tech.ula
 
-import android.Manifest
-import android.annotation.TargetApi
 import android.app.AlertDialog
 import android.app.DownloadManager
 import androidx.lifecycle.Observer
@@ -10,14 +8,12 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.os.StatFs
 import com.google.android.material.textfield.TextInputEditText
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -29,7 +25,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.animation.AlphaAnimation
-import android.widget.Button
 import android.widget.RadioButton
 import android.widget.TextView
 import android.widget.Toast
@@ -52,26 +47,21 @@ import tech.ula.ui.AppListFragment
 import tech.ula.ui.SessionListFragment
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
-import kotlinx.android.synthetic.main.dia_app_select_client.*
 import tech.ula.ui.FilesystemListFragment
 import tech.ula.model.repositories.DownloadMetadata
 import java.io.File
 
-class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection, FilesystemListFragment.ExportFilesystem {
+class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection, FilesystemListFragment.FilesystemListProgress {
 
     val className = "MainActivity"
-
-    private val permissionRequestCode: Int by lazy {
-        getString(R.string.permission_request_code).toInt()
-    }
 
     private var progressBarIsVisible = false
     private var currentFragmentDisplaysProgressDialog = false
 
     private val logger = SentryLogger()
-    private val ulaFiles by lazy { UlaFiles(this.filesDir, this.storageRoot, File(this.applicationInfo.nativeLibraryDir)) }
+    private val ulaFiles by lazy { UlaFiles(this.filesDir, this.scopedStorageRoot, File(this.applicationInfo.nativeLibraryDir)) }
     private val busyboxExecutor by lazy {
-        val prootDebugLogger = ProotDebugLogger(this.defaultSharedPreferences, this.storageRoot.path)
+        val prootDebugLogger = ProotDebugLogger(this.defaultSharedPreferences, ulaFiles)
         BusyboxExecutor(ulaFiles, prootDebugLogger)
     }
 
@@ -83,8 +73,12 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         NotificationUtility(this)
     }
 
-    private val userFeedbackUtility by lazy {
-        UserFeedbackUtility(this.getSharedPreferences("usage", Context.MODE_PRIVATE))
+    private val userFeedbackPrompter by lazy {
+        UserFeedbackPrompter(this)
+    }
+
+    private val optInPrompter by lazy {
+        CollectionOptInPrompter(this)
     }
 
     private val downloadBroadcastReceiver = object : BroadcastReceiver() {
@@ -126,11 +120,11 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val assetRepository = AssetRepository(filesDir.path, assetPreferences)
 
         val filesystemUtility = FilesystemUtility(filesDir.path, busyboxExecutor)
-        val storageUtility = StorageUtility(StatFs(Environment.getExternalStorageDirectory().path))
+        val storageUtility = StorageUtility(StatFs(filesDir.path))
 
         val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val downloadManagerWrapper = DownloadManagerWrapper(downloadManager)
-        val downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, filesDir, this.storageRoot)
+        val downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, filesDir, this.scopedStorageRoot)
 
         val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
 
@@ -142,24 +136,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        logger.initialize(applicationContext)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
         notificationManager.createServiceNotificationChannel() // Android O requirement
-        try {
-            CoroutineScope(Dispatchers.Main).launch {
-                ulaFiles.setupLinks()
-            }
-        } catch (err: NoSuchFileException) {
-            logger.sendEvent(err.file.name)
-            displayGenericErrorDialog(this, R.string.general_error_title, R.string.error_library_file_missing)
-        } catch (err: NullPointerException) {
-            logger.sendEvent("NPE when looking for lib directory")
-            displayGenericErrorDialog(this, R.string.general_error_title, R.string.error_no_lib_directory)
-        } catch (err: Exception) {
-            logger.sendEvent("$err")
-            displayGenericErrorDialog(this, R.string.general_error_title, R.string.error_library_setup_failure)
-        }
 
         setNavStartDestination()
 
@@ -174,59 +153,46 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
         setupWithNavController(bottom_nav_view, navController)
 
-        userFeedbackUtility.incrementNumberOfTimesOpened()
-        if (userFeedbackUtility.askingForFeedbackIsAppropriate())
-            setupReviewRequestUI()
+        val promptViewHolder = findViewById<ViewGroup>(R.id.layout_user_prompt_insert)
+        if (userFeedbackPrompter.viewShouldBeShown()) {
+            userFeedbackPrompter.showView(promptViewHolder, this)
+        }
+
+        if (optInPrompter.viewShouldBeShown()) {
+            optInPrompter.showView(promptViewHolder, this)
+        }
+
+        handleQWarning()
+
+        if (optInPrompter.userHasOptedIn()) {
+            logger.initialize(this)
+        }
 
         viewModel.getState().observe(this, stateObserver)
     }
 
-    private fun setupReviewRequestUI() {
-        val viewHolder = findViewById<ViewGroup>(R.id.request_review_insert_point)
-        layoutInflater.inflate(R.layout.list_item_review_request, viewHolder)
-
-        val requestQuestion = viewHolder.findViewById<TextView>(R.id.prompt_review_question)
-        val negativeBtn = viewHolder.findViewById<Button>(R.id.btn_negative_response)
-        val positiveBtn = viewHolder.findViewById<Button>(R.id.btn_positive_response)
-
-        positiveBtn.setOnClickListener {
-            requestQuestion.text = getString(R.string.review_ask_for_rating)
-            positiveBtn.text = getString(R.string.button_positive)
-            negativeBtn.text = getString(R.string.button_refuse)
-
-            positiveBtn.setOnClickListener {
-                handleUserFeedback(viewHolder)
-                val userlandPlayStoreURI = "https://play.google.com/store/apps/details?id=tech.ula"
-                val intent = Intent("android.intent.action.VIEW", Uri.parse(userlandPlayStoreURI))
-                startActivity(intent)
-            }
-
-            negativeBtn.setOnClickListener {
-                handleUserFeedback(viewHolder)
-            }
-        }
-
-        negativeBtn.setOnClickListener {
-            requestQuestion.text = getString(R.string.review_ask_for_feedback)
-            positiveBtn.text = getString(R.string.button_positive)
-            negativeBtn.text = getString(R.string.button_negative)
-
-            positiveBtn.setOnClickListener {
-                handleUserFeedback(viewHolder)
-                val githubURI = "https://github.com/CypherpunkArmory/UserLAnd"
-                val intent = Intent("android.intent.action.VIEW", Uri.parse(githubURI))
-                startActivity(intent)
-            }
-
-            negativeBtn.setOnClickListener {
-                handleUserFeedback(viewHolder)
-            }
+    private fun handleQWarning() {
+        val handler = QWarningHandler(this.getSharedPreferences(QWarningHandler.prefsString, Context.MODE_PRIVATE), ulaFiles)
+        if (handler.messageShouldBeDisplayed()) {
+            AlertDialog.Builder(this)
+                    .setTitle(R.string.q_warning_title)
+                    .setMessage(R.string.q_warning_message)
+                    .setPositiveButton(R.string.button_ok) { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    .setNeutralButton(R.string.wiki) {
+                        dialog, _ ->
+                        dialog.dismiss()
+                        sendWikiIntent()
+                    }
+                    .create().show()
+            handler.messageHasBeenDisplayed()
         }
     }
 
-    private fun handleUserFeedback(viewHolder: ViewGroup) {
-        userFeedbackUtility.userHasGivenFeedback()
-        viewHolder.removeAllViews()
+    private fun sendWikiIntent() {
+        val intent = Intent("android.intent.action.VIEW", Uri.parse("https://github.com/CypherpunkArmory/UserLAnd/wiki"))
+        startActivity(intent)
     }
 
     private fun setNavStartDestination() {
@@ -270,6 +236,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             val intent = Intent("android.intent.action.VIEW", Uri.parse("https://userland.tech/eula"))
             startActivity(intent)
         }
+        if (item.itemId == R.id.option_wiki) {
+            sendWikiIntent()
+        }
         if (item.itemId == R.id.clear_support_files) {
             displayClearSupportFilesDialog()
         }
@@ -287,8 +256,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     override fun appHasBeenSelected(app: App) {
-        if (!arePermissionsGranted(this)) {
-            showPermissionsNecessaryDialog()
+        if (!PermissionHandler.permissionsAreGranted(this)) {
+            PermissionHandler.showPermissionsNecessaryDialog(this)
             viewModel.waitForPermissions(appToContinue = app)
             return
         }
@@ -296,8 +265,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     override fun sessionHasBeenSelected(session: Session) {
-        if (!arePermissionsGranted(this)) {
-            showPermissionsNecessaryDialog()
+        if (!PermissionHandler.permissionsAreGranted(this)) {
+            PermissionHandler.showPermissionsNecessaryDialog(this)
             viewModel.waitForPermissions(sessionToContinue = session)
             return
         }
@@ -331,18 +300,20 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 sendXsdlIntentToSetDisplayNumberAndExpectResult()
             }
             "vnc" -> {
-                getDeviceDimensions(session)
+                setVncResolution(session)
                 startSession(session)
             }
             else -> startSession(session)
         }
     }
 
-    private fun getDeviceDimensions(session: Session) {
+    private fun setVncResolution(session: Session) {
         val deviceDimensions = DeviceDimensions()
         val windowManager = applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        deviceDimensions.getDeviceDimensions(windowManager, DisplayMetrics())
-        session.geometry = deviceDimensions.getGeometry()
+
+        val orientation = applicationContext.resources.configuration.orientation
+        deviceDimensions.saveDeviceDimensions(windowManager, DisplayMetrics(), orientation)
+        session.geometry = deviceDimensions.getScreenResolution()
     }
 
     private fun startSession(session: Session) {
@@ -377,7 +348,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         super.onActivityResult(requestCode, resultCode, data)
         data?.let {
             val session = viewModel.lastSelectedSession
-            val result = data.getStringExtra("run")
+            val result = data.getStringExtra("run") ?: ""
             if (session.serviceType == "xsdl" && result.isNotEmpty()) {
                 startSession(session)
             }
@@ -468,44 +439,16 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private fun handleClearSupportFiles() {
         val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
         val assetDirectoryNames = appsPreferences.getDistributionsList().plus("support")
-        val assetFileClearer = AssetFileClearer(this.filesDir, assetDirectoryNames, busyboxExecutor)
+        val assetFileClearer = AssetFileClearer(ulaFiles, assetDirectoryNames, busyboxExecutor)
         CoroutineScope(Dispatchers.Main).launch { viewModel.handleClearSupportFiles(assetFileClearer) }
-    }
-
-    @TargetApi(Build.VERSION_CODES.M)
-    private fun showPermissionsNecessaryDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setMessage(R.string.alert_permissions_necessary_message)
-                .setTitle(R.string.alert_permissions_necessary_title)
-                .setPositiveButton(R.string.button_ok) {
-                    dialog, _ ->
-                    requestPermissions(arrayOf(
-                            Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                            permissionRequestCode)
-                    dialog.dismiss()
-                }
-                .setNegativeButton(R.string.alert_permissions_necessary_cancel_button) {
-                    dialog, _ ->
-                    dialog.dismiss()
-                }
-        builder.create().show()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            permissionRequestCode -> {
-
-                val grantedPermissions = (grantResults.isNotEmpty() &&
-                        grantResults[0] == PackageManager.PERMISSION_GRANTED &&
-                        grantResults[1] == PackageManager.PERMISSION_GRANTED)
-
-                if (grantedPermissions) {
-                    viewModel.permissionsHaveBeenGranted()
-                } else {
-                    showPermissionsNecessaryDialog()
-                }
-            }
+        if (PermissionHandler.permissionsWereGranted(requestCode, grantResults)) {
+            viewModel.permissionsHaveBeenGranted()
+        } else {
+            PermissionHandler.showPermissionsNecessaryDialog(this)
         }
     }
 
@@ -513,6 +456,10 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         return when (state) {
             is StartingSetup -> {
                 val step = getString(R.string.progress_start_step)
+                updateProgressBar(step, "")
+            }
+            is SettingUpLinks -> {
+                val step = getString(R.string.progress_link_step)
                 updateProgressBar(step, "")
             }
             is FetchingAssetLists -> {
@@ -555,12 +502,17 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         }
     }
 
-    override fun updateExportProgress(details: String) {
+    override fun updateFilesystemExportProgress(details: String) {
         val step = getString(R.string.progress_exporting_filesystem)
         updateProgressBar(step, details)
     }
 
-    override fun stopExportProgress() {
+    override fun updateFilesystemDeleteProgress() {
+        val step = getString(R.string.progress_deleting_filesystem)
+        updateProgressBar(step, "")
+    }
+
+    override fun stopProgressFromFilesystemList() {
         killProgressBar()
     }
 
@@ -600,7 +552,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         for (network in connectivityManager.allNetworks) {
             val capabilities = connectivityManager.getNetworkCapabilities(network)
-            if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) return true
+            if (capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true) return true
         }
         return false
     }
@@ -643,8 +595,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         dialog.setPositiveButton(R.string.button_continue, null)
         val customDialog = dialog.create()
 
-        customDialog.setOnShowListener { _ ->
-            customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { _ ->
+        customDialog.setOnShowListener {
+            customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val username = customDialog.find<TextInputEditText>(R.id.text_input_username).text.toString()
                 val password = customDialog.find<TextInputEditText>(R.id.text_input_password).text.toString()
                 val vncPassword = customDialog.find<TextInputEditText>(R.id.text_input_vnc_password).text.toString()

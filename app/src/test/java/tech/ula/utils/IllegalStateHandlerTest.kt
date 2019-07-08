@@ -238,4 +238,15 @@ class IllegalStateHandlerTest {
         val expectedResult = LocalizationData(resId, listOf())
         assertEquals(expectedResult, result)
     }
+
+    @Test
+    fun `BusyboxMissing returns correct id and strings`() {
+        val state = BusyboxMissing
+
+        val result = illegalStateHandler.getLocalizationData(state)
+
+        val resId = R.string.illegal_state_busybox_missing
+        val expectedResult = LocalizationData(resId, listOf())
+        assertEquals(expectedResult, result)
+    }
 }

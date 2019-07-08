@@ -8,7 +8,7 @@ import androidx.fragment.app.Fragment
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
 import androidx.core.os.bundleOf
-import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 import kotlinx.android.synthetic.main.frag_session_list.* // ktlint-disable no-wildcard-imports
 import tech.ula.MainActivity
 import tech.ula.R
@@ -148,7 +148,7 @@ class SessionListFragment : Fragment() {
     private fun editSession(session: Session): Boolean {
         val editExisting = session.name != ""
         val bundle = bundleOf("session" to session, "editExisting" to editExisting)
-        NavHostFragment.findNavController(this).navigate(R.id.session_edit_fragment, bundle)
+        this.findNavController().navigate(R.id.session_edit_fragment, bundle)
         return true
     }
 

@@ -118,7 +118,14 @@ class SessionStartupFsmTest {
         whenever(mockUlaDatabase.filesystemDao()).thenReturn(mockFilesystemDao)
         whenever(mockFilesystemDao.getAllFilesystems()).thenReturn(filesystemLiveData)
 
-        sessionFsm = SessionStartupFsm(mockUlaDatabase, mockAssetRepository, mockFilesystemUtility, mockDownloadUtility, mockStorageUtility, mockLogger)
+        sessionFsm = SessionStartupFsm(
+                mockUlaDatabase,
+                mockAssetRepository,
+                mockFilesystemUtility,
+                mockDownloadUtility,
+                mockStorageUtility,
+                mockLogger
+        )
     }
 
     @After
@@ -723,6 +730,7 @@ class SessionStartupFsmTest {
 
         verify(mockFilesystemUtility, times(1)).hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")
         verify(mockStateObserver).onChanged(ExtractionHasCompletedSuccessfully)
+        verify(mockFilesystemUtility).removeRootfsFilesFromFilesystem("${filesystem.id}")
     }
 
     @Test
@@ -742,6 +750,7 @@ class SessionStartupFsmTest {
 
         // TODO is there some way to verify extraction steps?
         verify(mockStateObserver).onChanged(ExtractionHasCompletedSuccessfully)
+        verify(mockFilesystemUtility).removeRootfsFilesFromFilesystem("${filesystem.id}")
     }
 
     @Test

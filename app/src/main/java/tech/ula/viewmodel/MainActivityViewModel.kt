@@ -14,7 +14,7 @@ import tech.ula.model.entities.Session
 import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
-import java.lang.Exception
+import java.io.FileNotFoundException
 import kotlin.coroutines.CoroutineContext
 
 class MainActivityViewModel(
@@ -173,8 +173,10 @@ class MainActivityViewModel(
         try {
             assetFileClearer.clearAllSupportAssets()
             state.postValue(ProgressBarOperationComplete)
-        } catch (err: Exception) {
+        } catch (err: FileNotFoundException) {
             postIllegalStateWithLog(FailedToClearSupportFiles)
+        } catch (err: IllegalStateException) {
+            postIllegalStateWithLog(BusyboxMissing)
         }
     }
 
@@ -440,6 +442,7 @@ object FailedToCopyAssetsToFilesystem : IllegalState()
 data class FailedToExtractFilesystem(val reason: String) : IllegalState()
 object FailedToClearSupportFiles : IllegalState()
 object InsufficientAvailableStorage : IllegalState()
+object BusyboxMissing : IllegalState()
 
 sealed class UserInputRequiredState : State()
 object FilesystemCredentialsRequired : UserInputRequiredState()
@@ -450,6 +453,7 @@ object ActiveSessionsMustBeDeactivated : UserInputRequiredState()
 
 sealed class ProgressBarUpdateState : State()
 object StartingSetup : ProgressBarUpdateState()
+object SettingUpLinks : ProgressBarUpdateState()
 object FetchingAssetLists : ProgressBarUpdateState()
 object CheckingForAssetsUpdates : ProgressBarUpdateState()
 data class DownloadProgress(val numComplete: Int, val numTotal: Int) : ProgressBarUpdateState()
@@ -462,6 +466,7 @@ object ProgressBarOperationComplete : ProgressBarUpdateState()
 
 class MainActivityViewModelFactory(private val appsStartupFsm: AppsStartupFsm, private val sessionStartupFsm: SessionStartupFsm) : ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        @Suppress("UNCHECKED_CAST")
         return MainActivityViewModel(appsStartupFsm, sessionStartupFsm) as T
     }
 }

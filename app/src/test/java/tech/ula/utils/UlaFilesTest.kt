@@ -2,9 +2,7 @@ package tech.ula.utils
 
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
-import kotlinx.coroutines.runBlocking
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -18,15 +16,15 @@ class UlaFilesTest {
 
     @Mock lateinit var mockSymlinker: Symlinker
 
-    lateinit var testFilesDir: File
-    lateinit var testScopedDir: File
-    lateinit var testLibDir: File
-    lateinit var testSupportDir: File
+    private lateinit var testFilesDir: File
+    private lateinit var testScopedDir: File
+    private lateinit var testLibDir: File
+    private lateinit var testSupportDir: File
 
-    lateinit var ulaFiles: UlaFiles
+    private lateinit var ulaFiles: UlaFiles
 
-    @Before
-    fun setup() {
+    @Test
+    fun `Initialization links every file in the lib directory to support, stripping unnecessary name parts`() {
         testFilesDir = tempFolder.newFolder("files")
         testScopedDir = tempFolder.newFolder("scoped")
         testLibDir = tempFolder.newFolder("execLib")
@@ -34,11 +32,6 @@ class UlaFilesTest {
 
         mockSymlinker = mock()
 
-        ulaFiles = UlaFiles(testFilesDir, testScopedDir, testLibDir, mockSymlinker)
-    }
-
-    @Test
-    fun `setupLinks create links from every file in the lib directory to support, stripping unnecessary name parts`() {
         val expectedText1 = "text1"
         val libFile1 = File(testLibDir, "lib_1.so")
         libFile1.writeText(expectedText1)
@@ -60,9 +53,7 @@ class UlaFilesTest {
                     Files.createSymbolicLink(expectedSupportFile2.toPath(), libFile2.toPath())
                 }
 
-        runBlocking {
-            ulaFiles.setupLinks()
-        }
+        ulaFiles = UlaFiles(testFilesDir, testScopedDir, testLibDir, mockSymlinker)
 
         assertTrue(expectedSupportFile1.exists())
         assertTrue(expectedSupportFile2.exists())

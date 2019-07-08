@@ -12,6 +12,7 @@
     <string name="settings">Settings</string>
     <string name="help">Help</string>
     <string name="toc">Terms &amp; Conditions</string>
+    <string name="wiki">Wiki</string>
 
     <!-- Buttons -->
     <string name="button_continue">Continue</string>
@@ -58,6 +59,7 @@
     <string name="error_library_file_missing">It looks like we\'re missing a required library!</string>
     <string name="error_library_setup_failure">It looks like initial setup failed. Please contact us on Github.</string>
     <string name="error_no_lib_directory">It looks like the library directory we are looking for does not exist. Please contact us on Github.</string>
+    <string name="error_filesystem_delete">Deleting filesystem failed! Try stopping all sessions and trying again.</string>
 
     <!-- Download Failure Reasons -->
     <string name="download_failure_http_error">Http Error: %1$s</string>
@@ -109,9 +111,8 @@
     <string name="illegal_state_failed_to_extract_filesystem">Failed to extract filesystem. Try clearing support files. Failure reason: %1$s</string>
     <string name="illegal_state_failed_to_clear_support_files">Failed to clear support files.</string>
     <string name="illegal_state_insufficient_storage">Failed to detect sufficient storage.  Try increasing the available storage on your device to at least 250 MB.</string>
-
-    <!-- Misc illegal state -->
     <string name="illegal_state_unhandled_session_service_type">Trying to start a session with an unknown service type.</string>
+    <string name="illegal_state_busybox_missing">Busybox is required for this operation. Try running a session to make sure it is installed.</string>
 
     <!-- Prompts -->
     <string name="prompt_filesystem">Filesystem:</string>
@@ -129,6 +130,7 @@
 
     <!-- Progress bar messages -->
     <string name="progress_start_step">Getting things ready for you&#8230;</string>
+    <string name="progress_link_step">Settings up links&#8230;</string>
     <string name="progress_fetching_asset_lists">Fetching asset lists&#8230;</string>
     <string name="progress_checking_for_required_updates">Checking whether updates are required&#8230;</string>
     <string name="progress_downloading">Downloading required assets&#8230;</string>
@@ -141,6 +143,7 @@
     <string name="progress_starting">Starting service&#8230;</string>
     <string name="progress_clearing_support_files">Clearing all support files&#8230;</string>
     <string name="progress_exporting_filesystem">Exporting filesystem</string>
+    <string name="progress_deleting_filesystem">Deleting filesystem</string>
 
     <!-- Preferences -->
     <string name="pref_app_category">App Preferences</string>
@@ -152,8 +155,7 @@
     <string name="pref_proot_debugging_level_title">Debug Verbosity Level</string>
     <string name="pref_proot_debugging_level_summary">The higher the number, the greater the verbosity.</string>
     <string name="pref_proot_debugging_level_default">-1</string>
-    <string name="pref_proot_export_debug_file_title">Export Debug File</string>
-    <string name="pref_proot_delete_debug_file_title">Delete Debug File</string>
+    <string name="pref_proot_delete_debug_file_title">Delete Old Debug Files</string>
 
     <!-- Help Activity -->
     <string name="github_message">Experiencing bugs or want to request a feature? Our Github page is the best place to go to get a fast response.</string>
@@ -246,6 +248,23 @@
     <string name="review_is_user_enjoying">Enjoying UserLAnd?</string>
     <string name="review_ask_for_rating">How about a rating on the Play Store, then?</string>
     <string name="review_ask_for_feedback">Would you mind giving us some feedback on Github?</string>
+
+    <!-- Error collection opt-in -->
+    <string name="opt_in_preference">Opt-in to error reporting</string>
+    <string name="opt_in_preference_summary">Allow us to collect error reports to improve UserLAnd.</string>
+    <string name="opt_in_help_prompt">Would you like to help UserLAnd become more stable by sending us error reports?</string>
+    <string name="opt_in_error_collection_prompt">Opt-in to error log collection service?</string>
+    <string name="opt_in_secondary_prompt">Are you sure? You can change this setting later in the settings page.</string>
+    <string name="opt_in_secondary_pos_btn">OK, I will opt-in.</string>
+
+    <!-- Q Warning -->
+    <string name="q_warning_title">File access has changed!</string>
+    <string name="q_warning_message">
+        The next version of Android, Q, is making improvements to security which affect our app and
+        how our users are able to get files in and out of UserLAnd filesystems. In order to comply
+        with these changes, using \"/sdcard\" to move files in and out will no longer behave as it used
+        to. Please visit our wiki on our Github to learn more.
+    </string>
 
     <!-- Advanced options -->
     <string name="desc_import_backups_should_use_same_settings">Fill out the same: \n\n\u2022 username \n\u2022 password \n\u2022 VNC password \n\u2022 distribution \n\n as the backup to ensure smooth functionality</string>
