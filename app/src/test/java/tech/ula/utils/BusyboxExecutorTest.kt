@@ -214,7 +214,7 @@ class BusyboxExecutorTest {
         }
 
         assertTrue(result is SuccessfulExecution)
-        assertEquals(0, outputCollection.size)
+        assertEquals(1, outputCollection.size)
         verify(mockProotDebugLogger).logStream(any(), any())
     }
 
