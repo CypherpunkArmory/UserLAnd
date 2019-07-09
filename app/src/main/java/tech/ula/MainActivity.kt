@@ -220,9 +220,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         super.onResume()
 
         viewModel.handleOnResume()
-        val intent = Intent(this, ServerService::class.java)
-                .putExtra("type", "isProgressBarActive")
-        this.startService(intent)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -274,6 +271,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     private fun handleStateUpdate(newState: State) {
         return when (newState) {
+            is WaitingForInput -> { killProgressBar() }
             is CanOnlyStartSingleSession -> { showToast(R.string.single_session_supported) }
             is SessionCanBeStarted -> { prepareSessionForStart(newState.session) }
             is SessionCanBeRestarted -> { restartRunningSession(newState.session) }
@@ -362,6 +360,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleSessionHasBeenActivated() {
+        viewModel.handleSessionHasBeenActivated()
         killProgressBar()
     }
 

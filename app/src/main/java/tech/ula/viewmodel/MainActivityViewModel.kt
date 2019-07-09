@@ -41,7 +41,9 @@ class MainActivityViewModel(
 
     private val sessionState = sessionStartupFsm.getState()
 
-    private val state = MediatorLiveData<State>()
+    private val state = MediatorLiveData<State>().apply {
+        postValue(WaitingForInput)
+    }
 
     private fun postIllegalStateWithLog(newState: IllegalState) {
         logger.sendIllegalStateLog(newState)
@@ -162,6 +164,10 @@ class MainActivityViewModel(
     // Exposed so that downloads can be continued from activity
     fun startAssetDownloads(downloadRequirements: List<DownloadMetadata>) {
         submitSessionStartupEvent(DownloadAssets(downloadRequirements))
+    }
+
+    fun handleSessionHasBeenActivated() {
+        resetStartupState()
     }
 
     suspend fun handleClearSupportFiles(assetFileClearer: AssetFileClearer) {
@@ -367,7 +373,6 @@ class MainActivityViewModel(
             is ExtractingFilesystem -> state.postValue(FilesystemExtractionStep(newState.extractionTarget))
             is ExtractionHasCompletedSuccessfully -> { doTransitionIfRequirementsAreSelected {
                 state.postValue(SessionCanBeStarted(lastSelectedSession))
-                resetStartupState()
             } }
             is ExtractionFailed -> postIllegalStateWithLog(FailedToExtractFilesystem(newState.reason))
         }
@@ -377,6 +382,7 @@ class MainActivityViewModel(
         lastSelectedApp = unselectedApp
         lastSelectedSession = unselectedSession
         lastSelectedFilesystem = unselectedFilesystem
+        state.postValue(WaitingForInput)
         submitAppsStartupEvent(ResetAppState)
         submitSessionStartupEvent(ResetSessionState)
     }
@@ -415,6 +421,7 @@ class MainActivityViewModel(
 }
 
 sealed class State
+object WaitingForInput : State()
 object CanOnlyStartSingleSession : State()
 data class SessionCanBeStarted(val session: Session) : State()
 data class SessionCanBeRestarted(val session: Session) : State()
