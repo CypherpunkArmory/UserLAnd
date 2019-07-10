@@ -47,7 +47,7 @@ class FilesystemListFragment : Fragment() {
         val prootDebugLogger = ProotDebugLogger(activityContext.defaultSharedPreferences, ulaFiles)
         val busyboxExecutor = BusyboxExecutor(ulaFiles, prootDebugLogger)
 
-        val filesystemUtility = FilesystemUtility(activityContext.filesDir.absolutePath, busyboxExecutor)
+        val filesystemUtility = FilesystemUtility(ulaFiles, busyboxExecutor)
         ViewModelProviders.of(this, FilesystemListViewmodelFactory(filesystemDao, sessionDao, filesystemUtility)).get(FilesystemListViewModel::class.java)
     }
 

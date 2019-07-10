@@ -119,12 +119,12 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val assetPreferences = AssetPreferences(this)
         val assetRepository = AssetRepository(filesDir.path, assetPreferences)
 
-        val filesystemUtility = FilesystemUtility(filesDir.path, busyboxExecutor)
+        val filesystemUtility = FilesystemUtility(ulaFiles, busyboxExecutor)
         val storageUtility = StorageUtility(StatFs(filesDir.path))
 
         val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val downloadManagerWrapper = DownloadManagerWrapper(downloadManager)
-        val downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, filesDir, this.scopedStorageRoot)
+        val downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, ulaFiles)
 
         val appsPreferences = AppsPreferences(this)
 

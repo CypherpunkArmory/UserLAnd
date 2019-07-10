@@ -7,12 +7,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import tech.ula.model.daos.AppsDao
 import tech.ula.model.entities.App
-import tech.ula.model.remote.RemoteAppsSource
+import tech.ula.model.remote.GithubAppsFetcher
 import tech.ula.utils.preferences.AppsPreferences
 
 class AppsRepository(
     private val appsDao: AppsDao,
-    private val remoteAppsSource: RemoteAppsSource,
+    private val remoteAppsSource: GithubAppsFetcher,
     private val appsPreferences: AppsPreferences
 ) {
     private val refreshStatus = MutableLiveData<RefreshStatus>()

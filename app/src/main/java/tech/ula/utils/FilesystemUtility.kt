@@ -8,24 +8,25 @@ import java.io.File
 import java.io.IOException
 
 class FilesystemUtility(
-    private val applicationFilesDirPath: String,
+    private val ulaFiles: UlaFiles,
     private val busyboxExecutor: BusyboxExecutor,
     private val logger: Logger = SentryLogger()
 ) {
 
+    private val filesDirPath = ulaFiles.filesDir.path
     private val filesystemExtractionSuccess = ".success_filesystem_extraction"
     private val filesystemExtractionFailure = ".failure_filesystem_extraction"
 
     private fun getSupportDirectoryPath(targetDirectoryName: String): String {
-        return "$applicationFilesDirPath/$targetDirectoryName/support"
+        return "$filesDirPath/$targetDirectoryName/support"
     }
 
     @Throws(Exception::class)
     fun copyAssetsToFilesystem(filesystem: Filesystem) {
         val distributionType = filesystem.distributionType
         val targetFilesystemName = "${filesystem.id}"
-        val sharedDirectory = File("$applicationFilesDirPath/$distributionType")
-        val targetDirectory = File("$applicationFilesDirPath/$targetFilesystemName/support")
+        val sharedDirectory = File("$filesDirPath/$distributionType")
+        val targetDirectory = File("$filesDirPath/$targetFilesystemName/support")
         if (!targetDirectory.exists()) targetDirectory.mkdirs()
         val files = sharedDirectory.listFiles()
         files?.let {
@@ -33,7 +34,7 @@ class FilesystemUtility(
                 if (file.name.contains("rootfs") && filesystem.isCreatedFromBackup) continue
                 val targetFile = File("${targetDirectory.absolutePath}/${file.name}")
                 file.copyTo(targetFile, overwrite = true)
-                makePermissionsUsable(targetDirectory.absolutePath, file.name)
+                ulaFiles.makePermissionsUsable(targetDirectory.absolutePath, file.name)
             }
         }
     }
@@ -112,7 +113,7 @@ class FilesystemUtility(
 
     @Throws(IOException::class)
     suspend fun deleteFilesystem(filesystemId: Long) = withContext(Dispatchers.IO) {
-        val filesystemDirectory = File("$applicationFilesDirPath/$filesystemId")
+        val filesystemDirectory = File("$filesDirPath/$filesystemId")
         if (!filesystemDirectory.exists() || !filesystemDirectory.isDirectory) return@withContext
         // CWD for this script is the files dir, running without proot
         val command = "support/deleteFilesystem.sh ${filesystemDirectory.path}"
@@ -128,8 +129,8 @@ class FilesystemUtility(
     fun moveAppScriptToRequiredLocation(appName: String, appFilesystem: Filesystem) {
         // Profile.d scripts execute in alphabetical order.
         val fileNameToForceAppScriptToExecuteLast = "zzzzzzzzzzzzzzzz.sh"
-        val appScriptSource = File("$applicationFilesDirPath/apps/$appName/$appName.sh")
-        val appFilesystemProfileDDir = File("$applicationFilesDirPath/${appFilesystem.id}/etc/profile.d")
+        val appScriptSource = File("$filesDirPath/apps/$appName/$appName.sh")
+        val appFilesystemProfileDDir = File("$filesDirPath/${appFilesystem.id}/etc/profile.d")
         val appScriptProfileDTarget = File("$appFilesystemProfileDDir/$fileNameToForceAppScriptToExecuteLast")
 
         try {

@@ -2,12 +2,10 @@ package tech.ula.utils
 
 import android.app.Activity
 import android.app.AlertDialog
-import android.app.DownloadManager
 import android.content.Context
 import android.content.ContentResolver
 import android.content.res.Configuration
 import android.content.res.Resources
-import android.database.Cursor
 import android.graphics.Point
 import android.net.Uri
 import android.os.Build
@@ -21,19 +19,6 @@ import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
-fun makePermissionsUsable(containingDirectoryPath: String, filename: String) {
-    val commandToRun = arrayListOf("chmod", "0777", filename)
-
-    val containingDirectory = File(containingDirectoryPath)
-    containingDirectory.mkdirs()
-
-    val pb = ProcessBuilder(commandToRun)
-    pb.directory(containingDirectory)
-
-    val process = pb.start()
-    process.waitFor()
-}
-
 fun displayGenericErrorDialog(activity: Activity, titleId: Int, messageId: Int, callback: (() -> Unit) = {}) {
     AlertDialog.Builder(activity)
             .setTitle(titleId)
@@ -44,15 +29,6 @@ fun displayGenericErrorDialog(activity: Activity, titleId: Int, messageId: Int, 
                 dialog.dismiss()
             }
             .create().show()
-}
-
-// Add or change asset types as needed for testing and staggered releases.
-fun getBranchToDownloadAssetsFrom(assetType: String): String {
-    return when (assetType) {
-        "support" -> "staging"
-        "apps" -> "master"
-        else -> "master"
-    }
 }
 
 interface Localization {
@@ -80,7 +56,6 @@ class Symlinker {
 }
 
 class StorageUtility(private val statFs: StatFs) {
-
     fun getAvailableStorageInMB(): Long {
         val bytesInMB = 1048576
         val bytesAvailable = statFs.blockSizeLong * statFs.availableBlocksLong
@@ -135,80 +110,11 @@ class ConnectionUtility {
     }
 }
 
-class DownloadManagerWrapper(private val downloadManager: DownloadManager) {
-    fun generateDownloadRequest(url: String, destination: File): DownloadManager.Request {
-        val uri = Uri.parse(url)
-        val request = DownloadManager.Request(uri)
-        val destinationUri = Uri.fromFile(destination)
-        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
-        request.setTitle(destination.name)
-        request.setDescription("Downloading ${destination.name.substringAfterLast("-")}.")
-        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
-        request.setDestinationUri(destinationUri)
-        return request
-    }
-
-    fun enqueue(request: DownloadManager.Request): Long {
-        return downloadManager.enqueue(request)
-    }
-
-    private fun generateQuery(id: Long): DownloadManager.Query {
-        val query = DownloadManager.Query()
-        query.setFilterById(id)
-        return query
-    }
-
-    private fun generateCursor(query: DownloadManager.Query): Cursor {
-        return downloadManager.query(query)
-    }
-
-    fun downloadHasSucceeded(id: Long): Boolean {
-        val query = generateQuery(id)
-        val cursor = generateCursor(query)
-        if (cursor.moveToFirst()) {
-            val status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
-            return status == DownloadManager.STATUS_SUCCESSFUL
-        }
-        return false
-    }
-
-    fun downloadHasFailed(id: Long): Boolean {
-        val query = generateQuery(id)
-        val cursor = generateCursor(query)
-        if (cursor.moveToFirst()) {
-            val status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
-            return status == DownloadManager.STATUS_FAILED
-        }
-        return false
-    }
-
-    fun getDownloadFailureReason(id: Long): DownloadFailureLocalizationData {
-        val query = generateQuery(id)
-        val cursor = generateCursor(query)
-        if (cursor.moveToFirst()) {
-            val status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_REASON))
-            return DownloadFailureLocalizationData(resId = when (status) {
-                in 100..500 -> R.string.download_failure_http_error
-                1008 -> R.string.download_failure_cannot_resume
-                1007 -> R.string.download_failure_no_external_devices
-                1009 -> R.string.download_failure_destination_exists
-                1001 -> R.string.download_failure_unknown_file_error
-                1004 -> R.string.download_failure_http_processing
-                1006 -> R.string.download_failure_insufficient_external_storage
-                1005 -> R.string.download_failure_too_many_redirects
-                1002 -> R.string.download_failure_unhandled_http_response
-                1000 -> R.string.download_failure_unknown_error
-                else -> R.string.download_failure_missing_error
-            }, formatStrings = listOf("$status")) // Format strings only used for http_error
-        }
-        return DownloadFailureLocalizationData(R.string.download_failure_reason_not_found)
-    }
-}
-
+// TODO move to UlaFiles?
 class LocalFileLocator(private val applicationFilesDir: String, private val resources: Resources) {
-    fun findIconUri(type: String): Uri {
+    fun findIconUri(appName: String): Uri {
         val icon =
-                File("$applicationFilesDir/apps/$type/$type.png")
+                File("$applicationFilesDir/apps/$appName/$appName.png")
         if (icon.exists()) return Uri.fromFile(icon)
         return getDefaultIconUri()
     }
