@@ -11,7 +11,7 @@ import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.daos.AppsDao
 import tech.ula.model.entities.App
 import tech.ula.model.remote.RemoteAppsSource
-import tech.ula.utils.AppsPreferences
+import tech.ula.utils.preferences.AppsPreferences
 
 @RunWith(MockitoJUnitRunner::class)
 class AppsRepositoryTest {

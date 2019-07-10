@@ -5,7 +5,6 @@ import android.app.AlertDialog
 import android.app.DownloadManager
 import android.content.Context
 import android.content.ContentResolver
-import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.database.Cursor
@@ -17,8 +16,6 @@ import android.system.Os
 import android.util.DisplayMetrics
 import android.view.WindowManager
 import tech.ula.R
-import tech.ula.model.entities.App
-import tech.ula.model.entities.Asset
 import java.io.File
 import java.io.InputStream
 import java.net.HttpURLConnection
@@ -88,149 +85,6 @@ class StorageUtility(private val statFs: StatFs) {
         val bytesInMB = 1048576
         val bytesAvailable = statFs.blockSizeLong * statFs.availableBlocksLong
         return bytesAvailable / bytesInMB
-    }
-}
-
-class AssetPreferences(private val prefs: SharedPreferences) {
-
-    private val versionString = "version"
-    private val rootfsString = "rootfs"
-
-    private val lowestVersion = "v0.0.0"
-    fun getLatestDownloadVersion(repo: String): String {
-        return prefs.getString("$repo-$versionString", lowestVersion) ?: lowestVersion
-    }
-
-    fun getLatestDownloadFilesystemVersion(repo: String): String {
-        return prefs.getString("$repo-$rootfsString-$versionString", lowestVersion) ?: lowestVersion
-    }
-
-    fun setLatestDownloadVersion(repo: String, version: String) {
-        with(prefs.edit()) {
-            putString("$repo-$versionString", version)
-            apply()
-        }
-    }
-
-    fun setLatestDownloadFilesystemVersion(repo: String, version: String) {
-        with(prefs.edit()) {
-            putString("$repo-$rootfsString-$versionString", version)
-            apply()
-        }
-    }
-
-    private val downloadsAreInProgressKey = "downloadsAreInProgress"
-    fun getDownloadsAreInProgress(): Boolean {
-        return prefs.getBoolean(downloadsAreInProgressKey, false)
-    }
-
-    fun setDownloadsAreInProgress(inProgress: Boolean) {
-        with(prefs.edit()) {
-            putBoolean(downloadsAreInProgressKey, inProgress)
-            apply()
-        }
-    }
-
-    private val enqueuedDownloadsKey = "currentlyEnqueuedDownloads"
-    fun getEnqueuedDownloads(): Set<Long> {
-        val enqueuedDownloadsAsStrings = prefs.getStringSet(enqueuedDownloadsKey, setOf()) ?: setOf<String>()
-        return enqueuedDownloadsAsStrings.map { it.toLong() }.toSet()
-    }
-
-    fun setEnqueuedDownloads(downloads: Set<Long>) {
-        val enqueuedDownloadsAsStrings = downloads.map { it.toString() }.toSet()
-        with(prefs.edit()) {
-            putStringSet(enqueuedDownloadsKey, enqueuedDownloadsAsStrings)
-            apply()
-        }
-    }
-
-    fun clearEnqueuedDownloadsCache() {
-        with(prefs.edit()) {
-            remove(enqueuedDownloadsKey)
-            apply()
-        }
-    }
-
-    fun getCachedAssetList(assetType: String): List<Asset> {
-        val entries = prefs.getStringSet(assetType, setOf()) ?: setOf()
-        return entries.map { entry ->
-            Asset(entry, assetType)
-        }
-    }
-
-    fun setAssetList(assetType: String, assetList: List<Asset>) {
-        val entries = assetList.map {
-            it.name
-        }.toSet()
-        with(prefs.edit()) {
-            putStringSet(assetType, entries)
-            apply()
-        }
-    }
-}
-
-sealed class AppServiceTypePreference
-object PreferenceHasNotBeenSelected : AppServiceTypePreference() {
-    override fun toString(): String {
-        return "unselected"
-    }
-}
-object SshTypePreference : AppServiceTypePreference() {
-    override fun toString(): String {
-        return "ssh"
-    }
-}
-object VncTypePreference : AppServiceTypePreference() {
-    override fun toString(): String {
-        return "vnc"
-    }
-}
-
-object XsdlTypePreference : AppServiceTypePreference() {
-    override fun toString(): String {
-        return "xsdl"
-    }
-}
-
-class AppsPreferences(private val prefs: SharedPreferences) {
-
-    fun setAppServiceTypePreference(appName: String, serviceType: AppServiceTypePreference) {
-        val prefAsString = when (serviceType) {
-            is SshTypePreference -> "ssh"
-            is VncTypePreference -> "vnc"
-            is XsdlTypePreference -> "xsdl"
-            else -> "unselected"
-        }
-        with(prefs.edit()) {
-            putString(appName, prefAsString)
-            apply()
-        }
-    }
-
-    fun getAppServiceTypePreference(app: App): AppServiceTypePreference {
-        val pref = prefs.getString(app.name, "") ?: ""
-
-        val xsdlAvailable = Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1
-        val onlyCliSupported = app.supportsCli && !app.supportsGui
-        val onlyVncSupported = app.supportsGui && !app.supportsCli && !xsdlAvailable
-        return when {
-            pref.toLowerCase() == "ssh" || onlyCliSupported -> SshTypePreference
-            pref.toLowerCase() == "xsdl" -> XsdlTypePreference
-            pref.toLowerCase() == "vnc" || onlyVncSupported -> VncTypePreference
-            else -> PreferenceHasNotBeenSelected
-        }
-    }
-
-    fun setDistributionsList(distributionList: Set<String>) {
-        with(prefs.edit()) {
-            putStringSet("distributionsList", distributionList)
-            apply()
-        }
-    }
-
-    fun getDistributionsList(): Set<String> {
-        return prefs.getStringSet("distributionsList", setOf()) ?: setOf()
     }
 }
 

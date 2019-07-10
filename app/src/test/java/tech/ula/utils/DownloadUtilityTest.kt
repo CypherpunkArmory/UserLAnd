@@ -15,6 +15,7 @@ import org.mockito.Mockito.* // ktlint-disable no-wildcard-imports
 import org.mockito.junit.MockitoJUnitRunner
 import org.rauschig.jarchivelib.Archiver
 import tech.ula.model.repositories.DownloadMetadata
+import tech.ula.utils.preferences.AssetPreferences
 import java.io.File
 
 @RunWith(MockitoJUnitRunner::class)

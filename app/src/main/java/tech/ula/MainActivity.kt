@@ -48,6 +48,7 @@ import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import tech.ula.ui.FilesystemListFragment
 import tech.ula.model.repositories.DownloadMetadata
+import tech.ula.utils.preferences.* // ktlint-disable no-wildcard-imports
 import java.io.File
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection, FilesystemListFragment.FilesystemListProgress {
@@ -115,7 +116,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private val viewModel: MainActivityViewModel by lazy {
         val ulaDatabase = UlaDatabase.getInstance(this)
 
-        val assetPreferences = AssetPreferences(this.getSharedPreferences("assetLists", Context.MODE_PRIVATE))
+        val assetPreferences = AssetPreferences(this)
         val assetRepository = AssetRepository(filesDir.path, assetPreferences)
 
         val filesystemUtility = FilesystemUtility(filesDir.path, busyboxExecutor)
@@ -125,7 +126,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val downloadManagerWrapper = DownloadManagerWrapper(downloadManager)
         val downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, filesDir, this.scopedStorageRoot)
 
-        val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
+        val appsPreferences = AppsPreferences(this)
 
         val appsStartupFsm = AppsStartupFsm(ulaDatabase, appsPreferences, filesystemUtility)
         val sessionStartupFsm = SessionStartupFsm(ulaDatabase, assetRepository, filesystemUtility, downloadUtility, storageUtility)
@@ -435,7 +436,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleClearSupportFiles() {
-        val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
+        val appsPreferences = AppsPreferences(this)
         val assetDirectoryNames = appsPreferences.getDistributionsList().plus("support")
         val assetFileClearer = AssetFileClearer(ulaFiles, assetDirectoryNames, busyboxExecutor)
         CoroutineScope(Dispatchers.Main).launch { viewModel.handleClearSupportFiles(assetFileClearer) }

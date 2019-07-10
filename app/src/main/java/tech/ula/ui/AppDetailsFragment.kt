@@ -1,7 +1,6 @@
 package tech.ula.ui
 
 import android.app.Activity
-import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -14,6 +13,10 @@ import androidx.navigation.fragment.navArgs
 import kotlinx.android.synthetic.main.frag_app_details.* // ktlint-disable no-wildcard-imports
 import tech.ula.R
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import tech.ula.utils.preferences.AppsPreferences
+import tech.ula.utils.preferences.SshTypePreference
+import tech.ula.utils.preferences.VncTypePreference
+import tech.ula.utils.preferences.XsdlTypePreference
 
 class AppDetailsFragment : Fragment() {
 
@@ -23,7 +26,7 @@ class AppDetailsFragment : Fragment() {
     private val app by lazy { args.app!! }
 
     private val appsPreferences by lazy {
-        AppsPreferences(activityContext.getSharedPreferences("apps", Context.MODE_PRIVATE))
+        AppsPreferences(activityContext)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

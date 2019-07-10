@@ -14,8 +14,8 @@ import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.remote.GithubApiClient
 import tech.ula.utils.Logger
-import tech.ula.utils.AssetPreferences
 import tech.ula.utils.ConnectionUtility
+import tech.ula.utils.preferences.AssetPreferences
 import java.io.File
 import java.io.IOException
 import java.lang.IllegalStateException

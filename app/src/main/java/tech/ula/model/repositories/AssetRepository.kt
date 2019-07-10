@@ -6,6 +6,7 @@ import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.remote.GithubApiClient
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import tech.ula.utils.preferences.AssetPreferences
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader

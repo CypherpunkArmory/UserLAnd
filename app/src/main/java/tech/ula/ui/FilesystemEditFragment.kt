@@ -4,7 +4,6 @@ import android.app.AlertDialog
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import android.content.ActivityNotFoundException
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -25,10 +24,10 @@ import kotlinx.android.synthetic.main.frag_filesystem_edit.*
 import tech.ula.MainActivity
 import tech.ula.R
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.utils.AppsPreferences
 import tech.ula.utils.BuildWrapper
 import tech.ula.utils.PermissionHandler
 import tech.ula.utils.ValidationUtility
+import tech.ula.utils.preferences.AppsPreferences
 import tech.ula.viewmodel.FilesystemImportStatus
 import tech.ula.viewmodel.ImportSuccess
 import tech.ula.viewmodel.ImportFailure
@@ -44,10 +43,6 @@ class FilesystemEditFragment : Fragment() {
     private val args: FilesystemEditFragmentArgs by navArgs()
     private val filesystem by lazy { args.filesystem!! }
     private val editExisting by lazy { args.editExisting }
-
-    private val permissionRequestCode: Int by lazy {
-        getString(R.string.permission_request_code).toInt()
-    }
 
     private val filesystemImportStatusObserver = Observer<FilesystemImportStatus> {
         it?.let { importStatus ->
@@ -65,8 +60,7 @@ class FilesystemEditFragment : Fragment() {
     }
 
     private val distributionList by lazy {
-        AppsPreferences(activityContext.getSharedPreferences("apps", Context.MODE_PRIVATE))
-                .getDistributionsList()
+        AppsPreferences(activityContext).getDistributionsList()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
