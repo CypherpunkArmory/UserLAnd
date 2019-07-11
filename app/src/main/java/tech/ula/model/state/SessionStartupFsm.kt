@@ -16,12 +16,12 @@ import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import java.net.UnknownHostException
 
 class SessionStartupFsm(
-        ulaDatabase: UlaDatabase,
-        private val assetRepository: AssetRepository,
-        private val filesystemManager: FilesystemManager,
-        private val assetDownloader: AssetDownloader,
-        private val storageCalculator: StorageCalculator,
-        private val logger: Logger = SentryLogger()
+    ulaDatabase: UlaDatabase,
+    private val assetRepository: AssetRepository,
+    private val filesystemManager: FilesystemManager,
+    private val assetDownloader: AssetDownloader,
+    private val storageCalculator: StorageCalculator,
+    private val logger: Logger = SentryLogger()
 ) {
 
     private val className = "SessionFSM"

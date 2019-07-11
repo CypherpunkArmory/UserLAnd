@@ -17,11 +17,11 @@ import tech.ula.utils.preferences.PreferenceHasNotBeenSelected
 import tech.ula.utils.preferences.SshTypePreference
 
 class AppsStartupFsm(
-        ulaDatabase: UlaDatabase,
-        private val appsPreferences: AppsPreferences,
-        private val filesystemManager: FilesystemManager,
-        private val deviceArchitecture: DeviceArchitecture = DeviceArchitecture(),
-        private val logger: Logger = SentryLogger()
+    ulaDatabase: UlaDatabase,
+    private val appsPreferences: AppsPreferences,
+    private val filesystemManager: FilesystemManager,
+    private val deviceArchitecture: DeviceArchitecture = DeviceArchitecture(),
+    private val logger: Logger = SentryLogger()
 ) {
 
     private val className = "AppsFSM"
