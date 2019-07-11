@@ -664,7 +664,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     private fun validateCredentials(username: String, password: String, vncPassword: String): Boolean {
         val blacklistedUsernames = this.resources.getStringArray(R.array.blacklisted_usernames)
-        val validator = ValidationUtility()
+        val validator = CredentialValidator()
 
         val usernameCredentials = validator.validateUsername(username, blacklistedUsernames)
         val passwordCredentials = validator.validatePassword(password)

@@ -11,10 +11,10 @@ import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.R
 
 @RunWith(MockitoJUnitRunner::class)
-class ValidationUtilityTest {
+class CredentialValidatorTest {
 
     @Mock
-    lateinit var validationUtility: ValidationUtility
+    lateinit var credentialValidator: CredentialValidator
 
     @Mock
     lateinit var credential: CredentialValidationStatus
@@ -23,13 +23,13 @@ class ValidationUtilityTest {
 
     @Before
     fun setup() {
-        validationUtility = ValidationUtility()
+        credentialValidator = CredentialValidator()
     }
 
     @Test
     fun `Validate fails appropriately if filesystem name is empty`() {
         val filesystemName = ""
-        credential = validationUtility.validateFilesystemName(filesystemName)
+        credential = credentialValidator.validateFilesystemName(filesystemName)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_filesystem_name)
     }
@@ -37,7 +37,7 @@ class ValidationUtilityTest {
     @Test
     fun `Validate fails appropriately if filesystem name is just a period`() {
         val filesystemName = "."
-        credential = validationUtility.validateFilesystemName(filesystemName)
+        credential = credentialValidator.validateFilesystemName(filesystemName)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_filesystem_name_invalid_characters)
     }
@@ -45,7 +45,7 @@ class ValidationUtilityTest {
     @Test
     fun `Validate fails appropriately if filesystem name is just two periods`() {
         val filesystemName = ".."
-        credential = validationUtility.validateFilesystemName(filesystemName)
+        credential = credentialValidator.validateFilesystemName(filesystemName)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_filesystem_name_invalid_characters)
     }
@@ -53,7 +53,7 @@ class ValidationUtilityTest {
     @Test
     fun `Validate fails appropriately if filesystem name has invalid characters such as forward slashes`() {
         val filesystemName = "filename/"
-        credential = validationUtility.validateFilesystemName(filesystemName)
+        credential = credentialValidator.validateFilesystemName(filesystemName)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_filesystem_name_invalid_characters)
     }
@@ -61,7 +61,7 @@ class ValidationUtilityTest {
     @Test
     fun `Validate succeeds if filesystem name is just letters and underscores`() {
         val filesystemName = "filesystem_name"
-        credential = validationUtility.validateFilesystemName(filesystemName)
+        credential = credentialValidator.validateFilesystemName(filesystemName)
         assertTrue(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.general_error_title)
     }
@@ -69,7 +69,7 @@ class ValidationUtilityTest {
     @Test
     fun `Validate fails appropriately if username is empty`() {
         val username = ""
-        credential = validationUtility.validateUsername(username, blacklistUsernames)
+        credential = credentialValidator.validateUsername(username, blacklistUsernames)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_empty_field)
     }
@@ -77,7 +77,7 @@ class ValidationUtilityTest {
     @Test
     fun `Validation fails appropriately if username is capitalized`() {
         val username = "A"
-        credential = validationUtility.validateUsername(username, blacklistUsernames)
+        credential = credentialValidator.validateUsername(username, blacklistUsernames)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_username_invalid_characters)
     }
@@ -85,7 +85,7 @@ class ValidationUtilityTest {
     @Test
     fun `Validation fails appropriately if username has capital letters`() {
         val username = "abC"
-        credential = validationUtility.validateUsername(username, blacklistUsernames)
+        credential = credentialValidator.validateUsername(username, blacklistUsernames)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_username_invalid_characters)
     }
@@ -93,7 +93,7 @@ class ValidationUtilityTest {
     @Test
     fun `Validation fails appropriately if username starts with numbers`() {
         val username = "123abc"
-        credential = validationUtility.validateUsername(username, blacklistUsernames)
+        credential = credentialValidator.validateUsername(username, blacklistUsernames)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_username_invalid_characters)
     }
@@ -101,7 +101,7 @@ class ValidationUtilityTest {
     @Test
     fun `Validation succeeds appropriately if username starts with underscore`() {
         val username = "_123abc"
-        credential = validationUtility.validateUsername(username, blacklistUsernames)
+        credential = credentialValidator.validateUsername(username, blacklistUsernames)
         assertTrue(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.general_error_title)
     }
@@ -109,7 +109,7 @@ class ValidationUtilityTest {
     @Test
     fun `Validation fails appropriately if username has space`() {
         val username = "user name"
-        credential = validationUtility.validateUsername(username, blacklistUsernames)
+        credential = credentialValidator.validateUsername(username, blacklistUsernames)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_username_invalid_characters)
     }
@@ -117,7 +117,7 @@ class ValidationUtilityTest {
     @Test
     fun `Validation fails appropriately if username is too long`() {
         val username = "abcdefghijklmnopqrstuvwxyz123456"
-        credential = validationUtility.validateUsername(username, blacklistUsernames)
+        credential = credentialValidator.validateUsername(username, blacklistUsernames)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_username_invalid_characters)
     }
@@ -126,7 +126,7 @@ class ValidationUtilityTest {
     fun `Validation fails appropriately if username is in blacklist`() {
         val username = "root"
 
-        credential = validationUtility.validateUsername(username, blacklistUsernames)
+        credential = credentialValidator.validateUsername(username, blacklistUsernames)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_username_in_blacklist)
     }
@@ -135,7 +135,7 @@ class ValidationUtilityTest {
     fun `Validation fails appropriately if password is empty`() {
         val password = ""
 
-        credential = validationUtility.validatePassword(password)
+        credential = credentialValidator.validatePassword(password)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_empty_field)
     }
@@ -144,7 +144,7 @@ class ValidationUtilityTest {
     fun `Validation fails appropriately if vnc password is empty`() {
         val vncPassword = ""
 
-        credential = validationUtility.validateVncPassword(vncPassword)
+        credential = credentialValidator.validateVncPassword(vncPassword)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_empty_field)
     }
@@ -153,7 +153,7 @@ class ValidationUtilityTest {
     fun `Validation fails appropriately if vnc password is too long`() {
         val vncPassword = "abcdefghijklmnop"
 
-        credential = validationUtility.validateVncPassword(vncPassword)
+        credential = credentialValidator.validateVncPassword(vncPassword)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_vnc_password_length_incorrect)
     }
@@ -162,7 +162,7 @@ class ValidationUtilityTest {
     fun `Validation fails appropriately if vnc password is too short`() {
         val vncPassword = "abc"
 
-        credential = validationUtility.validateVncPassword(vncPassword)
+        credential = credentialValidator.validateVncPassword(vncPassword)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_vnc_password_length_incorrect)
     }
@@ -171,7 +171,7 @@ class ValidationUtilityTest {
     fun `Validation fails appropriately if password has a space`() {
         val password = "pass word"
 
-        credential = validationUtility.validatePassword(password)
+        credential = credentialValidator.validatePassword(password)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_password_invalid)
     }
@@ -180,7 +180,7 @@ class ValidationUtilityTest {
     fun `Validation fails appropriately if vnc password has a space`() {
         val vncPassword = "te sting"
 
-        credential = validationUtility.validateVncPassword(vncPassword)
+        credential = credentialValidator.validateVncPassword(vncPassword)
         assertFalse(credential.credentialIsValid)
         assertEquals(credential.errorMessageId, R.string.error_vnc_password_invalid)
     }

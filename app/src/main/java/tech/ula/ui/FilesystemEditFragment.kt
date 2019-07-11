@@ -26,7 +26,7 @@ import tech.ula.R
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.BuildWrapper
 import tech.ula.utils.PermissionHandler
-import tech.ula.utils.ValidationUtility
+import tech.ula.utils.CredentialValidator
 import tech.ula.utils.preferences.AppsPreferences
 import tech.ula.viewmodel.FilesystemImportStatus
 import tech.ula.viewmodel.ImportSuccess
@@ -251,7 +251,7 @@ class FilesystemEditFragment : Fragment() {
 
     private fun filesystemParametersAreCorrect(): Boolean {
         val blacklistedUsernames = activityContext.resources.getStringArray(R.array.blacklisted_usernames)
-        val validator = ValidationUtility()
+        val validator = CredentialValidator()
         val filesystemName = filesystem.name
         val username = filesystem.defaultUsername
         val password = filesystem.defaultPassword
