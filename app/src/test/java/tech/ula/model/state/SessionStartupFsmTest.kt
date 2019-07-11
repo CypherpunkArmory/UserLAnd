@@ -464,20 +464,6 @@ class SessionStartupFsmTest {
     }
 
     @Test
-    fun `Posts AttemptedCacheAccessInIncorrectState if state is not WaitingForSessionSelection or DownloadingAssets`() {
-        sessionFsm.setState(VerifyingFilesystemAssets)
-        sessionFsm.getState().observeForever(mockStateObserver)
-        whenever(mockAssetDownloader.downloadStateHasBeenCached())
-                .thenReturn(true)
-
-        runBlocking {
-            sessionFsm.submitEvent(SyncDownloadState, this)
-        }
-
-        verify(mockStateObserver).onChanged(AttemptedCacheAccessInIncorrectState)
-    }
-
-    @Test
     fun `Appropriately resets download state if syncing during WaitingForSessionSelection`() {
         sessionFsm.setState(WaitingForSessionSelection)
         sessionFsm.getState().observeForever(mockStateObserver)

@@ -199,17 +199,8 @@ class SessionStartupFsm(
 
     private fun handleSyncDownloadState() {
         if (assetDownloader.downloadStateHasBeenCached()) {
-            // Syncing download state should only be necessary on process death and when the app
-            // is moved back into the foreground. This means the state should either be fresh,
-            // or this object has remained in memory and its state will still be downloading assets.
-            state.value?.let { currentState ->
-                if (currentState !is WaitingForSessionSelection && currentState !is DownloadingAssets) {
-                    state.postValue(AttemptedCacheAccessInIncorrectState)
-                    return
-                }
-                state.postValue(DownloadingAssets(0, 0)) // Reset state so events can be submitted
-                handleAssetDownloadState(assetDownloader.syncStateWithCache())
-            }
+            state.postValue(DownloadingAssets(0, 0)) // Reset state so events can be submitted
+            handleAssetDownloadState(assetDownloader.syncStateWithCache())
         }
     }
 
@@ -322,7 +313,6 @@ data class DownloadingAssets(val numCompleted: Int, val numTotal: Int) : Downloa
 object DownloadsHaveSucceeded : DownloadingAssetsState()
 data class DownloadsHaveFailed(val reason: DownloadFailureLocalizationData) : DownloadingAssetsState()
 object AttemptedCacheAccessWhileEmpty : DownloadingAssetsState()
-object AttemptedCacheAccessInIncorrectState : DownloadingAssetsState()
 
 sealed class CopyingFilesLocallyState : SessionStartupState()
 object CopyingFilesToLocalDirectories : CopyingFilesLocallyState()

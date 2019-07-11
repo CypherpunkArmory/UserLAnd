@@ -326,9 +326,6 @@ class MainActivityViewModel(
             is AttemptedCacheAccessWhileEmpty -> {
                 postIllegalStateWithLog(DownloadCacheAccessedWhileEmpty)
             }
-            is AttemptedCacheAccessInIncorrectState -> {
-                postIllegalStateWithLog(DownloadCacheAccessedInAnIncorrectState)
-            }
         }
     }
 
