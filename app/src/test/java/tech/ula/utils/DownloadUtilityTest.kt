@@ -27,6 +27,10 @@ class DownloadUtilityTest {
 
     @Mock lateinit var downloadManagerWrapper: DownloadManagerWrapper
 
+    @Mock lateinit var mockUlaFiles: UlaFiles
+
+    private lateinit var mockScopedStorageDir: File
+
     private lateinit var mockFilesDir: File
 
     @Mock lateinit var requestReturn1: DownloadManager.Request
@@ -59,8 +63,11 @@ class DownloadUtilityTest {
     @Before
     fun setup() {
         mockFilesDir = tempFolder.newFolder("files")
-        val scopedStorage = tempFolder.newFolder("scoped")
-        downloadDirectory = File(scopedStorage, "downloads")
+        mockScopedStorageDir = tempFolder.newFolder("scoped")
+        whenever(mockUlaFiles.filesDir).thenReturn(mockFilesDir)
+        whenever(mockUlaFiles.scopedDir).thenReturn(mockScopedStorageDir)
+
+        downloadDirectory = File(mockScopedStorageDir, "downloads")
         downloadDirectory.mkdirs()
 
         destination1 = File(downloadDirectory, downloadMetadata1.downloadTitle)
@@ -71,7 +78,7 @@ class DownloadUtilityTest {
         whenever(downloadManagerWrapper.generateDownloadRequest(downloadMetadata2.url, destination2))
                 .thenReturn(requestReturn2)
 
-        downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, mockFilesDir, scopedStorage)
+        downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, mockUlaFiles)
     }
 
     private fun setupDownloadState() {

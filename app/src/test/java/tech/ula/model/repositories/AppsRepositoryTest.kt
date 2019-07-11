@@ -10,14 +10,14 @@ import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.daos.AppsDao
 import tech.ula.model.entities.App
-import tech.ula.model.remote.RemoteAppsSource
+import tech.ula.model.remote.GithubAppsFetcher
 import tech.ula.utils.preferences.AppsPreferences
 
 @RunWith(MockitoJUnitRunner::class)
 class AppsRepositoryTest {
 
     @Mock
-    lateinit var remoteAppsSource: RemoteAppsSource
+    lateinit var githubAppsFetcher: GithubAppsFetcher
 
     @Mock
     lateinit var appsList: LiveData<List<App>>
@@ -32,7 +32,7 @@ class AppsRepositoryTest {
 
     @Before
     fun setup() {
-        appsRepository = AppsRepository(appsDao, remoteAppsSource, appsPreferences)
+        appsRepository = AppsRepository(appsDao, githubAppsFetcher, appsPreferences)
     }
 
     @Test

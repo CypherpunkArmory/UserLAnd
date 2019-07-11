@@ -22,6 +22,8 @@ class FilesystemUtilityTest {
 
     private lateinit var applicationFilesDirPath: String
 
+    @Mock lateinit var mockUlaFiles: UlaFiles
+
     @Mock lateinit var mockBusyboxExecutor: BusyboxExecutor
 
     @Mock lateinit var mockLogger: Logger
@@ -36,7 +38,8 @@ class FilesystemUtilityTest {
     @Before
     fun setup() {
         applicationFilesDirPath = tempFolder.root.path
-        filesystemUtility = FilesystemUtility(applicationFilesDirPath, mockBusyboxExecutor, mockLogger)
+        whenever(mockUlaFiles.filesDir).thenReturn(tempFolder.root)
+        filesystemUtility = FilesystemUtility(mockUlaFiles, mockBusyboxExecutor, mockLogger)
     }
 
     @Test
@@ -189,13 +192,7 @@ class FilesystemUtilityTest {
 
         assertTrue(targetDirectory.exists())
         targetFiles.forEach { file ->
-            assertTrue(file.exists())
-            var output = ""
-            val proc = Runtime.getRuntime().exec("ls -l ${file.path}")
-
-            proc.inputStream.bufferedReader(Charsets.UTF_8).forEachLine { output += it }
-            val permissions = output.substring(0, 10)
-            assertTrue(permissions == "-rwxrwxrwx")
+            verify(mockUlaFiles).makePermissionsUsable(targetDirectory.path, file.name)
         }
     }
 
@@ -220,18 +217,9 @@ class FilesystemUtilityTest {
         filesystemUtility.copyAssetsToFilesystem(filesystem)
 
         assertTrue(targetDirectory.exists())
-        targetFiles.forEach { file ->
-            if (file.name == "rootfs.tar.gz") {
-                assertFalse(file.exists())
-                return@forEach
-            }
-            assertTrue(file.exists())
-            var output = ""
-            val proc = Runtime.getRuntime().exec("ls -l ${file.path}")
-
-            proc.inputStream.bufferedReader(Charsets.UTF_8).forEachLine { output += it }
-            val permissions = output.substring(0, 10)
-            assertTrue(permissions == "-rwxrwxrwx")
+        targetFiles.forEach {
+            if (it.name.contains("rootfs.tar.gz")) return@forEach
+            verify(mockUlaFiles).makePermissionsUsable(targetDirectory.path, it.name)
         }
     }
 
