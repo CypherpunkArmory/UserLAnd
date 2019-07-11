@@ -70,7 +70,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private val notificationManager by lazy {
-        NotificationUtility(this)
+        NotificationConstructor(this)
     }
 
     private val userFeedbackPrompter by lazy {

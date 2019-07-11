@@ -12,7 +12,7 @@ import tech.ula.MainActivity
 import tech.ula.R
 import tech.ula.ServerService
 
-class NotificationUtility(val context: Context) {
+class NotificationConstructor(val context: Context) {
 
     companion object {
         const val serviceNotificationId = 1000

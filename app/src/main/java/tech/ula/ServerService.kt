@@ -26,8 +26,8 @@ class ServerService : Service() {
 
     private lateinit var broadcaster: LocalBroadcastManager
 
-    private val notificationManager: NotificationUtility by lazy {
-        NotificationUtility(this)
+    private val notificationManager: NotificationConstructor by lazy {
+        NotificationConstructor(this)
     }
 
     private val busyboxExecutor by lazy {
@@ -111,7 +111,7 @@ class ServerService : Service() {
     }
 
     private suspend fun startSession(session: Session) {
-        startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
+        startForeground(NotificationConstructor.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
         session.pid = serverUtility.startServer(session)
 
         while (!serverUtility.isServerRunning(session)) {
