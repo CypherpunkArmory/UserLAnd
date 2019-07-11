@@ -7,7 +7,7 @@ import tech.ula.model.entities.Filesystem
 import java.io.File
 import java.io.IOException
 
-class FilesystemUtility(
+class FilesystemManager(
     private val ulaFiles: UlaFiles,
     private val busyboxExecutor: BusyboxExecutor,
     private val logger: Logger = SentryLogger()

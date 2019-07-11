@@ -16,7 +16,7 @@ import java.io.File
 import java.io.IOException
 
 @RunWith(MockitoJUnitRunner::class)
-class FilesystemUtilityTest {
+class FilesystemManagerTest {
 
     @get:Rule val tempFolder = TemporaryFolder()
 
@@ -30,7 +30,7 @@ class FilesystemUtilityTest {
 
     private val statelessListener: (line: String) -> Unit = { }
 
-    private lateinit var filesystemUtility: FilesystemUtility
+    private lateinit var filesystemManager: FilesystemManager
 
     private val filesystemExtractionSuccess = ".success_filesystem_extraction"
     private val filesystemExtractionFailure = ".failure_filesystem_extraction"
@@ -39,7 +39,7 @@ class FilesystemUtilityTest {
     fun setup() {
         applicationFilesDirPath = tempFolder.root.path
         whenever(mockUlaFiles.filesDir).thenReturn(tempFolder.root)
-        filesystemUtility = FilesystemUtility(mockUlaFiles, mockBusyboxExecutor, mockLogger)
+        filesystemManager = FilesystemManager(mockUlaFiles, mockBusyboxExecutor, mockLogger)
     }
 
     @Test
@@ -66,7 +66,7 @@ class FilesystemUtilityTest {
                 .thenReturn(SuccessfulExecution)
 
         val result = runBlocking {
-            filesystemUtility.extractFilesystem(filesystem, statelessListener)
+            filesystemManager.extractFilesystem(filesystem, statelessListener)
         }
         verify(mockBusyboxExecutor).executeProotCommand(
                 eq(command),
@@ -104,7 +104,7 @@ class FilesystemUtilityTest {
         ))
                 .thenReturn(FailedExecution(failureReason))
 
-        val result = runBlocking { filesystemUtility.extractFilesystem(filesystem, statelessListener) }
+        val result = runBlocking { filesystemManager.extractFilesystem(filesystem, statelessListener) }
 
         assertEquals(FailedExecution(failureReason), result)
     }
@@ -130,7 +130,7 @@ class FilesystemUtilityTest {
                 .thenReturn(SuccessfulExecution)
 
         val result = runBlocking {
-            filesystemUtility.compressFilesystem(filesystem, File(destinationPath), statelessListener)
+            filesystemManager.compressFilesystem(filesystem, File(destinationPath), statelessListener)
         }
         verify(mockBusyboxExecutor).executeProotCommand(
                 eq(command),
@@ -165,7 +165,7 @@ class FilesystemUtilityTest {
                 .thenReturn(FailedExecution(failureReason))
 
         val result = runBlocking {
-            filesystemUtility.compressFilesystem(filesystem, File(destinationPath), statelessListener)
+            filesystemManager.compressFilesystem(filesystem, File(destinationPath), statelessListener)
         }
         assertEquals(FailedExecution(failureReason), result)
     }
@@ -188,7 +188,7 @@ class FilesystemUtilityTest {
         targetFiles.forEach { assertFalse(it.exists()) }
         sharedFiles.forEach { assertTrue(it.exists()) }
 
-        filesystemUtility.copyAssetsToFilesystem(filesystem)
+        filesystemManager.copyAssetsToFilesystem(filesystem)
 
         assertTrue(targetDirectory.exists())
         targetFiles.forEach { file ->
@@ -214,7 +214,7 @@ class FilesystemUtilityTest {
         targetFiles.forEach { assertFalse(it.exists()) }
         sharedFiles.forEach { assertTrue(it.exists()) }
 
-        filesystemUtility.copyAssetsToFilesystem(filesystem)
+        filesystemManager.copyAssetsToFilesystem(filesystem)
 
         assertTrue(targetDirectory.exists())
         targetFiles.forEach {
@@ -230,7 +230,7 @@ class FilesystemUtilityTest {
         assertFalse(File("${supportDirectory.path}/$filesystemExtractionSuccess").exists())
         assertFalse(File("${supportDirectory.path}/$filesystemExtractionFailure").exists())
 
-        assertFalse(filesystemUtility.isExtractionComplete("target"))
+        assertFalse(filesystemManager.isExtractionComplete("target"))
     }
 
     @Test
@@ -242,16 +242,16 @@ class FilesystemUtilityTest {
         assertFalse(successFile.exists())
         assertFalse(failureFile.exists())
 
-        assertFalse(filesystemUtility.isExtractionComplete("target"))
+        assertFalse(filesystemManager.isExtractionComplete("target"))
 
         successFile.createNewFile()
-        assertTrue(filesystemUtility.isExtractionComplete("target"))
+        assertTrue(filesystemManager.isExtractionComplete("target"))
         successFile.delete()
 
-        assertFalse(filesystemUtility.isExtractionComplete("target"))
+        assertFalse(filesystemManager.isExtractionComplete("target"))
 
         failureFile.createNewFile()
-        assertTrue(filesystemUtility.isExtractionComplete("target"))
+        assertTrue(filesystemManager.isExtractionComplete("target"))
     }
 
     @Test
@@ -261,10 +261,10 @@ class FilesystemUtilityTest {
         val failureFile = File("${supportDirectory.path}/$filesystemExtractionFailure")
 
         failureFile.createNewFile()
-        assertFalse(filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("target"))
+        assertFalse(filesystemManager.hasFilesystemBeenSuccessfullyExtracted("target"))
 
         successFile.createNewFile()
-        assertTrue(filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("target"))
+        assertTrue(filesystemManager.hasFilesystemBeenSuccessfullyExtracted("target"))
     }
 
     @Test
@@ -274,16 +274,16 @@ class FilesystemUtilityTest {
                 Asset("name2", "dist2"))
 
         // Should fail if the directory doesn't exist
-        assertFalse(filesystemUtility.areAllRequiredAssetsPresent("target", assets))
+        assertFalse(filesystemManager.areAllRequiredAssetsPresent("target", assets))
 
         val supportDirectory = tempFolder.newFolder("target", "support")
-        assertFalse(filesystemUtility.areAllRequiredAssetsPresent("target", assets))
+        assertFalse(filesystemManager.areAllRequiredAssetsPresent("target", assets))
 
         File("${supportDirectory.path}/name1").createNewFile()
-        assertFalse(filesystemUtility.areAllRequiredAssetsPresent("target", assets))
+        assertFalse(filesystemManager.areAllRequiredAssetsPresent("target", assets))
 
         File("${supportDirectory.path}/name2").createNewFile()
-        assertTrue(filesystemUtility.areAllRequiredAssetsPresent("target", assets))
+        assertTrue(filesystemManager.areAllRequiredAssetsPresent("target", assets))
     }
 
     @Test
@@ -297,7 +297,7 @@ class FilesystemUtilityTest {
         fsFiles.forEach { it.createNewFile() }
         fsFiles.forEach { assertTrue(it.exists()) }
 
-        filesystemUtility.removeRootfsFilesFromFilesystem(filesystemName)
+        filesystemManager.removeRootfsFilesFromFilesystem(filesystemName)
 
         fsFiles.forEach { assertFalse(it.exists()) }
     }
@@ -308,7 +308,7 @@ class FilesystemUtilityTest {
         assertFalse(testFile.exists())
 
         runBlocking {
-            filesystemUtility.deleteFilesystem(100)
+            filesystemManager.deleteFilesystem(100)
         }
 
         verify(mockBusyboxExecutor, never()).executeScript(any(), anyOrNull())
@@ -321,7 +321,7 @@ class FilesystemUtilityTest {
         assertTrue(testFile.exists())
 
         runBlocking {
-            filesystemUtility.deleteFilesystem(100)
+            filesystemManager.deleteFilesystem(100)
         }
 
         verify(mockBusyboxExecutor, never()).executeScript(any(), anyOrNull())
@@ -338,7 +338,7 @@ class FilesystemUtilityTest {
                 .thenReturn(SuccessfulExecution)
 
         runBlocking {
-            filesystemUtility.deleteFilesystem(100)
+            filesystemManager.deleteFilesystem(100)
         }
 
         verify(mockBusyboxExecutor).executeScript("support/deleteFilesystem.sh ${testDir.path}")
@@ -355,7 +355,7 @@ class FilesystemUtilityTest {
                 .thenReturn(FailedExecution(""))
 
         runBlocking {
-            filesystemUtility.deleteFilesystem(100)
+            filesystemManager.deleteFilesystem(100)
         }
         verifyBlocking(mockBusyboxExecutor) { recursivelyDelete(testDir.absolutePath) }
         verify(mockLogger).addExceptionBreadcrumb(IOException())
@@ -377,7 +377,7 @@ class FilesystemUtilityTest {
         val targetAppLocation = File("${filesystemProfileDDir.absolutePath}/$targetAppScriptName")
         assertFalse(filesystemProfileDDir.exists())
 
-        filesystemUtility.moveAppScriptToRequiredLocation(sourceAppName, filesystem)
+        filesystemManager.moveAppScriptToRequiredLocation(sourceAppName, filesystem)
 
         assertTrue(targetAppLocation.exists())
         assertEquals(sourceAppContents, targetAppLocation.readText())
@@ -390,7 +390,7 @@ class FilesystemUtilityTest {
         val sourceAppScriptDir = File("${tempFolder.root.absolutePath}/apps/$sourceAppName")
         sourceAppScriptDir.mkdirs()
 
-        filesystemUtility.moveAppScriptToRequiredLocation(sourceAppName, filesystem)
+        filesystemManager.moveAppScriptToRequiredLocation(sourceAppName, filesystem)
 
         verify(mockLogger).addExceptionBreadcrumb(IOException())
     }

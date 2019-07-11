@@ -42,7 +42,7 @@ class AppsStartupFsmTest {
 
     @Mock lateinit var mockAppsPreferences: AppsPreferences
 
-    @Mock lateinit var mockFilesystemUtility: FilesystemUtility
+    @Mock lateinit var mockFilesystemManager: FilesystemManager
 
     @Mock lateinit var mockBuildWrapper: BuildWrapper
 
@@ -99,7 +99,7 @@ class AppsStartupFsmTest {
         whenever(mockUlaDatabase.filesystemDao()).thenReturn(mockFilesystemDao)
         whenever(mockUlaDatabase.sessionDao()).thenReturn(mockSessionDao)
 
-        appsFsm = AppsStartupFsm(mockUlaDatabase, mockAppsPreferences, mockFilesystemUtility, mockBuildWrapper, mockLogger)
+        appsFsm = AppsStartupFsm(mockUlaDatabase, mockAppsPreferences, mockFilesystemManager, mockBuildWrapper, mockLogger)
     }
 
     @Test
@@ -345,7 +345,7 @@ class AppsStartupFsmTest {
         appsFsm.setState(AppHasServiceTypePreferenceSet)
         appsFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockFilesystemUtility.moveAppScriptToRequiredLocation(app.name, appsFilesystem))
+        whenever(mockFilesystemManager.moveAppScriptToRequiredLocation(app.name, appsFilesystem))
                 .thenThrow(IOException())
 
         runBlocking { appsFsm.submitEvent(CopyAppScriptToFilesystem(app, appsFilesystem), this) }

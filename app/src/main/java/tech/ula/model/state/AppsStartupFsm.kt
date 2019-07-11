@@ -17,11 +17,11 @@ import tech.ula.utils.preferences.PreferenceHasNotBeenSelected
 import tech.ula.utils.preferences.SshTypePreference
 
 class AppsStartupFsm(
-    ulaDatabase: UlaDatabase,
-    private val appsPreferences: AppsPreferences,
-    private val filesystemUtility: FilesystemUtility,
-    private val buildWrapper: BuildWrapper = BuildWrapper(),
-    private val logger: Logger = SentryLogger()
+        ulaDatabase: UlaDatabase,
+        private val appsPreferences: AppsPreferences,
+        private val filesystemManager: FilesystemManager,
+        private val buildWrapper: BuildWrapper = BuildWrapper(),
+        private val logger: Logger = SentryLogger()
 ) {
 
     private val className = "AppsFSM"
@@ -109,7 +109,7 @@ class AppsStartupFsm(
         state.postValue(CopyingAppScript)
         try {
             withContext(Dispatchers.IO) {
-                filesystemUtility.moveAppScriptToRequiredLocation(app.name, filesystem)
+                filesystemManager.moveAppScriptToRequiredLocation(app.name, filesystem)
             }
             state.postValue(AppScriptCopySucceeded)
         } catch (err: Exception) {

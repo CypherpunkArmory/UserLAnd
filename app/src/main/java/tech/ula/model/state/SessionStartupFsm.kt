@@ -16,12 +16,12 @@ import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import java.net.UnknownHostException
 
 class SessionStartupFsm(
-    ulaDatabase: UlaDatabase,
-    private val assetRepository: AssetRepository,
-    private val filesystemUtility: FilesystemUtility,
-    private val assetDownloader: AssetDownloader,
-    private val storageUtility: StorageUtility,
-    private val logger: Logger = SentryLogger()
+        ulaDatabase: UlaDatabase,
+        private val assetRepository: AssetRepository,
+        private val filesystemManager: FilesystemManager,
+        private val assetDownloader: AssetDownloader,
+        private val storageUtility: StorageUtility,
+        private val logger: Logger = SentryLogger()
 ) {
 
     private val className = "SessionFSM"
@@ -152,7 +152,7 @@ class SessionStartupFsm(
         state.postValue(GeneratingDownloadRequirements)
 
         val filesystemNeedsExtraction =
-                !filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}") &&
+                !filesystemManager.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}") &&
                 !filesystem.isCreatedFromBackup
 
         val downloadRequirements = try {
@@ -229,7 +229,7 @@ class SessionStartupFsm(
 
         val filesystemDirectoryName = "${filesystem.id}"
         val requiredAssets = assetRepository.getDistributionAssetsForExistingFilesystem(filesystem)
-        val allAssetsArePresentOnFilesystem = filesystemUtility.areAllRequiredAssetsPresent(filesystemDirectoryName, requiredAssets)
+        val allAssetsArePresentOnFilesystem = filesystemManager.areAllRequiredAssetsPresent(filesystemDirectoryName, requiredAssets)
         val lastDownloadedAssetVersion = assetRepository.getLatestDistributionVersion(filesystem.distributionType)
         val filesystemAssetsNeedUpdating = filesystem.versionCodeUsed < lastDownloadedAssetVersion
 
@@ -240,7 +240,7 @@ class SessionStartupFsm(
             }
 
             try {
-                filesystemUtility.copyAssetsToFilesystem(filesystem)
+                filesystemManager.copyAssetsToFilesystem(filesystem)
                 filesystem.versionCodeUsed = lastDownloadedAssetVersion
                 filesystemDao.updateFilesystem(filesystem)
             } catch (err: Exception) {
@@ -248,8 +248,8 @@ class SessionStartupFsm(
                 return@withContext
             }
 
-            if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
-                filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
+            if (filesystemManager.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
+                filesystemManager.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
             }
         }
 
@@ -273,20 +273,20 @@ class SessionStartupFsm(
     private suspend fun handleExtractFilesystem(filesystem: Filesystem) {
         val filesystemDirectoryName = "${filesystem.id}"
 
-        if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
-            filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
+        if (filesystemManager.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
+            filesystemManager.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
             state.postValue(ExtractionHasCompletedSuccessfully)
             return
         }
 
-        val result = filesystemUtility.extractFilesystem(filesystem, extractionLogger)
+        val result = filesystemManager.extractFilesystem(filesystem, extractionLogger)
         if (result is FailedExecution) {
             state.postValue(ExtractionFailed(result.reason))
             return
         }
 
-        if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
-            filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
+        if (filesystemManager.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
+            filesystemManager.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
             state.postValue(ExtractionHasCompletedSuccessfully)
             return
         }
