@@ -40,7 +40,7 @@ class SessionStartupFsmTest {
 
     @Mock lateinit var mockAssetRepository: AssetRepository
 
-    @Mock lateinit var mockDownloadUtility: DownloadUtility
+    @Mock lateinit var mockAssetDownloader: AssetDownloader
 
     @Mock lateinit var mockFilesystemUtility: FilesystemUtility
 
@@ -122,7 +122,7 @@ class SessionStartupFsmTest {
                 mockUlaDatabase,
                 mockAssetRepository,
                 mockFilesystemUtility,
-                mockDownloadUtility,
+                mockAssetDownloader,
                 mockStorageUtility,
                 mockLogger
         )
@@ -142,10 +142,10 @@ class SessionStartupFsmTest {
             for (state in possibleStates) {
                 if (state is WaitingForSessionSelection) {
                     // Test the branch for receiving downloads not enqueued by us
-                    whenever(mockDownloadUtility.downloadIsForUserland(0L))
+                    whenever(mockAssetDownloader.downloadIsForUserland(0L))
                             .thenReturn(false)
                 } else {
-                    whenever(mockDownloadUtility.downloadIsForUserland(0L))
+                    whenever(mockAssetDownloader.downloadIsForUserland(0L))
                             .thenReturn(true)
                 }
                 sessionFsm.setState(state)
@@ -176,7 +176,7 @@ class SessionStartupFsmTest {
         sessionFsm.setState(WaitingForSessionSelection)
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockDownloadUtility.handleDownloadComplete(downloadId))
+        whenever(mockAssetDownloader.handleDownloadComplete(downloadId))
                 .thenReturn(NonUserlandDownloadFound)
 
         runBlocking { sessionFsm.submitEvent(AssetDownloadComplete(downloadId), this) }
@@ -372,7 +372,7 @@ class SessionStartupFsmTest {
         sessionFsm.setState(DownloadingAssets(0, 0))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockDownloadUtility.handleDownloadComplete(1))
+        whenever(mockAssetDownloader.handleDownloadComplete(1))
                 .thenReturn(AllDownloadsCompletedSuccessfully)
 
         runBlocking {
@@ -387,9 +387,9 @@ class SessionStartupFsmTest {
         sessionFsm.setState(DownloadingAssets(0, 0))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockDownloadUtility.handleDownloadComplete(0))
+        whenever(mockAssetDownloader.handleDownloadComplete(0))
                 .thenReturn(CompletedDownloadsUpdate(1, 3))
-        whenever(mockDownloadUtility.handleDownloadComplete(1))
+        whenever(mockAssetDownloader.handleDownloadComplete(1))
                 .thenReturn(CompletedDownloadsUpdate(2, 3))
 
         runBlocking {
@@ -407,7 +407,7 @@ class SessionStartupFsmTest {
         sessionFsm.getState().observeForever(mockStateObserver)
 
         val localizationData = DownloadFailureLocalizationData(0)
-        whenever(mockDownloadUtility.handleDownloadComplete(0))
+        whenever(mockAssetDownloader.handleDownloadComplete(0))
                 .thenReturn(AssetDownloadFailure(localizationData))
 
         runBlocking {
@@ -422,7 +422,7 @@ class SessionStartupFsmTest {
         sessionFsm.setState(DownloadingAssets(0, 2))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockDownloadUtility.handleDownloadComplete(0))
+        whenever(mockAssetDownloader.handleDownloadComplete(0))
                 .thenReturn(NonUserlandDownloadFound)
 
         runBlocking {
@@ -438,7 +438,7 @@ class SessionStartupFsmTest {
         sessionFsm.setState(DownloadingAssets(0, 0))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockDownloadUtility.handleDownloadComplete(0))
+        whenever(mockAssetDownloader.handleDownloadComplete(0))
                 .thenReturn(CacheSyncAttemptedWhileCacheIsEmpty)
 
         runBlocking {
@@ -452,7 +452,7 @@ class SessionStartupFsmTest {
     fun `Does nothing if download cache is empty when receiving SyncDownloadState`() {
         sessionFsm.setState(WaitingForSessionSelection)
         sessionFsm.getState().observeForever(mockStateObserver)
-        whenever(mockDownloadUtility.downloadStateHasBeenCached())
+        whenever(mockAssetDownloader.downloadStateHasBeenCached())
                 .thenReturn(false)
 
         runBlocking {
@@ -467,7 +467,7 @@ class SessionStartupFsmTest {
     fun `Posts AttemptedCacheAccessInIncorrectState if state is not WaitingForSessionSelection or DownloadingAssets`() {
         sessionFsm.setState(VerifyingFilesystemAssets)
         sessionFsm.getState().observeForever(mockStateObserver)
-        whenever(mockDownloadUtility.downloadStateHasBeenCached())
+        whenever(mockAssetDownloader.downloadStateHasBeenCached())
                 .thenReturn(true)
 
         runBlocking {
@@ -481,9 +481,9 @@ class SessionStartupFsmTest {
     fun `Appropriately resets download state if syncing during WaitingForSessionSelection`() {
         sessionFsm.setState(WaitingForSessionSelection)
         sessionFsm.getState().observeForever(mockStateObserver)
-        whenever(mockDownloadUtility.downloadStateHasBeenCached())
+        whenever(mockAssetDownloader.downloadStateHasBeenCached())
                 .thenReturn(true)
-        whenever(mockDownloadUtility.syncStateWithCache())
+        whenever(mockAssetDownloader.syncStateWithCache())
                 .thenReturn(AllDownloadsCompletedSuccessfully)
 
         runBlocking {
@@ -498,9 +498,9 @@ class SessionStartupFsmTest {
     fun `Appropriately resets download state if syncing during DownloadingAssets`() {
         sessionFsm.setState(DownloadingAssets(0, 10))
         sessionFsm.getState().observeForever(mockStateObserver)
-        whenever(mockDownloadUtility.downloadStateHasBeenCached())
+        whenever(mockAssetDownloader.downloadStateHasBeenCached())
                 .thenReturn(true)
-        whenever(mockDownloadUtility.syncStateWithCache())
+        whenever(mockAssetDownloader.syncStateWithCache())
                 .thenReturn(AllDownloadsCompletedSuccessfully)
 
         runBlocking {
@@ -518,7 +518,7 @@ class SessionStartupFsmTest {
 
         runBlocking { sessionFsm.submitEvent(CopyDownloadsToLocalStorage, this) }
 
-        verifyBlocking(mockDownloadUtility) { prepareDownloadsForUse(anyOrNull()) }
+        verifyBlocking(mockAssetDownloader) { prepareDownloadsForUse(anyOrNull()) }
         verify(mockStateObserver).onChanged(CopyingFilesToLocalDirectories)
         verify(mockStateObserver).onChanged(LocalDirectoryCopySucceeded)
     }
@@ -529,7 +529,7 @@ class SessionStartupFsmTest {
         sessionFsm.getState().observeForever(mockStateObserver)
 
         runBlocking {
-            whenever(mockDownloadUtility.prepareDownloadsForUse(anyOrNull()))
+            whenever(mockAssetDownloader.prepareDownloadsForUse(anyOrNull()))
                     .thenThrow(IOException())
             sessionFsm.submitEvent(CopyDownloadsToLocalStorage, this)
         }

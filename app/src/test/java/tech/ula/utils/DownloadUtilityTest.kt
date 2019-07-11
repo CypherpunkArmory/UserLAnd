@@ -19,7 +19,7 @@ import tech.ula.utils.preferences.AssetPreferences
 import java.io.File
 
 @RunWith(MockitoJUnitRunner::class)
-class DownloadUtilityTest {
+class AssetDownloaderTest {
 
     @get:Rule val tempFolder = TemporaryFolder()
 
@@ -58,7 +58,7 @@ class DownloadUtilityTest {
     private lateinit var destination1: File
     private lateinit var destination2: File
 
-    private lateinit var downloadUtility: DownloadUtility
+    private lateinit var assetDownloader: AssetDownloader
 
     @Before
     fun setup() {
@@ -78,7 +78,7 @@ class DownloadUtilityTest {
         whenever(downloadManagerWrapper.generateDownloadRequest(downloadMetadata2.url, destination2))
                 .thenReturn(requestReturn2)
 
-        downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, mockUlaFiles)
+        assetDownloader = AssetDownloader(assetPreferences, downloadManagerWrapper, mockUlaFiles)
     }
 
     private fun setupDownloadState() {
@@ -87,7 +87,7 @@ class DownloadUtilityTest {
         whenever(downloadManagerWrapper.enqueue(requestReturn2))
                 .thenReturn(1)
 
-        downloadUtility.downloadRequirements(downloadList)
+        assetDownloader.downloadRequirements(downloadList)
     }
 
     @Test
@@ -98,8 +98,8 @@ class DownloadUtilityTest {
                 .thenReturn(expectedFirstResult)
                 .thenReturn(expectedSecondResult)
 
-        val firstResult = downloadUtility.downloadStateHasBeenCached()
-        val secondResult = downloadUtility.downloadStateHasBeenCached()
+        val firstResult = assetDownloader.downloadStateHasBeenCached()
+        val secondResult = assetDownloader.downloadStateHasBeenCached()
 
         assertEquals(expectedFirstResult, firstResult)
         assertEquals(expectedSecondResult, secondResult)
@@ -110,7 +110,7 @@ class DownloadUtilityTest {
         whenever(assetPreferences.getDownloadsAreInProgress())
                 .thenReturn(false)
 
-        val result = downloadUtility.syncStateWithCache()
+        val result = assetDownloader.syncStateWithCache()
 
         assertTrue(result is CacheSyncAttemptedWhileCacheIsEmpty)
     }
@@ -129,7 +129,7 @@ class DownloadUtilityTest {
         whenever(downloadManagerWrapper.getDownloadFailureReason(downloadId))
                 .thenReturn(failureReason)
 
-        val result = downloadUtility.syncStateWithCache()
+        val result = assetDownloader.syncStateWithCache()
         assertTrue(result is AssetDownloadFailure)
         val cast = result as AssetDownloadFailure
         assertEquals(failureReason, cast.reason)
@@ -147,7 +147,7 @@ class DownloadUtilityTest {
         whenever(downloadManagerWrapper.downloadHasSucceeded(downloadId))
                 .thenReturn(true)
 
-        val result = downloadUtility.syncStateWithCache()
+        val result = assetDownloader.syncStateWithCache()
 
         assertTrue(result is AllDownloadsCompletedSuccessfully)
         verify(assetPreferences).setDownloadsAreInProgress(false)
@@ -170,7 +170,7 @@ class DownloadUtilityTest {
         whenever(downloadManagerWrapper.downloadHasSucceeded(1))
                 .thenReturn(false)
 
-        val result = downloadUtility.syncStateWithCache()
+        val result = assetDownloader.syncStateWithCache()
 
         assertTrue(result is CompletedDownloadsUpdate)
         val cast = result as CompletedDownloadsUpdate
@@ -185,7 +185,7 @@ class DownloadUtilityTest {
         whenever(downloadManagerWrapper.enqueue(requestReturn2))
                 .thenReturn(1)
 
-        downloadUtility.downloadRequirements(downloadList)
+        assetDownloader.downloadRequirements(downloadList)
 
         verify(downloadManagerWrapper).generateDownloadRequest(url1, destination1)
         verify(downloadManagerWrapper).generateDownloadRequest(url2, destination2)
@@ -200,7 +200,7 @@ class DownloadUtilityTest {
     fun `Returns NonUserLandDownloadFound if a a download we did not start is found`() {
         setupDownloadState()
 
-        val result = downloadUtility.handleDownloadComplete(-1)
+        val result = assetDownloader.handleDownloadComplete(-1)
 
         assertTrue(result is NonUserlandDownloadFound)
     }
@@ -214,7 +214,7 @@ class DownloadUtilityTest {
         whenever(downloadManagerWrapper.getDownloadFailureReason(0))
                 .thenReturn(localizationData)
 
-        val result = downloadUtility.handleDownloadComplete(0)
+        val result = assetDownloader.handleDownloadComplete(0)
 
         assertTrue(result is AssetDownloadFailure)
         result as AssetDownloadFailure
@@ -229,8 +229,8 @@ class DownloadUtilityTest {
         whenever(downloadManagerWrapper.downloadHasFailed(1))
                 .thenReturn(false)
 
-        val result1 = downloadUtility.handleDownloadComplete(0)
-        val result2 = downloadUtility.handleDownloadComplete(1)
+        val result1 = assetDownloader.handleDownloadComplete(0)
+        val result2 = assetDownloader.handleDownloadComplete(1)
 
         assertTrue(result1 is CompletedDownloadsUpdate)
         assertTrue(result2 is AllDownloadsCompletedSuccessfully)
@@ -251,7 +251,7 @@ class DownloadUtilityTest {
         assertTrue(asset1DownloadsFile.exists())
         assertTrue(asset2DownloadsFile.exists())
 
-        downloadUtility.downloadRequirements(downloadList)
+        assetDownloader.downloadRequirements(downloadList)
 
         assertFalse(asset1DownloadsFile.exists())
         assertFalse(asset2DownloadsFile.exists())
@@ -262,7 +262,7 @@ class DownloadUtilityTest {
         val stagingDirectory = File("${mockFilesDir.absolutePath}/staging")
         stagingDirectory.mkdirs()
 
-        runBlocking { downloadUtility.prepareDownloadsForUse() }
+        runBlocking { assetDownloader.prepareDownloadsForUse() }
 
         assertFalse(stagingDirectory.exists())
     }
@@ -278,7 +278,7 @@ class DownloadUtilityTest {
         assertFalse(destinationDirectory.exists())
         assertFalse(destinationFile.exists())
 
-        runBlocking { downloadUtility.prepareDownloadsForUse(mockArchiveFactoryWrapper) }
+        runBlocking { assetDownloader.prepareDownloadsForUse(mockArchiveFactoryWrapper) }
 
         assertFalse(downloadedRootfs.exists())
 
@@ -301,7 +301,7 @@ class DownloadUtilityTest {
         rootfsPartFile1.createNewFile()
         rootFsPartFile2.createNewFile()
 
-        runBlocking { downloadUtility.prepareDownloadsForUse(mockArchiveFactoryWrapper) }
+        runBlocking { assetDownloader.prepareDownloadsForUse(mockArchiveFactoryWrapper) }
 
         assertFalse(downloadedRootfs.exists())
 
@@ -325,7 +325,7 @@ class DownloadUtilityTest {
         destinationFile.createNewFile()
         destinationFile.writeText("original")
 
-        runBlocking { downloadUtility.prepareDownloadsForUse(mockArchiveFactoryWrapper) }
+        runBlocking { assetDownloader.prepareDownloadsForUse(mockArchiveFactoryWrapper) }
 
         assertFalse(downloadedRootfs.exists())
 
@@ -355,7 +355,7 @@ class DownloadUtilityTest {
                     File("${destination.absolutePath}/test").createNewFile()
                 }
 
-        runBlocking { downloadUtility.prepareDownloadsForUse(mockArchiveFactoryWrapper) }
+        runBlocking { assetDownloader.prepareDownloadsForUse(mockArchiveFactoryWrapper) }
 
         assertFalse(downloadedAssets.exists())
         verify(mockArchiver).extract(stagingTarget, destination)

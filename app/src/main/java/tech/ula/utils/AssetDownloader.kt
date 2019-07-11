@@ -20,7 +20,7 @@ object AllDownloadsCompletedSuccessfully : AssetDownloadState()
 data class CompletedDownloadsUpdate(val numCompleted: Int, val numTotal: Int) : AssetDownloadState()
 data class AssetDownloadFailure(val reason: DownloadFailureLocalizationData) : AssetDownloadState()
 
-class DownloadUtility(
+class AssetDownloader(
     private val assetPreferences: AssetPreferences,
     private val downloadManagerWrapper: DownloadManagerWrapper,
     private val ulaFiles: UlaFiles
