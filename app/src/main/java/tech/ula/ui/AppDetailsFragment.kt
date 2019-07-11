@@ -37,11 +37,11 @@ class AppDetailsFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
 
         activityContext = activity!!
-        val localFileLocator = LocalFileLocator(activityContext.filesDir.path, activityContext.resources)
+        val appDetailer = AppDetails(activityContext.filesDir.path, activityContext.resources)
 
-        apps_icon.setImageURI(localFileLocator.findIconUri(app.name))
+        apps_icon.setImageURI(appDetailer.findIconUri(app.name))
         apps_title.text = app.name
-        apps_description.text = (localFileLocator.findAppDescription(app.name))
+        apps_description.text = (appDetailer.findAppDescription(app.name))
 
         setupPreferredServiceTypeRadioGroup()
     }

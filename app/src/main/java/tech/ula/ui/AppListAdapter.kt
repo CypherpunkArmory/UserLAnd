@@ -15,7 +15,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import tech.ula.R
 import tech.ula.model.entities.App
-import tech.ula.utils.LocalFileLocator
+import tech.ula.utils.AppDetails
 import kotlin.collections.ArrayList
 
 class AppListAdapter(
@@ -135,8 +135,8 @@ class AppListAdapter(
                     viewHolder.itemView.setBackgroundResource(R.color.colorPrimaryDark)
                 }
 
-                val localFileLocator = LocalFileLocator(activity.filesDir.path, activity.resources)
-                viewHolder.imageView?.setImageURI(localFileLocator.findIconUri(app.name))
+                val appDetailer = AppDetails(activity.filesDir.path, activity.resources)
+                viewHolder.imageView?.setImageURI(appDetailer.findIconUri(app.name))
                 viewHolder.appName?.text = app.name.capitalize()
 
                 handleFirstAnimationRun(viewHolder, position)
