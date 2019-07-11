@@ -389,7 +389,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 displayNetworkChoicesDialog(state.downloadRequirements)
             }
             is ActiveSessionsMustBeDeactivated -> {
-                displayGenericErrorDialog(this, R.string.general_error_title, R.string.deactivate_sessions)
+                displayGenericErrorDialog(R.string.general_error_title, R.string.deactivate_sessions)
             }
         }
     }
@@ -412,11 +412,11 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private fun showDialog(dialogType: String) {
         when (dialogType) {
             "unhandledSessionServiceType" -> {
-                displayGenericErrorDialog(this, R.string.general_error_title,
+                displayGenericErrorDialog(R.string.general_error_title,
                         R.string.illegal_state_unhandled_session_service_type)
             }
             "playStoreMissingForClient" ->
-                displayGenericErrorDialog(this, R.string.alert_need_client_app_title,
+                displayGenericErrorDialog(R.string.alert_need_client_app_title,
                     R.string.alert_need_client_app_message)
         }
     }
@@ -613,7 +613,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun displayLowStorageDialog() {
-        displayGenericErrorDialog(this, R.string.alert_storage_low_title, R.string.alert_storage_low_message) {
+        displayGenericErrorDialog(R.string.alert_storage_low_title, R.string.alert_storage_low_message) {
             viewModel.lowAvailableStorageAcknowledged()
         }
     }

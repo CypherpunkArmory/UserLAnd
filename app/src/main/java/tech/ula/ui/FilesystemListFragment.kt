@@ -196,7 +196,7 @@ class FilesystemListFragment : Fragment() {
                 activityContext.stopProgressFromFilesystemList()
             }
             is FilesystemDeleteState.Failure -> {
-                displayGenericErrorDialog(activityContext, R.string.general_error_title, R.string.error_filesystem_delete)
+                activityContext.displayGenericErrorDialog(R.string.general_error_title, R.string.error_filesystem_delete)
                 activityContext.stopProgressFromFilesystemList()
             }
         }

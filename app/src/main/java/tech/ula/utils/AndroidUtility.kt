@@ -1,7 +1,5 @@
 package tech.ula.utils
 
-import android.app.Activity
-import android.app.AlertDialog
 import android.content.Context
 import android.content.ContentResolver
 import android.content.res.Configuration
@@ -18,36 +16,6 @@ import java.io.File
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
-
-fun displayGenericErrorDialog(activity: Activity, titleId: Int, messageId: Int, callback: (() -> Unit) = {}) {
-    AlertDialog.Builder(activity)
-            .setTitle(titleId)
-            .setMessage(messageId)
-            .setPositiveButton(R.string.button_ok) {
-                dialog, _ ->
-                callback()
-                dialog.dismiss()
-            }
-            .create().show()
-}
-
-interface Localization {
-    fun getString(context: Context): String
-}
-
-data class LocalizationData(val resId: Int, val formatStrings: List<String> = listOf()) : Localization {
-    override fun getString(context: Context): String {
-        return context.getString(resId, formatStrings)
-    }
-}
-
-data class DownloadFailureLocalizationData(val resId: Int, val formatStrings: List<String> = listOf()) : Localization {
-    override fun getString(context: Context): String {
-        val errorDescriptionResId = R.string.illegal_state_downloads_did_not_complete_successfully
-        val errorTypeString = context.getString(resId, formatStrings)
-        return context.getString(errorDescriptionResId, errorTypeString)
-    }
-}
 
 class Symlinker {
     fun createSymlink(targetPath: String, linkPath: String) {
