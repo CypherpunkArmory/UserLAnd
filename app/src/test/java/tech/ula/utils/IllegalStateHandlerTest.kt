@@ -184,17 +184,6 @@ class IllegalStateHandlerTest {
     }
 
     @Test
-    fun `DownloadCacheAccessedInAnIncorrectState returns correct id and strings`() {
-        val state = DownloadCacheAccessedInAnIncorrectState
-
-        val result = illegalStateHandler.getLocalizationData(state)
-
-        val resId = R.string.illegal_state_download_cache_access_in_incorrect_state
-        val expectedResult = LocalizationData(resId, listOf())
-        assertEquals(expectedResult, result)
-    }
-
-    @Test
     fun `FailedToCopyAssetsToFilesystem returns correct id and strings`() {
         val state = FailedToCopyAssetsToFilesystem
 

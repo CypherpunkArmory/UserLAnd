@@ -52,9 +52,6 @@ class IllegalStateHandler {
             is DownloadCacheAccessedWhileEmpty -> {
                 LocalizationData(R.string.illegal_state_empty_download_cache_access)
             }
-            is DownloadCacheAccessedInAnIncorrectState -> {
-                LocalizationData(R.string.illegal_state_download_cache_access_in_incorrect_state)
-            }
             is FailedToCopyAssetsToFilesystem -> {
                 LocalizationData(R.string.illegal_state_failed_to_copy_assets_to_filesystem)
             }

@@ -651,14 +651,6 @@ class MainActivityViewModelTest {
     }
 
     @Test
-    fun `Posts DownloadCacheAccessedInAnIncorrectState if AttemptedCacheAccessInIncorrectState is observed`() {
-        sessionStartupStateLiveData.postValue(AttemptedCacheAccessInIncorrectState)
-
-        verify(mockStateObserver).onChanged(DownloadCacheAccessedInAnIncorrectState)
-        verify(mockLogger).sendIllegalStateLog(DownloadCacheAccessedInAnIncorrectState)
-    }
-
-    @Test
     fun `Posts CopyingDownloads when equivalent state is observed`() {
         sessionStartupStateLiveData.postValue(CopyingFilesToLocalDirectories)
 
