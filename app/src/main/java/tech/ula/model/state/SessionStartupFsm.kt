@@ -20,7 +20,7 @@ class SessionStartupFsm(
         private val assetRepository: AssetRepository,
         private val filesystemManager: FilesystemManager,
         private val assetDownloader: AssetDownloader,
-        private val storageUtility: StorageUtility,
+        private val storageCalculator: StorageCalculator,
         private val logger: Logger = SentryLogger()
 ) {
 
@@ -259,7 +259,7 @@ class SessionStartupFsm(
     private fun handleVerifyAvailableStorage() {
         state.postValue(VerifyingSufficientStorage)
 
-        when (storageUtility.getAvailableStorageInMB()) {
+        when (storageCalculator.getAvailableStorageInMB()) {
             in 0..250 -> state.postValue(VerifyingSufficientStorageFailed)
             in 251..1000 -> state.postValue(LowAvailableStorage)
             else -> state.postValue(StorageVerificationCompletedSuccessfully)

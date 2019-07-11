@@ -20,7 +20,7 @@ class AppsStartupFsm(
         ulaDatabase: UlaDatabase,
         private val appsPreferences: AppsPreferences,
         private val filesystemManager: FilesystemManager,
-        private val buildWrapper: BuildWrapper = BuildWrapper(),
+        private val deviceArchitecture: DeviceArchitecture = DeviceArchitecture(),
         private val logger: Logger = SentryLogger()
 ) {
 
@@ -127,7 +127,7 @@ class AppsStartupFsm(
         val potentialAppFilesystem = filesystemDao.findAppsFilesystemByType(app.filesystemRequired)
 
         if (potentialAppFilesystem.isEmpty()) {
-            val deviceArchitecture = buildWrapper.getArchType()
+            val deviceArchitecture = deviceArchitecture.getArchType()
             val fsToInsert = Filesystem(0, name = "apps", archType = deviceArchitecture,
                     distributionType = app.filesystemRequired, isAppsFilesystem = true)
             filesystemDao.insertFilesystem(fsToInsert)

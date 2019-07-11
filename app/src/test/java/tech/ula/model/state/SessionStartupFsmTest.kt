@@ -48,7 +48,7 @@ class SessionStartupFsmTest {
 
     @Mock lateinit var mockLogger: Logger
 
-    @Mock lateinit var mockStorageUtility: StorageUtility
+    @Mock lateinit var mockStorageCalculator: StorageCalculator
 
     private lateinit var activeSessionLiveData: MutableLiveData<List<Session>>
 
@@ -123,7 +123,7 @@ class SessionStartupFsmTest {
                 mockAssetRepository,
                 mockFilesystemManager,
                 mockAssetDownloader,
-                mockStorageUtility,
+                mockStorageCalculator,
                 mockLogger
         )
     }
@@ -686,7 +686,7 @@ class SessionStartupFsmTest {
         sessionFsm.setState(FilesystemAssetVerificationSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockStorageUtility.getAvailableStorageInMB()).thenReturn(300)
+        whenever(mockStorageCalculator.getAvailableStorageInMB()).thenReturn(300)
         runBlocking { sessionFsm.submitEvent(VerifyAvailableStorage, this) }
 
         verify(mockStateObserver).onChanged(VerifyingSufficientStorage)
@@ -698,7 +698,7 @@ class SessionStartupFsmTest {
         sessionFsm.setState(FilesystemAssetVerificationSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockStorageUtility.getAvailableStorageInMB()).thenReturn(150)
+        whenever(mockStorageCalculator.getAvailableStorageInMB()).thenReturn(150)
         runBlocking { sessionFsm.submitEvent(VerifyAvailableStorage, this) }
 
         verify(mockStateObserver).onChanged(VerifyingSufficientStorage)
@@ -710,7 +710,7 @@ class SessionStartupFsmTest {
         sessionFsm.setState(FilesystemAssetVerificationSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockStorageUtility.getAvailableStorageInMB()).thenReturn(1001)
+        whenever(mockStorageCalculator.getAvailableStorageInMB()).thenReturn(1001)
         runBlocking { sessionFsm.submitEvent(VerifyAvailableStorage, this) }
 
         verify(mockStateObserver).onChanged(VerifyingSufficientStorage)

@@ -14,7 +14,7 @@ import java.net.URL
 
 class GithubAppsFetcher(
     private val applicationFilesDir: String,
-    private val connectionUtility: ConnectionUtility = ConnectionUtility(),
+    private val httpStream: HttpStream = HttpStream(),
     private val logger: Logger = SentryLogger()
 ) {
 
@@ -37,7 +37,7 @@ class GithubAppsFetcher(
         val url = "$protocol$baseUrl/apps.txt"
         val numLinesToSkip = 1 // Skip first line defining schema
         return@withContext try {
-            val reader = BufferedReader(InputStreamReader(connectionUtility.getUrlInputStream(url)))
+            val reader = BufferedReader(InputStreamReader(httpStream.fromUrl(url)))
             reader.readLines().drop(numLinesToSkip).forEach {
                 val (name, category, filesystemRequired, supportsCli, supportsGui, isPaidApp, version) =
                         it.toLowerCase().split(", ")
@@ -60,7 +60,7 @@ class GithubAppsFetcher(
         file.parentFile!!.mkdirs()
         file.createNewFile()
         val url = "$protocol$baseUrl/$directoryAndFilename"
-        val inputStream = connectionUtility.getUrlInputStream(url)
+        val inputStream = httpStream.fromUrl(url)
         val bitmap: Bitmap = BitmapFactory.decodeStream(inputStream)
         val outputStream = file.outputStream()
         bitmap.compress(Bitmap.CompressFormat.PNG, 0, outputStream) // Int arg quality is ignored for lossless formats

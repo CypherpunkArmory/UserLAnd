@@ -1,5 +1,6 @@
 package tech.ula.utils
 
+import android.system.Os
 import java.io.File
 import java.lang.NullPointerException
 
@@ -50,5 +51,11 @@ class UlaFiles(
             linkFile.delete()
             symlinker.createSymlink(libFile.path, linkFile.path)
         }
+    }
+}
+
+class Symlinker {
+    fun createSymlink(targetPath: String, linkPath: String) {
+        Os.symlink(targetPath, linkPath)
     }
 }

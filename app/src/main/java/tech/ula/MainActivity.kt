@@ -120,7 +120,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val assetRepository = AssetRepository(filesDir.path, assetPreferences)
 
         val filesystemManager = FilesystemManager(ulaFiles, busyboxExecutor)
-        val storageUtility = StorageUtility(StatFs(filesDir.path))
+        val storageCalculator = StorageCalculator(StatFs(filesDir.path))
 
         val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val downloadManagerWrapper = DownloadManagerWrapper(downloadManager)
@@ -129,7 +129,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val appsPreferences = AppsPreferences(this)
 
         val appsStartupFsm = AppsStartupFsm(ulaDatabase, appsPreferences, filesystemManager)
-        val sessionStartupFsm = SessionStartupFsm(ulaDatabase, assetRepository, filesystemManager, assetDownloader, storageUtility)
+        val sessionStartupFsm = SessionStartupFsm(ulaDatabase, assetRepository, filesystemManager, assetDownloader, storageCalculator)
         ViewModelProviders.of(this, MainActivityViewModelFactory(appsStartupFsm, sessionStartupFsm))
                 .get(MainActivityViewModel::class.java)
     }

@@ -44,7 +44,7 @@ class AppsStartupFsmTest {
 
     @Mock lateinit var mockFilesystemManager: FilesystemManager
 
-    @Mock lateinit var mockBuildWrapper: BuildWrapper
+    @Mock lateinit var mockDeviceArchitecture: DeviceArchitecture
 
     @Mock lateinit var mockLogger: Logger
 
@@ -99,7 +99,7 @@ class AppsStartupFsmTest {
         whenever(mockUlaDatabase.filesystemDao()).thenReturn(mockFilesystemDao)
         whenever(mockUlaDatabase.sessionDao()).thenReturn(mockSessionDao)
 
-        appsFsm = AppsStartupFsm(mockUlaDatabase, mockAppsPreferences, mockFilesystemManager, mockBuildWrapper, mockLogger)
+        appsFsm = AppsStartupFsm(mockUlaDatabase, mockAppsPreferences, mockFilesystemManager, mockDeviceArchitecture, mockLogger)
     }
 
     @Test
@@ -167,7 +167,7 @@ class AppsStartupFsmTest {
 
         whenever(mockSessionDao.findAppsSession(app.name))
                 .thenReturn(listOf(appSession))
-        whenever(mockBuildWrapper.getArchType())
+        whenever(mockDeviceArchitecture.getArchType())
                 .thenReturn("")
         whenever(mockFilesystemDao.findAppsFilesystemByType(app.filesystemRequired))
                 .thenReturn(listOf())
@@ -221,7 +221,7 @@ class AppsStartupFsmTest {
         appsFsm.setState(WaitingForAppSelection)
         appsFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockBuildWrapper.getArchType())
+        whenever(mockDeviceArchitecture.getArchType())
                 .thenReturn("")
         whenever(mockFilesystemDao.findAppsFilesystemByType(app.filesystemRequired))
                 .thenReturn(listOf())

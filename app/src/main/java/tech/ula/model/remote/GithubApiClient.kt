@@ -7,7 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import tech.ula.utils.BuildWrapper
+import tech.ula.utils.DeviceArchitecture
 import tech.ula.utils.Logger
 import tech.ula.utils.SentryLogger
 import java.io.IOException
@@ -20,7 +20,7 @@ class UrlProvider {
 }
 
 class GithubApiClient(
-    private val buildWrapper: BuildWrapper = BuildWrapper(),
+    private val deviceArchitecture: DeviceArchitecture = DeviceArchitecture(),
     private val urlProvider: UrlProvider = UrlProvider(),
     private val logger: Logger = SentryLogger()
 ) {
@@ -39,7 +39,7 @@ class GithubApiClient(
     suspend fun getAssetsListDownloadUrl(repo: String): String = withContext(Dispatchers.IO) {
         val result = latestResults[repo] ?: queryLatestRelease(repo)
 
-        return@withContext result.assets.find { it.name == "${buildWrapper.getArchType()}-assets.txt" }!!.downloadUrl
+        return@withContext result.assets.find { it.name == "${deviceArchitecture.getArchType()}-assets.txt" }!!.downloadUrl
     }
 
     @Throws(IOException::class)
@@ -52,7 +52,7 @@ class GithubApiClient(
     @Throws(IOException::class)
     suspend fun getAssetEndpoint(assetType: String, repo: String): String = withContext(Dispatchers.IO) {
         val result = latestResults[repo] ?: queryLatestRelease(repo)
-        val assetName = "${buildWrapper.getArchType()}-$assetType"
+        val assetName = "${deviceArchitecture.getArchType()}-$assetType"
 
         return@withContext result.assets.find { it.name == assetName }!!.downloadUrl
     }
