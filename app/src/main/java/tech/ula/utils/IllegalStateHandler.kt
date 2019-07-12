@@ -3,7 +3,7 @@ package tech.ula.utils
 import tech.ula.R
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 
-class IllegalStateHandler {
+object IllegalStateHandler {
 
     fun getLocalizationData(state: IllegalState): Localization {
         return when (state) {
