@@ -15,7 +15,7 @@ class IllegalStateHandlerTest {
 
     @Before
     fun setup() {
-        illegalStateHandler = IllegalStateHandler()
+        illegalStateHandler = IllegalStateHandler
     }
 
     @Test
