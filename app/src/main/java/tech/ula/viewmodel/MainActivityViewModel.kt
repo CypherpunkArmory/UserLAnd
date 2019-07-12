@@ -326,9 +326,6 @@ class MainActivityViewModel(
             is AttemptedCacheAccessWhileEmpty -> {
                 postIllegalStateWithLog(DownloadCacheAccessedWhileEmpty)
             }
-            is AttemptedCacheAccessInIncorrectState -> {
-                postIllegalStateWithLog(DownloadCacheAccessedInAnIncorrectState)
-            }
         }
     }
 
@@ -443,7 +440,6 @@ object ErrorFetchingAssetLists : IllegalState()
 data class ErrorGeneratingDownloads(val errorId: Int) : IllegalState()
 data class DownloadsDidNotCompleteSuccessfully(val reason: DownloadFailureLocalizationData) : IllegalState()
 object DownloadCacheAccessedWhileEmpty : IllegalState()
-object DownloadCacheAccessedInAnIncorrectState : IllegalState()
 object FailedToCopyAssetsToLocalStorage : IllegalState()
 object AssetsHaveNotBeenDownloaded : IllegalState()
 object FailedToCopyAssetsToFilesystem : IllegalState()
