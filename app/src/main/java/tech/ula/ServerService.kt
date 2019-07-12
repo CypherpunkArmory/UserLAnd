@@ -26,8 +26,8 @@ class ServerService : Service() {
 
     private lateinit var broadcaster: LocalBroadcastManager
 
-    private val notificationManager: NotificationUtility by lazy {
-        NotificationUtility(this)
+    private val notificationManager: NotificationConstructor by lazy {
+        NotificationConstructor(this)
     }
 
     private val busyboxExecutor by lazy {
@@ -36,8 +36,8 @@ class ServerService : Service() {
         BusyboxExecutor(ulaFiles, prootDebugLogger)
     }
 
-    private val serverUtility by lazy {
-        ServerUtility(this.filesDir.path, busyboxExecutor)
+    private val localServerManager by lazy {
+        LocalServerManager(this.filesDir.path, busyboxExecutor)
     }
 
     override fun onCreate() {
@@ -104,17 +104,17 @@ class ServerService : Service() {
     }
 
     private fun killSession(session: Session) {
-        serverUtility.stopService(session)
+        localServerManager.stopService(session)
         removeSession(session)
         session.active = false
         updateSession(session)
     }
 
     private suspend fun startSession(session: Session) {
-        startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
-        session.pid = serverUtility.startServer(session)
+        startForeground(NotificationConstructor.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
+        session.pid = localServerManager.startServer(session)
 
-        while (!serverUtility.isServerRunning(session)) {
+        while (!localServerManager.isServerRunning(session)) {
             delay(500)
         }
 

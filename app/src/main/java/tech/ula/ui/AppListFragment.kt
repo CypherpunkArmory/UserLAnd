@@ -3,7 +3,6 @@ package tech.ula.ui
 import android.app.AlertDialog
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -27,6 +26,7 @@ import tech.ula.model.repositories.AppsRepository
 import tech.ula.model.repositories.RefreshStatus
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import tech.ula.utils.preferences.AppsPreferences
 import tech.ula.viewmodel.AppListViewModel
 import tech.ula.viewmodel.AppListViewModelFactory
 
@@ -51,7 +51,7 @@ class AppListFragment : Fragment(),
     private var refreshStatus = RefreshStatus.INACTIVE
 
     private val appsPreferences by lazy {
-        AppsPreferences(activityContext.getSharedPreferences("apps", Context.MODE_PRIVATE))
+        AppsPreferences(activityContext)
     }
 
     private val appsListViewModel: AppListViewModel by lazy {

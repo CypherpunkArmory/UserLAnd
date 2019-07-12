@@ -14,8 +14,8 @@ import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.remote.GithubApiClient
 import tech.ula.utils.Logger
-import tech.ula.utils.AssetPreferences
-import tech.ula.utils.ConnectionUtility
+import tech.ula.utils.HttpStream
+import tech.ula.utils.preferences.AssetPreferences
 import java.io.File
 import java.io.IOException
 import java.lang.IllegalStateException
@@ -32,7 +32,7 @@ class AssetRepositoryTest {
 
     @Mock lateinit var mockGithubApiClient: GithubApiClient
 
-    @Mock lateinit var mockConnectionUtility: ConnectionUtility
+    @Mock lateinit var mockHttpStream: HttpStream
 
     @Mock lateinit var mockLogger: Logger
 
@@ -100,7 +100,7 @@ class AssetRepositoryTest {
     fun setup() {
         applicationFilesDirPath = tempFolder.root.absolutePath
 
-        assetRepository = AssetRepository(applicationFilesDirPath, mockAssetPreferences, mockGithubApiClient, mockConnectionUtility, mockLogger)
+        assetRepository = AssetRepository(applicationFilesDirPath, mockAssetPreferences, mockGithubApiClient, mockHttpStream, mockLogger)
     }
 
     @Test(expected = IllegalStateException::class)
@@ -436,7 +436,7 @@ class AssetRepositoryTest {
 
         val distInputStream = remoteDistAssetFile.inputStream()
 
-        whenever(mockConnectionUtility.getUrlInputStream(distUrl))
+        whenever(mockHttpStream.fromUrl(distUrl))
                 .thenReturn(distInputStream)
 
         val result = runBlocking {
@@ -447,7 +447,7 @@ class AssetRepositoryTest {
         assertEquals(expectedDistList, result)
 
         verifyBlocking(mockGithubApiClient) { getAssetsListDownloadUrl(distRepo) }
-        verify(mockConnectionUtility).getUrlInputStream(distUrl)
+        verify(mockHttpStream).fromUrl(distUrl)
         verify(mockAssetPreferences).setAssetList(distRepo, expectedDistList)
     }
 

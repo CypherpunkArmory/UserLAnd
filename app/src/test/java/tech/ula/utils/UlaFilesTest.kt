@@ -3,10 +3,10 @@ package tech.ula.utils
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import org.mockito.Mock
 import java.io.File
 import java.nio.file.Files
 
@@ -14,7 +14,7 @@ class UlaFilesTest {
 
     @get:Rule val tempFolder = TemporaryFolder()
 
-    @Mock lateinit var mockSymlinker: Symlinker
+    private lateinit var mockSymlinker: Symlinker
 
     private lateinit var testFilesDir: File
     private lateinit var testScopedDir: File
@@ -23,15 +23,35 @@ class UlaFilesTest {
 
     private lateinit var ulaFiles: UlaFiles
 
-    @Test
-    fun `Initialization links every file in the lib directory to support, stripping unnecessary name parts`() {
+    @Before
+    fun setup() {
         testFilesDir = tempFolder.newFolder("files")
         testScopedDir = tempFolder.newFolder("scoped")
         testLibDir = tempFolder.newFolder("execLib")
         testSupportDir = File(testFilesDir, "support")
 
         mockSymlinker = mock()
+    }
 
+    @Test
+    fun `makePermissionsUsable sets permissions open`() {
+        val testFileName = "test"
+        val testFile = tempFolder.newFile(testFileName)
+        testFile.createNewFile()
+
+        ulaFiles = UlaFiles(testFilesDir, testScopedDir, testLibDir, mockSymlinker)
+        ulaFiles.makePermissionsUsable(tempFolder.root.path, testFileName)
+
+        var output = ""
+        val proc = Runtime.getRuntime().exec("ls -l ${testFile.path}")
+
+        proc.inputStream.bufferedReader(Charsets.UTF_8).forEachLine { output += it }
+        val permissions = output.substring(0, 10)
+        assertTrue(permissions == "-rwxrwxrwx")
+    }
+
+    @Test
+    fun `Initialization links every file in the lib directory to support, stripping unnecessary name parts`() {
         val expectedText1 = "text1"
         val libFile1 = File(testLibDir, "lib_1.so")
         libFile1.writeText(expectedText1)

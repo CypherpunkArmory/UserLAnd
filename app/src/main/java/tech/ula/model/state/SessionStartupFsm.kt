@@ -18,9 +18,9 @@ import java.net.UnknownHostException
 class SessionStartupFsm(
     ulaDatabase: UlaDatabase,
     private val assetRepository: AssetRepository,
-    private val filesystemUtility: FilesystemUtility,
-    private val downloadUtility: DownloadUtility,
-    private val storageUtility: StorageUtility,
+    private val filesystemManager: FilesystemManager,
+    private val assetDownloader: AssetDownloader,
+    private val storageCalculator: StorageCalculator,
     private val logger: Logger = SentryLogger()
 ) {
 
@@ -78,7 +78,7 @@ class SessionStartupFsm(
             is AssetDownloadComplete -> {
                 // If we are currently downloading assets, we can handle completed downloads that
                 // don't belong to us. Otherwise, we still don't want to post an illegal transition.
-                currentState is DownloadingAssets || !downloadUtility.downloadIsForUserland(event.downloadAssetId)
+                currentState is DownloadingAssets || !assetDownloader.downloadIsForUserland(event.downloadAssetId)
             }
             is SyncDownloadState -> {
 //                currentState is WaitingForSessionSelection || currentState is (DownloadingAssets)
@@ -152,7 +152,7 @@ class SessionStartupFsm(
         state.postValue(GeneratingDownloadRequirements)
 
         val filesystemNeedsExtraction =
-                !filesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}") &&
+                !filesystemManager.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}") &&
                 !filesystem.isCreatedFromBackup
 
         val downloadRequirements = try {
@@ -175,11 +175,11 @@ class SessionStartupFsm(
         // If the state isn't updated first, AssetDownloadComplete events will be submitted before
         // the transition is acceptable.
         state.postValue(DownloadingAssets(0, downloadRequirements.size))
-        downloadUtility.downloadRequirements(downloadRequirements)
+        assetDownloader.downloadRequirements(downloadRequirements)
     }
 
     private fun handleAssetsDownloadComplete(downloadId: Long) {
-        val result = downloadUtility.handleDownloadComplete(downloadId)
+        val result = assetDownloader.handleDownloadComplete(downloadId)
         handleAssetDownloadState(result)
     }
 
@@ -198,7 +198,7 @@ class SessionStartupFsm(
     }
 
     private fun handleSyncDownloadState() {
-        if (downloadUtility.downloadStateHasBeenCached()) {
+        if (assetDownloader.downloadStateHasBeenCached()) {
             // Syncing download state should only be necessary on process death and when the app
             // is moved back into the foreground. This means the state should either be fresh,
             // or this object has remained in memory and its state will still be downloading assets.
@@ -208,7 +208,7 @@ class SessionStartupFsm(
                     return
                 }
                 state.postValue(DownloadingAssets(0, 0)) // Reset state so events can be submitted
-                handleAssetDownloadState(downloadUtility.syncStateWithCache())
+                handleAssetDownloadState(assetDownloader.syncStateWithCache())
             }
         }
     }
@@ -216,7 +216,7 @@ class SessionStartupFsm(
     private suspend fun handleCopyDownloadsToLocalDirectories() {
         state.postValue(CopyingFilesToLocalDirectories)
         try {
-            downloadUtility.prepareDownloadsForUse()
+            assetDownloader.prepareDownloadsForUse()
         } catch (err: Exception) {
             state.postValue(LocalDirectoryCopyFailed)
             return
@@ -229,7 +229,7 @@ class SessionStartupFsm(
 
         val filesystemDirectoryName = "${filesystem.id}"
         val requiredAssets = assetRepository.getDistributionAssetsForExistingFilesystem(filesystem)
-        val allAssetsArePresentOnFilesystem = filesystemUtility.areAllRequiredAssetsPresent(filesystemDirectoryName, requiredAssets)
+        val allAssetsArePresentOnFilesystem = filesystemManager.areAllRequiredAssetsPresent(filesystemDirectoryName, requiredAssets)
         val lastDownloadedAssetVersion = assetRepository.getLatestDistributionVersion(filesystem.distributionType)
         val filesystemAssetsNeedUpdating = filesystem.versionCodeUsed < lastDownloadedAssetVersion
 
@@ -240,7 +240,7 @@ class SessionStartupFsm(
             }
 
             try {
-                filesystemUtility.copyAssetsToFilesystem(filesystem)
+                filesystemManager.copyAssetsToFilesystem(filesystem)
                 filesystem.versionCodeUsed = lastDownloadedAssetVersion
                 filesystemDao.updateFilesystem(filesystem)
             } catch (err: Exception) {
@@ -248,8 +248,8 @@ class SessionStartupFsm(
                 return@withContext
             }
 
-            if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
-                filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
+            if (filesystemManager.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
+                filesystemManager.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
             }
         }
 
@@ -259,7 +259,7 @@ class SessionStartupFsm(
     private fun handleVerifyAvailableStorage() {
         state.postValue(VerifyingSufficientStorage)
 
-        when (storageUtility.getAvailableStorageInMB()) {
+        when (storageCalculator.getAvailableStorageInMB()) {
             in 0..250 -> state.postValue(VerifyingSufficientStorageFailed)
             in 251..1000 -> state.postValue(LowAvailableStorage)
             else -> state.postValue(StorageVerificationCompletedSuccessfully)
@@ -273,20 +273,20 @@ class SessionStartupFsm(
     private suspend fun handleExtractFilesystem(filesystem: Filesystem) {
         val filesystemDirectoryName = "${filesystem.id}"
 
-        if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
-            filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
+        if (filesystemManager.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
+            filesystemManager.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
             state.postValue(ExtractionHasCompletedSuccessfully)
             return
         }
 
-        val result = filesystemUtility.extractFilesystem(filesystem, extractionLogger)
+        val result = filesystemManager.extractFilesystem(filesystem, extractionLogger)
         if (result is FailedExecution) {
             state.postValue(ExtractionFailed(result.reason))
             return
         }
 
-        if (filesystemUtility.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
-            filesystemUtility.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
+        if (filesystemManager.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
+            filesystemManager.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
             state.postValue(ExtractionHasCompletedSuccessfully)
             return
         }

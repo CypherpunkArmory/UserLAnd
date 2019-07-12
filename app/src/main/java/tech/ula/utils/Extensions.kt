@@ -1,5 +1,6 @@
 package tech.ula.utils
 
+import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
 import android.content.SharedPreferences
@@ -7,6 +8,7 @@ import android.view.View
 import androidx.annotation.IdRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
+import tech.ula.R
 import java.io.File
 
 fun <A, B> zipLiveData(a: LiveData<A>, b: LiveData<B>): LiveData<Pair<A, B>> {
@@ -30,6 +32,18 @@ fun <A, B> zipLiveData(a: LiveData<A>, b: LiveData<B>): LiveData<Pair<A, B>> {
             update()
         }
     }
+}
+
+fun Context.displayGenericErrorDialog(titleId: Int, messageId: Int, callback: (() -> Unit) = {}) {
+    AlertDialog.Builder(this)
+            .setTitle(titleId)
+            .setMessage(messageId)
+            .setPositiveButton(R.string.button_ok) {
+                dialog, _ ->
+                callback()
+                dialog.dismiss()
+            }
+            .create().show()
 }
 
 inline val Context.scopedStorageRoot: File

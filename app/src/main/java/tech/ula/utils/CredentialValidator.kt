@@ -4,7 +4,7 @@ import tech.ula.R
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-class ValidationUtility {
+class CredentialValidator {
 
     fun validateFilesystemName(filesystemName: String): CredentialValidationStatus {
         return when {

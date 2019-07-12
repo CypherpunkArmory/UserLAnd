@@ -48,6 +48,7 @@ import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import tech.ula.ui.FilesystemListFragment
 import tech.ula.model.repositories.DownloadMetadata
+import tech.ula.utils.preferences.* // ktlint-disable no-wildcard-imports
 import java.io.File
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection, FilesystemListFragment.FilesystemListProgress {
@@ -69,7 +70,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private val notificationManager by lazy {
-        NotificationUtility(this)
+        NotificationConstructor(this)
     }
 
     private val userFeedbackPrompter by lazy {
@@ -115,20 +116,20 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private val viewModel: MainActivityViewModel by lazy {
         val ulaDatabase = UlaDatabase.getInstance(this)
 
-        val assetPreferences = AssetPreferences(this.getSharedPreferences("assetLists", Context.MODE_PRIVATE))
+        val assetPreferences = AssetPreferences(this)
         val assetRepository = AssetRepository(filesDir.path, assetPreferences)
 
-        val filesystemUtility = FilesystemUtility(filesDir.path, busyboxExecutor)
-        val storageUtility = StorageUtility(StatFs(filesDir.path))
+        val filesystemManager = FilesystemManager(ulaFiles, busyboxExecutor)
+        val storageCalculator = StorageCalculator(StatFs(filesDir.path))
 
         val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val downloadManagerWrapper = DownloadManagerWrapper(downloadManager)
-        val downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, filesDir, this.scopedStorageRoot)
+        val assetDownloader = AssetDownloader(assetPreferences, downloadManagerWrapper, ulaFiles)
 
-        val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
+        val appsPreferences = AppsPreferences(this)
 
-        val appsStartupFsm = AppsStartupFsm(ulaDatabase, appsPreferences, filesystemUtility)
-        val sessionStartupFsm = SessionStartupFsm(ulaDatabase, assetRepository, filesystemUtility, downloadUtility, storageUtility)
+        val appsStartupFsm = AppsStartupFsm(ulaDatabase, appsPreferences, filesystemManager)
+        val sessionStartupFsm = SessionStartupFsm(ulaDatabase, assetRepository, filesystemManager, assetDownloader, storageCalculator)
         ViewModelProviders.of(this, MainActivityViewModelFactory(appsStartupFsm, sessionStartupFsm))
                 .get(MainActivityViewModel::class.java)
     }
@@ -388,7 +389,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 displayNetworkChoicesDialog(state.downloadRequirements)
             }
             is ActiveSessionsMustBeDeactivated -> {
-                displayGenericErrorDialog(this, R.string.general_error_title, R.string.deactivate_sessions)
+                displayGenericErrorDialog(R.string.general_error_title, R.string.deactivate_sessions)
             }
         }
     }
@@ -411,11 +412,11 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private fun showDialog(dialogType: String) {
         when (dialogType) {
             "unhandledSessionServiceType" -> {
-                displayGenericErrorDialog(this, R.string.general_error_title,
+                displayGenericErrorDialog(R.string.general_error_title,
                         R.string.illegal_state_unhandled_session_service_type)
             }
             "playStoreMissingForClient" ->
-                displayGenericErrorDialog(this, R.string.alert_need_client_app_title,
+                displayGenericErrorDialog(R.string.alert_need_client_app_title,
                     R.string.alert_need_client_app_message)
         }
     }
@@ -435,7 +436,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleClearSupportFiles() {
-        val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
+        val appsPreferences = AppsPreferences(this)
         val assetDirectoryNames = appsPreferences.getDistributionsList().plus("support")
         val assetFileClearer = AssetFileClearer(ulaFiles, assetDirectoryNames, busyboxExecutor)
         CoroutineScope(Dispatchers.Main).launch { viewModel.handleClearSupportFiles(assetFileClearer) }
@@ -612,7 +613,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun displayLowStorageDialog() {
-        displayGenericErrorDialog(this, R.string.alert_storage_low_title, R.string.alert_storage_low_message) {
+        displayGenericErrorDialog(R.string.alert_storage_low_title, R.string.alert_storage_low_message) {
             viewModel.lowAvailableStorageAcknowledged()
         }
     }
@@ -663,7 +664,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     private fun validateCredentials(username: String, password: String, vncPassword: String): Boolean {
         val blacklistedUsernames = this.resources.getStringArray(R.array.blacklisted_usernames)
-        val validator = ValidationUtility()
+        val validator = CredentialValidator()
 
         val usernameCredentials = validator.validateUsername(username, blacklistedUsernames)
         val passwordCredentials = validator.validatePassword(password)

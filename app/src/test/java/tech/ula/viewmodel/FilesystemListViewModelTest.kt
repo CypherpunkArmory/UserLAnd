@@ -21,7 +21,7 @@ import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.utils.FailedExecution
-import tech.ula.utils.FilesystemUtility
+import tech.ula.utils.FilesystemManager
 import tech.ula.utils.SuccessfulExecution
 import java.io.File
 import java.io.FileNotFoundException
@@ -38,7 +38,7 @@ class FilesystemListViewModelTest {
 
     @Mock lateinit var mockSessionDao: SessionDao
 
-    @Mock lateinit var mockFilesystemUtility: FilesystemUtility
+    @Mock lateinit var mockFilesystemManager: FilesystemManager
 
     @Mock lateinit var mockFsListObserver: Observer<List<Filesystem>>
 
@@ -73,7 +73,7 @@ class FilesystemListViewModelTest {
 
         viewStateLiveData = MutableLiveData()
 
-        filesystemListViewModel = FilesystemListViewModel(mockFilesystemDao, mockSessionDao, mockFilesystemUtility)
+        filesystemListViewModel = FilesystemListViewModel(mockFilesystemDao, mockSessionDao, mockFilesystemManager)
     }
 
     @Test
@@ -94,7 +94,7 @@ class FilesystemListViewModelTest {
         filesystemListViewModel.getViewState().observeForever(mockViewStateObserver)
         runBlocking { filesystemListViewModel.deleteFilesystemById(id, this) }
 
-        verifyBlocking(mockFilesystemUtility) { deleteFilesystem(id) }
+        verifyBlocking(mockFilesystemManager) { deleteFilesystem(id) }
         verify(mockFilesystemDao).deleteFilesystemById(id)
         verify(mockViewStateObserver).onChanged(FilesystemDeleteState.InProgress)
         verify(mockViewStateObserver).onChanged(FilesystemDeleteState.Success)
@@ -105,7 +105,7 @@ class FilesystemListViewModelTest {
         val id = 0L
 
         runBlocking {
-            whenever(mockFilesystemUtility.deleteFilesystem(id)).thenThrow(IOException())
+            whenever(mockFilesystemManager.deleteFilesystem(id)).thenThrow(IOException())
         }
 
         filesystemListViewModel.getViewState().observeForever(mockViewStateObserver)
@@ -146,7 +146,7 @@ class FilesystemListViewModelTest {
     }
 
     @Test
-    fun `startExport posts FilesystemExportState Failure if FilesystemUtility#compressFilesystem fails`() {
+    fun `startExport posts FilesystemExportState Failure if FilesystemManager#compressFilesystem fails`() {
         val filesDir = tempFolder.newFolder("files")
 
         filesystemListViewModel.getAllActiveSessions().observeForever(mockActiveSessionObserver)
@@ -158,7 +158,7 @@ class FilesystemListViewModelTest {
 
         val failureReason = "reason"
         runBlocking {
-            whenever(mockFilesystemUtility.compressFilesystem(eq(filesystem), eq(localBackupFile), anyOrNull()))
+            whenever(mockFilesystemManager.compressFilesystem(eq(filesystem), eq(localBackupFile), anyOrNull()))
                     .thenReturn(FailedExecution(failureReason))
         }
 
@@ -180,7 +180,7 @@ class FilesystemListViewModelTest {
         val filesystem = Filesystem(id = 0, name = filesystemName, distributionType = filesystemType)
         filesystemListViewModel.setFilesystemToBackup(filesystem)
         runBlocking {
-            whenever(mockFilesystemUtility.compressFilesystem(eq(filesystem), eq(localBackupFile), anyOrNull()))
+            whenever(mockFilesystemManager.compressFilesystem(eq(filesystem), eq(localBackupFile), anyOrNull()))
                     .thenReturn(SuccessfulExecution)
         }
 
@@ -203,7 +203,7 @@ class FilesystemListViewModelTest {
         val filesystem = Filesystem(id = 0, name = filesystemName, distributionType = filesystemType)
         filesystemListViewModel.setFilesystemToBackup(filesystem)
         runBlocking {
-            whenever(mockFilesystemUtility.compressFilesystem(eq(filesystem), eq(localBackupFile), anyOrNull()))
+            whenever(mockFilesystemManager.compressFilesystem(eq(filesystem), eq(localBackupFile), anyOrNull()))
                     .thenReturn(SuccessfulExecution)
         }
 
@@ -226,7 +226,7 @@ class FilesystemListViewModelTest {
         val filesystem = Filesystem(id = 0, name = filesystemName, distributionType = filesystemType)
         filesystemListViewModel.setFilesystemToBackup(filesystem)
         runBlocking {
-            whenever(mockFilesystemUtility.compressFilesystem(eq(filesystem), eq(localBackupFile), anyOrNull()))
+            whenever(mockFilesystemManager.compressFilesystem(eq(filesystem), eq(localBackupFile), anyOrNull()))
                     .thenReturn(SuccessfulExecution)
         }
 
@@ -257,7 +257,7 @@ class FilesystemListViewModelTest {
         val filesystem = Filesystem(id = 0, name = filesystemName, distributionType = filesystemType)
         filesystemListViewModel.setFilesystemToBackup(filesystem)
         runBlocking {
-            whenever(mockFilesystemUtility.compressFilesystem(eq(filesystem), eq(localBackupFile), anyOrNull()))
+            whenever(mockFilesystemManager.compressFilesystem(eq(filesystem), eq(localBackupFile), anyOrNull()))
                     .thenReturn(SuccessfulExecution)
         }
 

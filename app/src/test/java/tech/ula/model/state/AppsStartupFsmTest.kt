@@ -21,6 +21,10 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import tech.ula.utils.preferences.AppsPreferences
+import tech.ula.utils.preferences.PreferenceHasNotBeenSelected
+import tech.ula.utils.preferences.SshTypePreference
+import tech.ula.utils.preferences.VncTypePreference
 import java.io.IOException
 
 @RunWith(MockitoJUnitRunner::class)
@@ -38,9 +42,9 @@ class AppsStartupFsmTest {
 
     @Mock lateinit var mockAppsPreferences: AppsPreferences
 
-    @Mock lateinit var mockFilesystemUtility: FilesystemUtility
+    @Mock lateinit var mockFilesystemManager: FilesystemManager
 
-    @Mock lateinit var mockBuildWrapper: BuildWrapper
+    @Mock lateinit var mockDeviceArchitecture: DeviceArchitecture
 
     @Mock lateinit var mockLogger: Logger
 
@@ -95,7 +99,7 @@ class AppsStartupFsmTest {
         whenever(mockUlaDatabase.filesystemDao()).thenReturn(mockFilesystemDao)
         whenever(mockUlaDatabase.sessionDao()).thenReturn(mockSessionDao)
 
-        appsFsm = AppsStartupFsm(mockUlaDatabase, mockAppsPreferences, mockFilesystemUtility, mockBuildWrapper, mockLogger)
+        appsFsm = AppsStartupFsm(mockUlaDatabase, mockAppsPreferences, mockFilesystemManager, mockDeviceArchitecture, mockLogger)
     }
 
     @Test
@@ -163,7 +167,7 @@ class AppsStartupFsmTest {
 
         whenever(mockSessionDao.findAppsSession(app.name))
                 .thenReturn(listOf(appSession))
-        whenever(mockBuildWrapper.getArchType())
+        whenever(mockDeviceArchitecture.getArchType())
                 .thenReturn("")
         whenever(mockFilesystemDao.findAppsFilesystemByType(app.filesystemRequired))
                 .thenReturn(listOf())
@@ -217,7 +221,7 @@ class AppsStartupFsmTest {
         appsFsm.setState(WaitingForAppSelection)
         appsFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockBuildWrapper.getArchType())
+        whenever(mockDeviceArchitecture.getArchType())
                 .thenReturn("")
         whenever(mockFilesystemDao.findAppsFilesystemByType(app.filesystemRequired))
                 .thenReturn(listOf())
@@ -341,7 +345,7 @@ class AppsStartupFsmTest {
         appsFsm.setState(AppHasServiceTypePreferenceSet)
         appsFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockFilesystemUtility.moveAppScriptToRequiredLocation(app.name, appsFilesystem))
+        whenever(mockFilesystemManager.moveAppScriptToRequiredLocation(app.name, appsFilesystem))
                 .thenThrow(IOException())
 
         runBlocking { appsFsm.submitEvent(CopyAppScriptToFilesystem(app, appsFilesystem), this) }
