@@ -133,6 +133,7 @@ class AssetDownloaderTest {
         assertTrue(result is AssetDownloadFailure)
         val cast = result as AssetDownloadFailure
         assertEquals(failureReason, cast.reason)
+        verify(downloadManagerWrapper).cancelAllDownloads(setOf(0))
     }
 
     @Test

@@ -75,6 +75,7 @@ class AssetDownloader(
 
         if (downloadManagerWrapper.downloadHasFailed(downloadId)) {
             val reason = downloadManagerWrapper.getDownloadFailureReason(downloadId)
+            downloadManagerWrapper.cancelAllDownloads(enqueuedDownloadIds)
             return AssetDownloadFailure(reason)
         }
 
@@ -227,6 +228,10 @@ class DownloadManagerWrapper(private val downloadManager: DownloadManager) {
             }, formatStrings = listOf("$status")) // Format strings only used for http_error
         }
         return DownloadFailureLocalizationData(R.string.download_failure_reason_not_found)
+    }
+
+    fun cancelAllDownloads(downloadIds: Set<Long>) {
+        downloadManager.remove(*downloadIds.toLongArray())
     }
 }
 
