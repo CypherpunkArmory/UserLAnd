@@ -6,7 +6,7 @@
     xmlns:tools="http://schemas.android.com/tools" >
     <fragment
         android:id="@+id/app_list_fragment"
-        android:name="tech.ula.ui.AppListFragment"
+        android:name="tech.ula.ui.AppsListFragment"
         android:label="@string/apps"
         tools:layout="@layout/frag_app_list" >
         <action
