@@ -27,12 +27,12 @@ import tech.ula.model.repositories.RefreshStatus
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.preferences.AppsPreferences
-import tech.ula.viewmodel.AppListViewModel
-import tech.ula.viewmodel.AppListViewModelFactory
+import tech.ula.viewmodel.AppsListViewModel
+import tech.ula.viewmodel.AppsListViewModelFactory
 
-class AppListFragment : Fragment(),
-        AppListAdapter.OnAppsItemClicked,
-        AppListAdapter.OnAppsCreateContextMenu {
+class AppsListFragment : Fragment(),
+        AppsListAdapter.OnAppsItemClicked,
+        AppsListAdapter.OnAppsCreateContextMenu {
 
     interface AppSelection {
         fun appHasBeenSelected(app: App)
@@ -44,8 +44,8 @@ class AppListFragment : Fragment(),
 
     private lateinit var activityContext: MainActivity
 
-    private val appAdapter by lazy {
-        AppListAdapter(activityContext, this, this)
+    private val appsAdapter by lazy {
+        AppsListAdapter(activityContext, this, this)
     }
 
     private var refreshStatus = RefreshStatus.INACTIVE
@@ -54,19 +54,19 @@ class AppListFragment : Fragment(),
         AppsPreferences(activityContext)
     }
 
-    private val appsListViewModel: AppListViewModel by lazy {
+    private val viewModel: AppsListViewModel by lazy {
         val ulaDatabase = UlaDatabase.getInstance(activityContext)
         val appsDao = ulaDatabase.appsDao()
         val githubFetcher = GithubAppsFetcher("${activityContext.filesDir}")
 
         val appsRepository = AppsRepository(appsDao, githubFetcher, appsPreferences)
-        ViewModelProviders.of(this, AppListViewModelFactory(appsRepository))
-                .get(AppListViewModel::class.java)
+        ViewModelProviders.of(this, AppsListViewModelFactory(appsRepository))
+                .get(AppsListViewModel::class.java)
     }
 
     private val appsObserver = Observer<List<App>> {
         it?.let { list ->
-            appAdapter.updateApps(list)
+            appsAdapter.updateApps(list)
             if (list.isEmpty() || userlandIsNewVersion()) {
                 doRefresh()
             }
@@ -75,7 +75,7 @@ class AppListFragment : Fragment(),
 
     private val activeAppsObserver = Observer<List<App>> {
         it?.let { list ->
-            appAdapter.updateActiveApps(list)
+            appsAdapter.updateActiveApps(list)
         }
     }
 
@@ -110,7 +110,7 @@ class AppListFragment : Fragment(),
     }
 
     override fun onAppsItemClicked(appsItemClicked: AppsListItem) {
-        appAdapter.setLastSelectedContextItem(appsItemClicked)
+        appsAdapter.setLastSelectedContextItem(appsItemClicked)
         when (appsItemClicked) {
             is AppSeparatorItem -> {
             }
@@ -127,13 +127,13 @@ class AppListFragment : Fragment(),
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         activityContext = activity!! as MainActivity
-        appsListViewModel.getAppsList().observe(viewLifecycleOwner, appsObserver)
-        appsListViewModel.getActiveApps().observe(viewLifecycleOwner, activeAppsObserver)
-        appsListViewModel.getRefreshStatus().observe(viewLifecycleOwner, refreshStatusObserver)
+        viewModel.getAppsList().observe(viewLifecycleOwner, appsObserver)
+        viewModel.getActiveApps().observe(viewLifecycleOwner, activeAppsObserver)
+        viewModel.getRefreshStatus().observe(viewLifecycleOwner, refreshStatusObserver)
 
         registerForContextMenu(list_apps)
         list_apps.layoutManager = LinearLayoutManager(list_apps.context)
-        list_apps.adapter = appAdapter
+        list_apps.adapter = appsAdapter
 
         swipe_refresh.setOnRefreshListener { doRefresh() }
         swipe_refresh.setColorSchemeResources(
@@ -144,7 +144,7 @@ class AppListFragment : Fragment(),
     }
 
     private fun doRefresh() {
-        appsListViewModel.refreshAppsList()
+        viewModel.refreshAppsList()
         setLatestUpdateUserlandVersion()
     }
 
@@ -157,12 +157,12 @@ class AppListFragment : Fragment(),
     }
 
     override fun onAppsCreateContextMenu(menu: ContextMenu, v: View, selectedListItem: AppsListItem) {
-        appAdapter.setLastSelectedContextItem(selectedListItem)
+        appsAdapter.setLastSelectedContextItem(selectedListItem)
         activityContext.menuInflater.inflate(R.menu.context_menu_apps, menu)
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
-        return when (val selectedItem = appAdapter.getLastSelectedContextItem()) {
+        return when (val selectedItem = appsAdapter.getLastSelectedContextItem()) {
             is AppSeparatorItem -> true
             is AppItem -> {
                 val app = selectedItem.app
