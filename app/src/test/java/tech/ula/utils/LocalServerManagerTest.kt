@@ -13,7 +13,7 @@ import tech.ula.model.entities.Session
 import java.io.File
 
 @RunWith(MockitoJUnitRunner::class)
-class ServerUtilityTest {
+class LocalServerManagerTest {
 
     @get:Rule val tempFolder = TemporaryFolder()
 
@@ -31,7 +31,7 @@ class ServerUtilityTest {
     private val filesystemDirName = "0"
     private val fakePid = 100L
 
-    private lateinit var serverUtility: ServerUtility
+    private lateinit var localServerManager: LocalServerManager
 
     private fun createSshPidFile() {
         val folder = tempFolder.newFolder(filesystemDirName, "run")
@@ -55,7 +55,7 @@ class ServerUtilityTest {
     fun setup() {
         whenever(mockProcess.toString()).thenReturn("pid=$fakePid],")
 
-        serverUtility = ServerUtility(tempFolder.root.path, mockBusyboxExecutor, mockLogger)
+        localServerManager = LocalServerManager(tempFolder.root.path, mockBusyboxExecutor, mockLogger)
     }
 
     @Test
@@ -75,7 +75,7 @@ class ServerUtilityTest {
         createSshPidFile()
         assertTrue(sshPidFile.exists())
 
-        val result = serverUtility.startServer(session)
+        val result = localServerManager.startServer(session)
         assertFalse(sshPidFile.exists())
         assertEquals(fakePid, result)
     }
@@ -99,7 +99,7 @@ class ServerUtilityTest {
         createSshPidFile()
         assertTrue(sshPidFile.exists())
 
-        val result = serverUtility.startServer(session)
+        val result = localServerManager.startServer(session)
 
         assertFalse(sshPidFile.exists())
         assertEquals(-1, result)
@@ -125,7 +125,7 @@ class ServerUtilityTest {
         createVNCPidFile(session)
         assertTrue(vncPidFile.exists())
 
-        val result = serverUtility.startServer(session)
+        val result = localServerManager.startServer(session)
 
         assertFalse(vncPidFile.exists())
         assertEquals(fakePid, result)
@@ -151,7 +151,7 @@ class ServerUtilityTest {
         createVNCPidFile(session)
         assertTrue(vncPidFile.exists())
 
-        val result = serverUtility.startServer(session)
+        val result = localServerManager.startServer(session)
 
         assertFalse(vncPidFile.exists())
         assertEquals(-1, result)
@@ -180,7 +180,7 @@ class ServerUtilityTest {
         createXSDLPidFile()
         assertTrue(xsdlPidFile.exists())
 
-        val result = serverUtility.startServer(session)
+        val result = localServerManager.startServer(session)
 
         assertFalse(xsdlPidFile.exists())
         assertEquals(fakePid, result)
@@ -209,7 +209,7 @@ class ServerUtilityTest {
         createXSDLPidFile()
         assertTrue(xsdlPidFile.exists())
 
-        val result = serverUtility.startServer(session)
+        val result = localServerManager.startServer(session)
 
         assertFalse(xsdlPidFile.exists())
         assertEquals(-1, result)
@@ -219,7 +219,7 @@ class ServerUtilityTest {
     @Test
     fun `Calling stop service uses the appropriate command`() {
         val session = Session(0, filesystemId = filesystemId, serviceType = "ssh")
-        serverUtility.stopService(session)
+        localServerManager.stopService(session)
         val command = "support/killProcTree.sh ${session.pid} -1"
         verify(mockBusyboxExecutor).executeScript(eq(command), anyOrNull())
     }
@@ -233,7 +233,7 @@ class ServerUtilityTest {
         whenever(mockBusyboxExecutor.executeScript(eq(command), anyOrNull()))
                 .thenReturn(FailedExecution("reason"))
 
-        serverUtility.stopService(session)
+        localServerManager.stopService(session)
 
         verify(mockLogger).addBreadcrumb(any())
     }
@@ -242,7 +242,7 @@ class ServerUtilityTest {
     fun `Server is always considered running if session type is XSDL`() {
         val session = Session(0, filesystemId = filesystemId, serviceType = "xsdl")
 
-        val result = serverUtility.isServerRunning(session)
+        val result = localServerManager.isServerRunning(session)
 
         assertTrue(result)
         verify(mockBusyboxExecutor, never()).executeScript(anyOrNull(), anyOrNull())
@@ -257,8 +257,8 @@ class ServerUtilityTest {
                 .thenReturn(SuccessfulExecution)
                 .thenReturn(FailedExecution(""))
 
-        val result1 = serverUtility.isServerRunning(session)
-        val result2 = serverUtility.isServerRunning(session)
+        val result1 = localServerManager.isServerRunning(session)
+        val result2 = localServerManager.isServerRunning(session)
 
         assertTrue(result1)
         assertFalse(result2)
@@ -272,7 +272,7 @@ class ServerUtilityTest {
         whenever(mockBusyboxExecutor.executeScript(eq(command), anyOrNull()))
                 .thenReturn(FailedExecution(reason))
 
-        val result = serverUtility.isServerRunning(session)
+        val result = localServerManager.isServerRunning(session)
 
         assertFalse(result)
         verify(mockLogger).addBreadcrumb(any())

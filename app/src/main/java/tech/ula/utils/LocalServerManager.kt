@@ -3,7 +3,7 @@ package tech.ula.utils
 import tech.ula.model.entities.Session
 import java.io.File
 
-class ServerUtility(
+class LocalServerManager(
     private val applicationFilesDirPath: String,
     private val busyboxExecutor: BusyboxExecutor,
     private val logger: Logger = SentryLogger()
@@ -63,7 +63,7 @@ class ServerUtility(
             is OngoingExecution -> result.process.pid()
             is FailedExecution -> {
                 val details = "func: startSshServer err: ${result.reason}"
-                val breadcrumb = UlaBreadcrumb("ServerUtility", BreadcrumbType.RuntimeError, details)
+                val breadcrumb = UlaBreadcrumb("LocalServerManager", BreadcrumbType.RuntimeError, details)
                 logger.addBreadcrumb(breadcrumb)
                 -1
             }
@@ -89,7 +89,7 @@ class ServerUtility(
             is OngoingExecution -> result.process.pid()
             is FailedExecution -> {
                 val details = "func: startVncServer err: ${result.reason}"
-                val breadcrumb = UlaBreadcrumb("ServerUtility", BreadcrumbType.RuntimeError, details)
+                val breadcrumb = UlaBreadcrumb("LocalServerManager", BreadcrumbType.RuntimeError, details)
                 logger.addBreadcrumb(breadcrumb)
                 -1
             }
@@ -114,7 +114,7 @@ class ServerUtility(
             is OngoingExecution -> result.process.pid()
             is FailedExecution -> {
                 val details = "func: setDisplayNumberAndStartTwm err: ${result.reason}"
-                val breadcrumb = UlaBreadcrumb("ServerUtility", BreadcrumbType.RuntimeError, details)
+                val breadcrumb = UlaBreadcrumb("LocalServerManager", BreadcrumbType.RuntimeError, details)
                 logger.addBreadcrumb(breadcrumb)
                 -1
             }
@@ -127,7 +127,7 @@ class ServerUtility(
         val result = busyboxExecutor.executeScript(command)
         if (result is FailedExecution) {
             val details = "func: stopService err: ${result.reason}"
-            val breadcrumb = UlaBreadcrumb("ServerUtility", BreadcrumbType.RuntimeError, details)
+            val breadcrumb = UlaBreadcrumb("LocalServerManager", BreadcrumbType.RuntimeError, details)
             logger.addBreadcrumb(breadcrumb)
         }
     }
@@ -142,7 +142,7 @@ class ServerUtility(
             is SuccessfulExecution -> true
             is FailedExecution -> {
                 val details = "func: isServerRunning err: ${result.reason}"
-                val breadcrumb = UlaBreadcrumb("ServerUtility", BreadcrumbType.RuntimeError, details)
+                val breadcrumb = UlaBreadcrumb("LocalServerManager", BreadcrumbType.RuntimeError, details)
                 logger.addBreadcrumb(breadcrumb)
                 false
             }

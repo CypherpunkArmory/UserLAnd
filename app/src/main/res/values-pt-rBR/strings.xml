@@ -80,7 +80,6 @@
     <string name="illegal_state_failed_to_copy_assets_to_local">Falha ao copiar recursos para o armazenamento local. Tente limpar os arquivos de suporte.</string>
     <string name="illegal_state_assets_have_not_been_downloaded">Os recursos precisam ser copiados para o seu sistema de arquivos, mas parece que eles não foram baixados. Tente limpar os arquivos de suporte.</string>
     <string name="illegal_state_empty_download_cache_access">O cache de downloads estava vazio quando o acesso foi tentado.</string>
-    <string name="illegal_state_download_cache_access_in_incorrect_state">O cache de downloads foi acessado em um estado que não suporta isso.</string>
     <string name="illegal_state_failed_to_copy_assets_to_filesystem">Falha ao copiar recursos para o sistema de arquivos. Tente limpar os arquivos de suporte.</string>
     <string name="illegal_state_failed_to_extract_filesystem">Falha ao extrair o sistema de arquivos. Tente limpar os arquivos de suporte. Razão de falha: %1$s</string>
     <string name="illegal_state_failed_to_clear_support_files">Falha ao limpar arquivos de suporte.</string>

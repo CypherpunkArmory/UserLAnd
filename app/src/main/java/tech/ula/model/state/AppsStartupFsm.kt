@@ -11,12 +11,16 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import tech.ula.utils.preferences.AppServiceTypePreference
+import tech.ula.utils.preferences.AppsPreferences
+import tech.ula.utils.preferences.PreferenceHasNotBeenSelected
+import tech.ula.utils.preferences.SshTypePreference
 
 class AppsStartupFsm(
     ulaDatabase: UlaDatabase,
     private val appsPreferences: AppsPreferences,
-    private val filesystemUtility: FilesystemUtility,
-    private val buildWrapper: BuildWrapper = BuildWrapper(),
+    private val filesystemManager: FilesystemManager,
+    private val deviceArchitecture: DeviceArchitecture = DeviceArchitecture(),
     private val logger: Logger = SentryLogger()
 ) {
 
@@ -105,7 +109,7 @@ class AppsStartupFsm(
         state.postValue(CopyingAppScript)
         try {
             withContext(Dispatchers.IO) {
-                filesystemUtility.moveAppScriptToRequiredLocation(app.name, filesystem)
+                filesystemManager.moveAppScriptToRequiredLocation(app.name, filesystem)
             }
             state.postValue(AppScriptCopySucceeded)
         } catch (err: Exception) {
@@ -123,7 +127,7 @@ class AppsStartupFsm(
         val potentialAppFilesystem = filesystemDao.findAppsFilesystemByType(app.filesystemRequired)
 
         if (potentialAppFilesystem.isEmpty()) {
-            val deviceArchitecture = buildWrapper.getArchType()
+            val deviceArchitecture = deviceArchitecture.getArchType()
             val fsToInsert = Filesystem(0, name = "apps", archType = deviceArchitecture,
                     distributionType = app.filesystemRequired, isAppsFilesystem = true)
             filesystemDao.insertFilesystem(fsToInsert)

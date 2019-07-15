@@ -47,8 +47,8 @@ class FilesystemListFragment : Fragment() {
         val prootDebugLogger = ProotDebugLogger(activityContext.defaultSharedPreferences, ulaFiles)
         val busyboxExecutor = BusyboxExecutor(ulaFiles, prootDebugLogger)
 
-        val filesystemUtility = FilesystemUtility(activityContext.filesDir.absolutePath, busyboxExecutor)
-        ViewModelProviders.of(this, FilesystemListViewmodelFactory(filesystemDao, sessionDao, filesystemUtility)).get(FilesystemListViewModel::class.java)
+        val filesystemManager = FilesystemManager(ulaFiles, busyboxExecutor)
+        ViewModelProviders.of(this, FilesystemListViewmodelFactory(filesystemDao, sessionDao, filesystemManager)).get(FilesystemListViewModel::class.java)
     }
 
     private val filesystemChangeObserver = Observer<List<Filesystem>> {
@@ -196,7 +196,7 @@ class FilesystemListFragment : Fragment() {
                 activityContext.stopProgressFromFilesystemList()
             }
             is FilesystemDeleteState.Failure -> {
-                displayGenericErrorDialog(activityContext, R.string.general_error_title, R.string.error_filesystem_delete)
+                activityContext.displayGenericErrorDialog(R.string.general_error_title, R.string.error_filesystem_delete)
                 activityContext.stopProgressFromFilesystemList()
             }
         }

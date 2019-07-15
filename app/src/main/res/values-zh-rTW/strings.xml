@@ -79,7 +79,6 @@
     <string name="illegal_state_failed_to_copy_assets_to_local">複製資源至本機儲存空間失敗。嘗試清除支援檔案。</string>
     <string name="illegal_state_assets_have_not_been_downloaded">資源必須複製到您的檔案系統，但看起來它們還沒被下載。嘗試清除支援檔案。</string>
     <string name="illegal_state_empty_download_cache_access">試圖存取時，下載快取被清空。</string>
-    <string name="illegal_state_download_cache_access_in_incorrect_state">下載快取在不支援的狀態時被存取。</string>
     <string name="illegal_state_failed_to_copy_assets_to_filesystem">複製資源到檔案系統失敗。</string>
     <string name="illegal_state_failed_to_extract_filesystem">解壓縮檔案系統失敗。嘗試清除支援檔案。失敗理由：%1$s</string>
     <string name="illegal_state_failed_to_clear_support_files">清除支援檔案失敗。</string>

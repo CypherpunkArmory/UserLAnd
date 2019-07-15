@@ -15,14 +15,14 @@ import android.widget.ImageView
 import android.widget.TextView
 import tech.ula.R
 import tech.ula.model.entities.App
-import tech.ula.utils.LocalFileLocator
+import tech.ula.utils.AppDetails
 import kotlin.collections.ArrayList
 
-class AppListAdapter(
+class AppsListAdapter(
     private val activity: Activity,
     private val onAppsItemClicked: OnAppsItemClicked,
     private val onAppsCreateContextMenu: OnAppsCreateContextMenu
-) : RecyclerView.Adapter<AppListAdapter.ViewHolder>() {
+) : RecyclerView.Adapter<AppsListAdapter.ViewHolder>() {
 
     private lateinit var lastSelectedAppContextItem: AppsListItem
     private val activeApps = arrayListOf<App>()
@@ -135,8 +135,8 @@ class AppListAdapter(
                     viewHolder.itemView.setBackgroundResource(R.color.colorPrimaryDark)
                 }
 
-                val localFileLocator = LocalFileLocator(activity.filesDir.path, activity.resources)
-                viewHolder.imageView?.setImageURI(localFileLocator.findIconUri(app.name))
+                val appDetailer = AppDetails(activity.filesDir.path, activity.resources)
+                viewHolder.imageView?.setImageURI(appDetailer.findIconUri(app.name))
                 viewHolder.appName?.text = app.name.capitalize()
 
                 handleFirstAnimationRun(viewHolder, position)
@@ -256,10 +256,10 @@ class AppsListDiffCallBack(
     }
 
     override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-        return areAppListItemsSame(oldItemPosition, newItemPosition)
+        return areAppsListItemsSame(oldItemPosition, newItemPosition)
     }
 
-    private fun areAppListItemsSame(oldAppsItemPosition: Int, newAppsItemPosition: Int): Boolean {
+    private fun areAppsListItemsSame(oldAppsItemPosition: Int, newAppsItemPosition: Int): Boolean {
         val oldAppsItem = oldAppsItemList[oldAppsItemPosition]
         val newAppsItem = newAppsItemList[newAppsItemPosition]
         if (oldAppsItem is AppSeparatorItem && newAppsItem is AppSeparatorItem) {
@@ -291,7 +291,7 @@ class AppsListDiffCallBack(
     override fun getChangePayload(oldItemPosition: Int, newItemPosition: Int): Any? {
         val diffBundle = Bundle()
 
-        if (areAppListItemsSame(oldItemPosition, newItemPosition)) {
+        if (areAppsListItemsSame(oldItemPosition, newItemPosition)) {
             diffBundle.putInt("changedItemPosition", newItemPosition)
         }
         if (activeStateChange) diffBundle.putBoolean("activeStateChange", activeStateChange)

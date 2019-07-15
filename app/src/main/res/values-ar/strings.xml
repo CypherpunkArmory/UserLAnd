@@ -68,7 +68,6 @@
     <string name="illegal_state_failed_to_copy_assets_to_local">أخفق نسخ الأصول إلى التخزين المحلي. حاول مسح ملفات الدعم.</string>
     <string name="illegal_state_assets_have_not_been_downloaded">يجب نسخ الأصول الى نظام الملفات الخاص بك ، ولكن يبدو أنه لم يتم تنزيلها. حاول مسح ملفات الدعم.</string>
     <string name="illegal_state_empty_download_cache_access">كانت ذاكرة التخزين المؤقت للتنزيلات فارغة عند محاولة الوصول.</string>
-    <string name="illegal_state_download_cache_access_in_incorrect_state">تم الوصول إلى ذاكرة التخزين المؤقت للتنزيل في حالة لا تدعم ذلك.</string>
     <string name="illegal_state_failed_to_copy_assets_to_filesystem">فشل نسخ الأصول إلى نظام الملفات. حاول مسح ملفات الدعم.</string>
     <string name="illegal_state_failed_to_extract_filesystem">فشل استخراج نظام الملفات. حاول مسح ملفات الدعم.</string>
     <string name="illegal_state_failed_to_clear_support_files">فشل مسح ملفات الدعم.</string>

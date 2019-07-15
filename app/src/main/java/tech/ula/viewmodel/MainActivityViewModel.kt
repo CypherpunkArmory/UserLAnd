@@ -14,6 +14,7 @@ import tech.ula.model.entities.Session
 import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import tech.ula.utils.preferences.AppServiceTypePreference
 import java.io.FileNotFoundException
 import kotlin.coroutines.CoroutineContext
 
@@ -41,7 +42,9 @@ class MainActivityViewModel(
 
     private val sessionState = sessionStartupFsm.getState()
 
-    private val state = MediatorLiveData<State>()
+    private val state = MediatorLiveData<State>().apply {
+        postValue(WaitingForInput)
+    }
 
     private fun postIllegalStateWithLog(newState: IllegalState) {
         logger.sendIllegalStateLog(newState)
@@ -162,6 +165,10 @@ class MainActivityViewModel(
     // Exposed so that downloads can be continued from activity
     fun startAssetDownloads(downloadRequirements: List<DownloadMetadata>) {
         submitSessionStartupEvent(DownloadAssets(downloadRequirements))
+    }
+
+    fun handleSessionHasBeenActivated() {
+        resetStartupState()
     }
 
     suspend fun handleClearSupportFiles(assetFileClearer: AssetFileClearer) {
@@ -319,9 +326,6 @@ class MainActivityViewModel(
             is AttemptedCacheAccessWhileEmpty -> {
                 postIllegalStateWithLog(DownloadCacheAccessedWhileEmpty)
             }
-            is AttemptedCacheAccessInIncorrectState -> {
-                postIllegalStateWithLog(DownloadCacheAccessedInAnIncorrectState)
-            }
         }
     }
 
@@ -367,7 +371,6 @@ class MainActivityViewModel(
             is ExtractingFilesystem -> state.postValue(FilesystemExtractionStep(newState.extractionTarget))
             is ExtractionHasCompletedSuccessfully -> { doTransitionIfRequirementsAreSelected {
                 state.postValue(SessionCanBeStarted(lastSelectedSession))
-                resetStartupState()
             } }
             is ExtractionFailed -> postIllegalStateWithLog(FailedToExtractFilesystem(newState.reason))
         }
@@ -377,6 +380,7 @@ class MainActivityViewModel(
         lastSelectedApp = unselectedApp
         lastSelectedSession = unselectedSession
         lastSelectedFilesystem = unselectedFilesystem
+        state.postValue(WaitingForInput)
         submitAppsStartupEvent(ResetAppState)
         submitSessionStartupEvent(ResetSessionState)
     }
@@ -415,6 +419,7 @@ class MainActivityViewModel(
 }
 
 sealed class State
+object WaitingForInput : State()
 object CanOnlyStartSingleSession : State()
 data class SessionCanBeStarted(val session: Session) : State()
 data class SessionCanBeRestarted(val session: Session) : State()
@@ -435,7 +440,6 @@ object ErrorFetchingAssetLists : IllegalState()
 data class ErrorGeneratingDownloads(val errorId: Int) : IllegalState()
 data class DownloadsDidNotCompleteSuccessfully(val reason: DownloadFailureLocalizationData) : IllegalState()
 object DownloadCacheAccessedWhileEmpty : IllegalState()
-object DownloadCacheAccessedInAnIncorrectState : IllegalState()
 object FailedToCopyAssetsToLocalStorage : IllegalState()
 object AssetsHaveNotBeenDownloaded : IllegalState()
 object FailedToCopyAssetsToFilesystem : IllegalState()

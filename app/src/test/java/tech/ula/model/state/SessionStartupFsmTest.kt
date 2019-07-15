@@ -40,15 +40,15 @@ class SessionStartupFsmTest {
 
     @Mock lateinit var mockAssetRepository: AssetRepository
 
-    @Mock lateinit var mockDownloadUtility: DownloadUtility
+    @Mock lateinit var mockAssetDownloader: AssetDownloader
 
-    @Mock lateinit var mockFilesystemUtility: FilesystemUtility
+    @Mock lateinit var mockFilesystemManager: FilesystemManager
 
     @Mock lateinit var mockStateObserver: Observer<SessionStartupState>
 
     @Mock lateinit var mockLogger: Logger
 
-    @Mock lateinit var mockStorageUtility: StorageUtility
+    @Mock lateinit var mockStorageCalculator: StorageCalculator
 
     private lateinit var activeSessionLiveData: MutableLiveData<List<Session>>
 
@@ -121,9 +121,9 @@ class SessionStartupFsmTest {
         sessionFsm = SessionStartupFsm(
                 mockUlaDatabase,
                 mockAssetRepository,
-                mockFilesystemUtility,
-                mockDownloadUtility,
-                mockStorageUtility,
+                mockFilesystemManager,
+                mockAssetDownloader,
+                mockStorageCalculator,
                 mockLogger
         )
     }
@@ -142,10 +142,10 @@ class SessionStartupFsmTest {
             for (state in possibleStates) {
                 if (state is WaitingForSessionSelection) {
                     // Test the branch for receiving downloads not enqueued by us
-                    whenever(mockDownloadUtility.downloadIsForUserland(0L))
+                    whenever(mockAssetDownloader.downloadIsForUserland(0L))
                             .thenReturn(false)
                 } else {
-                    whenever(mockDownloadUtility.downloadIsForUserland(0L))
+                    whenever(mockAssetDownloader.downloadIsForUserland(0L))
                             .thenReturn(true)
                 }
                 sessionFsm.setState(state)
@@ -176,7 +176,7 @@ class SessionStartupFsmTest {
         sessionFsm.setState(WaitingForSessionSelection)
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockDownloadUtility.handleDownloadComplete(downloadId))
+        whenever(mockAssetDownloader.handleDownloadComplete(downloadId))
                 .thenReturn(NonUserlandDownloadFound)
 
         runBlocking { sessionFsm.submitEvent(AssetDownloadComplete(downloadId), this) }
@@ -289,7 +289,7 @@ class SessionStartupFsmTest {
         sessionFsm.getState().observeForever(mockStateObserver)
 
         val filesystemNeedsExtraction = false
-        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
+        whenever(mockFilesystemManager.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
                 .thenReturn(true)
 
         runBlocking {
@@ -310,7 +310,7 @@ class SessionStartupFsmTest {
         sessionFsm.getState().observeForever(mockStateObserver)
 
         val filesystemNeedsExtraction = false
-        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
+        whenever(mockFilesystemManager.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
                 .thenReturn(false)
         filesystem.isCreatedFromBackup = true
 
@@ -332,7 +332,7 @@ class SessionStartupFsmTest {
         sessionFsm.setState(AssetListsRetrievalSucceeded(assetList))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
+        whenever(mockFilesystemManager.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
                 .thenReturn(true)
 
         runBlocking {
@@ -351,7 +351,7 @@ class SessionStartupFsmTest {
         sessionFsm.setState(AssetListsRetrievalSucceeded(assetList))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
+        whenever(mockFilesystemManager.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
                 .thenReturn(false)
 
         val metadata = listOf(DownloadMetadata("rootfs.tar.gz", assetType, highVersionCode, url))
@@ -372,7 +372,7 @@ class SessionStartupFsmTest {
         sessionFsm.setState(DownloadingAssets(0, 0))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockDownloadUtility.handleDownloadComplete(1))
+        whenever(mockAssetDownloader.handleDownloadComplete(1))
                 .thenReturn(AllDownloadsCompletedSuccessfully)
 
         runBlocking {
@@ -387,9 +387,9 @@ class SessionStartupFsmTest {
         sessionFsm.setState(DownloadingAssets(0, 0))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockDownloadUtility.handleDownloadComplete(0))
+        whenever(mockAssetDownloader.handleDownloadComplete(0))
                 .thenReturn(CompletedDownloadsUpdate(1, 3))
-        whenever(mockDownloadUtility.handleDownloadComplete(1))
+        whenever(mockAssetDownloader.handleDownloadComplete(1))
                 .thenReturn(CompletedDownloadsUpdate(2, 3))
 
         runBlocking {
@@ -407,7 +407,7 @@ class SessionStartupFsmTest {
         sessionFsm.getState().observeForever(mockStateObserver)
 
         val localizationData = DownloadFailureLocalizationData(0)
-        whenever(mockDownloadUtility.handleDownloadComplete(0))
+        whenever(mockAssetDownloader.handleDownloadComplete(0))
                 .thenReturn(AssetDownloadFailure(localizationData))
 
         runBlocking {
@@ -422,7 +422,7 @@ class SessionStartupFsmTest {
         sessionFsm.setState(DownloadingAssets(0, 2))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockDownloadUtility.handleDownloadComplete(0))
+        whenever(mockAssetDownloader.handleDownloadComplete(0))
                 .thenReturn(NonUserlandDownloadFound)
 
         runBlocking {
@@ -438,7 +438,7 @@ class SessionStartupFsmTest {
         sessionFsm.setState(DownloadingAssets(0, 0))
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockDownloadUtility.handleDownloadComplete(0))
+        whenever(mockAssetDownloader.handleDownloadComplete(0))
                 .thenReturn(CacheSyncAttemptedWhileCacheIsEmpty)
 
         runBlocking {
@@ -452,7 +452,7 @@ class SessionStartupFsmTest {
     fun `Does nothing if download cache is empty when receiving SyncDownloadState`() {
         sessionFsm.setState(WaitingForSessionSelection)
         sessionFsm.getState().observeForever(mockStateObserver)
-        whenever(mockDownloadUtility.downloadStateHasBeenCached())
+        whenever(mockAssetDownloader.downloadStateHasBeenCached())
                 .thenReturn(false)
 
         runBlocking {
@@ -464,26 +464,12 @@ class SessionStartupFsmTest {
     }
 
     @Test
-    fun `Posts AttemptedCacheAccessInIncorrectState if state is not WaitingForSessionSelection or DownloadingAssets`() {
-        sessionFsm.setState(VerifyingFilesystemAssets)
-        sessionFsm.getState().observeForever(mockStateObserver)
-        whenever(mockDownloadUtility.downloadStateHasBeenCached())
-                .thenReturn(true)
-
-        runBlocking {
-            sessionFsm.submitEvent(SyncDownloadState, this)
-        }
-
-        verify(mockStateObserver).onChanged(AttemptedCacheAccessInIncorrectState)
-    }
-
-    @Test
     fun `Appropriately resets download state if syncing during WaitingForSessionSelection`() {
         sessionFsm.setState(WaitingForSessionSelection)
         sessionFsm.getState().observeForever(mockStateObserver)
-        whenever(mockDownloadUtility.downloadStateHasBeenCached())
+        whenever(mockAssetDownloader.downloadStateHasBeenCached())
                 .thenReturn(true)
-        whenever(mockDownloadUtility.syncStateWithCache())
+        whenever(mockAssetDownloader.syncStateWithCache())
                 .thenReturn(AllDownloadsCompletedSuccessfully)
 
         runBlocking {
@@ -498,9 +484,9 @@ class SessionStartupFsmTest {
     fun `Appropriately resets download state if syncing during DownloadingAssets`() {
         sessionFsm.setState(DownloadingAssets(0, 10))
         sessionFsm.getState().observeForever(mockStateObserver)
-        whenever(mockDownloadUtility.downloadStateHasBeenCached())
+        whenever(mockAssetDownloader.downloadStateHasBeenCached())
                 .thenReturn(true)
-        whenever(mockDownloadUtility.syncStateWithCache())
+        whenever(mockAssetDownloader.syncStateWithCache())
                 .thenReturn(AllDownloadsCompletedSuccessfully)
 
         runBlocking {
@@ -518,7 +504,7 @@ class SessionStartupFsmTest {
 
         runBlocking { sessionFsm.submitEvent(CopyDownloadsToLocalStorage, this) }
 
-        verifyBlocking(mockDownloadUtility) { prepareDownloadsForUse(anyOrNull()) }
+        verifyBlocking(mockAssetDownloader) { prepareDownloadsForUse(anyOrNull()) }
         verify(mockStateObserver).onChanged(CopyingFilesToLocalDirectories)
         verify(mockStateObserver).onChanged(LocalDirectoryCopySucceeded)
     }
@@ -529,7 +515,7 @@ class SessionStartupFsmTest {
         sessionFsm.getState().observeForever(mockStateObserver)
 
         runBlocking {
-            whenever(mockDownloadUtility.prepareDownloadsForUse(anyOrNull()))
+            whenever(mockAssetDownloader.prepareDownloadsForUse(anyOrNull()))
                     .thenThrow(IOException())
             sessionFsm.submitEvent(CopyDownloadsToLocalStorage, this)
         }
@@ -546,7 +532,7 @@ class SessionStartupFsmTest {
         filesystem.versionCodeUsed = highVersionCode
         whenever(mockAssetRepository.getDistributionAssetsForExistingFilesystem(filesystem))
                 .thenReturn(assetList)
-        whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", assetList))
+        whenever(mockFilesystemManager.areAllRequiredAssetsPresent("${filesystem.id}", assetList))
                 .thenReturn(true)
         whenever(mockAssetRepository.getLatestDistributionVersion(filesystem.distributionType))
                 .thenReturn(lowVersionCode)
@@ -566,7 +552,7 @@ class SessionStartupFsmTest {
                 .thenReturn(assetList)
         whenever(mockAssetRepository.getLatestDistributionVersion(filesystem.distributionType))
                 .thenReturn("")
-        whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", assetList))
+        whenever(mockFilesystemManager.areAllRequiredAssetsPresent("${filesystem.id}", assetList))
                 .thenReturn(false)
         whenever(mockAssetRepository.assetsArePresentInSupportDirectories(assetList))
                 .thenReturn(false)
@@ -585,7 +571,7 @@ class SessionStartupFsmTest {
         filesystem.versionCodeUsed = lowVersionCode
         whenever(mockAssetRepository.getDistributionAssetsForExistingFilesystem(filesystem))
                 .thenReturn(assetList)
-        whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", assetList))
+        whenever(mockFilesystemManager.areAllRequiredAssetsPresent("${filesystem.id}", assetList))
                 .thenReturn(true)
         whenever(mockAssetRepository.getLatestDistributionVersion(filesystem.distributionType))
                 .thenReturn(highVersionCode)
@@ -605,11 +591,11 @@ class SessionStartupFsmTest {
 
         whenever(mockAssetRepository.getDistributionAssetsForExistingFilesystem(filesystem))
                 .thenReturn(assetList)
-        whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", assetList))
+        whenever(mockFilesystemManager.areAllRequiredAssetsPresent("${filesystem.id}", assetList))
                 .thenReturn(false)
         whenever(mockAssetRepository.assetsArePresentInSupportDirectories(assetList))
                 .thenReturn(true)
-        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
+        whenever(mockFilesystemManager.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
                 .thenReturn(false)
 
         filesystem.versionCodeUsed = lowVersionCode
@@ -620,9 +606,9 @@ class SessionStartupFsmTest {
 
         val updatedFilesystem = filesystem
         updatedFilesystem.versionCodeUsed = highVersionCode
-        verify(mockFilesystemUtility).copyAssetsToFilesystem(filesystem)
+        verify(mockFilesystemManager).copyAssetsToFilesystem(filesystem)
         verify(mockFilesystemDao).updateFilesystem(updatedFilesystem)
-        verify(mockFilesystemUtility, never()).removeRootfsFilesFromFilesystem("${filesystem.id}")
+        verify(mockFilesystemManager, never()).removeRootfsFilesFromFilesystem("${filesystem.id}")
         verify(mockStateObserver).onChanged(VerifyingFilesystemAssets)
         verify(mockStateObserver).onChanged(FilesystemAssetVerificationSucceeded)
     }
@@ -634,11 +620,11 @@ class SessionStartupFsmTest {
 
         whenever(mockAssetRepository.getDistributionAssetsForExistingFilesystem(filesystem))
                 .thenReturn(assetList)
-        whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", assetList))
+        whenever(mockFilesystemManager.areAllRequiredAssetsPresent("${filesystem.id}", assetList))
                 .thenReturn(false)
         whenever(mockAssetRepository.assetsArePresentInSupportDirectories(assetList))
                 .thenReturn(true)
-        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
+        whenever(mockFilesystemManager.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
                 .thenReturn(true)
 
         filesystem.versionCodeUsed = lowVersionCode
@@ -649,9 +635,9 @@ class SessionStartupFsmTest {
 
         val updatedFilesystem = filesystem
         updatedFilesystem.versionCodeUsed = highVersionCode
-        verify(mockFilesystemUtility).copyAssetsToFilesystem(filesystem)
+        verify(mockFilesystemManager).copyAssetsToFilesystem(filesystem)
         verify(mockFilesystemDao).updateFilesystem(updatedFilesystem)
-        verify(mockFilesystemUtility).removeRootfsFilesFromFilesystem("${filesystem.id}")
+        verify(mockFilesystemManager).removeRootfsFilesFromFilesystem("${filesystem.id}")
         verify(mockStateObserver).onChanged(VerifyingFilesystemAssets)
         verify(mockStateObserver).onChanged(FilesystemAssetVerificationSucceeded)
     }
@@ -663,7 +649,7 @@ class SessionStartupFsmTest {
 
         whenever(mockAssetRepository.getDistributionAssetsForExistingFilesystem(filesystem))
                 .thenReturn(assetList)
-        whenever(mockFilesystemUtility.areAllRequiredAssetsPresent("${filesystem.id}", assetList))
+        whenever(mockFilesystemManager.areAllRequiredAssetsPresent("${filesystem.id}", assetList))
                 .thenReturn(false)
 
         filesystem.versionCodeUsed = highVersionCode
@@ -672,7 +658,7 @@ class SessionStartupFsmTest {
 
         whenever(mockAssetRepository.assetsArePresentInSupportDirectories(assetList))
                 .thenReturn(true)
-        whenever(mockFilesystemUtility.copyAssetsToFilesystem(filesystem))
+        whenever(mockFilesystemManager.copyAssetsToFilesystem(filesystem))
                 .thenThrow(Exception::class.java)
 
         runBlocking { sessionFsm.submitEvent(VerifyFilesystemAssets(filesystem), this) }
@@ -686,7 +672,7 @@ class SessionStartupFsmTest {
         sessionFsm.setState(FilesystemAssetVerificationSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockStorageUtility.getAvailableStorageInMB()).thenReturn(300)
+        whenever(mockStorageCalculator.getAvailableStorageInMB()).thenReturn(300)
         runBlocking { sessionFsm.submitEvent(VerifyAvailableStorage, this) }
 
         verify(mockStateObserver).onChanged(VerifyingSufficientStorage)
@@ -698,7 +684,7 @@ class SessionStartupFsmTest {
         sessionFsm.setState(FilesystemAssetVerificationSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockStorageUtility.getAvailableStorageInMB()).thenReturn(150)
+        whenever(mockStorageCalculator.getAvailableStorageInMB()).thenReturn(150)
         runBlocking { sessionFsm.submitEvent(VerifyAvailableStorage, this) }
 
         verify(mockStateObserver).onChanged(VerifyingSufficientStorage)
@@ -710,7 +696,7 @@ class SessionStartupFsmTest {
         sessionFsm.setState(FilesystemAssetVerificationSucceeded)
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockStorageUtility.getAvailableStorageInMB()).thenReturn(1001)
+        whenever(mockStorageCalculator.getAvailableStorageInMB()).thenReturn(1001)
         runBlocking { sessionFsm.submitEvent(VerifyAvailableStorage, this) }
 
         verify(mockStateObserver).onChanged(VerifyingSufficientStorage)
@@ -723,14 +709,14 @@ class SessionStartupFsmTest {
         sessionFsm.setState(StorageVerificationCompletedSuccessfully)
         sessionFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
+        whenever(mockFilesystemManager.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
                 .thenReturn(true)
 
         runBlocking { sessionFsm.submitEvent(ExtractFilesystem(filesystem), this) }
 
-        verify(mockFilesystemUtility, times(1)).hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")
+        verify(mockFilesystemManager, times(1)).hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}")
         verify(mockStateObserver).onChanged(ExtractionHasCompletedSuccessfully)
-        verify(mockFilesystemUtility).removeRootfsFilesFromFilesystem("${filesystem.id}")
+        verify(mockFilesystemManager).removeRootfsFilesFromFilesystem("${filesystem.id}")
     }
 
     @Test
@@ -739,10 +725,10 @@ class SessionStartupFsmTest {
         sessionFsm.getState().observeForever(mockStateObserver)
 
         runBlocking {
-            whenever(mockFilesystemUtility.extractFilesystem(eq(filesystem), anyOrNull()))
+            whenever(mockFilesystemManager.extractFilesystem(eq(filesystem), anyOrNull()))
                     .thenReturn(SuccessfulExecution)
         }
-        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
+        whenever(mockFilesystemManager.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
                 .thenReturn(false)
                 .thenReturn(true)
 
@@ -750,7 +736,7 @@ class SessionStartupFsmTest {
 
         // TODO is there some way to verify extraction steps?
         verify(mockStateObserver).onChanged(ExtractionHasCompletedSuccessfully)
-        verify(mockFilesystemUtility).removeRootfsFilesFromFilesystem("${filesystem.id}")
+        verify(mockFilesystemManager).removeRootfsFilesFromFilesystem("${filesystem.id}")
     }
 
     @Test
@@ -760,7 +746,7 @@ class SessionStartupFsmTest {
 
         val reason = "reason"
         runBlocking {
-            whenever(mockFilesystemUtility.extractFilesystem(eq(filesystem), anyOrNull()))
+            whenever(mockFilesystemManager.extractFilesystem(eq(filesystem), anyOrNull()))
                     .thenReturn(FailedExecution(reason))
         }
 
@@ -775,10 +761,10 @@ class SessionStartupFsmTest {
         sessionFsm.getState().observeForever(mockStateObserver)
 
         runBlocking {
-            whenever(mockFilesystemUtility.extractFilesystem(eq(filesystem), anyOrNull()))
+            whenever(mockFilesystemManager.extractFilesystem(eq(filesystem), anyOrNull()))
                     .thenReturn(SuccessfulExecution)
         }
-        whenever(mockFilesystemUtility.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
+        whenever(mockFilesystemManager.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}"))
                 .thenReturn(false)
                 .thenReturn(false)
 

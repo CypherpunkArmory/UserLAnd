@@ -19,6 +19,7 @@ import tech.ula.model.entities.Session
 import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import tech.ula.utils.preferences.SshTypePreference
 import java.io.FileNotFoundException
 import java.lang.IllegalStateException
 
@@ -84,8 +85,8 @@ class MainActivityViewModelTest {
     }
 
     @Test
-    fun `State does not initially publish onChanged event`() {
-        verify(mockStateObserver, never()).onChanged(any())
+    fun `State is initially WaitingForInput`() {
+        verify(mockStateObserver).onChanged(WaitingForInput)
     }
 
     @Test
@@ -240,6 +241,7 @@ class MainActivityViewModelTest {
         assertEquals(mainActivityViewModel.lastSelectedFilesystem, unselectedFilesystem)
 
         runBlocking {
+            verify(mockStateObserver, times(2)).onChanged(WaitingForInput)
             verify(mockAppsStartupFsm).submitEvent(ResetAppState, mainActivityViewModel)
             verify(mockSessionStartupFsm).submitEvent(ResetSessionState, mainActivityViewModel)
         }
@@ -262,6 +264,25 @@ class MainActivityViewModelTest {
         mainActivityViewModel.handleClearSupportFiles(mockAssetFileClearer)
 
         verify(mockStateObserver).onChanged(ActiveSessionsMustBeDeactivated)
+    }
+
+    @Test
+    fun `handleSessionHasBeenActivated resets startup state`() {
+        mainActivityViewModel.lastSelectedApp = selectedApp
+        mainActivityViewModel.lastSelectedSession = selectedSession
+        mainActivityViewModel.lastSelectedFilesystem = selectedFilesystem
+
+        mainActivityViewModel.handleSessionHasBeenActivated()
+
+        assertEquals(mainActivityViewModel.lastSelectedApp, unselectedApp)
+        assertEquals(mainActivityViewModel.lastSelectedSession, unselectedSession)
+        assertEquals(mainActivityViewModel.lastSelectedFilesystem, unselectedFilesystem)
+
+        verify(mockStateObserver, times(2)).onChanged(WaitingForInput)
+        runBlocking {
+            verify(mockAppsStartupFsm).submitEvent(ResetAppState, mainActivityViewModel)
+            verify(mockSessionStartupFsm).submitEvent(ResetSessionState, mainActivityViewModel)
+        }
     }
 
     @Test
@@ -630,14 +651,6 @@ class MainActivityViewModelTest {
     }
 
     @Test
-    fun `Posts DownloadCacheAccessedInAnIncorrectState if AttemptedCacheAccessInIncorrectState is observed`() {
-        sessionStartupStateLiveData.postValue(AttemptedCacheAccessInIncorrectState)
-
-        verify(mockStateObserver).onChanged(DownloadCacheAccessedInAnIncorrectState)
-        verify(mockLogger).sendIllegalStateLog(DownloadCacheAccessedInAnIncorrectState)
-    }
-
-    @Test
     fun `Posts CopyingDownloads when equivalent state is observed`() {
         sessionStartupStateLiveData.postValue(CopyingFilesToLocalDirectories)
 
@@ -664,6 +677,7 @@ class MainActivityViewModelTest {
         assertEquals(unselectedSession, mainActivityViewModel.lastSelectedSession)
         assertEquals(unselectedFilesystem, mainActivityViewModel.lastSelectedFilesystem)
         runBlocking {
+            verify(mockStateObserver, times(2)).onChanged(WaitingForInput)
             verify(mockSessionStartupFsm).submitEvent(ResetSessionState, mainActivityViewModel)
             verify(mockAppsStartupFsm).submitEvent(ResetAppState, mainActivityViewModel)
         }
@@ -754,19 +768,12 @@ class MainActivityViewModelTest {
     }
 
     @Test
-    fun `Posts SessionCanBeStarted and resets state when observing ExtractionHasCompletedSuccessfully`() {
+    fun `Posts SessionCanBeStarted  when observing ExtractionHasCompletedSuccessfully`() {
         makeSessionSelections()
 
         sessionStartupStateLiveData.postValue(ExtractionHasCompletedSuccessfully)
 
         verify(mockStateObserver).onChanged(SessionCanBeStarted(selectedSession))
-        assertEquals(unselectedApp, mainActivityViewModel.lastSelectedApp)
-        assertEquals(unselectedSession, mainActivityViewModel.lastSelectedSession)
-        assertEquals(unselectedFilesystem, mainActivityViewModel.lastSelectedFilesystem)
-        runBlocking {
-            verify(mockSessionStartupFsm).submitEvent(ResetSessionState, mainActivityViewModel)
-            verify(mockAppsStartupFsm).submitEvent(ResetAppState, mainActivityViewModel)
-        }
     }
 
     @Test

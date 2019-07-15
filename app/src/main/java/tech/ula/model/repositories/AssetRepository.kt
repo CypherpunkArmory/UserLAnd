@@ -6,6 +6,7 @@ import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.remote.GithubApiClient
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import tech.ula.utils.preferences.AssetPreferences
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -24,7 +25,7 @@ class AssetRepository(
     private val applicationFilesDirPath: String,
     private val assetPreferences: AssetPreferences,
     private val githubApiClient: GithubApiClient = GithubApiClient(),
-    private val connectionUtility: ConnectionUtility = ConnectionUtility(),
+    private val httpStream: HttpStream = HttpStream(),
     private val logger: Logger = SentryLogger()
 ) {
 
@@ -83,7 +84,7 @@ class AssetRepository(
     private suspend fun fetchAssetList(assetType: String): List<Asset> = withContext(Dispatchers.IO) {
         val downloadUrl = githubApiClient.getAssetsListDownloadUrl(assetType)
 
-        val inputStream = connectionUtility.getUrlInputStream(downloadUrl)
+        val inputStream = httpStream.fromUrl(downloadUrl)
         val reader = BufferedReader(InputStreamReader(inputStream))
 
         val assetList = mutableListOf<Asset>()

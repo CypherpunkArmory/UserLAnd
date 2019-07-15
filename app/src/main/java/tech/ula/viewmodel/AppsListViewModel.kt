@@ -5,14 +5,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import tech.ula.model.entities.App
 import tech.ula.model.repositories.AppsRepository
 import tech.ula.model.repositories.RefreshStatus
+import kotlin.coroutines.CoroutineContext
 
-class AppListViewModel(
+class AppsListViewModel(
     private val appsRepository: AppsRepository
-) : ViewModel() {
+) : ViewModel(), CoroutineScope {
+
+    private val job = Job()
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Default + job
 
     private val apps: LiveData<List<App>> by lazy {
         appsRepository.getAllApps()
@@ -31,7 +37,7 @@ class AppListViewModel(
     }
 
     fun refreshAppsList() {
-        CoroutineScope(Dispatchers.Default).launch { appsRepository.refreshData() }
+        this.launch { appsRepository.refreshData() }
     }
 
     fun getRefreshStatus(): LiveData<RefreshStatus> {
@@ -39,9 +45,9 @@ class AppListViewModel(
     }
 }
 
-class AppListViewModelFactory(private val appsRepository: AppsRepository) : ViewModelProvider.NewInstanceFactory() {
+class AppsListViewModelFactory(private val appsRepository: AppsRepository) : ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         @Suppress("UNCHECKED_CAST")
-        return AppListViewModel(appsRepository) as T
+        return AppsListViewModel(appsRepository) as T
     }
 }

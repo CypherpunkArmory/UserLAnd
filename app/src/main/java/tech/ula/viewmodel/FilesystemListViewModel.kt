@@ -11,7 +11,7 @@ import tech.ula.R
 import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.Filesystem
-import tech.ula.utils.FilesystemUtility
+import tech.ula.utils.FilesystemManager
 import java.io.File
 import java.lang.Exception
 import kotlin.coroutines.CoroutineContext
@@ -37,7 +37,7 @@ sealed class FilesystemDeleteState : FilesystemListViewState() {
 class FilesystemListViewModel(
     private val filesystemDao: FilesystemDao,
     private val sessionDao: SessionDao,
-    private val filesystemUtility: FilesystemUtility
+    private val filesystemManager: FilesystemManager
 ) : ViewModel(), CoroutineScope {
 
     private val job = Job()
@@ -86,7 +86,7 @@ class FilesystemListViewModel(
             viewState.postValue(FilesystemDeleteState.InProgress)
 
             try {
-                filesystemUtility.deleteFilesystem(id)
+                filesystemManager.deleteFilesystem(id)
             } catch (err: IOException) {
                 viewState.postValue(FilesystemDeleteState.Failure)
                 return@withContext
@@ -131,7 +131,7 @@ class FilesystemListViewModel(
             val tempBackupName = getFilesystemBackupName(filesystemToBackup)
             val localBackup = File(filesDir, tempBackupName)
 
-            val result = filesystemUtility.compressFilesystem(filesystemToBackup, localBackup, exportUpdateListener)
+            val result = filesystemManager.compressFilesystem(filesystemToBackup, localBackup, exportUpdateListener)
             if (localBackupFailed(localBackup, result)) return@withContext
 
             try {
@@ -169,9 +169,9 @@ class FilesystemListViewModel(
     }
 }
 
-class FilesystemListViewmodelFactory(private val filesystemDao: FilesystemDao, private val sessionDao: SessionDao, private val filesystemUtility: FilesystemUtility) : ViewModelProvider.NewInstanceFactory() {
+class FilesystemListViewmodelFactory(private val filesystemDao: FilesystemDao, private val sessionDao: SessionDao, private val filesystemManager: FilesystemManager) : ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         @Suppress("UNCHECKED_CAST")
-        return FilesystemListViewModel(filesystemDao, sessionDao, filesystemUtility) as T
+        return FilesystemListViewModel(filesystemDao, sessionDao, filesystemManager) as T
     }
 }

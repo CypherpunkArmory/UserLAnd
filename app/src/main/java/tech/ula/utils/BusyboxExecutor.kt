@@ -93,10 +93,14 @@ class BusyboxExecutor(
             val process = processBuilder.start()
             when {
                 prootDebugEnabled && commandShouldTerminate -> {
+                    // Call the listener explicitly since all output will be captured by the log
+                    listener("Output redirecting to proot debug log")
                     prootDebugLogger.logStream(process.inputStream, coroutineScope)
                     getProcessResult(process)
                 }
                 prootDebugEnabled && !commandShouldTerminate -> {
+                    // Call the listener explicitly since all output will be captured by the log
+                    listener("Output redirecting to proot debug log")
                     prootDebugLogger.logStream(process.inputStream, coroutineScope)
                     OngoingExecution(process)
                 }
