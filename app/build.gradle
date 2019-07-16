@@ -27,6 +27,8 @@ android {
         versionName "2.5.15"
         
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments clearPackageData: 'true'
+
         vectorDrawables.useSupportLibrary = true
 
         // Ignore Sentry packages that cause lint failure
@@ -43,6 +45,10 @@ android {
         compileOptions {
             sourceCompatibility 1.8
             targetCompatibility 1.8
+        }
+
+        testOptions {
+            execution 'ANDROIDX_TEST_ORCHESTRATOR'
         }
     }
 
@@ -274,6 +280,9 @@ dependencies {
     def mockito_version = '2.23.0'
     def mockito_kotlin_version = '2.1.0'
     def core_testing_version = '2.0.0-beta01'
+    def espresso_version = '3.2.0'
+    def androidx_test_version = '1.2.0'
+    def androidx_test_ext_version = '1.1.0'
 
     testImplementation 'junit:junit:4.12'
     testImplementation "org.mockito:mockito-core:$mockito_version"
@@ -281,8 +290,12 @@ dependencies {
     testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:$mockito_kotlin_version"
     testImplementation "androidx.arch.core:core-testing:$core_testing_version"
     testImplementation "com.squareup.okhttp3:mockwebserver:$okhttp_version"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$espresso_version"
     androidTestImplementation "androidx.arch.core:core-testing:$core_testing_version"
     androidTestImplementation "androidx.room:room-testing:$room_version"
-    androidTestImplementation 'androidx.test:runner:1.1.1'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.0'
+    androidTestImplementation "androidx.test:runner:$androidx_test_version"
+    androidTestImplementation "androidx.test:rules:$androidx_test_version"
+    androidTestImplementation "androidx.test.ext:junit:$androidx_test_ext_version"
+    androidTestUtil "androidx.test:orchestrator:$androidx_test_version"
+
 }

@@ -14,7 +14,7 @@ import org.junit.runner.RunWith
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.blockingObserve
+import tech.ula.androidTestHelpers.blockingObserve
 
 @RunWith(AndroidJUnit4::class)
 class SessionDaoTest {

@@ -8,7 +8,7 @@ import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import tech.ula.blockingObserve
+import tech.ula.androidTestHelpers.blockingObserve
 import tech.ula.model.entities.App
 import tech.ula.model.repositories.UlaDatabase
 
