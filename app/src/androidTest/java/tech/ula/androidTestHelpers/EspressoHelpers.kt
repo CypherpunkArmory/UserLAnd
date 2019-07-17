@@ -5,26 +5,28 @@ import android.view.View
 import androidx.annotation.IdRes
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.test.espresso.Espresso
+import androidx.test.espresso.ViewAssertion
 import androidx.test.espresso.ViewInteraction
 import androidx.test.espresso.assertion.ViewAssertions
 import androidx.test.espresso.matcher.ViewMatchers
 
-internal fun @receiver:IdRes Int.matchView(): ViewInteraction =
+fun @receiver:IdRes Int.matchView(): ViewInteraction =
         Espresso.onView(ViewMatchers.withId(this))
 
-internal fun ViewInteraction.checkVisible() =
+
+fun ViewInteraction.checkVisible(): ViewInteraction =
         check(ViewAssertions.matches(ViewMatchers.withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)))
 
-internal fun ViewInteraction.checkInvisible() =
+fun ViewInteraction.checkInvisible(): ViewInteraction =
         check(ViewAssertions.matches(ViewMatchers.withEffectiveVisibility(ViewMatchers.Visibility.INVISIBLE)))
 
-internal fun @receiver:IdRes Int.checkVisible() =
+fun @receiver:IdRes Int.checkVisible(): ViewInteraction =
         this.matchView().checkVisible()
 
-internal fun @receiver:IdRes Int.checkInvisible() =
+fun @receiver:IdRes Int.checkInvisible(): ViewInteraction =
         this.matchView().checkInvisible()
 
-internal fun <T: View> Int.waitForVisibilityChange(activity: Activity) {
+fun <T: View> Int.waitForVisibilityChange(activity: Activity) {
     val view = activity.findViewById<T>(this)
     val target = if (view.visibility == View.VISIBLE) {
         View.INVISIBLE
@@ -34,7 +36,9 @@ internal fun <T: View> Int.waitForVisibilityChange(activity: Activity) {
     while (view.visibility != target) Thread.sleep(1)
 }
 
-internal fun <T: SwipeRefreshLayout> Int.waitForRefresh(activity: Activity) {
-    val view = activity.findViewById<T>(this)
+fun Int.waitForRefresh(activity: Activity) {
+    val view = activity.findViewById<SwipeRefreshLayout>(this)
     while (view.isRefreshing) Thread.sleep(1)
 }
+
+fun waitForSwipeRefresh(@IdRes id: Int, activity: Activity) = id.waitForRefresh(activity)
