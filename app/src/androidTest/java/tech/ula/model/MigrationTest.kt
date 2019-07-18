@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
@@ -22,6 +23,7 @@ import tech.ula.model.repositories.* // ktlint-disable no-wildcard-imports
 import java.io.IOException
 
 @RunWith(AndroidJUnit4::class)
+@LargeTest
 class MigrationTest {
     private val TEST_DB = "migration-test"
 

@@ -3,6 +3,7 @@ package tech.ula.model.daos
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.room.Room
 import androidx.test.InstrumentationRegistry
+import androidx.test.filters.SmallTest
 import org.junit.After
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
@@ -12,6 +13,7 @@ import tech.ula.androidTestHelpers.blockingObserve
 import tech.ula.model.entities.App
 import tech.ula.model.repositories.UlaDatabase
 
+@SmallTest
 class AppsDaoTest {
 
     @get:Rule

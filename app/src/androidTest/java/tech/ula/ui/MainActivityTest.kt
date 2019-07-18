@@ -88,6 +88,7 @@ class MainActivityTest {
         val expectedFile = File(homeDirectory, "test.txt")
         assertTrue(expectedFile.exists())
 
+        // Download and use a package, creating status files
         val expectedStatusFiles = doHappyPathTestScript()
         Thread.sleep(500)
         for (file in expectedStatusFiles) {

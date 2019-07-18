@@ -4,6 +4,7 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.room.Room
 import android.database.sqlite.SQLiteConstraintException
 import androidx.test.InstrumentationRegistry
+import androidx.test.filters.SmallTest
 import androidx.test.runner.AndroidJUnit4
 import org.junit.After
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
@@ -17,6 +18,7 @@ import tech.ula.model.entities.Session
 import tech.ula.androidTestHelpers.blockingObserve
 
 @RunWith(AndroidJUnit4::class)
+@SmallTest
 class SessionDaoTest {
 
     private lateinit var db: UlaDatabase
