@@ -1,8 +1,6 @@
 package tech.ula.androidTestHelpers
 
 import android.app.Activity
-import android.content.Context
-import android.content.pm.PackageManager
 import android.view.WindowManager
 import androidx.annotation.IdRes
 import androidx.annotation.StringRes
@@ -16,9 +14,7 @@ import com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertD
 import com.schibsted.spain.barista.internal.failurehandler.BaristaException
 import org.hamcrest.Description
 import org.hamcrest.TypeSafeMatcher
-import androidx.test.uiautomator.UiSelector
 import androidx.test.uiautomator.UiDevice
-import android.os.Build
 import androidx.test.platform.app.InstrumentationRegistry
 import android.view.KeyCharacterMap
 import android.view.KeyEvent
