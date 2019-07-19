@@ -231,7 +231,7 @@ jobs:
             --test app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             --device model=blueline,version=28,locale=en_US,orientation=portrait
             --use-orchestrator
-            --environment-variables clearPackageData=true,coverage=true,coverageFilePath=/sdcard
+            --environment-variables clearPackageData=true,coverage=true,coverageFilePath=/sdcard/
             --directories-to-pull=/sdcard
             --timeout 20m
       - run:
