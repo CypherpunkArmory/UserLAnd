@@ -74,7 +74,7 @@ class MainActivityTest {
         // Wait for progress dialog to complete
         R.id.progress_bar_session_list.shortWaitForDisplay()
         R.string.progress_fetching_asset_lists.shortWaitForDisplay()
-        R.string.progress_downloading.longWaitForDisplay()
+        R.string.progress_downloading.extraLongWaitForDisplay()
         R.string.progress_copying_downloads.longWaitForDisplay()
         R.string.progress_verifying_assets.waitForDisplay()
         R.string.progress_setting_up_filesystem.waitForDisplay()

@@ -33,6 +33,10 @@ fun @receiver:IdRes Int.longWaitForDisplay() {
     waitForDisplay(this)
 }
 
+fun @receiver:IdRes Int.extraLongWaitForDisplay() {
+    waitForDisplay(this, timeout = 600_000)
+}
+
 fun waitForDisplay(@IdRes id: Int, timeout: Long = 300_000) {
     val test = {
         try {
