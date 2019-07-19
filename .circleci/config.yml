@@ -231,7 +231,7 @@ jobs:
             --test app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             --device model=blueline,version=28,locale=en_US,orientation=portrait
             --use-orchestrator
-            --environment-variables clearPackageData=true,coverage=true,coverageFilePath=/sdcard/coverage.ec
+            --environment-variables clearPackageData=true,coverage=true,coverageFilePath=/sdcard
             --directories-to-pull=/sdcard
             --timeout 20m
       - run:
@@ -257,7 +257,7 @@ jobs:
       - *attach_firebase_workspace
       - run:
           name: Move Firebase coverage report
-          command: mkdir -p app/build/outputs/code-coverage/connected && cp firebase/*/artifacts/coverage.ec app/build/outputs/code-coverage/connected/coverage.ec
+          command: mkdir -p app/build/outputs/code-coverage/connected && cp firebase/*/artifacts/* app/build/outputs/code-coverage/connected/
       - *export_gcloud_key
       - *decode_gcloud_key
       - run:
