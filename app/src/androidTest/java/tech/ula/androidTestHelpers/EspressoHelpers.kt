@@ -1,6 +1,9 @@
 package tech.ula.androidTestHelpers
 
 import android.app.Activity
+import android.app.Instrumentation
+import android.content.Context
+import android.content.pm.PackageManager
 import android.view.WindowManager
 import androidx.annotation.IdRes
 import androidx.annotation.StringRes
@@ -93,13 +96,14 @@ fun @receiver:StringRes Int.matchText(): ViewInteraction =
 fun @receiver:StringRes Int.notDisplayedInToast(): ViewInteraction =
         this.matchText().inRoot(ToastMatcher()).check(ViewAssertions.doesNotExist())
 
-fun allowPermissions() {
+fun allowPermissionsIfNeeded(permissionNeeded: String) {
     val dialogId = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         "com.android.permissioncontroller:id/permission_allow_button"
     } else {
         "com.android.packageinstaller:id/permission_allow_button"
     }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+            && !hasNeededPermission(InstrumentationRegistry.getInstrumentation().context, permissionNeeded)) {
         Thread.sleep(2000)
         val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         val allowPermissions = device.findObject(UiSelector()
@@ -110,6 +114,15 @@ fun allowPermissions() {
             allowPermissions.click()
         }
     }
+}
+
+private fun hasNeededPermission(context: Context, permissionNeeded: String): Boolean {
+    val permissionStatus = checkSelfPermission(context, permissionNeeded)
+    return permissionStatus == PackageManager.PERMISSION_GRANTED
+}
+
+private fun checkSelfPermission(context: Context, permission: String): Int {
+    return context.checkPermission(permission, android.os.Process.myPid(), android.os.Process.myUid())
 }
 
 fun String.enterAsNativeViewText() {

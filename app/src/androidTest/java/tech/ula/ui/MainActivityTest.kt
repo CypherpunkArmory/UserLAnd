@@ -52,7 +52,8 @@ class MainActivityTest {
         // Handle permissions
         R.string.alert_permissions_necessary_title.shortWaitForDisplay()
         clickDialogPositiveButton()
-        allowPermissions()
+        allowPermissionsIfNeeded(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+        allowPermissionsIfNeeded(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
         // Set filesystem credentials
         R.string.filesystem_credentials_reasoning.waitForDisplay()
