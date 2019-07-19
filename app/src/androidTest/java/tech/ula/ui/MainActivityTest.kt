@@ -58,7 +58,7 @@ class MainActivityTest {
         allowPermissions()
 
         // Set filesystem credentials
-        Thread.sleep(1000)
+        Thread.sleep(2000)
         assertContains(R.string.filesystem_credentials_reasoning)
         writeTo(R.id.text_input_username, username)
         writeTo(R.id.text_input_password, sshPassword)

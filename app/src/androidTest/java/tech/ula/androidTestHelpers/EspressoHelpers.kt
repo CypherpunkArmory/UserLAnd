@@ -85,7 +85,7 @@ fun @receiver:StringRes Int.notDisplayedInToast(): ViewInteraction =
 
 fun allowPermissions() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-        Thread.sleep(3000)
+        Thread.sleep(2000)
         val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         val allowPermissions = device.findObject(UiSelector()
                 .clickable(true)
