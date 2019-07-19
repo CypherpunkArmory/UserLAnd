@@ -101,8 +101,8 @@ fun allowPermissionsIfNeeded(permissionNeeded: String) {
     } else {
         "com.android.packageinstaller:id/permission_allow_button"
     }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-            && !hasNeededPermission(InstrumentationRegistry.getInstrumentation().context, permissionNeeded)) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+            !hasNeededPermission(InstrumentationRegistry.getInstrumentation().context, permissionNeeded)) {
         Thread.sleep(2000)
         val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         val allowPermissions = device.findObject(UiSelector()
