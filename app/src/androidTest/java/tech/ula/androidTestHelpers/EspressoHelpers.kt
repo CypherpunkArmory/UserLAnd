@@ -95,35 +95,6 @@ fun @receiver:StringRes Int.matchText(): ViewInteraction =
 fun @receiver:StringRes Int.notDisplayedInToast(): ViewInteraction =
         this.matchText().inRoot(ToastMatcher()).check(ViewAssertions.doesNotExist())
 
-fun allowPermissionsIfNeeded(permissionNeeded: String) {
-    val dialogId = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        "com.android.permissioncontroller:id/permission_allow_button"
-    } else {
-        "com.android.packageinstaller:id/permission_allow_button"
-    }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-            !hasNeededPermission(InstrumentationRegistry.getInstrumentation().context, permissionNeeded)) {
-        Thread.sleep(2000)
-        val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
-        val allowPermissions = device.findObject(UiSelector()
-                .clickable(true)
-                .checkable(false)
-                .resourceId(dialogId))
-        if (allowPermissions.exists()) {
-            allowPermissions.click()
-        }
-    }
-}
-
-private fun hasNeededPermission(context: Context, permissionNeeded: String): Boolean {
-    val permissionStatus = checkSelfPermission(context, permissionNeeded)
-    return permissionStatus == PackageManager.PERMISSION_GRANTED
-}
-
-private fun checkSelfPermission(context: Context, permission: String): Int {
-    return context.checkPermission(permission, android.os.Process.myPid(), android.os.Process.myUid())
-}
-
 fun String.enterAsNativeViewText() {
     val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
     val characterMap = KeyCharacterMap.load(KeyCharacterMap.VIRTUAL_KEYBOARD)

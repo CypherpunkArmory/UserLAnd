@@ -1,8 +1,10 @@
 package tech.ula.ui
 
+import android.Manifest
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.rule.ActivityTestRule
+import androidx.test.rule.GrantPermissionRule
 import com.schibsted.spain.barista.assertion.BaristaListAssertions.assertDisplayedAtPosition
 import com.schibsted.spain.barista.interaction.BaristaDialogInteractions.clickDialogPositiveButton
 import com.schibsted.spain.barista.interaction.BaristaEditTextInteractions.writeTo
@@ -24,6 +26,14 @@ class MainActivityTest {
 
     @get:Rule
     val activityRule = ActivityTestRule(MainActivity::class.java)
+
+    // Permissions are granted automatically by firebase, so to keep parity we skip that step
+    // locally as well.
+    @get:Rule
+    val grantPermission: GrantPermissionRule = GrantPermissionRule.grant(
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    )
 
     private lateinit var activity: MainActivity
     private val appName = "Alpine"
@@ -48,12 +58,6 @@ class MainActivityTest {
         // Click alpine
         assertDisplayedAtPosition(R.id.list_apps, 1, R.id.apps_name, appName)
         clickListItem(R.id.list_apps, 1)
-
-        // Handle permissions
-        R.string.alert_permissions_necessary_title.shortWaitForDisplay()
-        clickDialogPositiveButton()
-        allowPermissionsIfNeeded(android.Manifest.permission.READ_EXTERNAL_STORAGE)
-        allowPermissionsIfNeeded(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
         // Set filesystem credentials
         R.string.filesystem_credentials_reasoning.waitForDisplay()
