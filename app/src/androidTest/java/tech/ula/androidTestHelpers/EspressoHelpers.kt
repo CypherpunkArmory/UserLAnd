@@ -84,13 +84,18 @@ fun @receiver:StringRes Int.notDisplayedInToast(): ViewInteraction =
         this.matchText().inRoot(ToastMatcher()).check(ViewAssertions.doesNotExist())
 
 fun allowPermissions() {
+    val dialogId = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        "com.android.permissioncontroller:id/permission_allow_button"
+    } else {
+        "com.android.packageinstaller:id/permission_allow_button"
+    }
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
         Thread.sleep(2000)
         val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         val allowPermissions = device.findObject(UiSelector()
                 .clickable(true)
                 .checkable(false)
-                .text("Allow"))
+                .resourceId(dialogId))
         if (allowPermissions.exists()) {
             allowPermissions.click()
         }
