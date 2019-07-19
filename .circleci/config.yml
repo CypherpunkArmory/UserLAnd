@@ -317,8 +317,6 @@ workflows:
           requires:
             - build_debug
       - test_instrumented:
-          filters:
-
           requires:
             - build_debug
       - report_coverage:
