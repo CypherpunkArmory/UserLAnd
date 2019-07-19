@@ -23,6 +23,18 @@ import android.view.KeyEvent
 import java.io.File
 import java.util.concurrent.TimeoutException
 
+fun @receiver:IdRes Int.shortWaitForDisplay() {
+    waitForDisplay(this, timeout = 1000)
+}
+
+fun @receiver:IdRes Int.waitForDisplay() {
+    waitForDisplay(this, timeout = 10000)
+}
+
+fun @receiver:IdRes Int.longWaitForDisplay() {
+    waitForDisplay(this)
+}
+
 fun waitForDisplay(@IdRes id: Int, timeout: Long = 300_000) {
     val test = {
         try {
@@ -53,8 +65,6 @@ fun Int.waitForRefresh(activity: Activity) {
     val view = activity.findViewById<SwipeRefreshLayout>(this)
     while (view.isRefreshing) Thread.sleep(1)
 }
-
-fun waitForSwipeRefresh(@IdRes id: Int, activity: Activity) = id.waitForRefresh(activity)
 
 class ToastMatcher : TypeSafeMatcher<Root>() {
     override fun describeTo(description: Description) {
@@ -102,7 +112,7 @@ fun allowPermissions() {
     }
 }
 
-fun String.enterText() {
+fun String.enterAsNativeViewText() {
     val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
     val characterMap = KeyCharacterMap.load(KeyCharacterMap.VIRTUAL_KEYBOARD)
     val events = characterMap.getEvents(this.toCharArray())
@@ -112,13 +122,13 @@ fun String.enterText() {
         device.pressKeyCode(event.keyCode)
     }
     device.pressEnter()
+    Thread.sleep(500)
 }
 
 fun executeScript(script: String, location: File) {
     val scriptName = "script.sh"
     val scriptFile = File(location, scriptName)
     scriptFile.writeText(script)
-    "chmod 777 $scriptName".enterText()
-    Thread.sleep(500)
-    "bash $scriptName".enterText()
+    "chmod 777 $scriptName".enterAsNativeViewText()
+    "bash $scriptName".enterAsNativeViewText()
 }

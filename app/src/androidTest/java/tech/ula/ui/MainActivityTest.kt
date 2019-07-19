@@ -43,48 +43,44 @@ class MainActivityTest {
 
     @Test
     fun testHappyPath() {
-        Thread.sleep(1000)
-        assertDisplayed(R.id.app_list_fragment)
+        R.id.app_list_fragment.shortWaitForDisplay()
 
-        waitForSwipeRefresh(R.id.swipe_refresh, activity)
+        R.id.swipe_refresh.waitForRefresh(activity)
 
         // Click alpine
         assertDisplayedAtPosition(R.id.list_apps, 1, R.id.apps_name, appName)
         clickListItem(R.id.list_apps, 1)
 
         // Handle permissions
-        assertContains(R.string.alert_permissions_necessary_title)
+        R.string.alert_permissions_necessary_title.shortWaitForDisplay()
         clickDialogPositiveButton()
         allowPermissions()
 
         // Set filesystem credentials
-        Thread.sleep(2000)
-        assertContains(R.string.filesystem_credentials_reasoning)
+        R.string.filesystem_credentials_reasoning.waitForDisplay()
         writeTo(R.id.text_input_username, username)
         writeTo(R.id.text_input_password, sshPassword)
         writeTo(R.id.text_input_vnc_password, vncPassword)
         clickDialogPositiveButton()
 
         // Set session type to ssh
-        assertContains(R.string.prompt_app_connection_type_preference)
+        R.string.prompt_app_connection_type_preference.shortWaitForDisplay()
         clickRadioButtonItem(R.id.radio_apps_service_type_preference, R.id.ssh_radio_button)
         clickDialogPositiveButton()
 
         // Wait for progress dialog to complete
-        assertDisplayed(R.id.progress_bar_session_list)
-        waitForDisplay(R.string.progress_fetching_asset_lists)
-        waitForDisplay(R.string.progress_downloading)
-        waitForDisplay(R.string.progress_copying_downloads)
-        waitForDisplay(R.string.progress_verifying_assets)
-        waitForDisplay(R.string.progress_setting_up_filesystem)
-        waitForDisplay(R.string.progress_starting)
+        R.id.progress_bar_session_list.shortWaitForDisplay()
+        R.string.progress_fetching_asset_lists.shortWaitForDisplay()
+        R.string.progress_downloading.longWaitForDisplay()
+        R.string.progress_copying_downloads.longWaitForDisplay()
+        R.string.progress_verifying_assets.waitForDisplay()
+        R.string.progress_setting_up_filesystem.waitForDisplay()
+        R.string.progress_starting.longWaitForDisplay()
 
         // Enter session and create a file to verify correct access
-        waitForDisplay(R.id.terminal_view)
-        sshPassword.enterText()
-        Thread.sleep(500)
-        "touch test.txt".enterText()
-        Thread.sleep(500)
+        R.id.terminal_view.longWaitForDisplay()
+        sshPassword.enterAsNativeViewText()
+        "touch test.txt".enterAsNativeViewText()
         val expectedFile = File(homeDirectory, "test.txt")
         assertTrue(expectedFile.exists())
 
