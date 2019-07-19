@@ -1,7 +1,6 @@
 package tech.ula.androidTestHelpers
 
 import android.app.Activity
-import android.app.Instrumentation
 import android.content.Context
 import android.content.pm.PackageManager
 import android.view.WindowManager
