@@ -257,7 +257,7 @@ jobs:
       - *attach_firebase_workspace
       - run:
           name: Move Firebase coverage report
-          command: mkdir -p app/build/outputs/code-coverage/connected && cp firebase/*/artifacts/* app/build/outputs/code-coverage/connected/
+          command: mkdir -p app/build/outputs/code-coverage/connected && cp firebase/*/artifacts/sdcard/* app/build/outputs/code-coverage/connected/
       - *export_gcloud_key
       - *decode_gcloud_key
       - run:
