@@ -30,9 +30,9 @@ import tech.ula.utils.preferences.AppsPreferences
 import tech.ula.viewmodel.AppsListViewModel
 import tech.ula.viewmodel.AppsListViewModelFactory
 
-class AppsListFragment : Fragment(),
-        AppsListAdapter.OnAppsItemClicked,
-        AppsListAdapter.OnAppsCreateContextMenu {
+class AppsListFragment : Fragment() {
+//        AppsListAdapter.OnAppsItemClicked,
+//        AppsListAdapter.OnAppsCreateContextMenu {
 
     interface AppSelection {
         fun appHasBeenSelected(app: App)
@@ -45,7 +45,7 @@ class AppsListFragment : Fragment(),
     private lateinit var activityContext: MainActivity
 
     private val appsAdapter by lazy {
-        AppsListAdapter(activityContext, this, this)
+        AppsListAdapter(activityContext)
     }
 
     private var refreshStatus = RefreshStatus.INACTIVE
@@ -75,7 +75,7 @@ class AppsListFragment : Fragment(),
 
     private val activeAppsObserver = Observer<List<App>> {
         it?.let { list ->
-            appsAdapter.updateActiveApps(list)
+//            appsAdapter.updateActiveApps(list)
         }
     }
 
@@ -109,16 +109,10 @@ class AppsListFragment : Fragment(),
         }
     }
 
-    override fun onAppsItemClicked(appsItemClicked: AppsListItem) {
-        appsAdapter.setLastSelectedContextItem(appsItemClicked)
-        when (appsItemClicked) {
-            is AppSeparatorItem -> {
-            }
-            is AppItem -> {
-                doOnAppSelection.appHasBeenSelected(appsItemClicked.app)
-            }
-        }
-    }
+//    override fun onAppsItemClicked(appsItemClicked: AppsListAdapter.ViewHolder) {
+//        appsAdapter.setLastSelectedContextItem(appsItemClicked)
+//        doOnAppSelection.appHasBeenSelected(appsItemClicked)
+//    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.frag_app_list, container, false)
@@ -156,20 +150,20 @@ class AppsListFragment : Fragment(),
         }
     }
 
-    override fun onAppsCreateContextMenu(menu: ContextMenu, v: View, selectedListItem: AppsListItem) {
-        appsAdapter.setLastSelectedContextItem(selectedListItem)
-        activityContext.menuInflater.inflate(R.menu.context_menu_apps, menu)
-    }
+//    override fun onAppsCreateContextMenu(menu: ContextMenu, v: View, selectedListItem: AppsListItem) {
+//        appsAdapter.setLastSelectedContextItem(selectedListItem)
+//        activityContext.menuInflater.inflate(R.menu.context_menu_apps, menu)
+//    }
 
-    override fun onContextItemSelected(item: MenuItem): Boolean {
-        return when (val selectedItem = appsAdapter.getLastSelectedContextItem()) {
-            is AppSeparatorItem -> true
-            is AppItem -> {
-                val app = selectedItem.app
-                doContextItemSelected(app, item)
-            }
-        }
-    }
+//    override fun onContextItemSelected(item: MenuItem): Boolean {
+//        return when (val selectedItem = appsAdapter.getLastSelectedContextItem()) {
+//            is AppSeparatorItem -> true
+//            is AppItem -> {
+//                val app = selectedItem.app
+//                doContextItemSelected(app, item)
+//            }
+//        }
+//    }
 
     private fun showAppDetails(app: App): Boolean {
         val bundle = bundleOf("app" to app)

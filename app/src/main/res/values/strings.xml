@@ -235,8 +235,10 @@
     <!-- Content descriptions -->
     <string name="desc_arrow">Image: Arrow denoting connection between session and filesystem.</string>
     <string name="desc_filesystem_type">Image: Distribution logo</string>
+    <string name="desc_default_app_icon">Image: App Icon Placeholder</string>
 
     <!-- Misc -->
+    <string name="placeholder">Placeholder text</string>
     <string name="custom_sessions">Custom Sessions</string>
     <string name="apps_sessions">Apps Sessions</string>
     <string name="info_xsdl_support">XSDL is not fully supported on \nAndroid 9.0 and above yet</string>
