@@ -1,4 +1,4 @@
-package tech.ula
+package tech.ula.androidTestHelpers
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer

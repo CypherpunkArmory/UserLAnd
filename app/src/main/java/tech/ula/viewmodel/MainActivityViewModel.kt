@@ -457,7 +457,6 @@ object ActiveSessionsMustBeDeactivated : UserInputRequiredState()
 
 sealed class ProgressBarUpdateState : State()
 object StartingSetup : ProgressBarUpdateState()
-object SettingUpLinks : ProgressBarUpdateState()
 object FetchingAssetLists : ProgressBarUpdateState()
 object CheckingForAssetsUpdates : ProgressBarUpdateState()
 data class DownloadProgress(val numComplete: Int, val numTotal: Int) : ProgressBarUpdateState()

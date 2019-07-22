@@ -129,7 +129,6 @@
 
     <!-- Progress bar messages -->
     <string name="progress_start_step">Getting things ready for you&#8230;</string>
-    <string name="progress_link_step">Settings up links&#8230;</string>
     <string name="progress_fetching_asset_lists">Fetching asset lists&#8230;</string>
     <string name="progress_checking_for_required_updates">Checking whether updates are required&#8230;</string>
     <string name="progress_downloading">Downloading required assets&#8230;</string>
