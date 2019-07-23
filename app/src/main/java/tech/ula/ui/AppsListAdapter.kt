@@ -17,7 +17,9 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.utils.AppDetails
+import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.collections.LinkedHashSet
 
 class AppsListAdapter(
     private val activity: Activity
@@ -46,50 +48,17 @@ class AppsListAdapter(
 
     private val firstDisplayCategory = "distribution"
 
-//    private fun createAppsItemListWithSeparators(newApps: List<App>): List<AppsListItem> {
-//        val listBuilder = arrayListOf<AppsListItem>()
-//        val categoriesAndApps = HashMap<String, ArrayList<App>>()
-//
-//        for (app in newApps) {
-//            categoriesAndApps.getOrPut(app.category) { arrayListOf() }.add(app)
-//        }
-//
-//        val categoriesAndAppsWithDistributionsFirst = LinkedHashMap<String, List<App>>()
-//
-//        if (categoriesAndApps.containsKey(firstDisplayCategory)) {
-//            categoriesAndAppsWithDistributionsFirst[firstDisplayCategory] =
-//                    categoriesAndApps.remove(firstDisplayCategory)!!
-//        }
-//
-//        val sortedCategoriesAndApps = categoriesAndApps.toSortedMap()
-//        categoriesAndAppsWithDistributionsFirst.putAll(sortedCategoriesAndApps)
-//
-//        categoriesAndAppsWithDistributionsFirst.forEach {
-//            (category, categoryApps) ->
-//            listBuilder.add(AppSeparatorItem(category.capitalize()))
-//
-//            val sortedCategoryApps = categoryApps.sortedWith(compareBy { it.name })
-//            sortedCategoryApps.forEach { listBuilder.add(AppItem(it)) }
-//        }
-//
-//        return listBuilder
-//    }
-
     fun updateApps(newApps: List<App>) {
-        apps.clear()
-        apps.addAll(newApps.sortedWith(compareBy(
-            { it.category != firstDisplayCategory },
-            { it.category },
-            { it.name }
-        )))
-//        val newAppsListItems = createAppsItemListWithSeparators(newApps)
-//
-//        val diffCallback = AppsListDiffCallBack(appsAndSeparators, newAppsListItems)
-//        val diffResult = DiffUtil.calculateDiff(diffCallback)
-//        appsAndSeparators.clear()
-//        appsAndSeparators.addAll(newAppsListItems)
-//
-//        diffResult.dispatchUpdatesTo(this)
+        val diff = newApps.minus(apps)
+        for (app in diff) {
+            val index = - apps.binarySearch(app, compareBy(
+                { it.category != firstDisplayCategory },
+                { it.category },
+                { it.name }
+            )) - 1
+            apps.add(index, app)
+            notifyItemInserted(index)
+        }
     }
 
 //    fun updateActiveApps(newActiveApps: List<App>) {
@@ -102,15 +71,13 @@ class AppsListAdapter(
 //    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-//        val inflater = LayoutInflater.from(parent.context)
-//        val layout = when (viewType) {
-//            ITEM_VIEW_TYPE_APP -> R.layout.list_item_app
-//            else -> R.layout.list_item_separator
-//        }
-//        val view = inflater.inflate(layout, parent, false)
-//        return ViewHolder(view)
         return ViewHolder(LayoutInflater.from(parent.context)
                 .inflate(R.layout.list_item_app, parent, false))
+    }
+
+    private fun App.hasBeenAnimated(): Boolean {
+        val prefs = activity.getSharedPreferences("apps", Context.MODE_PRIVATE)
+        return prefs.getBoolean("${this.name}HasBeenAnimated", false)
     }
 
     override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
@@ -133,20 +100,11 @@ class AppsListAdapter(
             viewHolder.separator?.visibility = View.VISIBLE
         }
 
-//        handleFirstAnimationRun(viewHolder, position)
-//
-//        if (changes != null && changes.isNotEmpty()) {
-//            val bundle = changes.first() as BaseBundle
-//            if (bundle.get("activeStateChange") as Boolean) return
-//            if (bundle.getInt("changedItemPosition") == position) {
-//                setAnimation(viewHolder.itemView, position)
-//            }
-//        }
+        if (app.hasBeenAnimated()) return
+        val animation = AnimationUtils.loadAnimation(activity, R.anim.item_animation_from_right)
+        animation.startOffset = position * 5L
+        viewHolder.itemView.animation = animation
     }
-
-//    override fun onBindViewHolder(viewHolder: ViewHolder, position: Int, payloads: MutableList<Any>) {
-//        handleBindViewHolder(viewHolder, position, payloads)
-//    }
 
 //    private fun handleBindViewHolder(viewHolder: ViewHolder, position: Int, changes: MutableList<Any>?) {
 //        val item = appsAndSeparators[position]
@@ -227,13 +185,6 @@ class AppsListAdapter(
     override fun getItemCount(): Int {
         return apps.size
     }
-
-//    override fun getItemViewType(position: Int): Int {
-//        return when (appsAndSeparators[position]) {
-//            is AppItem -> ITEM_VIEW_TYPE_APP
-//            is AppSeparatorItem -> ITEM_VIEW_TYPE_SEPARATOR
-//        }
-//    }
 
     override fun onViewDetachedFromWindow(holder: ViewHolder) {
         holder.itemView.clearAnimation()

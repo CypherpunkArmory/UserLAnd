@@ -32,14 +32,14 @@ class AppsRepository(
         try {
             remoteAppsSource.fetchAppsList().forEach {
                 app ->
-                jobs.add(launch {
+//                jobs.add(launch {
                     appsList.add(app.name)
                     if (app.category.toLowerCase() == "distribution") distributionsList.add(app.name)
                     remoteAppsSource.fetchAppIcon(app)
                     remoteAppsSource.fetchAppDescription(app)
                     remoteAppsSource.fetchAppScript(app)
                     appsDao.insertApp(app) // Insert the db element last to force observer refresh
-                })
+
             }
         } catch (err: Exception) {
             refreshStatus.postValue(RefreshStatus.FAILED)
