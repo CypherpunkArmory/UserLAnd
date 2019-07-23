@@ -3,8 +3,7 @@ package tech.ula.model.repositories
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import android.util.Log
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.daos.AppsDao
 import tech.ula.model.entities.App
 import tech.ula.model.remote.GithubAppsFetcher
@@ -29,21 +28,24 @@ class AppsRepository(
         val appsList = mutableSetOf<String>()
         val distributionsList = mutableSetOf<String>()
         refreshStatus.postValue(RefreshStatus.ACTIVE)
+        val jobs = mutableListOf<Job>()
         try {
             remoteAppsSource.fetchAppsList().forEach {
                 app ->
-                appsList.add(app.name)
-                if (app.category.toLowerCase() == "distribution") distributionsList.add(app.name)
-                remoteAppsSource.fetchAppIcon(app)
-                remoteAppsSource.fetchAppDescription(app)
-                remoteAppsSource.fetchAppScript(app)
-                appsDao.insertApp(app) // Insert the db element last to force observer refresh
-            }
+                jobs.add(launch {
+                    appsList.add(app.name)
+                    if (app.category.toLowerCase() == "distribution") distributionsList.add(app.name)
+                    remoteAppsSource.fetchAppIcon(app)
+                    remoteAppsSource.fetchAppDescription(app)
+                    remoteAppsSource.fetchAppScript(app)
+                    appsDao.insertApp(app) // Insert the db element last to force observer refresh
+            }) }
         } catch (err: Exception) {
             refreshStatus.postValue(RefreshStatus.FAILED)
             Log.e("refresh", err.message ?: "")
             return@withContext
         }
+        jobs.joinAll()
         refreshStatus.postValue(RefreshStatus.FINISHED)
         appsPreferences.setDistributionsList(distributionsList)
 }

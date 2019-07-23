@@ -56,8 +56,8 @@ class MainActivityTest {
         R.id.swipe_refresh.waitForRefresh(activity)
 
         // Click alpine
-        assertDisplayedAtPosition(R.id.list_apps, 1, R.id.apps_name, appName)
-        clickListItem(R.id.list_apps, 1)
+        assertDisplayedAtPosition(R.id.list_apps, 0, R.id.apps_name, appName)
+        clickListItem(R.id.list_apps, 0)
 
         // Set filesystem credentials
         R.string.filesystem_credentials_reasoning.waitForDisplay()
