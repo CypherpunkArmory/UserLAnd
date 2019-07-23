@@ -40,18 +40,35 @@ class AppsListAdapter(
 
     var contextMenuItem: App = unselectedApp
 
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        return ViewHolder(LayoutInflater.from(parent.context)
+                .inflate(R.layout.list_item_app, parent, false))
+    }
+
+    override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
+        val app = apps[position]
+        setSeparator(app, position, viewHolder)
+        setItemDetails(app, viewHolder)
+        setAppActivity(app, viewHolder)
+        setItemListeners(app, viewHolder)
+        setItemAnimation(app, position, viewHolder)
+    }
+
+    override fun getItemId(position: Int): Long {
+        return position.toLong()
+    }
+
+    override fun getItemCount(): Int {
+        return apps.size
+    }
+
+    override fun onViewDetachedFromWindow(holder: ViewHolder) {
+        holder.itemView.clearAnimation()
+    }
+
     fun updateApps(newApps: List<App>) {
         val diff = newApps.minus(apps)
-        for (app in diff) {
-            val index = - apps.binarySearch(app, compareBy(
-                { it.category != firstDisplayCategory },
-                { it.category },
-                { it.name }
-            )) - 1
-            apps.add(index, app)
-            notifyItemInserted(index)
-            notifyItemChanged(index + 1)
-        }
+        for (app in diff) insertAppIntoView(app)
     }
 
     fun updateActiveApps(newActiveApps: List<App>) {
@@ -64,15 +81,67 @@ class AppsListAdapter(
         activeApps.addAll(newActiveApps)
     }
 
+    private fun setSeparator(app: App, position: Int, viewHolder: ViewHolder) {
+        if (position > 0 && apps[position - 1].category == app.category) {
+            viewHolder.separator?.visibility = View.GONE
+        } else {
+            viewHolder.separator?.visibility = View.VISIBLE
+        }
+    }
+
+    private fun setItemDetails(app: App, viewHolder: ViewHolder) {
+        val appDetails = AppDetails(activity.filesDir.path, activity.resources)
+        viewHolder.appName?.text = app.name.capitalize()
+        viewHolder.separatorText?.text = app.category.capitalize()
+        viewHolder.imageView?.setImageURI(appDetails.findIconUri(app.name))
+    }
+
+    private fun setAppActivity(app: App, viewHolder: ViewHolder) {
+        val appIsActive = activeApps.contains(app)
+        val backgroundColor = if (appIsActive) {
+            R.color.colorAccent
+        } else {
+            R.color.colorPrimaryDark
+        }
+        viewHolder.appDetails?.setBackgroundResource(backgroundColor)
+    }
+
+    private fun setItemListeners(app: App, viewHolder: ViewHolder) {
+        viewHolder.itemView.setOnClickListener {
+            clickHandler.onClick(app)
+        }
+        viewHolder.itemView.setOnCreateContextMenuListener { menu, _, _ ->
+            contextMenuItem = app
+            clickHandler.createContextMenu(menu)
+        }
+    }
+
+    private fun setItemAnimation(app: App, position: Int, viewHolder: ViewHolder) {
+        if (app.hasBeenAnimated()) return
+        val animation = AnimationUtils.loadAnimation(activity, R.anim.item_animation_from_right)
+        animation.startOffset = position * 5L
+        viewHolder.itemView.animation = animation
+        app.displayedAnimation()
+    }
+
+    private fun insertAppIntoView(app: App) {
+        val foundIndex = apps.binarySearch(app, compareBy(
+                // Sort the list by three criteria of descending importance
+                { it.category != firstDisplayCategory },
+                { it.category },
+                { it.name }
+        ))
+        // Binary search returns [- (position to insert)] - 1 if an element is not already present
+        val index = -(foundIndex) - 1
+        apps.add(index, app)
+        notifyItemInserted(index)
+        notifyItemChanged(index + 1)
+    }
+
     private fun getActiveAppsDiff(newActiveApps: List<App>): List<App> {
         val diffNewOld = newActiveApps.minus(activeApps)
         return if (diffNewOld.isNotEmpty()) diffNewOld
         else activeApps.minus(newActiveApps)
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(LayoutInflater.from(parent.context)
-                .inflate(R.layout.list_item_app, parent, false))
     }
 
     private fun App.hasBeenAnimated(): Boolean {
@@ -87,53 +156,5 @@ class AppsListAdapter(
             putBoolean("${app.name}HasBeenAnimated", true)
             apply()
         }
-    }
-
-    override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
-        val app = apps[position]
-        val appDetails = AppDetails(activity.filesDir.path, activity.resources)
-        viewHolder.appName?.text = app.name.capitalize()
-        viewHolder.separatorText?.text = app.category.capitalize()
-        viewHolder.imageView?.setImageURI(appDetails.findIconUri(app.name))
-
-        val appIsActive = activeApps.contains(app)
-        val backgroundColor = if (appIsActive) {
-            R.color.colorAccent
-        } else {
-            R.color.colorPrimaryDark
-        }
-        viewHolder.appDetails?.setBackgroundResource(backgroundColor)
-
-        viewHolder.itemView.setOnClickListener {
-            clickHandler.onClick(app)
-        }
-        viewHolder.itemView.setOnCreateContextMenuListener { menu, _, _ ->
-            contextMenuItem = app
-            clickHandler.createContextMenu(menu)
-        }
-
-        if (position > 0 && apps[position - 1].category == app.category) {
-            viewHolder.separator?.visibility = View.GONE
-        } else {
-            viewHolder.separator?.visibility = View.VISIBLE
-        }
-
-        if (app.hasBeenAnimated()) return
-        val animation = AnimationUtils.loadAnimation(activity, R.anim.item_animation_from_right)
-        animation.startOffset = position * 5L
-        viewHolder.itemView.animation = animation
-        app.displayedAnimation()
-    }
-
-    override fun getItemId(position: Int): Long {
-        return position.toLong()
-    }
-
-    override fun getItemCount(): Int {
-        return apps.size
-    }
-
-    override fun onViewDetachedFromWindow(holder: ViewHolder) {
-        holder.itemView.clearAnimation()
     }
 }
