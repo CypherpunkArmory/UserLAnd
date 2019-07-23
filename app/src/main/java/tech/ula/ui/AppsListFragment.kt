@@ -30,9 +30,7 @@ import tech.ula.utils.preferences.AppsPreferences
 import tech.ula.viewmodel.AppsListViewModel
 import tech.ula.viewmodel.AppsListViewModelFactory
 
-class AppsListFragment : Fragment() {
-//        AppsListAdapter.OnAppsItemClicked,
-//        AppsListAdapter.OnAppsCreateContextMenu {
+class AppsListFragment : Fragment(), AppsListAdapter.AppsClickHandler {
 
     interface AppSelection {
         fun appHasBeenSelected(app: App)
@@ -45,7 +43,7 @@ class AppsListFragment : Fragment() {
     private lateinit var activityContext: MainActivity
 
     private val appsAdapter by lazy {
-        AppsListAdapter(activityContext)
+        AppsListAdapter(activityContext, this)
     }
 
     private var refreshStatus = RefreshStatus.INACTIVE
@@ -67,6 +65,7 @@ class AppsListFragment : Fragment() {
     private val appsObserver = Observer<List<App>> {
         it?.let { list ->
             appsAdapter.updateApps(list)
+            list_apps.scrollToPosition(0)
             if (list.isEmpty() || userlandIsNewVersion()) {
                 doRefresh()
             }
@@ -75,7 +74,7 @@ class AppsListFragment : Fragment() {
 
     private val activeAppsObserver = Observer<List<App>> {
         it?.let { list ->
-//            appsAdapter.updateActiveApps(list)
+            appsAdapter.updateActiveApps(list)
         }
     }
 
@@ -109,10 +108,21 @@ class AppsListFragment : Fragment() {
         }
     }
 
-//    override fun onAppsItemClicked(appsItemClicked: AppsListAdapter.ViewHolder) {
-//        appsAdapter.setLastSelectedContextItem(appsItemClicked)
-//        doOnAppSelection.appHasBeenSelected(appsItemClicked)
-//    }
+    override fun onClick(app: App) {
+        doOnAppSelection.appHasBeenSelected(app)
+    }
+
+    override fun createContextMenu(menu: Menu) {
+        activityContext.menuInflater.inflate(R.menu.context_menu_apps, menu)
+    }
+
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.menu_item_app_details -> showAppDetails(appsAdapter.contextMenuItem)
+            R.id.menu_item_stop_app -> stopAppSession(appsAdapter.contextMenuItem)
+            else -> super.onContextItemSelected(item)
+        }
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.frag_app_list, container, false)
@@ -141,29 +151,6 @@ class AppsListFragment : Fragment() {
         viewModel.refreshAppsList()
         setLatestUpdateUserlandVersion()
     }
-
-    private fun doContextItemSelected(app: App, item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.menu_item_app_details -> showAppDetails(app)
-            R.id.menu_item_stop_app -> stopAppSession(app)
-            else -> super.onContextItemSelected(item)
-        }
-    }
-
-//    override fun onAppsCreateContextMenu(menu: ContextMenu, v: View, selectedListItem: AppsListItem) {
-//        appsAdapter.setLastSelectedContextItem(selectedListItem)
-//        activityContext.menuInflater.inflate(R.menu.context_menu_apps, menu)
-//    }
-
-//    override fun onContextItemSelected(item: MenuItem): Boolean {
-//        return when (val selectedItem = appsAdapter.getLastSelectedContextItem()) {
-//            is AppSeparatorItem -> true
-//            is AppItem -> {
-//                val app = selectedItem.app
-//                doContextItemSelected(app, item)
-//            }
-//        }
-//    }
 
     private fun showAppDetails(app: App): Boolean {
         val bundle = bundleOf("app" to app)
