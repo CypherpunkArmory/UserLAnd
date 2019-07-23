@@ -2,13 +2,15 @@ package tech.ula.ui
 
 import android.app.Activity
 import android.content.Context
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.View
+import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.ContextCompat
 import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.utils.AppDetails
@@ -81,7 +83,7 @@ class AppsListAdapter(
     private fun App.displayedAnimation() {
         val prefs = activity.getSharedPreferences("apps", Context.MODE_PRIVATE)
         val app = this
-        with (prefs.edit()) {
+        with(prefs.edit()) {
             putBoolean("${app.name}HasBeenAnimated", true)
             apply()
         }
@@ -95,7 +97,7 @@ class AppsListAdapter(
         viewHolder.imageView?.setImageURI(appDetails.findIconUri(app.name))
 
         val appIsActive = activeApps.contains(app)
-        val backgroundColor = if (appIsActive)  {
+        val backgroundColor = if (appIsActive) {
             R.color.colorAccent
         } else {
             R.color.colorPrimaryDark
