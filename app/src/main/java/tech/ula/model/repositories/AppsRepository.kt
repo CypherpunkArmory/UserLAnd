@@ -2,7 +2,6 @@ package tech.ula.model.repositories
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import android.util.Log
 import kotlinx.coroutines.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.daos.AppsDao
 import tech.ula.model.entities.App
@@ -47,7 +46,7 @@ class AppsRepository(
                     remoteAppsSource.fetchAppDescription(app)
                     remoteAppsSource.fetchAppScript(app)
                     appsDao.insertApp(app) // Insert the db element last to force observer refresh
-            })}
+            }) }
         } catch (err: Exception) {
             refreshStatus.postValue(RefreshStatus.FAILED)
             val message = err.message ?: "Not found"

@@ -1,14 +1,12 @@
 package tech.ula.model.repositories
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyBlocking
 import com.nhaarman.mockitokotlin2.whenever
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -56,7 +54,7 @@ class AppsRepositoryTest {
         activeAppsListLiveData.postValue(activeAppsList)
         appsRepository = AppsRepository(
                 mockAppsDao,
-                mockGithubAppsFetcher, 
+                mockGithubAppsFetcher,
                 mockAppsPreferences,
                 mockLogger
         )
@@ -75,9 +73,9 @@ class AppsRepositoryTest {
     @Test
     fun `Fetches active apps from database`() {
         whenever(mockAppsDao.getActiveApps()).thenReturn(activeAppsListLiveData)
-        
+
         appsRepository.getActiveApps().observeForever(mockAppsObserver)
-        
+
         verify(mockAppsDao).getActiveApps()
         verify(mockAppsObserver).onChanged(activeAppsList)
     }
