@@ -24,7 +24,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 29
         versionCode vcode
-        versionName "2.5.15"
+        versionName "2.6.0"
         
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunnerArguments clearPackageData: 'true'
