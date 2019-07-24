@@ -22,13 +22,9 @@ class GithubAppsFetcher(
     operator fun <T> List<T>.component6() = get(5)
     operator fun <T> List<T>.component7() = get(6)
 
-    private val assetTypeForApps = "apps"
-    private val branch = getBranchToDownloadAssetsFrom(assetTypeForApps) // Base off different support branches for testing.
+    private val branch = "master"// Base off different support branches for testing.
     private val baseUrl = "://github.com/CypherpunkArmory/UserLAnd-Assets-Support/raw/$branch/apps"
     private var protocol = "https"
-    private val hostname = "$protocol$baseUrl"
-
-    fun getHostname(): String { return hostname }
 
     @Throws(IOException::class)
     suspend fun fetchAppsList(): List<App> = withContext(Dispatchers.IO) {
@@ -86,13 +82,5 @@ class GithubAppsFetcher(
         file.createNewFile()
         val contents = URL(url).readText()
         file.writeText(contents)
-    }
-
-    private fun getBranchToDownloadAssetsFrom(assetType: String): String {
-        return when (assetType) {
-            "support" -> "staging"
-            "apps" -> "master"
-            else -> "master"
-        }
     }
 }
