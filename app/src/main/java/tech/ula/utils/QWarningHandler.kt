@@ -24,7 +24,7 @@ class QWarningHandler(private val prefs: SharedPreferences, private val ulaFiles
     }
 
     private fun versionDoesNotMatchRequirement(): Boolean {
-        return prefs.getString(versionKey, "") ?: "" < "v2.6.0"
+        return prefs.getString(versionKey, "") ?: "" < "v2.7.0"
     }
 
     private fun userHasFilesystems(): Boolean {
