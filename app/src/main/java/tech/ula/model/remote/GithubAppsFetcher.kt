@@ -59,7 +59,7 @@ class GithubAppsFetcher(
         val directoryAndFilename = "${app.name}/${app.name}.png"
         val file = File("$filesDirPath/apps/$directoryAndFilename")
         val url = "$baseUrl/$directoryAndFilename"
-        httpStream.toPngFile(url, file)
+        httpStream.toFile(url, file)
     }
 
     suspend fun fetchAppDescription(app: App) = withContext(Dispatchers.IO) {

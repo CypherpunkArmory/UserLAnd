@@ -96,14 +96,14 @@ class GithubAppsFetcherTest {
 
         val expectedUrl = "$baseUrl/$directoryAndFilename"
         val expectedFile = File(testFilesDir.path, "apps/$directoryAndFilename")
-        verifyBlocking(mockHttpStream) { toPngFile(expectedUrl, expectedFile) }
+        verifyBlocking(mockHttpStream) { toFile(expectedUrl, expectedFile) }
     }
 
     @Test(expected = IOException::class)
     fun `fetchAppIcon throws IOException on failure`() {
         val directoryAndFilename = "${app.name}/${app.name}.png"
         runBlocking {
-            whenever(mockHttpStream.toPngFile(
+            whenever(mockHttpStream.toFile(
                     "$baseUrl/$directoryAndFilename",
                     File(testFilesDir.path, "apps/$directoryAndFilename")
             )).thenThrow(IOException())

@@ -8,8 +8,8 @@ import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
 
-// TODO This class represents an excellent opportunity for integration tests.
 class HttpStream {
+    // TODO this function should be made private and usages be reworked to match other public functions
     fun fromUrl(url: String): InputStream {
         val conn = URL(url).openConnection() as HttpURLConnection
         conn.requestMethod = "GET"
@@ -26,13 +26,12 @@ class HttpStream {
     }
 
     @Throws(IOException::class)
-    suspend fun toPngFile(url: String, file: File) = withContext(Dispatchers.IO) {
+    suspend fun toFile(url: String, file: File) = withContext(Dispatchers.IO) {
         file.parentFile!!.mkdirs()
         file.createNewFile()
         val inputStream = fromUrl(url)
-        val bitmap: Bitmap = BitmapFactory.decodeStream(inputStream)
         val outputStream = file.outputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 0, outputStream) // Int arg quality is ignored for lossless formats
+        outputStream.write(inputStream.readBytes())
         inputStream.close()
         outputStream.close()
     }
