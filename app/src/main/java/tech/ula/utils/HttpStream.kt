@@ -1,10 +1,8 @@
 package tech.ula.utils
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.*
+import java.io.* // ktlint-disable no-wildcard-imports
 import java.net.HttpURLConnection
 import java.net.URL
 

@@ -1,11 +1,10 @@
 package tech.ula.utils
 
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.*
+import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.nio.file.Files
 
 // Note: These tests are pretty brittle as they are meant to be proper integration tests.
 // Any change to our remote sources will break them.
