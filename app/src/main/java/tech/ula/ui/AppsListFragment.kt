@@ -150,7 +150,7 @@ class AppsListFragment : Fragment(), AppsListAdapter.AppsClickHandler {
         viewModel.refreshAppsList()
         setLatestUpdateUserlandVersion()
     }
-
+  
     private fun showAppDetails(app: App): Boolean {
         val bundle = bundleOf("app" to app)
         this.findNavController().navigate(R.id.action_app_list_to_app_details, bundle)
