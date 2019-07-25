@@ -18,6 +18,7 @@ import androidx.test.uiautomator.UiDevice
 import androidx.test.platform.app.InstrumentationRegistry
 import android.view.KeyCharacterMap
 import android.view.KeyEvent
+import androidx.test.espresso.ViewAssertion
 import java.io.File
 import java.util.concurrent.TimeoutException
 
@@ -94,6 +95,9 @@ fun @receiver:StringRes Int.matchText(): ViewInteraction =
 // TODO this doesn't quite work. will be useful for failure tests
 fun @receiver:StringRes Int.notDisplayedInToast(): ViewInteraction =
         this.matchText().inRoot(ToastMatcher()).check(ViewAssertions.doesNotExist())
+
+fun @receiver:StringRes Int.displayedInToast(): ViewInteraction =
+        this.matchText().inRoot(ToastMatcher()).check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
 
 fun String.enterAsNativeViewText() {
     val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
