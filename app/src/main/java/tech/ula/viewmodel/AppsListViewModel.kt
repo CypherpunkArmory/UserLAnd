@@ -37,7 +37,7 @@ class AppsListViewModel(
     }
 
     fun refreshAppsList() {
-        this.launch { appsRepository.refreshData() }
+        this.launch { appsRepository.refreshData(this) }
     }
 
     fun getRefreshStatus(): LiveData<RefreshStatus> {
