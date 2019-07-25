@@ -255,7 +255,6 @@ class MainActivityViewModel(
             }
             is SessionIsRestartable -> {
                 state.postValue(SessionCanBeRestarted(newState.session))
-                resetStartupState()
             }
             is SessionIsReadyForPreparation -> {
                 lastSelectedSession = newState.session
