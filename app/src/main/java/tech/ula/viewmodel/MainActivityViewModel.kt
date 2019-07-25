@@ -251,7 +251,6 @@ class MainActivityViewModel(
             }
             is SingleSessionSupported -> {
                 state.postValue(CanOnlyStartSingleSession)
-                resetStartupState()
             }
             is SessionIsRestartable -> {
                 state.postValue(SessionCanBeRestarted(newState.session))
