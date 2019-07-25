@@ -1,11 +1,13 @@
 package tech.ula.ui
 
 import android.Manifest
+import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.rule.ActivityTestRule
 import androidx.test.rule.GrantPermissionRule
 import com.schibsted.spain.barista.assertion.BaristaListAssertions.assertDisplayedAtPosition
+import com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertNotDisplayed
 import com.schibsted.spain.barista.interaction.BaristaDialogInteractions.clickDialogPositiveButton
 import com.schibsted.spain.barista.interaction.BaristaEditTextInteractions.writeTo
 import com.schibsted.spain.barista.interaction.BaristaListInteractions.clickListItem
@@ -92,6 +94,31 @@ class MainActivityTest {
         for (file in expectedStatusFiles) {
             waitForFile(file, timeout = 60_000)
         }
+
+        // Return to apps list
+        Espresso.closeSoftKeyboard()
+        Espresso.pressBack()
+        R.id.app_list_fragment.shortWaitForDisplay()
+
+        // Try to start a second session
+        clickListItem(R.id.list_apps, 1)
+        // Set up second session
+        R.string.filesystem_credentials_reasoning.waitForDisplay()
+        writeTo(R.id.text_input_username, username)
+        writeTo(R.id.text_input_password, sshPassword)
+        writeTo(R.id.text_input_vnc_password, vncPassword)
+        clickDialogPositiveButton()
+        R.string.prompt_app_connection_type_preference.shortWaitForDisplay()
+        clickRadioButtonItem(R.id.radio_apps_service_type_preference, R.id.ssh_radio_button)
+        clickDialogPositiveButton()
+        // Asset second session cannot be started
+        assertNotDisplayed(R.id.progress_bar_session_list)
+        R.string.single_session_supported.displayedInToast()
+
+        // Assert session can be restarted
+        clickListItem(R.id.list_apps, 0)
+        assertNotDisplayed(R.id.layout_progress)
+        R.id.terminal_view.shortWaitForDisplay()
     }
 
     private fun doHappyPathTestScript(): List<File> {

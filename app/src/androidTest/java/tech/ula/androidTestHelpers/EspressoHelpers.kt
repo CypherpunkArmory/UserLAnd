@@ -95,6 +95,9 @@ fun @receiver:StringRes Int.matchText(): ViewInteraction =
 fun @receiver:StringRes Int.notDisplayedInToast(): ViewInteraction =
         this.matchText().inRoot(ToastMatcher()).check(ViewAssertions.doesNotExist())
 
+fun @receiver:StringRes Int.displayedInToast(): ViewInteraction =
+        this.matchText().inRoot(ToastMatcher()).check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
+
 fun String.enterAsNativeViewText() {
     val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
     val characterMap = KeyCharacterMap.load(KeyCharacterMap.VIRTUAL_KEYBOARD)
