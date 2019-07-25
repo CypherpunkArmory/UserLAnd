@@ -18,7 +18,6 @@ import androidx.test.uiautomator.UiDevice
 import androidx.test.platform.app.InstrumentationRegistry
 import android.view.KeyCharacterMap
 import android.view.KeyEvent
-import androidx.test.espresso.ViewAssertion
 import java.io.File
 import java.util.concurrent.TimeoutException
 
