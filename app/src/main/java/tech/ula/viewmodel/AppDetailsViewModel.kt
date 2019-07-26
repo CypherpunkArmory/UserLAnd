@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider
 import kotlinx.android.synthetic.main.frag_app_details.view.*
 import kotlinx.coroutines.* // ktlint-disable no-wildcard-imports
 import tech.ula.R
+import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
 import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.Session
@@ -35,28 +36,23 @@ sealed class AppDetailsEvent {
     data class ServiceTypeChanged(@IdRes val selectedButton: Int, val app: App) : AppDetailsEvent()
 }
 
-class AppDetailsViewModel(context: Context, private val buildVersion: Int) : ViewModel(), CoroutineScope {
+class AppDetailsViewModel(private val sessionDao: SessionDao, private val appDetails: AppDetails, private val buildVersion: Int) : ViewModel(), CoroutineScope {
     private val job = Job()
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
 
-    private val sessionDao = UlaDatabase.getInstance(context).sessionDao()
-
-    private val appDetails = AppDetails(context.filesDir.path, context.resources)
     val viewState = MutableLiveData<AppDetailsViewState>()
 
-    fun submitEvent(event: AppDetailsEvent) {
-        return when (event) {
+    fun submitEvent(event: AppDetailsEvent, coroutineScope: CoroutineScope = this) = coroutineScope.launch {
+        return@launch when (event) {
             is AppDetailsEvent.SubmitApp -> constructView(event.app)
             is AppDetailsEvent.ServiceTypeChanged -> handleServiceTypeChanged(event)
         }
     }
 
-    private fun constructView(app: App) {
-        this.launch {
-            val appSession = getAppSession(app)
-            viewState.postValue(buildViewState(app, appSession))
-        }
+    private suspend fun constructView(app: App) {
+        val appSession = getAppSession(app)
+        viewState.postValue(buildViewState(app, appSession))
     }
 
     private suspend fun getAppSession(app: App): Session? = withContext(Dispatchers.IO) {
@@ -71,17 +67,21 @@ class AppDetailsViewModel(context: Context, private val buildVersion: Int) : Vie
         val appIconUri = appDetails.findIconUri(app.name)
         val appTitle = app.name
         val appDescription = appDetails.findAppDescription(app.name)
+
         val sshEnabled = app.supportsCli && enableRadioButtons
         val vncEnabled = app.supportsGui && enableRadioButtons
         val xsdlEnabled = app.supportsGui && buildVersion <= Build.VERSION_CODES.O_MR1 && enableRadioButtons
+
         val describeStateHintEnabled = getStateHintEnabled(appSession)
         val describeStateText = getStateDescription(appSession)
+
         val selectedServiceTypeButton = when (appSession?.serviceType) {
             ServiceType.Ssh -> R.id.apps_ssh_preference
             ServiceType.Vnc -> R.id.apps_vnc_preference
             ServiceType.Xsdl -> R.id.apps_xsdl_preference
             else -> null
         }
+
         return AppDetailsViewState(
                 appIconUri,
                 appTitle,
@@ -124,7 +124,7 @@ class AppDetailsViewModel(context: Context, private val buildVersion: Int) : Vie
     @StringRes
     private fun getStateDescription(appSession: Session?): Int? {
         return when {
-            appSession?.serviceType == ServiceType.Unselected || appSession == null -> {
+            appSession == null || appSession.serviceType == ServiceType.Unselected -> {
                 R.string.info_finish_app_setup
             }
             appSession.active  -> {
@@ -145,9 +145,9 @@ class AppDetailsViewModel(context: Context, private val buildVersion: Int) : Vie
     }
 }
 
-class AppDetailsViewmodelFactory(private val context: Context, private val buildVersion: Int) : ViewModelProvider.NewInstanceFactory() {
+class AppDetailsViewmodelFactory(private val sessionDao: SessionDao, private val appDetails: AppDetails, private val buildVersion: Int) : ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         @Suppress("UNCHECKED_CAST")
-        return AppDetailsViewModel(context, buildVersion) as T
+        return AppDetailsViewModel(sessionDao, appDetails, buildVersion) as T
     }
 }

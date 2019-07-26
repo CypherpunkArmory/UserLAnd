@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.navArgs
 import kotlinx.android.synthetic.main.frag_app_details.* // ktlint-disable no-wildcard-imports
 import tech.ula.R
+import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.*
 
@@ -24,8 +25,10 @@ class AppDetailsFragment : Fragment() {
     private val app by lazy { args.app!! }
 
     private val viewModel by lazy {
+        val sessionDao = UlaDatabase.getInstance(activityContext).sessionDao()
+        val appDetails = AppDetails(activityContext.filesDir.path, activityContext.resources)
         val buildVersion = Build.VERSION.SDK_INT
-        val factory = AppDetailsViewmodelFactory(activityContext, buildVersion)
+        val factory = AppDetailsViewmodelFactory(sessionDao, appDetails, buildVersion)
         ViewModelProviders.of(this, factory)
                 .get(AppDetailsViewModel::class.java)
     }
