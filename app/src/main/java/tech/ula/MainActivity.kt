@@ -127,9 +127,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val downloadManagerWrapper = DownloadManagerWrapper(downloadManager)
         val assetDownloader = AssetDownloader(assetPreferences, downloadManagerWrapper, ulaFiles)
 
-        val appsPreferences = AppsPreferences(this)
-
-        val appsStartupFsm = AppsStartupFsm(ulaDatabase, appsPreferences, filesystemManager)
+        val appsStartupFsm = AppsStartupFsm(ulaDatabase, filesystemManager)
         val sessionStartupFsm = SessionStartupFsm(ulaDatabase, assetRepository, filesystemManager, assetDownloader, storageCalculator)
         ViewModelProviders.of(this, MainActivityViewModelFactory(appsStartupFsm, sessionStartupFsm))
                 .get(MainActivityViewModel::class.java)
@@ -292,6 +290,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         updateProgressBar(step, details)
 
         // TODO: Alert user when defaulting to VNC
+        // TODO: Is this even possible?
         if (session.serviceType is ServiceType.Xsdl && Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
             session.serviceType = ServiceType.Vnc
         }
@@ -351,9 +350,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         data?.let {
             val session = viewModel.lastSelectedSession
             val result = data.getStringExtra("run") ?: ""
-//            if (session.serviceType == "xsdl" && result.isNotEmpty()) {
-//                startSession(session)
-//            }
+            if (session.serviceType == ServiceType.Xsdl && result.isNotEmpty()) {
+                startSession(session)
+            }
         }
     }
 
@@ -618,6 +617,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         }
     }
 
+    // TODO refactor the names here
+    // TODO could this dialog share a layout with the apps details page somehow?
     private fun getServiceTypePreference() {
         val dialog = AlertDialog.Builder(this)
         val dialogView = layoutInflater.inflate(R.layout.dia_app_select_client, null)

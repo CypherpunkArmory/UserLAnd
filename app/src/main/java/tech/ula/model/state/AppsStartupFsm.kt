@@ -12,11 +12,9 @@ import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
-import tech.ula.utils.preferences.AppsPreferences
 
 class AppsStartupFsm(
     ulaDatabase: UlaDatabase,
-    private val appsPreferences: AppsPreferences,
     private val filesystemManager: FilesystemManager,
     private val deviceArchitecture: DeviceArchitecture = DeviceArchitecture(),
     private val logger: Logger = SentryLogger()
@@ -156,12 +154,8 @@ class AppsStartupFsm(
 
     private suspend fun updateAppSession(app: App, appSession: Session, appsFilesystem: Filesystem) {
         state.postValue(SyncingDatabaseEntries)
-        // TODO servicetype delete commented lines?
-//        val serviceTypePreference = appsPreferences.getAppServiceTypePreference(app)
         appSession.filesystemId = appsFilesystem.id
         appSession.filesystemName = appsFilesystem.name
-//        appSession.serviceType = serviceTypePreference.toString()
-//        appSession.port = if (serviceTypePreference is SshTypePreference) 2022 else 51
         appSession.username = appsFilesystem.defaultUsername
         appSession.password = appsFilesystem.defaultPassword
         appSession.vncPassword = appsFilesystem.defaultVncPassword
