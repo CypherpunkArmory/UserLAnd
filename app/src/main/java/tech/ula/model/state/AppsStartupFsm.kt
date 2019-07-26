@@ -1,6 +1,5 @@
 package tech.ula.model.state
 
-import android.app.Service
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope

@@ -84,7 +84,7 @@
         </RadioGroup>
 
         <TextView
-            android:id="@+id/text_finish_app_setup"
+            android:id="@+id/text_describe_state"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="20dp"
@@ -108,7 +108,7 @@
             android:textAlignment="center"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/text_finish_app_setup" />
+            app:layout_constraintTop_toBottomOf="@id/text_describe_state" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

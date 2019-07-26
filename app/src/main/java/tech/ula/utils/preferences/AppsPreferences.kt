@@ -1,8 +1,6 @@
 package tech.ula.utils.preferences
 
 import android.content.Context
-import android.os.Build
-import tech.ula.model.entities.App
 
 class AppsPreferences(context: Context) {
 

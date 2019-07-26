@@ -1,7 +1,7 @@
 package tech.ula.model.entities
 
 import android.os.Parcelable
-import androidx.room.*
+import androidx.room.* // ktlint-disable no-wildcard-imports
 import kotlinx.android.parcel.Parcelize
 
 fun String.toServiceType(): ServiceType {
