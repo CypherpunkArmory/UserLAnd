@@ -12,14 +12,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
-import tech.ula.model.entities.App
-import tech.ula.model.entities.Asset
-import tech.ula.model.entities.Filesystem
-import tech.ula.model.entities.Session
+import tech.ula.model.entities.*
 import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
-import tech.ula.utils.preferences.SshTypePreference
 import java.io.FileNotFoundException
 import java.lang.IllegalStateException
 
@@ -211,20 +207,20 @@ class MainActivityViewModelTest {
 
     @Test
     fun `Posts IllegalState if service preference submitted while no app is selected`() {
-        mainActivityViewModel.submitAppServicePreference(SshTypePreference)
+        mainActivityViewModel.submitAppServiceType(ServiceType.Ssh)
 
         verify(mockStateObserver).onChanged(NoAppSelectedWhenPreferenceSubmitted)
         verify(mockLogger).sendIllegalStateLog(NoAppSelectedWhenPreferenceSubmitted)
     }
 
     @Test
-    fun `Submits app service preference for last selected app`() {
-        mainActivityViewModel.lastSelectedApp = selectedApp
+    fun `Submits app service preference for last selected session`() {
+        mainActivityViewModel.lastSelectedSession = selectedSession
 
-        mainActivityViewModel.submitAppServicePreference(SshTypePreference)
+        mainActivityViewModel.submitAppServiceType(ServiceType.Ssh)
 
         runBlocking {
-            verify(mockAppsStartupFsm).submitEvent(SubmitAppServicePreference(selectedApp, SshTypePreference), mainActivityViewModel)
+            verify(mockAppsStartupFsm).submitEvent(SubmitAppSessionServiceType(selectedSession, ServiceType.Ssh), mainActivityViewModel)
         }
     }
 
@@ -355,7 +351,7 @@ class MainActivityViewModelTest {
     fun `Posts IllegalState on incorrect app transitions`() {
         makeAppSelections()
 
-        val event = SubmitAppServicePreference(selectedApp, SshTypePreference)
+        val event = SubmitAppSessionServiceType(selectedSession, ServiceType.Ssh)
         val state = WaitingForAppSelection
         val badTransition = IncorrectAppTransition(event, state)
         appsStartupStateLiveData.postValue(IncorrectAppTransition(event, state))
@@ -396,7 +392,7 @@ class MainActivityViewModelTest {
         appsStartupStateLiveData.postValue(AppsFilesystemHasCredentials)
 
         runBlocking {
-            verify(mockAppsStartupFsm).submitEvent(CheckAppServicePreference(selectedApp), mainActivityViewModel)
+            verify(mockAppsStartupFsm).submitEvent(CheckAppSessionServiceType(selectedSession), mainActivityViewModel)
         }
     }
 
@@ -413,7 +409,7 @@ class MainActivityViewModelTest {
     fun `Submits CopyAppScript event if observed event is app has service preference set`() {
         makeAppSelections()
 
-        appsStartupStateLiveData.postValue(AppHasServiceTypePreferenceSet)
+        appsStartupStateLiveData.postValue(AppHasServiceTypeSet)
 
         runBlocking {
             verify(mockAppsStartupFsm).submitEvent(CopyAppScriptToFilesystem(selectedApp, selectedFilesystem), mainActivityViewModel)
@@ -424,7 +420,7 @@ class MainActivityViewModelTest {
     fun `Posts PreferenceRequired if equivalent event observed`() {
         makeAppSelections()
 
-        appsStartupStateLiveData.postValue(AppRequiresServiceTypePreference)
+        appsStartupStateLiveData.postValue(AppRequiresServiceType)
 
         verify(mockStateObserver).onChanged(AppServiceTypePreferenceRequired)
     }

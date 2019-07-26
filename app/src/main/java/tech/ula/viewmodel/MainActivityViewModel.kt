@@ -151,7 +151,7 @@ class MainActivityViewModel(
     }
 
     fun submitAppServiceType(serviceType: ServiceType) {
-        if (lastSelectedApp == unselectedApp) {
+        if (lastSelectedSession == unselectedSession) {
             postIllegalStateWithLog(NoAppSelectedWhenPreferenceSubmitted)
             return
         }
