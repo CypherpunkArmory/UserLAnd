@@ -241,7 +241,8 @@
     <string name="placeholder">Placeholder text</string>
     <string name="custom_sessions">Custom Sessions</string>
     <string name="apps_sessions">Apps Sessions</string>
-    <string name="info_xsdl_support">XSDL is not fully supported on \nAndroid 9.0 and above yet</string>
+    <string name="info_finish_app_setup">Finish app setup to make these options available.</string>
+    <string name="info_xsdl_support">XSDL is not fully supported on Android 9.0 and above yet</string>
     <string name="no_backup_selected">No filesystem import selected</string>
     
     <!-- Review request -->

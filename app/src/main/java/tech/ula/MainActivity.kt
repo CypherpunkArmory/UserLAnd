@@ -646,13 +646,13 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
             customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 customDialog.dismiss()
-                val selectedPreference = when {
-                    sshTypePreference.isChecked -> SshTypePreference
-                    vncTypePreference.isChecked -> VncTypePreference
-                    xsdlTypePreference.isChecked -> XsdlTypePreference
-                    else -> PreferenceHasNotBeenSelected
+                val selectedType = when {
+                    sshTypePreference.isChecked -> ServiceType.Ssh
+                    vncTypePreference.isChecked -> ServiceType.Vnc
+                    xsdlTypePreference.isChecked -> ServiceType.Xsdl
+                    else -> ServiceType.Unselected
                 }
-                viewModel.submitAppServicePreference(selectedPreference)
+                viewModel.submitAppServiceType(selectedType)
             }
         }
         customDialog.setOnCancelListener {
