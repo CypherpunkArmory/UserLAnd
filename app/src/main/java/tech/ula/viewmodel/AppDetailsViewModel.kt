@@ -1,6 +1,5 @@
 package tech.ula.viewmodel
 
-import android.content.Context
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.IdRes
@@ -8,14 +7,12 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import kotlinx.android.synthetic.main.frag_app_details.view.*
 import kotlinx.coroutines.* // ktlint-disable no-wildcard-imports
 import tech.ula.R
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
 import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.Session
-import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.AppDetails
 import kotlin.coroutines.CoroutineContext
 
@@ -127,7 +124,7 @@ class AppDetailsViewModel(private val sessionDao: SessionDao, private val appDet
             appSession == null || appSession.serviceType == ServiceType.Unselected -> {
                 R.string.info_finish_app_setup
             }
-            appSession.active  -> {
+            appSession.active -> {
                 R.string.info_stop_app
             }
             else -> {

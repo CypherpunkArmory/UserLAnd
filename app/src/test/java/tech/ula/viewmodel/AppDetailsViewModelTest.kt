@@ -1,6 +1,5 @@
 package tech.ula.viewmodel
 
-import android.content.Context
 import android.net.Uri
 import android.os.Build
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
@@ -28,7 +27,6 @@ class AppDetailsViewModelTest {
     // Constructor parameters
     @Mock lateinit var mockSessionDao: SessionDao
     @Mock lateinit var mockAppDetails: AppDetails
-    private var buildVersion: Int = 0
 
     // Mocks returned from stubs
     @Mock lateinit var mockUri: Uri
@@ -52,7 +50,7 @@ class AppDetailsViewModelTest {
 
     private fun buildSession(app: App, serviceType: ServiceType): Session {
         val active = app.name == activeName
-        return Session(name = app.name, serviceType = serviceType, active = active,  id = 0, filesystemId = 0)
+        return Session(name = app.name, serviceType = serviceType, active = active, id = 0, filesystemId = 0)
     }
 
     @Test
