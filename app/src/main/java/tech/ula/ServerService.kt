@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import tech.ula.model.entities.App
+import tech.ula.model.entities.ServiceType
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Session
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
@@ -135,9 +136,9 @@ class ServerService : Service() {
 
     private fun startClient(session: Session) {
         when (session.serviceType) {
-            "ssh" -> startSshClient(session)
-            "vnc" -> startVncClient(session, "com.iiordanov.freebVNC")
-            "xsdl" -> startXsdlClient("x.org.server")
+            ServiceType.Ssh -> startSshClient(session)
+            ServiceType.Vnc -> startVncClient(session, "com.iiordanov.freebVNC")
+            ServiceType.Xsdl -> startXsdlClient("x.org.server")
             else -> sendDialogBroadcast("unhandledSessionServiceType")
         }
         sendSessionActivatedBroadcast()

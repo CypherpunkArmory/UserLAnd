@@ -38,6 +38,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import tech.ula.model.entities.App
+import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.UlaDatabase
@@ -126,9 +127,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val downloadManagerWrapper = DownloadManagerWrapper(downloadManager)
         val assetDownloader = AssetDownloader(assetPreferences, downloadManagerWrapper, ulaFiles)
 
-        val appsPreferences = AppsPreferences(this)
-
-        val appsStartupFsm = AppsStartupFsm(ulaDatabase, appsPreferences, filesystemManager)
+        val appsStartupFsm = AppsStartupFsm(ulaDatabase, filesystemManager)
         val sessionStartupFsm = SessionStartupFsm(ulaDatabase, assetRepository, filesystemManager, assetDownloader, storageCalculator)
         ViewModelProviders.of(this, MainActivityViewModelFactory(appsStartupFsm, sessionStartupFsm))
                 .get(MainActivityViewModel::class.java)
@@ -291,16 +290,17 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         updateProgressBar(step, details)
 
         // TODO: Alert user when defaulting to VNC
-        if (session.serviceType == "xsdl" && Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
-            session.serviceType = "vnc"
+        // TODO: Is this even possible?
+        if (session.serviceType is ServiceType.Xsdl && Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
+            session.serviceType = ServiceType.Vnc
         }
 
         when (session.serviceType) {
-            "xsdl" -> {
+            ServiceType.Xsdl -> {
                 viewModel.lastSelectedSession = session
                 sendXsdlIntentToSetDisplayNumberAndExpectResult()
             }
-            "vnc" -> {
+            ServiceType.Vnc -> {
                 setVncResolution(session)
                 startSession(session)
             }
@@ -350,7 +350,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         data?.let {
             val session = viewModel.lastSelectedSession
             val result = data.getStringExtra("run") ?: ""
-            if (session.serviceType == "xsdl" && result.isNotEmpty()) {
+            if (session.serviceType == ServiceType.Xsdl && result.isNotEmpty()) {
                 startSession(session)
             }
         }
@@ -617,6 +617,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         }
     }
 
+    // TODO refactor the names here
+    // TODO could this dialog share a layout with the apps details page somehow?
     private fun getServiceTypePreference() {
         val dialog = AlertDialog.Builder(this)
         val dialogView = layoutInflater.inflate(R.layout.dia_app_select_client, null)
@@ -645,13 +647,13 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
             customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 customDialog.dismiss()
-                val selectedPreference = when {
-                    sshTypePreference.isChecked -> SshTypePreference
-                    vncTypePreference.isChecked -> VncTypePreference
-                    xsdlTypePreference.isChecked -> XsdlTypePreference
-                    else -> PreferenceHasNotBeenSelected
+                val selectedType = when {
+                    sshTypePreference.isChecked -> ServiceType.Ssh
+                    vncTypePreference.isChecked -> ServiceType.Vnc
+                    xsdlTypePreference.isChecked -> ServiceType.Xsdl
+                    else -> ServiceType.Unselected
                 }
-                viewModel.submitAppServicePreference(selectedPreference)
+                viewModel.submitAppServiceType(selectedType)
             }
         }
         customDialog.setOnCancelListener {
