@@ -1,5 +1,6 @@
 package tech.ula.utils
 
+import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.Session
 import java.io.File
 
@@ -19,9 +20,9 @@ class LocalServerManager(
 
     private fun Session.pidRelativeFilePath(): String {
         return when (this.serviceType) {
-            "ssh" -> "/run/dropbear.pid"
-            "vnc" -> "/home/${this.username}/.vnc/localhost:${this.port}.pid"
-            "xsdl" -> "/tmp/xsdl.pidfile"
+            ServiceType.Ssh -> "/run/dropbear.pid"
+            ServiceType.Vnc -> "/home/${this.username}/.vnc/localhost:${this.port}.pid"
+            ServiceType.Xsdl -> "/tmp/xsdl.pidfile"
             else -> "error"
         }
     }
@@ -42,9 +43,9 @@ class LocalServerManager(
 
     fun startServer(session: Session): Long {
         return when (session.serviceType) {
-            "ssh" -> startSSHServer(session)
-            "vnc" -> startVNCServer(session)
-            "xsdl" -> setDisplayNumberAndStartTwm(session)
+            ServiceType.Ssh -> startSSHServer(session)
+            ServiceType.Vnc -> startVNCServer(session)
+            ServiceType.Xsdl -> setDisplayNumberAndStartTwm(session)
             else -> 0
         }
     }
@@ -136,7 +137,7 @@ class LocalServerManager(
         val command = "support/isServerInProcTree.sh ${session.pid()}"
         // The server itself is run by a third-party, so we can consider this to always be true.
         // The third-party app is responsible for handling errors starting their server.
-        if (session.serviceType == "xsdl") return true
+//        if (session.serviceType == "xsdl") return true
         val result = busyboxExecutor.executeScript(command)
         return when (result) {
             is SuccessfulExecution -> true

@@ -97,7 +97,7 @@ class SessionListAdapter(
                 }
 
                 val appDetailer = AppDetails(activity.filesDir.path, activity.resources)
-                viewHolder.textViewServiceType?.text = session.serviceType
+                viewHolder.textViewServiceType?.text = session.serviceType.toString()
                 viewHolder.textViewSessionName?.text = session.name
                 viewHolder.textViewFilesystemName?.text = session.filesystemName
                 viewHolder.imageViewFilesystemIcon?.setImageURI(appDetailer.findIconUri(filesystem.distributionType))

@@ -161,7 +161,7 @@ class AppsStartupFsm(
         val serviceTypePreference = appsPreferences.getAppServiceTypePreference(app)
         appSession.filesystemId = appsFilesystem.id
         appSession.filesystemName = appsFilesystem.name
-        appSession.serviceType = serviceTypePreference.toString()
+//        appSession.serviceType = serviceTypePreference.toString()
         appSession.port = if (serviceTypePreference is SshTypePreference) 2022 else 51
         appSession.username = appsFilesystem.defaultUsername
         appSession.password = appsFilesystem.defaultPassword

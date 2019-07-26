@@ -1,11 +1,59 @@
 package tech.ula.model.entities
 
-import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.Index
-import androidx.room.PrimaryKey
 import android.os.Parcelable
+import androidx.room.*
 import kotlinx.android.parcel.Parcelize
+
+fun String.toServiceType(): ServiceType {
+    return when (this) {
+        "ssh" -> ServiceType.Ssh
+        "vnc" -> ServiceType.Vnc
+        "xsdl" -> ServiceType.Xsdl
+        else -> ServiceType.Unselected
+    }
+}
+
+sealed class ServiceType : Parcelable {
+    @Parcelize
+    object Unselected : ServiceType() {
+        override fun toString(): String {
+            return "unselected"
+        }
+    }
+
+    @Parcelize
+    object Ssh : ServiceType() {
+        override fun toString(): String {
+            return "ssh"
+        }
+    }
+
+    @Parcelize
+    object Vnc : ServiceType() {
+        override fun toString(): String {
+            return "vnc"
+        }
+    }
+
+    @Parcelize
+    object Xsdl : ServiceType() {
+        override fun toString(): String {
+            return "xsdl"
+        }
+    }
+}
+
+class ServiceTypeConverter {
+    @TypeConverter
+    fun fromString(value: String): ServiceType {
+        return value.toServiceType()
+    }
+
+    @TypeConverter
+    fun fromServiceType(value: ServiceType): String {
+        return value.toString()
+    }
+}
 
 @Parcelize
 @Entity(tableName = "session",
@@ -17,6 +65,7 @@ import kotlinx.android.parcel.Parcelize
         indices = [
             Index(value = ["filesystemId"])
         ])
+@TypeConverters(ServiceTypeConverter::class)
 data class Session(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
@@ -27,7 +76,7 @@ data class Session(
     var username: String = "",
     var password: String = "",
     var vncPassword: String = "",
-    var serviceType: String = "",
+    var serviceType: ServiceType = ServiceType.Unselected,
     var port: Long = 2022,
     var pid: Long = 0,
     var geometry: String = "",

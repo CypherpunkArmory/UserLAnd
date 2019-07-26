@@ -38,6 +38,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import tech.ula.model.entities.App
+import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.UlaDatabase
@@ -291,16 +292,16 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         updateProgressBar(step, details)
 
         // TODO: Alert user when defaulting to VNC
-        if (session.serviceType == "xsdl" && Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
-            session.serviceType = "vnc"
+        if (session.serviceType is ServiceType.Xsdl && Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
+            session.serviceType = ServiceType.Vnc
         }
 
         when (session.serviceType) {
-            "xsdl" -> {
+            ServiceType.Xsdl -> {
                 viewModel.lastSelectedSession = session
                 sendXsdlIntentToSetDisplayNumberAndExpectResult()
             }
-            "vnc" -> {
+            ServiceType.Vnc -> {
                 setVncResolution(session)
                 startSession(session)
             }
@@ -350,9 +351,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         data?.let {
             val session = viewModel.lastSelectedSession
             val result = data.getStringExtra("run") ?: ""
-            if (session.serviceType == "xsdl" && result.isNotEmpty()) {
-                startSession(session)
-            }
+//            if (session.serviceType == "xsdl" && result.isNotEmpty()) {
+//                startSession(session)
+//            }
         }
     }
 
