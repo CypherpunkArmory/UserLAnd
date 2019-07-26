@@ -18,13 +18,11 @@ import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Filesystem
+import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.preferences.AppsPreferences
-import tech.ula.utils.preferences.PreferenceHasNotBeenSelected
-import tech.ula.utils.preferences.SshTypePreference
-import tech.ula.utils.preferences.VncTypePreference
 import java.io.IOException
 
 @RunWith(MockitoJUnitRunner::class)
@@ -72,8 +70,8 @@ class AppsStartupFsmTest {
             AppSelected(app),
             CheckAppsFilesystemCredentials(appsFilesystem),
             SubmitAppsFilesystemCredentials(appsFilesystem, "", "", ""),
-            CheckAppServicePreference(app),
-            SubmitAppServicePreference(app, PreferenceHasNotBeenSelected),
+            CheckAppSessionServiceType(appSession),
+            SubmitAppSessionServiceType(appSession, ServiceType.Unselected),
             CopyAppScriptToFilesystem(app, appsFilesystem),
             SyncDatabaseEntries(app, appSession, appsFilesystem),
             ResetAppState
@@ -85,8 +83,8 @@ class AppsStartupFsmTest {
             DatabaseEntriesFetched(appsFilesystem, appSession),
             AppsFilesystemHasCredentials,
             AppsFilesystemRequiresCredentials(appsFilesystem),
-            AppHasServiceTypePreferenceSet,
-            AppRequiresServiceTypePreference,
+            AppHasServiceTypeSet,
+            AppRequiresServiceType,
             CopyingAppScript,
             AppScriptCopySucceeded,
             AppScriptCopyFailed,
@@ -99,7 +97,7 @@ class AppsStartupFsmTest {
         whenever(mockUlaDatabase.filesystemDao()).thenReturn(mockFilesystemDao)
         whenever(mockUlaDatabase.sessionDao()).thenReturn(mockSessionDao)
 
-        appsFsm = AppsStartupFsm(mockUlaDatabase, mockAppsPreferences, mockFilesystemManager, mockDeviceArchitecture, mockLogger)
+        appsFsm = AppsStartupFsm(mockUlaDatabase, mockFilesystemManager, mockDeviceArchitecture, mockLogger)
     }
 
     @Test
@@ -114,9 +112,9 @@ class AppsStartupFsmTest {
                     event is AppSelected && state is WaitingForAppSelection -> assertTrue(result)
                     event is CheckAppsFilesystemCredentials && state is DatabaseEntriesFetched -> assertTrue(result)
                     event is SubmitAppsFilesystemCredentials && state is AppsFilesystemRequiresCredentials -> assertTrue(result)
-                    event is CheckAppServicePreference && state is AppsFilesystemHasCredentials -> assertTrue(result)
-                    event is SubmitAppServicePreference && state is AppRequiresServiceTypePreference -> assertTrue(result)
-                    event is CopyAppScriptToFilesystem && state is AppHasServiceTypePreferenceSet -> assertTrue(result)
+                    event is CheckAppSessionServiceType && state is AppsFilesystemHasCredentials -> assertTrue(result)
+                    event is SubmitAppSessionServiceType && state is AppRequiresServiceType -> assertTrue(result)
+                    event is CopyAppScriptToFilesystem && state is AppHasServiceTypeSet -> assertTrue(result)
                     event is SyncDatabaseEntries && state is AppScriptCopySucceeded -> assertTrue(result)
                     event is ResetAppState -> assertTrue(result)
                     else -> assertFalse(result)
@@ -293,45 +291,43 @@ class AppsStartupFsmTest {
     }
 
     @Test
-    fun `State is AppServiceTypePreferenceSet if already set`() {
+    fun `State is AppServiceTypeSet if already set`() {
         appsFsm.setState(AppsFilesystemHasCredentials)
         appsFsm.getState().observeForever(mockStateObserver)
+        appSession.serviceType = ServiceType.Ssh
 
-        whenever(mockAppsPreferences.getAppServiceTypePreference(app))
-                .thenReturn(SshTypePreference)
+        runBlocking { appsFsm.submitEvent(CheckAppSessionServiceType(appSession), this) }
 
-        runBlocking { appsFsm.submitEvent(CheckAppServicePreference(app), this) }
-
-        verify(mockStateObserver).onChanged(AppHasServiceTypePreferenceSet)
+        verify(mockStateObserver).onChanged(AppHasServiceTypeSet)
     }
 
     @Test
-    fun `State is AppRequiresServiceTypePreference is it is not set`() {
+    fun `State is AppRequiresServiceType is it is not set`() {
         appsFsm.setState(AppsFilesystemHasCredentials)
         appsFsm.getState().observeForever(mockStateObserver)
+        appSession.serviceType = ServiceType.Unselected
 
-        whenever(mockAppsPreferences.getAppServiceTypePreference(app))
-                .thenReturn(PreferenceHasNotBeenSelected)
+        runBlocking { appsFsm.submitEvent(CheckAppSessionServiceType(appSession), this) }
 
-        runBlocking { appsFsm.submitEvent(CheckAppServicePreference(app), this) }
-
-        verify(mockStateObserver).onChanged(AppRequiresServiceTypePreference)
+        verify(mockStateObserver).onChanged(AppRequiresServiceType)
     }
 
     @Test
     fun `Sets service preference on event submission`() {
-        appsFsm.setState(AppRequiresServiceTypePreference)
+        appsFsm.setState(AppRequiresServiceType)
         appsFsm.getState().observeForever(mockStateObserver)
 
-        runBlocking { appsFsm.submitEvent(SubmitAppServicePreference(app, SshTypePreference), this) }
+        runBlocking { appsFsm.submitEvent(SubmitAppSessionServiceType(appSession, ServiceType.Ssh), this) }
 
-        verify(mockAppsPreferences).setAppServiceTypePreference(app.name, SshTypePreference)
-        verify(mockStateObserver).onChanged(AppHasServiceTypePreferenceSet)
+        val expectedSession = appSession
+        expectedSession.serviceType = ServiceType.Ssh
+        verify(mockSessionDao).updateSession(expectedSession)
+        verify(mockStateObserver).onChanged(AppHasServiceTypeSet)
     }
 
     @Test
     fun `State is CopySucceeded`() {
-        appsFsm.setState(AppHasServiceTypePreferenceSet)
+        appsFsm.setState(AppHasServiceTypeSet)
         appsFsm.getState().observeForever(mockStateObserver)
 
         runBlocking { appsFsm.submitEvent(CopyAppScriptToFilesystem(app, appsFilesystem), this) }
@@ -342,7 +338,7 @@ class AppsStartupFsmTest {
 
     @Test
     fun `State is CopyFailed`() {
-        appsFsm.setState(AppHasServiceTypePreferenceSet)
+        appsFsm.setState(AppHasServiceTypeSet)
         appsFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockFilesystemManager.moveAppScriptToRequiredLocation(app.name, appsFilesystem))
@@ -355,44 +351,15 @@ class AppsStartupFsmTest {
     }
 
     @Test
-    fun `Syncs database entries correctly for ssh sessions`() {
+    fun `Syncs session database entry correctly`() {
         appsFsm.setState(AppScriptCopySucceeded)
         appsFsm.getState().observeForever(mockStateObserver)
-
-        whenever(mockAppsPreferences.getAppServiceTypePreference(app))
-                .thenReturn(SshTypePreference)
 
         runBlocking { appsFsm.submitEvent(SyncDatabaseEntries(app, appSession, appsFilesystemWithCredentials), this) }
 
         val updatedAppSession = appSession
         updatedAppSession.filesystemId = appsFilesystemWithCredentials.id
         updatedAppSession.filesystemName = appsFilesystemWithCredentials.name
-        updatedAppSession.serviceType = "ssh"
-        updatedAppSession.port = 2022
-        updatedAppSession.username = appsFilesystemWithCredentials.defaultUsername
-        updatedAppSession.password = appsFilesystemWithCredentials.defaultPassword
-        updatedAppSession.vncPassword = appsFilesystemWithCredentials.defaultVncPassword
-
-        verify(mockSessionDao).updateSession(updatedAppSession)
-        verify(mockStateObserver).onChanged(SyncingDatabaseEntries)
-        verify(mockStateObserver).onChanged(AppDatabaseEntriesSynced(app, updatedAppSession, appsFilesystemWithCredentials))
-    }
-
-    @Test
-    fun `Syncs database entries correctly for vnc sessions`() {
-        appsFsm.setState(AppScriptCopySucceeded)
-        appsFsm.getState().observeForever(mockStateObserver)
-
-        whenever(mockAppsPreferences.getAppServiceTypePreference(app))
-                .thenReturn(VncTypePreference)
-
-        runBlocking { appsFsm.submitEvent(SyncDatabaseEntries(app, appSession, appsFilesystemWithCredentials), this) }
-
-        val updatedAppSession = appSession
-        updatedAppSession.filesystemId = appsFilesystemWithCredentials.id
-        updatedAppSession.filesystemName = appsFilesystemWithCredentials.name
-        updatedAppSession.serviceType = "vnc"
-        updatedAppSession.port = 51
         updatedAppSession.username = appsFilesystemWithCredentials.defaultUsername
         updatedAppSession.password = appsFilesystemWithCredentials.defaultPassword
         updatedAppSession.vncPassword = appsFilesystemWithCredentials.defaultVncPassword

@@ -10,11 +10,11 @@ import kotlinx.coroutines.Job
 import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Filesystem
+import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
-import tech.ula.utils.preferences.AppServiceTypePreference
 import java.io.FileNotFoundException
 import kotlin.coroutines.CoroutineContext
 
@@ -150,12 +150,12 @@ class MainActivityViewModel(
         submitSessionStartupEvent(VerifyAvailableStorageComplete)
     }
 
-    fun submitAppServicePreference(preference: AppServiceTypePreference) {
-        if (lastSelectedApp == unselectedApp) {
+    fun submitAppServiceType(serviceType: ServiceType) {
+        if (lastSelectedSession == unselectedSession) {
             postIllegalStateWithLog(NoAppSelectedWhenPreferenceSubmitted)
             return
         }
-        submitAppsStartupEvent(SubmitAppServicePreference(lastSelectedApp, preference))
+        submitAppsStartupEvent(SubmitAppSessionServiceType(lastSelectedSession, serviceType))
     }
 
     fun handleUserInputCancelled() {
@@ -210,15 +210,15 @@ class MainActivityViewModel(
                 postIllegalStateWithLog(ErrorFetchingAppDatabaseEntries)
             }
             is AppsFilesystemHasCredentials -> {
-                submitAppsStartupEvent(CheckAppServicePreference(lastSelectedApp))
+                submitAppsStartupEvent(CheckAppSessionServiceType(lastSelectedSession))
             }
             is AppsFilesystemRequiresCredentials -> {
                 state.postValue(FilesystemCredentialsRequired)
             }
-            is AppHasServiceTypePreferenceSet -> {
+            is AppHasServiceTypeSet -> {
                 submitAppsStartupEvent(CopyAppScriptToFilesystem(lastSelectedApp, lastSelectedFilesystem))
             }
-            is AppRequiresServiceTypePreference -> {
+            is AppRequiresServiceType -> {
                 state.postValue(AppServiceTypePreferenceRequired)
             }
             is CopyingAppScript -> {}
@@ -251,11 +251,9 @@ class MainActivityViewModel(
             }
             is SingleSessionSupported -> {
                 state.postValue(CanOnlyStartSingleSession)
-                resetStartupState()
             }
             is SessionIsRestartable -> {
                 state.postValue(SessionCanBeRestarted(newState.session))
-                resetStartupState()
             }
             is SessionIsReadyForPreparation -> {
                 lastSelectedSession = newState.session
