@@ -10,13 +10,11 @@ import androidx.preference.Preference
 import tech.ula.utils.ProotDebugLogger
 import tech.ula.utils.UlaFiles
 import tech.ula.utils.defaultSharedPreferences
-import tech.ula.utils.scopedStorageRoot
-import java.io.File
 
 class SettingsFragment : PreferenceFragmentCompat() {
 
     private val prootDebugLogger by lazy {
-        val ulaFiles = UlaFiles(activity!!.filesDir, activity!!.scopedStorageRoot, File(activity!!.applicationInfo.nativeLibraryDir))
+        val ulaFiles = UlaFiles(activity!!)
         ProotDebugLogger(activity!!.defaultSharedPreferences, ulaFiles)
     }
 

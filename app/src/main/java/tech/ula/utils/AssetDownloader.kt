@@ -26,7 +26,7 @@ class AssetDownloader(
     private val ulaFiles: UlaFiles
 ) {
 
-    private val downloadDirectory = File(ulaFiles.scopedDir, "downloads")
+    private val downloadDirectory = File(ulaFiles.emulatedScopedDir, "downloads")
 
     private val enqueuedDownloadIds = mutableSetOf<Long>()
     private val completedDownloadIds = mutableSetOf<Long>()

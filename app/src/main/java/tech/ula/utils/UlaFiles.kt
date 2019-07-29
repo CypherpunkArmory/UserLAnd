@@ -1,27 +1,35 @@
 package tech.ula.utils
 
+import android.content.Context
 import android.system.Os
 import java.io.File
 import java.lang.NullPointerException
 
 class UlaFiles(
-    val filesDir: File,
-    val scopedDir: File,
-    val libDir: File,
+    context: Context,
     private val symlinker: Symlinker = Symlinker()
 ) {
 
+    val filesDir: File = context.filesDir
+    val libDir: File = File(context.applicationInfo.nativeLibraryDir)
     val supportDir: File = File(filesDir, "support")
-    val scopedUserDir: File = File(scopedDir, "storage")
+    val emulatedScopedDir = context.getExternalFilesDir(null)!!
+    val emulatedUserDir = File(emulatedScopedDir, "storage")
 
-    init {
-        scopedUserDir.mkdirs()
-
-        setupLinks()
-    }
+    val sdCardScopedDir: File? = resolveSdCardScopedStorage(context)
+    val sdCardUserDir: File? = if (sdCardScopedDir != null) {
+        File(sdCardScopedDir, "storage")
+    } else null
 
     val busybox = File(supportDir, "busybox")
     val proot = File(supportDir, "proot")
+
+    init {
+        emulatedUserDir.mkdirs()
+        sdCardUserDir?.mkdirs()
+
+        setupLinks()
+    }
 
     fun makePermissionsUsable(containingDirectoryPath: String, filename: String) {
         val commandToRun = arrayListOf("chmod", "0777", filename)
@@ -34,6 +42,16 @@ class UlaFiles(
 
         val process = pb.start()
         process.waitFor()
+    }
+
+    private fun resolveSdCardScopedStorage(context: Context): File? {
+        // Allegedly returns at most 2 elements, if there is a physical external storage device,
+        // according to https://developer.android.com/training/data-storage/files at
+        // 'Select between multiple storage locations'
+        val externals = context.getExternalFilesDirs(null)
+        return if (externals.size > 1) {
+            externals[1]
+        } else null
     }
 
     // Lib files must start with 'lib' and end with '.so.'

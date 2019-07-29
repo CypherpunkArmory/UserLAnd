@@ -16,7 +16,7 @@ class ProotDebugLogger(defaultSharedPreferences: SharedPreferences, private val 
         get() = prefs.getString("pref_proot_debug_level", "-1") ?: "-1"
 
     private val logName = "Proot_Debug_Log.txt"
-    private val logLocation = "${ulaFiles.scopedUserDir}/$logName"
+    private val logLocation = "${ulaFiles.emulatedUserDir}/$logName"
 
     fun logStream(
         inputStream: InputStream,
@@ -36,7 +36,7 @@ class ProotDebugLogger(defaultSharedPreferences: SharedPreferences, private val 
     }
 
     fun deleteLogs() {
-        val scopedFiles = ulaFiles.scopedUserDir.listFiles() ?: return
+        val scopedFiles = ulaFiles.emulatedUserDir.listFiles() ?: return
         for (file in scopedFiles) {
             if (file.name.contains(logName)) file.delete()
         }
