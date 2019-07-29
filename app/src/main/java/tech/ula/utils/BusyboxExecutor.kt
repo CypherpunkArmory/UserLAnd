@@ -164,9 +164,9 @@ class BusyboxWrapper(private val ulaFiles: UlaFiles) {
     }
 
     fun getProotEnv(filesystemDir: File, prootDebugLevel: String): HashMap<String, String> {
-        val emulatedStorageBinding = "-b ${ulaFiles.emulatedUserDir.absolutePath}:/storage/emulated"
+        val emulatedStorageBinding = "-b ${ulaFiles.emulatedUserDir.absolutePath}:/emulated"
         val externalStorageBinding = ulaFiles.sdCardUserDir?.run {
-            "-b ${this.absolutePath}:/storage/external"
+            "-b ${this.absolutePath}:/external"
         } ?: ""
         val bindings = "$emulatedStorageBinding $externalStorageBinding"
         return hashMapOf(
