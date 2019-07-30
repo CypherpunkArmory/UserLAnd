@@ -196,9 +196,8 @@ class BusyboxWrapper(private val ulaFiles: UlaFiles) {
         // If users upgraded from a version 2.5.14 - 2.6.1, the storage directory will exist but
         // with unusable permissions. It needs to be recreated.
         val storageBindingDir = File(filesystemDir, "storage")
-        if (storageBindingDir.exists() &&
-                storageBindingDir.isDirectory &&
-                storageBindingDir.listFiles()?.isEmpty() == true) {
+        val storageBindingDirEmpty = storageBindingDir.listFiles()?.isEmpty() ?: true
+        if (storageBindingDir.exists() && storageBindingDir.isDirectory && storageBindingDirEmpty) {
             storageBindingDir.delete()
         }
         storageBindingDir.mkdirs()
@@ -206,9 +205,8 @@ class BusyboxWrapper(private val ulaFiles: UlaFiles) {
         // If users upgraded from a version before 2.5.14, the old sdcard binding should be removed
         // to increase clarity.
         val sdCardBindingDir = File(filesystemDir, "sdcard")
-        if (sdCardBindingDir.exists() &&
-                sdCardBindingDir.isDirectory &&
-                sdCardBindingDir.listFiles()?.isEmpty() == true) {
+        val sdCardBindingDirEmpty = sdCardBindingDir.listFiles()?.isEmpty() ?: true
+        if (sdCardBindingDir.exists() && sdCardBindingDir.isDirectory && sdCardBindingDirEmpty) {
             sdCardBindingDir.delete()
         }
     }
