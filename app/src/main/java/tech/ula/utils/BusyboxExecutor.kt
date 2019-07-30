@@ -164,9 +164,11 @@ class BusyboxWrapper(private val ulaFiles: UlaFiles) {
     }
 
     fun getProotEnv(filesystemDir: File, prootDebugLevel: String): HashMap<String, String> {
-        val emulatedStorageBinding = "-b ${ulaFiles.emulatedUserDir.absolutePath}:/emulated"
+        // TODO This hack should be removed once there are no users on releases 2.5.14 - 2.6.1
+        handleHangingBindingDirectories(filesystemDir)
+        val emulatedStorageBinding = "-b ${ulaFiles.emulatedUserDir.absolutePath}:/storage/internal"
         val externalStorageBinding = ulaFiles.sdCardUserDir?.run {
-            "-b ${this.absolutePath}:/external"
+            "-b ${this.absolutePath}:/storage/sdcard"
         } ?: ""
         val bindings = "$emulatedStorageBinding $externalStorageBinding"
         return hashMapOf(
@@ -187,5 +189,27 @@ class BusyboxWrapper(private val ulaFiles: UlaFiles) {
     fun executionScriptIsPresent(): Boolean {
         val execInProotFile = File(ulaFiles.supportDir, "execInProot.sh")
         return execInProotFile.exists()
+    }
+
+    // TODO this hack should be removed when no users are left using version 2.5.14 - 2.6.1
+    private fun handleHangingBindingDirectories(filesystemDir: File) {
+        // If users upgraded from a version 2.5.14 - 2.6.1, the storage directory will exist but
+        // with unusable permissions. It needs to be recreated.
+        val storageBindingDir = File(filesystemDir, "storage")
+        if (storageBindingDir.exists() &&
+                storageBindingDir.isDirectory &&
+                storageBindingDir.listFiles()?.isEmpty() == true) {
+            storageBindingDir.delete()
+        }
+        storageBindingDir.mkdirs()
+
+        // If users upgraded from a version before 2.5.14, the old sdcard binding should be removed
+        // to increase clarity.
+        val sdCardBindingDir = File(filesystemDir, "sdcard")
+        if (sdCardBindingDir.exists() &&
+                sdCardBindingDir.isDirectory &&
+                sdCardBindingDir.listFiles()?.isEmpty() == true) {
+            sdCardBindingDir.delete()
+        }
     }
 }
