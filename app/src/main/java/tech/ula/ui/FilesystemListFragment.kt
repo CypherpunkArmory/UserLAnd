@@ -21,7 +21,6 @@ import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.entities.Session
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.FilesystemListViewModel
-import java.io.File
 
 private const val FILESYSTEM_EXPORT_REQUEST_CODE = 7
 

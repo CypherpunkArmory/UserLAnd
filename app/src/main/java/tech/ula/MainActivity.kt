@@ -50,7 +50,6 @@ import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import tech.ula.ui.FilesystemListFragment
 import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.utils.preferences.* // ktlint-disable no-wildcard-imports
-import java.io.File
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppsListFragment.AppSelection, FilesystemListFragment.FilesystemListProgress {
 
