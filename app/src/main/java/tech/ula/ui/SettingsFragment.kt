@@ -14,7 +14,7 @@ import tech.ula.utils.defaultSharedPreferences
 class SettingsFragment : PreferenceFragmentCompat() {
 
     private val prootDebugLogger by lazy {
-        val ulaFiles = UlaFiles(activity!!)
+        val ulaFiles = UlaFiles(activity!!, activity!!.applicationInfo.nativeLibraryDir)
         ProotDebugLogger(activity!!.defaultSharedPreferences, ulaFiles)
     }
 

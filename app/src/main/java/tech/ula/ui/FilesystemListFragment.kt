@@ -43,7 +43,7 @@ class FilesystemListFragment : Fragment() {
         val filesystemDao = UlaDatabase.getInstance(activityContext).filesystemDao()
         val sessionDao = UlaDatabase.getInstance(activityContext).sessionDao()
 
-        val ulaFiles = UlaFiles(activityContext)
+        val ulaFiles = UlaFiles(activityContext, activityContext.applicationInfo.nativeLibraryDir)
         val prootDebugLogger = ProotDebugLogger(activityContext.defaultSharedPreferences, ulaFiles)
         val busyboxExecutor = BusyboxExecutor(ulaFiles, prootDebugLogger)
 

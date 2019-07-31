@@ -7,11 +7,12 @@ import java.lang.NullPointerException
 
 class UlaFiles(
     context: Context,
+    libDirPath: String,
     private val symlinker: Symlinker = Symlinker()
 ) {
 
     val filesDir: File = context.filesDir
-    val libDir: File = File(context.applicationInfo.nativeLibraryDir)
+    val libDir: File = File(libDirPath)
     val supportDir: File = File(filesDir, "support")
     val emulatedScopedDir = context.getExternalFilesDir(null)!!
     val emulatedUserDir = File(emulatedScopedDir, "storage")

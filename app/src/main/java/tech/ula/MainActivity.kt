@@ -60,7 +60,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private var currentFragmentDisplaysProgressDialog = false
 
     private val logger = SentryLogger()
-    private val ulaFiles by lazy { UlaFiles(this) }
+    private val ulaFiles by lazy { UlaFiles(this, this.applicationInfo.nativeLibraryDir) }
     private val busyboxExecutor by lazy {
         val prootDebugLogger = ProotDebugLogger(this.defaultSharedPreferences, ulaFiles)
         BusyboxExecutor(ulaFiles, prootDebugLogger)

@@ -35,7 +35,7 @@ class UlaDocProvider : DocumentsProvider() {
     )
 
     private val ulaFiles by lazy {
-        UlaFiles(context!!)
+        UlaFiles(context!!, context!!.applicationInfo.nativeLibraryDir)
     }
 
     override fun onCreate(): Boolean { return true }
