@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothDevice;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
@@ -16,14 +17,18 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.hardware.display.DisplayManager;
+import android.hardware.usb.UsbManager;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Vibrator;
 import androidx.annotation.NonNull;
@@ -39,12 +44,14 @@ import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
@@ -199,6 +206,56 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
         }
     }
 
+    public void makeFullscreen() {
+        InputMethodManager mgr = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        Window window = getWindow();
+        View view = window.getDecorView();
+
+        // rerun the serviceIntent, since we might need to switch screens if they attached/detached
+        if ((mListViewAdapter != null) && (mListViewAdapter.getCount() != 0)) {
+            Intent serviceIntent = new Intent(this, TermuxService.class);
+            serviceIntent.putExtra("username", username);
+            serviceIntent.putExtra("hostname", hostname);
+            serviceIntent.putExtra("port", port);
+            serviceIntent.putExtra("sessionName", sessionName);
+            serviceIntent.setAction(TermuxService.ACTION_EXECUTE);
+            startService(serviceIntent);
+        }
+
+        // hide/show soft input depending on the availability of hardware input devices
+        boolean was_fullscreen = false;
+        if (getResources().getConfiguration().keyboard == Configuration.KEYBOARD_NOKEYS) {
+            mgr.showSoftInput(mTerminalView, InputMethodManager.SHOW_IMPLICIT);
+        } else {
+            mgr.showSoftInput(mTerminalView, InputMethodManager.HIDE_IMPLICIT_ONLY);
+            // if we are on a separate display, keep that display on and in fullscreen while we are on it
+            if (window.getWindowManager().getDefaultDisplay().getDisplayId() != Display.DEFAULT_DISPLAY) {
+                // FLAG_KEEP_SCREEN_ON is separate from wakelock, specific to the screen this activity is on;
+                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE);
+                was_fullscreen = true;
+            }
+        }
+
+        if (!was_fullscreen) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        }
+    }
+
+    // when gaining focus, we may or may not get SystemUiVisibilityChange event
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) makeFullscreen();
+    }
     @Override
     public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
@@ -210,13 +267,40 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
         setContentView(R.layout.drawer_layout);
         mTerminalView = findViewById(R.id.terminal_view);
         mTerminalView.setOnKeyListener(new TermuxViewClient(this));
-
         mTerminalView.setTextSize(mSettings.getFontSize());
+
+        mTerminalView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
+                @Override public void onSystemUiVisibilityChange(int visibility) { makeFullscreen(); }
+            });
+
+        final BroadcastReceiver changeReceiver = new BroadcastReceiver() {
+            public void onReceive(Context context, Intent intent) {
+                makeFullscreen();
+            }
+        };
+
+        // bluetooth/usb may be used to attach/detach input devices; listen to them.
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
+        filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
+        filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+        filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+        filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
+        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
+        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+        registerReceiver(changeReceiver, filter);
+
+        // displays may be added/removed, and we may need to move activities to/from them
+        ((DisplayManager)getSystemService(DISPLAY_SERVICE)).registerDisplayListener(new DisplayManager.DisplayListener() {
+                @Override public void onDisplayAdded(int i) { makeFullscreen(); }
+                @Override public void onDisplayRemoved(int i) { makeFullscreen(); }
+                @Override public void onDisplayChanged(int i) { makeFullscreen(); }
+            }, null);
+
         mTerminalView.requestFocus();
 
         final ViewPager viewPager = findViewById(R.id.viewpager);
         if (mSettings.isShowExtraKeys()) viewPager.setVisibility(View.VISIBLE);
-        
         
         ViewGroup.LayoutParams layoutParams = viewPager.getLayoutParams();
         layoutParams.height = layoutParams.height * mSettings.mExtraKeys.length;
@@ -796,6 +880,7 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
                     session.reset();
                     showToast(getResources().getString(R.string.reset_toast_notification), true);
                 }
+                makeFullscreen();
                 return true;
             }
             default:
