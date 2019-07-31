@@ -99,17 +99,31 @@ class UlaDocProvider : DocumentsProvider() {
     }
 
     private fun addUlaRoots(result: MatrixCursor): Cursor {
-        val baseDir = ulaFiles.emulatedUserDir
+        val baseEmulatedDir = ulaFiles.emulatedUserDir
         result.newRow().apply {
-            add(Root.COLUMN_TITLE, context!!.getString(R.string.app_name))
+            add(Root.COLUMN_TITLE, context!!.getString(R.string.app_name) + " INTERNAL")
             // Root for Ula storage should be the files dir
-            add(Root.COLUMN_ROOT_ID, getDocIdForFile(baseDir))
-            add(Root.COLUMN_DOCUMENT_ID, getDocIdForFile(baseDir))
+            add(Root.COLUMN_ROOT_ID, getDocIdForFile(baseEmulatedDir))
+            add(Root.COLUMN_DOCUMENT_ID, getDocIdForFile(baseEmulatedDir))
 
             // Allow creation and searching
             add(Root.COLUMN_FLAGS, Root.FLAG_SUPPORTS_CREATE)
             add(Root.COLUMN_ICON, R.mipmap.ic_launcher)
-            add(Root.COLUMN_AVAILABLE_BYTES, baseDir.freeSpace)
+            add(Root.COLUMN_AVAILABLE_BYTES, baseEmulatedDir.freeSpace)
+        }
+        val baseSdCardDir = ulaFiles.sdCardUserDir
+        baseSdCardDir?.let {
+            result.newRow().apply {
+                add(Root.COLUMN_TITLE, context!!.getString(R.string.app_name) + " SDCARD")
+                // Root for Ula storage should be the files dir
+                add(Root.COLUMN_ROOT_ID, getDocIdForFile(baseSdCardDir))
+                add(Root.COLUMN_DOCUMENT_ID, getDocIdForFile(baseSdCardDir))
+
+                // Allow creation and searching
+                add(Root.COLUMN_FLAGS, Root.FLAG_SUPPORTS_CREATE)
+                add(Root.COLUMN_ICON, R.mipmap.ic_launcher)
+                add(Root.COLUMN_AVAILABLE_BYTES, baseSdCardDir.freeSpace)
+            }
         }
         return result
     }
