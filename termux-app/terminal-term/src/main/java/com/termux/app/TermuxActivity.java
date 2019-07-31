@@ -517,7 +517,17 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
 
         if (mTermService == null) return; // Activity might have been destroyed.
         try {
-            addNewSession(false, null);
+            if (mListViewAdapter.getCount() == 0) {
+                Log.i( EmulatorDebug.LOG_TAG,"Adding new session: onServiceConnected: "+componentName.flattenToShortString()+", "+service.toString());
+
+                addNewSession(false, null);
+            } else {
+                // activate the first session
+                TerminalSession activatedSession = mListViewAdapter.getItem(0);
+                switchToSession(activatedSession);
+                getDrawer().closeDrawers();
+
+            }
         } catch (WindowManager.BadTokenException e) {
             // Activity finished - ignore.
         }
