@@ -15,7 +15,6 @@ import tech.ula.model.entities.ServiceType
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Session
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
-import java.io.File
 
 class ServerService : Service() {
 
@@ -32,7 +31,7 @@ class ServerService : Service() {
     }
 
     private val busyboxExecutor by lazy {
-        val ulaFiles = UlaFiles(this.filesDir, this.scopedStorageRoot, File(this.applicationInfo.nativeLibraryDir))
+        val ulaFiles = UlaFiles(this, this.applicationInfo.nativeLibraryDir)
         val prootDebugLogger = ProotDebugLogger(this.defaultSharedPreferences, ulaFiles)
         BusyboxExecutor(ulaFiles, prootDebugLogger)
     }

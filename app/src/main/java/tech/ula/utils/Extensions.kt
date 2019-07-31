@@ -9,7 +9,6 @@ import androidx.annotation.IdRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import tech.ula.R
-import java.io.File
 
 fun <A, B> zipLiveData(a: LiveData<A>, b: LiveData<B>): LiveData<Pair<A, B>> {
     return MediatorLiveData<Pair<A, B>>().apply {
@@ -45,13 +44,6 @@ fun Context.displayGenericErrorDialog(titleId: Int, messageId: Int, callback: ((
             }
             .create().show()
 }
-
-inline val Context.scopedStorageRoot: File
-    get() = this.getExternalFilesDir(null) ?: run {
-        val scopedStorageRoot = File(this.filesDir, "storage")
-        scopedStorageRoot.mkdirs()
-        scopedStorageRoot
-    }
 
 inline val Context.defaultSharedPreferences: SharedPreferences
     get() = this.getSharedPreferences("${this.packageName}_preferences", Context.MODE_PRIVATE)

@@ -10,7 +10,6 @@ import android.provider.DocumentsProvider
 import android.webkit.MimeTypeMap
 import tech.ula.R
 import tech.ula.utils.UlaFiles
-import tech.ula.utils.scopedStorageRoot
 import java.io.File
 import java.io.FileNotFoundException
 import java.lang.Exception
@@ -36,7 +35,7 @@ class UlaDocProvider : DocumentsProvider() {
     )
 
     private val ulaFiles by lazy {
-        UlaFiles(context!!.filesDir, context!!.scopedStorageRoot, File(context!!.applicationInfo.nativeLibraryDir))
+        UlaFiles(context!!, context!!.applicationInfo.nativeLibraryDir)
     }
 
     override fun onCreate(): Boolean { return true }
@@ -100,17 +99,31 @@ class UlaDocProvider : DocumentsProvider() {
     }
 
     private fun addUlaRoots(result: MatrixCursor): Cursor {
-        val baseDir = ulaFiles.scopedUserDir
+        val baseEmulatedDir = ulaFiles.emulatedUserDir
         result.newRow().apply {
-            add(Root.COLUMN_TITLE, context!!.getString(R.string.app_name))
+            add(Root.COLUMN_TITLE, context!!.getString(R.string.app_name) + " INTERNAL")
             // Root for Ula storage should be the files dir
-            add(Root.COLUMN_ROOT_ID, getDocIdForFile(baseDir))
-            add(Root.COLUMN_DOCUMENT_ID, getDocIdForFile(baseDir))
+            add(Root.COLUMN_ROOT_ID, getDocIdForFile(baseEmulatedDir))
+            add(Root.COLUMN_DOCUMENT_ID, getDocIdForFile(baseEmulatedDir))
 
             // Allow creation and searching
             add(Root.COLUMN_FLAGS, Root.FLAG_SUPPORTS_CREATE)
             add(Root.COLUMN_ICON, R.mipmap.ic_launcher)
-            add(Root.COLUMN_AVAILABLE_BYTES, baseDir.freeSpace)
+            add(Root.COLUMN_AVAILABLE_BYTES, baseEmulatedDir.freeSpace)
+        }
+        val baseSdCardDir = ulaFiles.sdCardUserDir
+        baseSdCardDir?.let {
+            result.newRow().apply {
+                add(Root.COLUMN_TITLE, context!!.getString(R.string.app_name) + " SDCARD")
+                // Root for Ula storage should be the files dir
+                add(Root.COLUMN_ROOT_ID, getDocIdForFile(baseSdCardDir))
+                add(Root.COLUMN_DOCUMENT_ID, getDocIdForFile(baseSdCardDir))
+
+                // Allow creation and searching
+                add(Root.COLUMN_FLAGS, Root.FLAG_SUPPORTS_CREATE)
+                add(Root.COLUMN_ICON, R.mipmap.ic_launcher)
+                add(Root.COLUMN_AVAILABLE_BYTES, baseSdCardDir.freeSpace)
+            }
         }
         return result
     }

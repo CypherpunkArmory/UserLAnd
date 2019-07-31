@@ -50,7 +50,6 @@ import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import tech.ula.ui.FilesystemListFragment
 import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.utils.preferences.* // ktlint-disable no-wildcard-imports
-import java.io.File
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppsListFragment.AppSelection, FilesystemListFragment.FilesystemListProgress {
 
@@ -60,7 +59,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private var currentFragmentDisplaysProgressDialog = false
 
     private val logger = SentryLogger()
-    private val ulaFiles by lazy { UlaFiles(this.filesDir, this.scopedStorageRoot, File(this.applicationInfo.nativeLibraryDir)) }
+    private val ulaFiles by lazy { UlaFiles(this, this.applicationInfo.nativeLibraryDir) }
     private val busyboxExecutor by lazy {
         val prootDebugLogger = ProotDebugLogger(this.defaultSharedPreferences, ulaFiles)
         BusyboxExecutor(ulaFiles, prootDebugLogger)

@@ -28,7 +28,7 @@ class ProotDebugLoggerTest {
 
     @Before
     fun setup() {
-        whenever(mockUlaFiles.scopedUserDir).thenReturn(tempFolder.root)
+        whenever(mockUlaFiles.emulatedUserDir).thenReturn(tempFolder.root)
 
         prootDebugLogger = ProotDebugLogger(mockDefaultSharedPreferences, mockUlaFiles)
     }
