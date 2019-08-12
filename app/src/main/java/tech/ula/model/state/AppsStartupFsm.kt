@@ -114,6 +114,7 @@ class AppsStartupFsm(
 
     private suspend fun setServiceType(appSession: Session, serviceType: ServiceType) = withContext(Dispatchers.IO) {
         appSession.serviceType = serviceType
+        appSession.port = if (serviceType == ServiceType.Ssh) 2022 else 51
         sessionDao.updateSession(appSession)
         state.postValue(AppHasServiceTypeSet)
     }
@@ -156,6 +157,8 @@ class AppsStartupFsm(
         state.postValue(SyncingDatabaseEntries)
         appSession.filesystemId = appsFilesystem.id
         appSession.filesystemName = appsFilesystem.name
+        appSession.serviceType = appSession.serviceType
+        appSession.port = if (appSession.serviceType is ServiceType.Ssh) 2022 else 51
         appSession.username = appsFilesystem.defaultUsername
         appSession.password = appsFilesystem.defaultPassword
         appSession.vncPassword = appsFilesystem.defaultVncPassword
