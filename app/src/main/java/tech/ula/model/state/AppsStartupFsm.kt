@@ -157,7 +157,6 @@ class AppsStartupFsm(
         state.postValue(SyncingDatabaseEntries)
         appSession.filesystemId = appsFilesystem.id
         appSession.filesystemName = appsFilesystem.name
-        appSession.serviceType = appSession.serviceType
         appSession.port = if (appSession.serviceType is ServiceType.Ssh) 2022 else 51
         appSession.username = appsFilesystem.defaultUsername
         appSession.password = appsFilesystem.defaultPassword
