@@ -1,5 +1,6 @@
 package tech.ula.utils
 
+import android.content.Context
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
@@ -14,7 +15,8 @@ class UlaFilesTest {
 
     @get:Rule val tempFolder = TemporaryFolder()
 
-    private lateinit var mockSymlinker: Symlinker
+    private val mockContext: Context = mock()
+    private val mockSymlinker: Symlinker = mock()
 
     private lateinit var testFilesDir: File
     private lateinit var testScopedDir: File
@@ -30,7 +32,9 @@ class UlaFilesTest {
         testLibDir = tempFolder.newFolder("execLib")
         testSupportDir = File(testFilesDir, "support")
 
-        mockSymlinker = mock()
+        whenever(mockContext.filesDir).thenReturn(testFilesDir)
+        whenever(mockContext.getExternalFilesDir(null)).thenReturn(testScopedDir)
+        whenever(mockContext.getExternalFilesDirs(null)).thenReturn(arrayOf(testFilesDir))
     }
 
     @Test
@@ -39,7 +43,7 @@ class UlaFilesTest {
         val testFile = tempFolder.newFile(testFileName)
         testFile.createNewFile()
 
-        ulaFiles = UlaFiles(testFilesDir, testScopedDir, testLibDir, mockSymlinker)
+        ulaFiles = UlaFiles(mockContext, testLibDir.path, mockSymlinker)
         ulaFiles.makePermissionsUsable(tempFolder.root.path, testFileName)
 
         var output = ""
@@ -48,6 +52,38 @@ class UlaFilesTest {
         proc.inputStream.bufferedReader(Charsets.UTF_8).forEachLine { output += it }
         val permissions = output.substring(0, 10)
         assertTrue(permissions == "-rwxrwxrwx")
+    }
+
+    @Test
+    fun `sdCardUserDir is created if an sd card exists and public fields are created`() {
+        val sdcardDir = File(tempFolder.root, "sdcard")
+        whenever(mockContext.getExternalFilesDirs(null))
+                .thenReturn(arrayOf(testScopedDir, sdcardDir))
+
+        ulaFiles = UlaFiles(mockContext, testLibDir.path, mockSymlinker)
+
+        val expectedUserDir = File(sdcardDir, "storage")
+        assertTrue(expectedUserDir.exists())
+        assertTrue(expectedUserDir.isDirectory)
+        assertEquals(sdcardDir, ulaFiles.sdCardScopedDir)
+        assertEquals(expectedUserDir, ulaFiles.sdCardUserDir)
+    }
+
+    @Test
+    fun `sdCardUserDir is not created if sdcard does not exist and public fields are null`() {
+        whenever(mockContext.getExternalFilesDirs(null)).thenReturn(arrayOf(testFilesDir))
+
+        ulaFiles = UlaFiles(mockContext, testLibDir.path, mockSymlinker)
+
+        assertEquals(null, ulaFiles.sdCardScopedDir)
+        assertEquals(null, ulaFiles.sdCardUserDir)
+    }
+
+    @Test
+    fun `libDir is created from libDirPath constructor parameter`() {
+        ulaFiles = UlaFiles(mockContext, testLibDir.path, mockSymlinker)
+
+        assertEquals(testLibDir, ulaFiles.libDir)
     }
 
     @Test
@@ -73,7 +109,7 @@ class UlaFilesTest {
                     Files.createSymbolicLink(expectedSupportFile2.toPath(), libFile2.toPath())
                 }
 
-        ulaFiles = UlaFiles(testFilesDir, testScopedDir, testLibDir, mockSymlinker)
+        ulaFiles = UlaFiles(mockContext, testLibDir.path, mockSymlinker)
 
         assertTrue(expectedSupportFile1.exists())
         assertTrue(expectedSupportFile2.exists())

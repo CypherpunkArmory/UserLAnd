@@ -65,7 +65,7 @@ class AssetDownloaderTest {
         mockFilesDir = tempFolder.newFolder("files")
         mockScopedStorageDir = tempFolder.newFolder("scoped")
         whenever(mockUlaFiles.filesDir).thenReturn(mockFilesDir)
-        whenever(mockUlaFiles.scopedDir).thenReturn(mockScopedStorageDir)
+        whenever(mockUlaFiles.emulatedScopedDir).thenReturn(mockScopedStorageDir)
 
         downloadDirectory = File(mockScopedStorageDir, "downloads")
         downloadDirectory.mkdirs()
