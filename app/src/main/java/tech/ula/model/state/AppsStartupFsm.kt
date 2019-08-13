@@ -1,5 +1,6 @@
 package tech.ula.model.state
 
+import android.app.Service
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
@@ -114,6 +115,7 @@ class AppsStartupFsm(
 
     private suspend fun setServiceType(appSession: Session, serviceType: ServiceType) = withContext(Dispatchers.IO) {
         appSession.serviceType = serviceType
+        appSession.port = if (serviceType == ServiceType.Vnc) 51 else 2022
         sessionDao.updateSession(appSession)
         state.postValue(AppHasServiceTypeSet)
     }

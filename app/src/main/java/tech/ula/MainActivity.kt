@@ -50,9 +50,14 @@ import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import tech.ula.ui.FilesystemListFragment
 import tech.ula.model.repositories.DownloadMetadata
+import tech.ula.ui.CloudDemoFragment
 import tech.ula.utils.preferences.* // ktlint-disable no-wildcard-imports
 
-class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppsListFragment.AppSelection, FilesystemListFragment.FilesystemListProgress {
+class MainActivity : AppCompatActivity(),
+        SessionListFragment.SessionSelection,
+        AppsListFragment.AppSelection,
+        FilesystemListFragment.FilesystemListProgress,
+        CloudDemoFragment.CloudProgress {
 
     val className = "MainActivity"
 
@@ -512,6 +517,14 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     override fun stopProgressFromFilesystemList() {
+        killProgressBar()
+    }
+
+    override fun updateCloudProgress(details: String) {
+        updateProgressBar(details, "")
+    }
+
+    override fun killCloudProgress() {
         killProgressBar()
     }
 
