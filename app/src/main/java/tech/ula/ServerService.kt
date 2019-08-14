@@ -5,9 +5,8 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.IBinder
-import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import kotlinx.coroutines.*
+import kotlinx.coroutines.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.entities.App
 import tech.ula.model.entities.ServiceType
 import tech.ula.model.repositories.UlaDatabase

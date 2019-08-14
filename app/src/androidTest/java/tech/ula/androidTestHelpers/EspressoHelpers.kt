@@ -18,9 +18,7 @@ import androidx.test.uiautomator.UiDevice
 import androidx.test.platform.app.InstrumentationRegistry
 import android.view.KeyCharacterMap
 import android.view.KeyEvent
-import com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertNotDisplayed
 import java.io.File
-import java.lang.Exception
 import java.util.concurrent.TimeoutException
 
 fun @receiver:IdRes Int.shortWaitForDisplay() {
