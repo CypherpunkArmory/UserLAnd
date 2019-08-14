@@ -155,7 +155,7 @@ class ServerService : Service(), CoroutineScope {
 
     private fun startSshClient(session: Session) {
         val connectBotIntent = Intent()
-        connectBotIntent.action = "android.intent.action.VIEW"
+        connectBotIntent.action = Intent.ACTION_VIEW
         connectBotIntent.data = Uri.parse("ssh://${session.username}@localhost:2022/#userland")
         connectBotIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
 
@@ -164,7 +164,7 @@ class ServerService : Service(), CoroutineScope {
 
     private fun startVncClient(session: Session, packageName: String) {
         val bVncIntent = Intent()
-        bVncIntent.action = "android.intent.action.VIEW"
+        bVncIntent.action = Intent.ACTION_VIEW
         bVncIntent.type = "application/vnd.vnc"
         bVncIntent.data = Uri.parse("vnc://127.0.0.1:5951/?VncUsername=${session.username}&VncPassword=${session.vncPassword}")
         bVncIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
