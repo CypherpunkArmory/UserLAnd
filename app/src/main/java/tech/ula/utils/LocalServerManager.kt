@@ -10,6 +10,8 @@ class LocalServerManager(
     private val logger: Logger = SentryLogger()
 ) {
 
+    private val vncDisplayNumber = 51
+
     fun Process.pid(): Long {
         return this.toString()
                 .substringAfter("pid=")
@@ -18,35 +20,40 @@ class LocalServerManager(
                 .trim().toLong()
     }
 
-    private fun Session.pidRelativeFilePath(): String {
-        return when (this.serviceType) {
-            ServiceType.Ssh -> "/run/dropbear.pid"
-            ServiceType.Vnc -> "/home/${this.username}/.vnc/localhost:${this.port}.pid"
-            ServiceType.Xsdl -> "/tmp/xsdl.pidfile"
-            else -> "error"
-        }
-    }
-
-    private fun Session.pidFilePath(): String {
-        return "$applicationFilesDirPath/${this.filesystemId}${this.pidRelativeFilePath()}"
-    }
-
-    fun Session.pid(): Long {
-        val pidFile = File(this.pidFilePath())
-        if (!pidFile.exists()) return -1
-        return try {
-            pidFile.readText().trim().toLong()
-        } catch (e: Exception) {
-            -1
-        }
-    }
-
     fun startServer(session: Session): Long {
         return when (session.serviceType) {
             ServiceType.Ssh -> startSSHServer(session)
             ServiceType.Vnc -> startVNCServer(session)
             ServiceType.Xsdl -> setDisplayNumberAndStartTwm(session)
             else -> 0
+        }
+    }
+
+    fun stopService(session: Session) {
+        val command = "support/killProcTree.sh ${session.pid} ${session.serverPid()}"
+        val result = busyboxExecutor.executeScript(command)
+        if (result is FailedExecution) {
+            val details = "func: stopService err: ${result.reason}"
+            val breadcrumb = UlaBreadcrumb("LocalServerManager", BreadcrumbType.RuntimeError, details)
+            logger.addBreadcrumb(breadcrumb)
+        }
+    }
+
+    fun isServerRunning(session: Session): Boolean {
+        val command = "support/isServerInProcTree.sh ${session.serverPid()}"
+        // The server itself is run by a third-party, so we can consider this to always be true.
+        // The third-party app is responsible for handling errors starting their server.
+        if (session.serviceType == ServiceType.Xsdl) return true
+        val result = busyboxExecutor.executeScript(command)
+        return when (result) {
+            is SuccessfulExecution -> true
+            is FailedExecution -> {
+                val details = "func: isServerRunning err: ${result.reason}"
+                val breadcrumb = UlaBreadcrumb("LocalServerManager", BreadcrumbType.RuntimeError, details)
+                logger.addBreadcrumb(breadcrumb)
+                false
+            }
+            else -> false
         }
     }
 
@@ -123,31 +130,26 @@ class LocalServerManager(
         }
     }
 
-    fun stopService(session: Session) {
-        val command = "support/killProcTree.sh ${session.pid} ${session.pid()}"
-        val result = busyboxExecutor.executeScript(command)
-        if (result is FailedExecution) {
-            val details = "func: stopService err: ${result.reason}"
-            val breadcrumb = UlaBreadcrumb("LocalServerManager", BreadcrumbType.RuntimeError, details)
-            logger.addBreadcrumb(breadcrumb)
+    private fun Session.pidRelativeFilePath(): String {
+        return when (this.serviceType) {
+            ServiceType.Ssh -> "/run/dropbear.pid"
+            ServiceType.Vnc -> "/home/${this.username}/.vnc/localhost:$vncDisplayNumber.pid"
+            ServiceType.Xsdl -> "/tmp/xsdl.pidfile"
+            else -> "error"
         }
     }
 
-    fun isServerRunning(session: Session): Boolean {
-        val command = "support/isServerInProcTree.sh ${session.pid()}"
-        // The server itself is run by a third-party, so we can consider this to always be true.
-        // The third-party app is responsible for handling errors starting their server.
-        if (session.serviceType == ServiceType.Xsdl) return true
-        val result = busyboxExecutor.executeScript(command)
-        return when (result) {
-            is SuccessfulExecution -> true
-            is FailedExecution -> {
-                val details = "func: isServerRunning err: ${result.reason}"
-                val breadcrumb = UlaBreadcrumb("LocalServerManager", BreadcrumbType.RuntimeError, details)
-                logger.addBreadcrumb(breadcrumb)
-                false
-            }
-            else -> false
+    private fun Session.pidFilePath(): String {
+        return "$applicationFilesDirPath/${this.filesystemId}${this.pidRelativeFilePath()}"
+    }
+
+    private fun Session.serverPid(): Long {
+        val pidFile = File(this.pidFilePath())
+        if (!pidFile.exists()) return -1
+        return try {
+            pidFile.readText().trim().toLong()
+        } catch (e: Exception) {
+            -1
         }
     }
 }
