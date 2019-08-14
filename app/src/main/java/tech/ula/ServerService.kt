@@ -6,17 +6,19 @@ import android.content.Intent
 import android.net.Uri
 import android.os.IBinder
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.entities.App
 import tech.ula.model.entities.ServiceType
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Session
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import kotlin.coroutines.CoroutineContext
 
-class ServerService : Service() {
+class ServerService : Service(), CoroutineScope {
+
+    private val job = Job()
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Default + job
 
     companion object {
         const val SERVER_SERVICE_RESULT: String = "tech.ula.ServerService.RESULT"
@@ -53,9 +55,8 @@ class ServerService : Service() {
 
         when (intent?.getStringExtra("type")) {
             "start" -> {
-                val coroutineScope = CoroutineScope(Dispatchers.Default)
                 val session: Session = intent.getParcelableExtra("session")!!
-                coroutineScope.launch { startSession(session) }
+                this.launch { startSession(session) }
             }
             "stopApp" -> {
                 val app: App = intent.getParcelableExtra("app")!!
@@ -87,8 +88,16 @@ class ServerService : Service() {
     // to clean up when app is swiped away.
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
+        // Redundancy to ensure no hanging processes, given broad device spectrum.
+        this.coroutineContext.cancel()
         stopForeground(true)
         stopSelf()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Redundancy to ensure no hanging processes, given broad device spectrum.
+        this.coroutineContext.cancel()
     }
 
     private fun removeSession(session: Session) {
@@ -145,8 +154,8 @@ class ServerService : Service() {
 
     private fun startSshClient(session: Session) {
         val connectBotIntent = Intent()
-        connectBotIntent.action = "android.intent.action.VIEW"
-        connectBotIntent.data = Uri.parse("ssh://${session.username}@localhost:${session.port}/#userland")
+        connectBotIntent.action = Intent.ACTION_VIEW
+        connectBotIntent.data = Uri.parse("ssh://${session.username}@localhost:2022/#userland")
         connectBotIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
 
         startActivity(connectBotIntent)
@@ -154,7 +163,7 @@ class ServerService : Service() {
 
     private fun startVncClient(session: Session, packageName: String) {
         val bVncIntent = Intent()
-        bVncIntent.action = "android.intent.action.VIEW"
+        bVncIntent.action = Intent.ACTION_VIEW
         bVncIntent.type = "application/vnd.vnc"
         bVncIntent.data = Uri.parse("vnc://127.0.0.1:5951/?VncUsername=${session.username}&VncPassword=${session.vncPassword}")
         bVncIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK

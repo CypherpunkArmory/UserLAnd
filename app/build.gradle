@@ -280,7 +280,6 @@ dependencies {
     def mockito_version = '2.23.0'
     def mockito_kotlin_version = '2.1.0'
     def core_testing_version = '2.0.0-beta01'
-    def espresso_version = '3.2.0'
     def androidx_test_version = '1.2.0'
     def androidx_test_ext_version = '1.1.0'
 
@@ -296,6 +295,7 @@ dependencies {
     androidTestImplementation "androidx.test:rules:$androidx_test_version"
     androidTestImplementation "androidx.test.ext:junit:$androidx_test_ext_version"
     // Barista packages espresso-core and espresso-contrib
+    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.2.0'
     androidTestImplementation('com.schibsted.spain:barista:3.1.0') {
         exclude group: 'com.android.support'
         exclude group: 'org.jetbrains.kotlin'
