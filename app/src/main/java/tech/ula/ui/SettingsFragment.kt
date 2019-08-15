@@ -4,21 +4,26 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.os.Environment
 import tech.ula.R
-import java.io.File
-import android.support.v7.preference.PreferenceFragmentCompat
-import android.widget.Toast
+import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.Preference
+import tech.ula.utils.ProotDebugLogger
+import tech.ula.utils.UlaFiles
+import tech.ula.utils.defaultSharedPreferences
 
 class SettingsFragment : PreferenceFragmentCompat() {
+
+    private val prootDebugLogger by lazy {
+        val ulaFiles = UlaFiles(activity!!, activity!!.applicationInfo.nativeLibraryDir)
+        ProotDebugLogger(activity!!.defaultSharedPreferences, ulaFiles)
+    }
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.preferences)
 
-        val deleteFilePreference = findPreference("pref_proot_delete_debug_file")
+        val deleteFilePreference: Preference = findPreference("pref_proot_delete_debug_file")!!
         deleteFilePreference.setOnPreferenceClickListener {
-            val debugFile = File("${Environment.getExternalStorageDirectory()}/PRoot_Debug_Log")
-            if (debugFile.exists()) debugFile.delete()
-            Toast.makeText(activity, R.string.debug_log_deleted, Toast.LENGTH_LONG).show()
+            prootDebugLogger.deleteLogs()
             true
         }
     }

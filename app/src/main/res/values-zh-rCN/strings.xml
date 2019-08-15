@@ -38,7 +38,6 @@
     <string name="prompt_filesystem">文件系统：</string>
     <string name="prompt_service_type">服务类别：</string>
     <string name="prompt_client_type">客户端类别：</string>
-    <string name="services_notification_channel_id">UserLAnd服务</string>
     <string name="services_notification_channel_name">服务</string>
     <string name="services_notification_channel_description">永久服务</string>
     <string name="service_notification_title">UserLAnd</string>

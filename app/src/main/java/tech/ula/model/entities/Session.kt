@@ -1,11 +1,59 @@
 package tech.ula.model.entities
 
-import android.arch.persistence.room.Entity
-import android.arch.persistence.room.ForeignKey
-import android.arch.persistence.room.Index
-import android.arch.persistence.room.PrimaryKey
 import android.os.Parcelable
+import androidx.room.* // ktlint-disable no-wildcard-imports
 import kotlinx.android.parcel.Parcelize
+
+fun String.toServiceType(): ServiceType {
+    return when (this) {
+        "ssh" -> ServiceType.Ssh
+        "vnc" -> ServiceType.Vnc
+        "xsdl" -> ServiceType.Xsdl
+        else -> ServiceType.Unselected
+    }
+}
+
+sealed class ServiceType : Parcelable {
+    @Parcelize
+    object Unselected : ServiceType() {
+        override fun toString(): String {
+            return "unselected"
+        }
+    }
+
+    @Parcelize
+    object Ssh : ServiceType() {
+        override fun toString(): String {
+            return "ssh"
+        }
+    }
+
+    @Parcelize
+    object Vnc : ServiceType() {
+        override fun toString(): String {
+            return "vnc"
+        }
+    }
+
+    @Parcelize
+    object Xsdl : ServiceType() {
+        override fun toString(): String {
+            return "xsdl"
+        }
+    }
+}
+
+class ServiceTypeConverter {
+    @TypeConverter
+    fun fromString(value: String): ServiceType {
+        return value.toServiceType()
+    }
+
+    @TypeConverter
+    fun fromServiceType(value: ServiceType): String {
+        return value.toString()
+    }
+}
 
 @Parcelize
 @Entity(tableName = "session",
@@ -17,6 +65,7 @@ import kotlinx.android.parcel.Parcelize
         indices = [
             Index(value = ["filesystemId"])
         ])
+@TypeConverters(ServiceTypeConverter::class)
 data class Session(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
@@ -27,8 +76,8 @@ data class Session(
     var username: String = "",
     var password: String = "",
     var vncPassword: String = "",
-    var serviceType: String = "",
-    var port: Long = 2022,
+    var serviceType: ServiceType = ServiceType.Unselected,
+    var port: Long = 2022, // TODO This can be removed. Any eventual port managing should be done at a high     er abstraction.
     var pid: Long = 0,
     var geometry: String = "",
     val isAppsSession: Boolean = false

@@ -1,52 +1,53 @@
 package tech.ula.ui
 
 import android.app.AlertDialog
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import android.content.Intent
 import android.os.Bundle
-import android.os.Environment
-import android.support.v4.app.Fragment
+import androidx.fragment.app.Fragment
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.AdapterView
 import android.widget.Toast
-import androidx.navigation.fragment.NavHostFragment
+import androidx.core.os.bundleOf
+import androidx.navigation.fragment.findNavController
 import kotlinx.android.synthetic.main.frag_filesystem_list.* // ktlint-disable no-wildcard-imports
-import org.jetbrains.anko.bundleOf
-import org.jetbrains.anko.defaultSharedPreferences
 import tech.ula.MainActivity
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.utils.BusyboxExecutor
-import tech.ula.utils.DefaultPreferences
-import tech.ula.utils.FilesystemUtility
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.entities.Session
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.FilesystemListViewModel
+
+private const val FILESYSTEM_EXPORT_REQUEST_CODE = 7
 
 class FilesystemListFragment : Fragment() {
 
-    interface ExportFilesystem {
-        fun updateExportProgress(details: String)
-        fun stopExportProgress()
+    interface FilesystemListProgress {
+        fun updateFilesystemExportProgress(details: String)
+        fun updateFilesystemDeleteProgress()
+        fun stopProgressFromFilesystemList()
     }
 
     private lateinit var activityContext: MainActivity
 
     private lateinit var filesystemList: List<Filesystem>
 
-    private val externalStorageDir = Environment.getExternalStorageDirectory()
-
     private lateinit var activeSessions: List<Session>
 
     private val filesystemListViewModel: FilesystemListViewModel by lazy {
         val filesystemDao = UlaDatabase.getInstance(activityContext).filesystemDao()
         val sessionDao = UlaDatabase.getInstance(activityContext).sessionDao()
-        val busyboxExecutor = BusyboxExecutor(activityContext.filesDir, externalStorageDir, DefaultPreferences(activityContext.defaultSharedPreferences))
-        val filesystemUtility = FilesystemUtility(activityContext.filesDir.absolutePath, busyboxExecutor)
-        ViewModelProviders.of(this, FilesystemListViewmodelFactory(filesystemDao, sessionDao, filesystemUtility)).get(FilesystemListViewModel::class.java)
+
+        val ulaFiles = UlaFiles(activityContext, activityContext.applicationInfo.nativeLibraryDir)
+        val prootDebugLogger = ProotDebugLogger(activityContext.defaultSharedPreferences, ulaFiles)
+        val busyboxExecutor = BusyboxExecutor(ulaFiles, prootDebugLogger)
+
+        val filesystemManager = FilesystemManager(ulaFiles, busyboxExecutor)
+        ViewModelProviders.of(this, FilesystemListViewmodelFactory(filesystemDao, sessionDao, filesystemManager)).get(FilesystemListViewModel::class.java)
     }
 
     private val filesystemChangeObserver = Observer<List<Filesystem>> {
@@ -57,24 +58,11 @@ class FilesystemListFragment : Fragment() {
         }
     }
 
-    private val filesystemExportStatusObserver = Observer<FilesystemExportStatus> {
-        it?.let { exportStatus ->
-            when (exportStatus) {
-                is ExportUpdate -> {
-                    activityContext.updateExportProgress(exportStatus.details)
-                }
-                is ExportSuccess -> {
-                    Toast.makeText(activityContext, R.string.export_success, Toast.LENGTH_LONG).show()
-                    activityContext.stopExportProgress()
-                }
-                is ExportFailure -> {
-                    val dialogBuilder = AlertDialog.Builder(activityContext)
-                    dialogBuilder.setMessage(getString(R.string.export_failure) + "\n" + getString(exportStatus.reason)).create().show()
-                    activityContext.stopExportProgress()
-                }
-                is ExportStarted -> {
-                    activityContext.updateExportProgress(getString(R.string.export_started))
-                }
+    private val viewStateObserver = Observer<FilesystemListViewState> {
+        it?.let { viewState ->
+            when (viewState) {
+                is FilesystemExportState -> handleExportStatus(viewState)
+                is FilesystemDeleteState -> handleDeleteStatus(viewState)
             }
         }
     }
@@ -94,8 +82,10 @@ class FilesystemListFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return if (item.itemId == R.id.menu_item_add) editFilesystem(Filesystem(0))
-        else super.onOptionsItemSelected(item)
+        return if (item.itemId == R.id.menu_item_add) {
+            editFilesystem(Filesystem(0))
+            true
+        } else super.onOptionsItemSelected(item)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -107,12 +97,12 @@ class FilesystemListFragment : Fragment() {
 
         activityContext = activity!! as MainActivity
         filesystemListViewModel.getAllFilesystems().observe(viewLifecycleOwner, filesystemChangeObserver)
-        filesystemListViewModel.getExportStatusLiveData().observe(viewLifecycleOwner, filesystemExportStatusObserver)
+        filesystemListViewModel.getViewState().observe(viewLifecycleOwner, viewStateObserver)
         filesystemListViewModel.getAllActiveSessions().observe(viewLifecycleOwner, activeSessionObserver)
         registerForContextMenu(list_filesystems)
     }
 
-    override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
+    override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo?) {
         super.onCreateContextMenu(menu, v, menuInfo)
         activityContext.menuInflater.inflate(R.menu.context_menu_filesystems, menu)
     }
@@ -121,35 +111,93 @@ class FilesystemListFragment : Fragment() {
         val menuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
         val position = menuInfo.position
         val filesystem = filesystemList[position]
-        return when (item.itemId) {
+        when (item.itemId) {
             R.id.menu_item_filesystem_edit -> editFilesystem(filesystem)
             R.id.menu_item_filesystem_delete -> deleteFilesystem(filesystem)
-            R.id.menu_item_filesystem_export -> exportFilesystem(filesystem, activeSessions)
+            R.id.menu_item_filesystem_export -> exportFilesystem(filesystem)
             else -> super.onContextItemSelected(item)
         }
-    }
-
-    private fun editFilesystem(filesystem: Filesystem): Boolean {
-        val editExisting = filesystem.name != ""
-        val bundle = bundleOf("filesystem" to filesystem, "editExisting" to editExisting)
-        NavHostFragment.findNavController(this).navigate(R.id.filesystem_edit_fragment, bundle)
         return true
     }
 
-    private fun deleteFilesystem(filesystem: Filesystem): Boolean {
-        filesystemListViewModel.deleteFilesystemById(filesystem.id)
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == FILESYSTEM_EXPORT_REQUEST_CODE) {
+            data?.data?.let { uri ->
+                val filesDir = activityContext.filesDir
+                filesystemListViewModel.startExport(filesDir, uri, activityContext.contentResolver)
+            }
+        }
+    }
 
+    private fun editFilesystem(filesystem: Filesystem) {
+        val editExisting = filesystem.name != ""
+        val bundle = bundleOf("filesystem" to filesystem, "editExisting" to editExisting)
+        this.findNavController().navigate(R.id.filesystem_edit_fragment, bundle)
+    }
+
+    private fun deleteFilesystem(filesystem: Filesystem) {
         val serviceIntent = Intent(activityContext, ServerService::class.java)
         serviceIntent.putExtra("type", "filesystemIsBeingDeleted")
         serviceIntent.putExtra("filesystemId", filesystem.id)
         activityContext.startService(serviceIntent)
 
-        return true
+        filesystemListViewModel.deleteFilesystemById(filesystem.id)
     }
 
-    private fun exportFilesystem(filesystem: Filesystem, activeSessions: List<Session>): Boolean {
-        val externalDestination = Environment.getExternalStoragePublicDirectory("UserLAnd")
-        filesystemListViewModel.startExport(filesystem, activeSessions, activityContext.filesDir, externalDestination)
-        return true
+    private fun exportFilesystem(filesystem: Filesystem) {
+        if (!PermissionHandler.permissionsAreGranted(activityContext)) {
+            PermissionHandler.showPermissionsNecessaryDialog(activityContext)
+            return
+        }
+        val suggestedFilesystemBackupName = filesystemListViewModel.getFilesystemBackupName(filesystem)
+        val intent = createExportExternalIntent(suggestedFilesystemBackupName)
+        filesystemListViewModel.setFilesystemToBackup(filesystem)
+        startActivityForResult(intent, FILESYSTEM_EXPORT_REQUEST_CODE)
+    }
+
+    private fun createExportExternalIntent(backupName: String): Intent {
+        return Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "application/*"
+            putExtra(Intent.EXTRA_TITLE, backupName)
+        }
+    }
+
+    private fun handleExportStatus(viewState: FilesystemExportState) {
+        return when (viewState) {
+            is FilesystemExportState.Update -> {
+                activityContext.updateFilesystemExportProgress(viewState.details)
+            }
+            is FilesystemExportState.Success -> {
+                activityContext.stopProgressFromFilesystemList()
+                Toast.makeText(activityContext, R.string.backup_export_success, Toast.LENGTH_LONG).show()
+            }
+            is FilesystemExportState.Failure -> {
+                val dialogBuilder = AlertDialog.Builder(activityContext)
+                val reason = if (viewState.reason == R.string.error_export_execution_failure) {
+                    getString(viewState.reason, viewState.details)
+                } else {
+                    getString(viewState.reason)
+                }
+                dialogBuilder.setMessage(getString(R.string.export_failure) + "\n" + reason).create().show()
+                activityContext.stopProgressFromFilesystemList()
+            }
+        }
+    }
+
+    private fun handleDeleteStatus(viewState: FilesystemDeleteState) {
+        return when (viewState) {
+            is FilesystemDeleteState.InProgress -> {
+                activityContext.updateFilesystemDeleteProgress()
+            }
+            is FilesystemDeleteState.Success -> {
+                activityContext.stopProgressFromFilesystemList()
+            }
+            is FilesystemDeleteState.Failure -> {
+                activityContext.displayGenericErrorDialog(R.string.general_error_title, R.string.error_filesystem_delete)
+                activityContext.stopProgressFromFilesystemList()
+            }
+        }
     }
 }

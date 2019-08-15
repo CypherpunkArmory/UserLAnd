@@ -1,10 +1,11 @@
 package tech.ula.model.daos
 
-import android.arch.core.executor.testing.InstantTaskExecutorRule
-import android.arch.persistence.room.Room
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.room.Room
 import android.database.sqlite.SQLiteConstraintException
-import android.support.test.InstrumentationRegistry
-import android.support.test.runner.AndroidJUnit4
+import androidx.test.InstrumentationRegistry
+import androidx.test.filters.SmallTest
+import androidx.test.runner.AndroidJUnit4
 import org.junit.After
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
@@ -15,6 +16,7 @@ import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Filesystem
 
 @RunWith(AndroidJUnit4::class)
+@SmallTest
 class FilesystemDaoTest {
 
     @get:Rule

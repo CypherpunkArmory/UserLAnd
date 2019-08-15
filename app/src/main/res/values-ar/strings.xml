@@ -47,6 +47,7 @@
     <string name="error_app_description_not_found">لا يمكن العثور على وصف لهذا التطبيق.  حاول انعاشه</string>
     <string name="error_vnc_password_length_incorrect">يجب أن تكون كلمة مرور VNC بين 6 إلى 8 أحرف!</string>
     <string name="error_username_invalid">اسم المستخدم يحتوي على أحرف غير صالحة</string>
+
     <string name="error_password_invalid">كلمة المرور تحتوي على أحرف غير صالحة</string>
     <string name="error_vnc_password_invalid">كلمة مرور VNC بها أحرف غير صالحة</string>
     <string name="error_username_invalid_characters">يجب أن تتكون الأحرف في اسم المستخدم من 1 إلى 30 حرفًا بأحرف صغيرة و / أو أرقام.</string>
@@ -60,6 +61,13 @@
     <string name="error_library_setup_failure">يبدو أن الإعداد الأولي فشل.  يرجى الاتصال بنا على Github.</string>
     <string name="error_no_lib_directory">يبدو أن دليل المكتبة الذي نبحث عنه غير موجود.  يرجى الاتصال بنا على Github.</string>
     <string name="error_filesystem_delete">فشل حذف نظام الملفات!  حاول إيقاف جميع الجلسات والمحاولة مرة أخرى.</string>
+
+    <string name="error_password_invalid">كلمة السر بها أحرف غير صالحة</string>
+    <string name="error_vnc_password_invalid">كلمة السر VNC تحتوي  أحرف غير صالحة</string>
+    <string name="error_username_invalid_characters">يجب أن تتكون الأحرف في اسم المستخدم من 1 إلى 30 حرفًا بأحرف و / أو أرقام صغيرة.</string>
+    <string name="error_username_in_blacklist">ربما يتم حجز اسم المستخدم هذا بواسطة Linux ولا يمكن استخدامه كاسم مستخدم لنظام الملفات</string>
+    <string name="error_filesystem_name_invalid_characters">يجب أن تكون الأحرف في اسم نظام الملفات من 1 إلى 50 حرفًا دون أحرف مثل \ "/: * \\ |</string>
+
 
     <!-- Download Failure Reasons -->
     <string name="download_failure_http_error">خطا Http: %1$s</string>
@@ -77,7 +85,11 @@
     <string name="download_failure_finished_wrong_items">حاول إنهاء عملية التنزيل باستخدام عناصر لم نقم بادراجها.</string>
   
     <!-- Illegal State Dialog -->
+
     <string name="illegal_state_github_message">%1$s \n سيتم الآن تعطل التطبيق بحيث يمكننا استلام سجل أخطاء. لا تتردد أيضًا في إخبارنا على جيثب! نحن نعمل على حل هذه القضايا.</string>
+
+
+
     <string name="illegal_state_title">لقد دخل UserLAnd حالة غير قانونية!</string>
     <string name="illegal_state_transition">انتقال الحالة السيئة:%1$s</string>
     <string name="illegal_state_too_many_selections_when_permissions_granted">تم اختيار كل من الجلسة والتطبيق عند منح الأذونات.</string>
@@ -97,7 +109,10 @@
     <string name="illegal_state_failed_to_copy_assets_to_local">أخفق نسخ الأصول إلى التخزين المحلي. حاول مسح ملفات الدعم.</string>
     <string name="illegal_state_assets_have_not_been_downloaded">يجب نسخ الأصول الى نظام الملفات الخاص بك ، ولكن يبدو أنه لم يتم تنزيلها. حاول مسح ملفات الدعم.</string>
     <string name="illegal_state_empty_download_cache_access">كانت ذاكرة التخزين المؤقت للتنزيلات فارغة عند محاولة الوصول.</string>
+
     <!--string name="illegal_state_download_cache_access_in_incorrect_state">تم الوصول إلى ذاكرة التخزين المؤقت للتنزيل في حالة لا تدعم ذلك.</string-->
+
+
     <string name="illegal_state_failed_to_copy_assets_to_filesystem">فشل نسخ الأصول إلى نظام الملفات. حاول مسح ملفات الدعم.</string>
     <string name="illegal_state_failed_to_extract_filesystem">فشل استخراج نظام الملفات. حاول مسح ملفات الدعم.</string>
     <string name="illegal_state_failed_to_clear_support_files">فشل مسح ملفات الدعم.</string>
@@ -117,7 +132,10 @@
     <string name="prompt_install_file_manager">الرجاء تثبيت مدير الملفات</string>
 
     <!-- Notification strings -->
+
     <!--string name="services_notification_channel_id">UserLAnd خدمات</string-->
+
+
     <string name="services_notification_channel_name">خدمات</string>
     <string name="services_notification_channel_description">الخدمات المستمرة</string>
     <string name="service_notification_title">UserLAnd</string>
@@ -137,7 +155,10 @@
     <string name="progress_starting">بدء الخدمة &#8230;</string>
     <string name="progress_clearing_support_files">مسح جميع ملفات الدعم &#8230;</string>
     <string name="progress_exporting_filesystem">يستخرج ملفات النظام</string>
+
     <string name="progress_deleting_filesystem">حذف نظام الملفات</string>
+
+
 
     <!-- Preferences -->
     <string name="pref_app_category">تفضيلات التطبيق</string>
@@ -244,6 +265,7 @@
     <string name="review_ask_for_rating">ماذا عن التقييم على متجر Play ، إذن؟</string>
     <string name="review_ask_for_feedback">هل تمانع في إعطائنا بعض التعليقات على Github؟</string>
 
+
     <!-- Error collection opt-in -->
     <string name="opt_in_preference">الاشتراك في الإبلاغ عن الأخطاء</string>
     <string name="opt_in_preference_summary">اسمح لنا بجمع تقارير الأخطاء لتحسين UserLAnd.</string>
@@ -260,6 +282,8 @@
         فان استخدام دليل sdcard/ لن يتصرف كما هو عليه الحال قبل اصدار Q.
         يرجى زيارة ويكيبيديا المتوفرة لدينا على GitHub لمعرفة المزيد.
     </string>
+
+
 
     <!-- Advanced options -->
     <string name="desc_import_backups_should_use_same_settings">املأ نفسه: \n\n\u2022 اسم المستخدم \n\u2022 كلمة المرور \n\u2022 كلمة مرور VNC \n\u2022 التوزيع \n\n كنسخة احتياطية لضمان الأداء الوظيفي السلس</string>

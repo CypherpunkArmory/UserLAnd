@@ -1,9 +1,9 @@
 package tech.ula.viewmodel
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MutableLiveData
-import android.arch.lifecycle.ViewModel
-import android.arch.lifecycle.ViewModelProvider
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import android.content.ContentResolver
 import android.net.Uri
 import kotlinx.coroutines.* // ktlint-disable no-wildcard-imports
@@ -55,6 +55,7 @@ class FilesystemEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(
                 return@withContext
             }
 
+            if (filesystem.name.toLowerCase() == "apps") filesystem.isAppsFilesystem = true
             filesystem.isCreatedFromBackup = true
             val id = ulaDatabase.filesystemDao().insertFilesystem(filesystem)
 
@@ -73,7 +74,7 @@ class FilesystemEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(
                 val streamOutput = FileOutputStream(destination)
                 inputStream.use { input ->
                     streamOutput.use { fileOut ->
-                        input!!.copyTo(fileOut)
+                        input.copyTo(fileOut)
                     }
                 }
             } catch (e: Exception) {
@@ -96,6 +97,7 @@ class FilesystemEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(
 
 class FilesystemEditViewmodelFactory(private val ulaDatabase: UlaDatabase) : ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        @Suppress("UNCHECKED_CAST")
         return FilesystemEditViewModel(ulaDatabase) as T
     }
 }

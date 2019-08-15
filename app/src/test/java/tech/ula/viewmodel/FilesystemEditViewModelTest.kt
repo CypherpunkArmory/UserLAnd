@@ -1,7 +1,7 @@
 package tech.ula.viewmodel
 
-import android.arch.core.executor.testing.InstantTaskExecutorRule
-import android.arch.lifecycle.Observer
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.Observer
 import android.content.ContentResolver
 import android.net.Uri
 import com.nhaarman.mockitokotlin2.whenever
@@ -42,7 +42,7 @@ class FilesystemEditViewModelTest {
 
     @Mock lateinit var mockBackupUri: Uri
 
-    lateinit var filesystemEditViewModel: FilesystemEditViewModel
+    private lateinit var filesystemEditViewModel: FilesystemEditViewModel
 
     @Before
     fun setup() {
@@ -137,6 +137,40 @@ class FilesystemEditViewModelTest {
             filesystemEditViewModel.insertFilesystemFromBackup(mockContentResolver, filesystem, filesDir, this)
         }
 
+        filesystem.isCreatedFromBackup = true
+        verify(mockFilesystemDao).insertFilesystem(filesystem)
+
+        val readBackupText = expectedBackupTargetFile.readText()
+        assertTrue(expectedBackupTargetFile.exists())
+        assertEquals(backupText, readBackupText)
+        verify(mockObserver).onChanged(ImportSuccess)
+        assertEquals(null, filesystemEditViewModel.backupUri)
+    }
+
+    @Test
+    fun `insertFilesystemFromBackup sets isAppsFilesystem if filesystem name is 'apps'`() {
+        val filesystem = Filesystem(id = 0, name = "apps")
+        whenever(mockFilesystemDao.insertFilesystem(filesystem)).thenReturn(1)
+
+        val filesDir = tempFolder.root
+
+        val backupText = "this is test text"
+        val backupSourceFile = tempFolder.newFile("backupFile")
+        backupSourceFile.writeText(backupText)
+
+        val filesystemSupportDir = tempFolder.newFolder("1", "support")
+        val expectedBackupTargetFile = File("${filesystemSupportDir.absolutePath}/rootfs.tar.gz")
+
+        whenever(mockContentResolver.openInputStream(mockBackupUri))
+                .thenReturn(backupSourceFile.inputStream())
+
+        filesystemEditViewModel.backupUri = mockBackupUri
+        filesystemEditViewModel.getImportStatusLiveData().observeForever(mockObserver)
+        runBlocking {
+            filesystemEditViewModel.insertFilesystemFromBackup(mockContentResolver, filesystem, filesDir, this)
+        }
+
+        filesystem.isAppsFilesystem = true
         filesystem.isCreatedFromBackup = true
         verify(mockFilesystemDao).insertFilesystem(filesystem)
 

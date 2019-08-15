@@ -11,7 +11,7 @@ import android.widget.TextView
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.utils.LocalFileLocator
+import tech.ula.utils.AppDetails
 
 class SessionListAdapter(
     private var activity: Activity,
@@ -96,11 +96,11 @@ class SessionListAdapter(
                     view?.setBackgroundResource(R.color.colorPrimaryDark)
                 }
 
-                val localFileLocator = LocalFileLocator(activity.filesDir.path, activity.resources)
-                viewHolder.textViewServiceType?.text = session.serviceType
+                val appDetailer = AppDetails(activity.filesDir.path, activity.resources)
+                viewHolder.textViewServiceType?.text = session.serviceType.toString()
                 viewHolder.textViewSessionName?.text = session.name
                 viewHolder.textViewFilesystemName?.text = session.filesystemName
-                viewHolder.imageViewFilesystemIcon?.setImageURI(localFileLocator.findIconUri(filesystem.distributionType))
+                viewHolder.imageViewFilesystemIcon?.setImageURI(appDetailer.findIconUri(filesystem.distributionType))
             }
         }
 

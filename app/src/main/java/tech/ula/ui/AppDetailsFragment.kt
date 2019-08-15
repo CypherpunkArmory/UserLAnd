@@ -1,35 +1,39 @@
 package tech.ula.ui
 
 import android.app.Activity
-import android.content.Context
 import android.os.Build
 import android.os.Bundle
-import android.support.v4.app.Fragment
+import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.RadioButton
 import android.widget.TextView
-import kotlinx.android.synthetic.main.frag_app_details.*
-import org.jetbrains.anko.find
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.fragment.navArgs
+import kotlinx.android.synthetic.main.frag_app_details.* // ktlint-disable no-wildcard-imports
 import tech.ula.R
-import tech.ula.model.entities.App
-import tech.ula.utils.AppsPreferences
-import tech.ula.utils.LocalFileLocator
-import tech.ula.utils.SshTypePreference
-import tech.ula.utils.VncTypePreference
-import tech.ula.utils.XsdlTypePreference
+import tech.ula.model.repositories.UlaDatabase
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import tech.ula.viewmodel.AppDetailsEvent
+import tech.ula.viewmodel.AppDetailsViewModel
+import tech.ula.viewmodel.AppDetailsViewState
+import tech.ula.viewmodel.AppDetailsViewmodelFactory
 
 class AppDetailsFragment : Fragment() {
 
     private lateinit var activityContext: Activity
 
-    private val app: App by lazy {
-        arguments?.getParcelable("app") as App
-    }
+    private val args: AppDetailsFragmentArgs by navArgs()
+    private val app by lazy { args.app!! }
 
-    private val appsPreferences by lazy {
-        AppsPreferences(activityContext.getSharedPreferences("apps", Context.MODE_PRIVATE))
+    private val viewModel by lazy {
+        val sessionDao = UlaDatabase.getInstance(activityContext).sessionDao()
+        val appDetails = AppDetails(activityContext.filesDir.path, activityContext.resources)
+        val buildVersion = Build.VERSION.SDK_INT
+        val factory = AppDetailsViewmodelFactory(sessionDao, appDetails, buildVersion)
+        ViewModelProviders.of(this, factory)
+                .get(AppDetailsViewModel::class.java)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -40,48 +44,55 @@ class AppDetailsFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
 
         activityContext = activity!!
-        val localFileLocator = LocalFileLocator(activityContext.filesDir.path, activityContext.resources)
-
-        apps_icon.setImageURI(localFileLocator.findIconUri(app.name))
-        apps_title.text = app.name
-        apps_description.text = (localFileLocator.findAppDescription(app.name))
-
+        viewModel.viewState.observe(this, Observer<AppDetailsViewState> { viewState ->
+            viewState?.let {
+                handleViewStateChange(viewState)
+            }
+        })
+        viewModel.submitEvent(AppDetailsEvent.SubmitApp(app))
         setupPreferredServiceTypeRadioGroup()
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        if (!app.supportsGui) {
-            apps_vnc_preference.isEnabled = false
+    private fun handleViewStateChange(viewState: AppDetailsViewState) {
+        apps_icon.setImageURI(viewState.appIconUri)
+        apps_title.text = viewState.appTitle
+        apps_description.text = viewState.appDescription
+        handleEnableRadioButtons(viewState)
+        handleShowStateHint(viewState)
+
+        if (viewState.selectedServiceTypeButton != null) {
+            apps_service_type_preferences.check(viewState.selectedServiceTypeButton)
+        }
+    }
+
+    private fun handleEnableRadioButtons(viewState: AppDetailsViewState) {
+        apps_ssh_preference.isEnabled = viewState.sshEnabled
+        apps_vnc_preference.isEnabled = viewState.vncEnabled
+
+        if (viewState.xsdlEnabled) {
+            apps_xsdl_preference.isEnabled = true
+        } else {
+            // Xsdl is unavailable on Android 9 and greater
             apps_xsdl_preference.isEnabled = false
-        } else if (!app.supportsCli && app.supportsGui)
-            apps_ssh_preference.isEnabled = false
+            apps_xsdl_preference.alpha = 0.5f
 
-        val xsdlPreferenceButton = view.find<RadioButton>(R.id.apps_xsdl_preference)
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
-            xsdlPreferenceButton.isEnabled = false
-            xsdlPreferenceButton.alpha = 0.5f
+            val xsdlSupportedText = view?.find<TextView>(R.id.text_xsdl_version_supported_description)
+            xsdlSupportedText?.visibility = View.VISIBLE
+        }
+    }
 
-            val xsdlSupportedText = view.find<TextView>(R.id.text_xsdl_version_supported_description)
-            xsdlSupportedText.visibility = View.VISIBLE
+    private fun handleShowStateHint(viewState: AppDetailsViewState) {
+        if (viewState.describeStateHintEnabled) {
+            text_describe_state.visibility = View.VISIBLE
+            text_describe_state.setText(viewState.describeStateText!!)
+        } else {
+            text_describe_state.visibility = View.GONE
         }
     }
 
     private fun setupPreferredServiceTypeRadioGroup() {
-        when (appsPreferences.getAppServiceTypePreference(app)) {
-            is SshTypePreference -> apps_service_type_preferences.check(R.id.apps_ssh_preference)
-            is VncTypePreference -> apps_service_type_preferences.check(R.id.apps_vnc_preference)
-            is XsdlTypePreference -> apps_service_type_preferences.check(R.id.apps_xsdl_preference)
-        }
-
         apps_service_type_preferences.setOnCheckedChangeListener { _, checkedId ->
-            val selectedServiceType = when (checkedId) {
-                R.id.apps_ssh_preference -> SshTypePreference
-                R.id.apps_vnc_preference -> VncTypePreference
-                R.id.apps_xsdl_preference -> XsdlTypePreference
-                else -> SshTypePreference
-            }
-            appsPreferences.setAppServiceTypePreference(app.name, selectedServiceType)
+            viewModel.submitEvent(AppDetailsEvent.ServiceTypeChanged(checkedId, app))
         }
     }
 }

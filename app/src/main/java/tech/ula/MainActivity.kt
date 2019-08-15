@@ -1,27 +1,23 @@
 package tech.ula
 
-import android.Manifest
-import android.annotation.TargetApi
 import android.app.AlertDialog
-import android.app.Application
 import android.app.DownloadManager
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.support.design.widget.TextInputEditText
-import android.support.v4.content.LocalBroadcastManager
-import android.support.v7.app.AppCompatActivity
+import android.os.StatFs
+import com.google.android.material.textfield.TextInputEditText
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.appcompat.app.AppCompatActivity
 import android.util.DisplayMetrics
 import android.view.Menu
 import android.view.MenuItem
@@ -29,62 +25,60 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.animation.AlphaAnimation
-import android.widget.Button
 import android.widget.RadioButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.navigation.findNavController
-import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.NavigationUI.setupWithNavController
 import kotlinx.android.synthetic.main.activity_main.* // ktlint-disable no-wildcard-imports
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.jetbrains.anko.defaultSharedPreferences
-import org.jetbrains.anko.find
 import tech.ula.model.entities.App
+import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
-import tech.ula.ui.AppListFragment
+import tech.ula.ui.AppsListFragment
 import tech.ula.ui.SessionListFragment
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
-import kotlinx.android.synthetic.main.dia_app_select_client.*
-import org.acra.ACRA
-import org.acra.config.CoreConfigurationBuilder
-import org.acra.config.HttpSenderConfigurationBuilder
-import org.acra.data.StringFormat
-import org.acra.sender.HttpSender
 import tech.ula.ui.FilesystemListFragment
 import tech.ula.model.repositories.DownloadMetadata
-import kotlin.IllegalStateException
+import tech.ula.utils.preferences.* // ktlint-disable no-wildcard-imports
 
-class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppListFragment.AppSelection, FilesystemListFragment.ExportFilesystem {
+class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppsListFragment.AppSelection, FilesystemListFragment.FilesystemListProgress {
 
-    private val permissionRequestCode: Int by lazy {
-        getString(R.string.permission_request_code).toInt()
-    }
+    val className = "MainActivity"
 
     private var progressBarIsVisible = false
     private var currentFragmentDisplaysProgressDialog = false
 
-    private val acraWrapper = AcraWrapper()
+    private val logger = SentryLogger()
+    private val ulaFiles by lazy { UlaFiles(this, this.applicationInfo.nativeLibraryDir) }
+    private val busyboxExecutor by lazy {
+        val prootDebugLogger = ProotDebugLogger(this.defaultSharedPreferences, ulaFiles)
+        BusyboxExecutor(ulaFiles, prootDebugLogger)
+    }
 
     private val navController: NavController by lazy {
         findNavController(R.id.nav_host_fragment)
     }
 
     private val notificationManager by lazy {
-        NotificationUtility(this)
+        NotificationConstructor(this)
     }
 
-    private val userFeedbackUtility by lazy {
-        UserFeedbackUtility(this.getSharedPreferences("usage", Context.MODE_PRIVATE))
+    private val userFeedbackPrompter by lazy {
+        UserFeedbackPrompter(this)
+    }
+
+    private val optInPrompter by lazy {
+        CollectionOptInPrompter(this)
     }
 
     private val downloadBroadcastReceiver = object : BroadcastReceiver() {
@@ -98,7 +92,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private val serverServiceBroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             intent.getStringExtra("type")?.let { intentType ->
-                acraWrapper.putCustomString("Last service broadcast received", intentType)
+                val breadcrumb = UlaBreadcrumb(className, BreadcrumbType.ReceivedIntent, intentType)
+                logger.addBreadcrumb(breadcrumb)
                 when (intentType) {
                     "sessionActivated" -> handleSessionHasBeenActivated()
                     "dialog" -> {
@@ -111,6 +106,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private val stateObserver = Observer<State> {
+        val breadcrumb = UlaBreadcrumb(className, BreadcrumbType.ObservedState, "$it")
+        logger.addBreadcrumb(breadcrumb)
         it?.let { state ->
             handleStateUpdate(state)
         }
@@ -119,120 +116,89 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private val viewModel: MainActivityViewModel by lazy {
         val ulaDatabase = UlaDatabase.getInstance(this)
 
-        val assetPreferences = AssetPreferences(this.getSharedPreferences("assetLists", Context.MODE_PRIVATE))
+        val assetPreferences = AssetPreferences(this)
         val assetRepository = AssetRepository(filesDir.path, assetPreferences)
 
-        val busyboxExecutor = BusyboxExecutor(filesDir, Environment.getExternalStorageDirectory(), DefaultPreferences(defaultSharedPreferences))
-        val filesystemUtility = FilesystemUtility(filesDir.path, busyboxExecutor)
+        val filesystemManager = FilesystemManager(ulaFiles, busyboxExecutor)
+        val storageCalculator = StorageCalculator(StatFs(filesDir.path))
 
         val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val downloadManagerWrapper = DownloadManagerWrapper(downloadManager)
-        val downloadUtility = DownloadUtility(assetPreferences, downloadManagerWrapper, filesDir)
+        val assetDownloader = AssetDownloader(assetPreferences, downloadManagerWrapper, ulaFiles)
 
-        val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
-
-        val appsStartupFsm = AppsStartupFsm(ulaDatabase, appsPreferences, filesystemUtility)
-        val sessionStartupFsm = SessionStartupFsm(ulaDatabase, assetRepository, filesystemUtility, downloadUtility)
+        val appsStartupFsm = AppsStartupFsm(ulaDatabase, filesystemManager)
+        val sessionStartupFsm = SessionStartupFsm(ulaDatabase, assetRepository, filesystemManager, assetDownloader, storageCalculator)
         ViewModelProviders.of(this, MainActivityViewModelFactory(appsStartupFsm, sessionStartupFsm))
                 .get(MainActivityViewModel::class.java)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        startAcra()
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
         notificationManager.createServiceNotificationChannel() // Android O requirement
 
         setNavStartDestination()
-
-        navController.addOnNavigatedListener { _, destination ->
-            currentFragmentDisplaysProgressDialog =
-                    destination.label == getString(R.string.sessions) ||
-                    destination.label == getString(R.string.apps) ||
-                    destination.label == getString(R.string.filesystems)
-            if (!currentFragmentDisplaysProgressDialog) killProgressBar()
-        }
+        setProgressDialogNavListeners()
 
         setupWithNavController(bottom_nav_view, navController)
 
-        userFeedbackUtility.incrementNumberOfTimesOpened()
-        if (userFeedbackUtility.askingForFeedbackIsAppropriate())
-            setupReviewRequestUI()
+        val promptViewHolder = findViewById<ViewGroup>(R.id.layout_user_prompt_insert)
+        if (userFeedbackPrompter.viewShouldBeShown()) {
+            userFeedbackPrompter.showView(promptViewHolder, this)
+        }
+
+        if (optInPrompter.viewShouldBeShown()) {
+            optInPrompter.showView(promptViewHolder, this)
+        }
+
+        handleQWarning()
+
+        if (optInPrompter.userHasOptedIn()) {
+            logger.initialize(this)
+        }
 
         viewModel.getState().observe(this, stateObserver)
     }
 
-    private fun startAcra() {
-        val builder = CoreConfigurationBuilder(applicationContext)
-        builder.setBuildConfigClass(BuildConfig::class.java)
-                .setReportFormat(StringFormat.JSON)
-        builder.getPluginConfigurationBuilder(HttpSenderConfigurationBuilder::class.java)
-                .setUri(BuildConfig.tracepotHttpsEndpoint)
-                .setHttpMethod(HttpSender.Method.POST)
-                .setEnabled(true)
-        ACRA.init(applicationContext as Application, builder)
-    }
-
-    private fun setupReviewRequestUI() {
-        val viewHolder = findViewById<ViewGroup>(R.id.request_review_insert_point)
-        layoutInflater.inflate(R.layout.list_item_review_request, viewHolder)
-
-        val requestQuestion = viewHolder.findViewById<TextView>(R.id.prompt_review_question)
-        val negativeBtn = viewHolder.findViewById<Button>(R.id.btn_negative_response)
-        val positiveBtn = viewHolder.findViewById<Button>(R.id.btn_positive_response)
-
-        positiveBtn.setOnClickListener {
-            requestQuestion.text = getString(R.string.review_ask_for_rating)
-            positiveBtn.text = getString(R.string.button_positive)
-            negativeBtn.text = getString(R.string.button_refuse)
-
-            positiveBtn.setOnClickListener {
-                handleUserFeedback(viewHolder)
-                val userlandPlayStoreURI = "https://play.google.com/store/apps/details?id=tech.ula"
-                val intent = Intent("android.intent.action.VIEW", Uri.parse(userlandPlayStoreURI))
-                startActivity(intent)
-            }
-
-            negativeBtn.setOnClickListener {
-                handleUserFeedback(viewHolder)
-            }
-        }
-
-        negativeBtn.setOnClickListener {
-            requestQuestion.text = getString(R.string.review_ask_for_feedback)
-            positiveBtn.text = getString(R.string.button_positive)
-            negativeBtn.text = getString(R.string.button_negative)
-
-            positiveBtn.setOnClickListener {
-                handleUserFeedback(viewHolder)
-                val githubURI = "https://github.com/CypherpunkArmory/UserLAnd"
-                val intent = Intent("android.intent.action.VIEW", Uri.parse(githubURI))
-                startActivity(intent)
-            }
-
-            negativeBtn.setOnClickListener {
-                handleUserFeedback(viewHolder)
-            }
-        }
-    }
-
-    private fun handleUserFeedback(viewHolder: ViewGroup) {
-        userFeedbackUtility.userHasGivenFeedback()
-        viewHolder.removeAllViews()
-    }
-
     private fun setNavStartDestination() {
-        val navHostFragment = nav_host_fragment as NavHostFragment
-        val inflater = navHostFragment.navController.navInflater
-        val graph = inflater.inflate(R.navigation.nav_graph)
-
         val userPreference = defaultSharedPreferences.getString("pref_default_nav_location", "Apps")
+        val graph = navController.navInflater.inflate(R.navigation.nav_graph)
         graph.startDestination = when (userPreference) {
             getString(R.string.sessions) -> R.id.session_list_fragment
             else -> R.id.app_list_fragment
         }
-        navHostFragment.navController.graph = graph
+        navController.graph = graph
+    }
+
+    private fun setProgressDialogNavListeners() {
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            currentFragmentDisplaysProgressDialog =
+                    destination.label == getString(R.string.sessions) ||
+                            destination.label == getString(R.string.apps) ||
+                            destination.label == getString(R.string.filesystems)
+            if (!currentFragmentDisplaysProgressDialog) killProgressBar()
+            else if (progressBarIsVisible) displayProgressBar()
+        }
+    }
+
+    private fun handleQWarning() {
+        val handler = QWarningHandler(this.getSharedPreferences(QWarningHandler.prefsString, Context.MODE_PRIVATE), ulaFiles)
+        if (handler.messageShouldBeDisplayed()) {
+            AlertDialog.Builder(this)
+                    .setTitle(R.string.q_warning_title)
+                    .setMessage(R.string.q_warning_message)
+                    .setPositiveButton(R.string.button_ok) { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    .setNeutralButton(R.string.wiki) {
+                        dialog, _ ->
+                        dialog.dismiss()
+                        sendWikiIntent()
+                    }
+                    .create().show()
+            handler.messageHasBeenDisplayed()
+        }
     }
 
     override fun onSupportNavigateUp() = navController.navigateUp()
@@ -252,17 +218,16 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     override fun onResume() {
         super.onResume()
 
-        acraWrapper.putCustomString("Last call to onResume", "${System.currentTimeMillis()}")
         viewModel.handleOnResume()
-        val intent = Intent(this, ServerService::class.java)
-                .putExtra("type", "isProgressBarActive")
-        this.startService(intent)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.terms_and_conditions) {
             val intent = Intent("android.intent.action.VIEW", Uri.parse("https://userland.tech/eula"))
             startActivity(intent)
+        }
+        if (item.itemId == R.id.option_wiki) {
+            sendWikiIntent()
         }
         if (item.itemId == R.id.clear_support_files) {
             displayClearSupportFilesDialog()
@@ -272,18 +237,22 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 super.onOptionsItemSelected(item)
     }
 
+    private fun sendWikiIntent() {
+        val intent = Intent("android.intent.action.VIEW", Uri.parse("https://github.com/CypherpunkArmory/UserLAnd/wiki"))
+        startActivity(intent)
+    }
+
     override fun onStop() {
         super.onStop()
 
-        acraWrapper.putCustomString("Last call to onStop", "${System.currentTimeMillis()}")
         LocalBroadcastManager.getInstance(this)
                 .unregisterReceiver(serverServiceBroadcastReceiver)
         unregisterReceiver(downloadBroadcastReceiver)
     }
 
     override fun appHasBeenSelected(app: App) {
-        if (!arePermissionsGranted(this)) {
-            showPermissionsNecessaryDialog()
+        if (!PermissionHandler.permissionsAreGranted(this)) {
+            PermissionHandler.showPermissionsNecessaryDialog(this)
             viewModel.waitForPermissions(appToContinue = app)
             return
         }
@@ -291,8 +260,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     override fun sessionHasBeenSelected(session: Session) {
-        if (!arePermissionsGranted(this)) {
-            showPermissionsNecessaryDialog()
+        if (!PermissionHandler.permissionsAreGranted(this)) {
+            PermissionHandler.showPermissionsNecessaryDialog(this)
             viewModel.waitForPermissions(sessionToContinue = session)
             return
         }
@@ -300,9 +269,12 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleStateUpdate(newState: State) {
-        acraWrapper.putCustomString("Last observed state from viewmodel", "$newState")
         return when (newState) {
-            is CanOnlyStartSingleSession -> { showToast(R.string.single_session_supported) }
+            is WaitingForInput -> { killProgressBar() }
+            is CanOnlyStartSingleSession -> {
+                showToast(R.string.single_session_supported)
+                viewModel.handleUserInputCancelled()
+            }
             is SessionCanBeStarted -> { prepareSessionForStart(newState.session) }
             is SessionCanBeRestarted -> { restartRunningSession(newState.session) }
             is IllegalState -> { handleIllegalState(newState) }
@@ -317,28 +289,31 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         updateProgressBar(step, details)
 
         // TODO: Alert user when defaulting to VNC
-        if (session.serviceType == "xsdl" && Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
-            session.serviceType = "vnc"
+        // TODO: Is this even possible?
+        if (session.serviceType is ServiceType.Xsdl && Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
+            session.serviceType = ServiceType.Vnc
         }
 
         when (session.serviceType) {
-            "xsdl" -> {
+            ServiceType.Xsdl -> {
                 viewModel.lastSelectedSession = session
                 sendXsdlIntentToSetDisplayNumberAndExpectResult()
             }
-            "vnc" -> {
-                getDeviceDimensions(session)
+            ServiceType.Vnc -> {
+                setVncResolution(session)
                 startSession(session)
             }
             else -> startSession(session)
         }
     }
 
-    private fun getDeviceDimensions(session: Session) {
+    private fun setVncResolution(session: Session) {
         val deviceDimensions = DeviceDimensions()
         val windowManager = applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        deviceDimensions.getDeviceDimensions(windowManager, DisplayMetrics())
-        session.geometry = deviceDimensions.getGeometry()
+
+        val orientation = applicationContext.resources.configuration.orientation
+        deviceDimensions.saveDeviceDimensions(windowManager, DisplayMetrics(), orientation)
+        session.geometry = deviceDimensions.getScreenResolution()
     }
 
     private fun startSession(session: Session) {
@@ -373,8 +348,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         super.onActivityResult(requestCode, resultCode, data)
         data?.let {
             val session = viewModel.lastSelectedSession
-            val result = data.getStringExtra("run")
-            if (session.serviceType == "xsdl" && result.isNotEmpty()) {
+            val result = data.getStringExtra("run") ?: ""
+            if (session.serviceType == ServiceType.Xsdl && result.isNotEmpty()) {
                 startSession(session)
             }
         }
@@ -388,6 +363,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleSessionHasBeenActivated() {
+        viewModel.handleSessionHasBeenActivated()
         killProgressBar()
     }
 
@@ -397,8 +373,10 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleUserInputState(state: UserInputRequiredState) {
-        acraWrapper.putCustomString("Last handled user input state", "$state")
         return when (state) {
+            is LowStorageAcknowledgementRequired -> {
+                displayLowStorageDialog()
+            }
             is FilesystemCredentialsRequired -> {
                 getCredentials()
             }
@@ -413,97 +391,36 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 displayNetworkChoicesDialog(state.downloadRequirements)
             }
             is ActiveSessionsMustBeDeactivated -> {
-                displayGenericErrorDialog(this, R.string.general_error_title, R.string.deactivate_sessions)
+                displayGenericErrorDialog(R.string.general_error_title, R.string.deactivate_sessions)
             }
         }
     }
 
     private fun handleIllegalState(state: IllegalState) {
-        acraWrapper.putCustomString("Last handled illegal state", "$state")
-        val reason: String = when (state) {
-            is IllegalStateTransition -> {
-                getString(R.string.illegal_state_transition, state.transition)
-            }
-            is TooManySelectionsMadeWhenPermissionsGranted -> {
-                getString(R.string.illegal_state_too_many_selections_when_permissions_granted)
-            }
-            is NoSelectionsMadeWhenPermissionsGranted -> {
-                getString(R.string.illegal_state_no_selections_when_permissions_granted)
-            }
-            is NoFilesystemSelectedWhenCredentialsSubmitted -> {
-                getString(R.string.illegal_state_no_filesystem_selected_when_credentials_selected)
-            }
-            is NoAppSelectedWhenPreferenceSubmitted -> {
-                getString(R.string.illegal_state_no_app_selected_when_preference_submitted)
-            }
-            is NoAppSelectedWhenTransitionNecessary -> {
-                getString(R.string.illegal_state_no_app_selected_when_preparation_started)
-            }
-            is ErrorFetchingAppDatabaseEntries -> {
-                getString(R.string.illegal_state_error_fetching_app_database_entries)
-            }
-            is ErrorCopyingAppScript -> {
-                getString(R.string.illegal_state_error_copying_app_script)
-            }
-            is NoSessionSelectedWhenTransitionNecessary -> {
-                getString(R.string.illegal_state_no_session_selected_when_preparation_started)
-            }
-            is ErrorFetchingAssetLists -> {
-                getString(R.string.illegal_state_error_fetching_asset_lists)
-            }
-            is DownloadsDidNotCompleteSuccessfully -> {
-                getString(R.string.illegal_state_downloads_did_not_complete_successfully, state.reason)
-            }
-            is FailedToCopyAssetsToLocalStorage -> {
-                getString(R.string.illegal_state_failed_to_copy_assets_to_local)
-            }
-            is AssetsHaveNotBeenDownloaded -> {
-                getString(R.string.illegal_state_assets_have_not_been_downloaded)
-            }
-            is DownloadCacheAccessedWhileEmpty -> {
-                getString(R.string.illegal_state_empty_download_cache_access)
-            }
-            is DownloadCacheAccessedInAnIncorrectState -> {
-                getString(R.string.illegal_state_download_cache_access_in_incorrect_state)
-            }
-            is FailedToCopyAssetsToFilesystem -> {
-                getString(R.string.illegal_state_failed_to_copy_assets_to_filesystem)
-            }
-            is FailedToExtractFilesystem -> {
-                getString(R.string.illegal_state_failed_to_extract_filesystem)
-            }
-            is FailedToClearSupportFiles -> {
-                getString(R.string.illegal_state_failed_to_clear_support_files)
-            }
-        }
-        displayIllegalStateDialog(reason)
+        val stateDescription = IllegalStateHandler.getLocalizationData(state).getString(this)
+        val displayMessage = getString(R.string.illegal_state_github_message, stateDescription)
+
+        AlertDialog.Builder(this)
+                .setMessage(displayMessage)
+                .setTitle(R.string.illegal_state_title)
+                .setPositiveButton(R.string.button_ok) {
+                    dialog, _ ->
+                    dialog.dismiss()
+                }
+                .create().show()
     }
 
     // TODO sealed classes?
     private fun showDialog(dialogType: String) {
         when (dialogType) {
             "unhandledSessionServiceType" -> {
-                displayGenericErrorDialog(this, R.string.general_error_title,
+                displayGenericErrorDialog(R.string.general_error_title,
                         R.string.illegal_state_unhandled_session_service_type)
             }
             "playStoreMissingForClient" ->
-                displayGenericErrorDialog(this, R.string.alert_need_client_app_title,
+                displayGenericErrorDialog(R.string.alert_need_client_app_title,
                     R.string.alert_need_client_app_message)
         }
-    }
-
-    private fun displayIllegalStateDialog(reason: String) {
-        val message = getString(R.string.illegal_state_message, reason)
-        AlertDialog.Builder(this)
-                .setMessage(message)
-                .setTitle(R.string.illegal_state_title)
-                .setPositiveButton(R.string.button_ok) {
-                    dialog, _ ->
-                    dialog.dismiss()
-                    acraWrapper.putCustomString("Illegal State Crash Reason", reason)
-                    throw IllegalStateException(reason)
-                }
-                .create().show()
     }
 
     private fun displayClearSupportFilesDialog() {
@@ -521,52 +438,22 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleClearSupportFiles() {
-        val appsPreferences = AppsPreferences(this.getSharedPreferences("apps", Context.MODE_PRIVATE))
-        val busyboxExecutor = BusyboxExecutor(this.filesDir, Environment.getExternalStorageDirectory(), DefaultPreferences(defaultSharedPreferences))
+        val appsPreferences = AppsPreferences(this)
         val assetDirectoryNames = appsPreferences.getDistributionsList().plus("support")
-        val assetFileClearer = AssetFileClearer(this.filesDir, assetDirectoryNames, busyboxExecutor)
+        val assetFileClearer = AssetFileClearer(ulaFiles, assetDirectoryNames, busyboxExecutor)
         CoroutineScope(Dispatchers.Main).launch { viewModel.handleClearSupportFiles(assetFileClearer) }
-    }
-
-    @TargetApi(Build.VERSION_CODES.M)
-    private fun showPermissionsNecessaryDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setMessage(R.string.alert_permissions_necessary_message)
-                .setTitle(R.string.alert_permissions_necessary_title)
-                .setPositiveButton(R.string.button_ok) {
-                    dialog, _ ->
-                    requestPermissions(arrayOf(
-                            Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                            permissionRequestCode)
-                    dialog.dismiss()
-                }
-                .setNegativeButton(R.string.alert_permissions_necessary_cancel_button) {
-                    dialog, _ ->
-                    dialog.dismiss()
-                }
-        builder.create().show()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            permissionRequestCode -> {
-
-                val grantedPermissions = (grantResults.isNotEmpty() &&
-                        grantResults[0] == PackageManager.PERMISSION_GRANTED &&
-                        grantResults[1] == PackageManager.PERMISSION_GRANTED)
-
-                if (grantedPermissions) {
-                    viewModel.permissionsHaveBeenGranted()
-                } else {
-                    showPermissionsNecessaryDialog()
-                }
-            }
+        if (PermissionHandler.permissionsWereGranted(requestCode, grantResults)) {
+            viewModel.permissionsHaveBeenGranted()
+        } else {
+            PermissionHandler.showPermissionsNecessaryDialog(this)
         }
     }
 
     private fun handleProgressBarUpdateState(state: ProgressBarUpdateState) {
-        acraWrapper.putCustomString("Last handled progress bar update state", "$state")
         return when (state) {
             is StartingSetup -> {
                 val step = getString(R.string.progress_start_step)
@@ -589,14 +476,18 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 val step = getString(R.string.progress_copying_downloads)
                 updateProgressBar(step, "")
             }
+            is VerifyingFilesystem -> {
+                val step = getString(R.string.progress_verifying_assets)
+                updateProgressBar(step, "")
+            }
+            is VerifyingAvailableStorage -> {
+                val step = getString(R.string.progress_verifying_sufficient_storage)
+                updateProgressBar(step, "")
+            }
             is FilesystemExtractionStep -> {
                 val step = getString(R.string.progress_setting_up_filesystem)
                 val details = getString(R.string.progress_extraction_details, state.extractionTarget)
                 updateProgressBar(step, details)
-            }
-            is VerifyingFilesystem -> {
-                val step = getString(R.string.progress_verifying_assets)
-                updateProgressBar(step, "")
             }
             is ClearingSupportFiles -> {
                 val step = getString(R.string.progress_clearing_support_files)
@@ -608,16 +499,21 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         }
     }
 
-    override fun updateExportProgress(details: String) {
+    override fun updateFilesystemExportProgress(details: String) {
         val step = getString(R.string.progress_exporting_filesystem)
         updateProgressBar(step, details)
     }
 
-    override fun stopExportProgress() {
+    override fun updateFilesystemDeleteProgress() {
+        val step = getString(R.string.progress_deleting_filesystem)
+        updateProgressBar(step, "")
+    }
+
+    override fun stopProgressFromFilesystemList() {
         killProgressBar()
     }
 
-    private fun updateProgressBar(step: String, details: String) {
+    private fun displayProgressBar() {
         if (!currentFragmentDisplaysProgressDialog) return
 
         if (!progressBarIsVisible) {
@@ -630,6 +526,10 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             layout_progress.isClickable = true
             progressBarIsVisible = true
         }
+    }
+
+    private fun updateProgressBar(step: String, details: String) {
+        displayProgressBar()
 
         text_session_list_progress_step.text = step
         text_session_list_progress_details.text = details
@@ -649,7 +549,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         for (network in connectivityManager.allNetworks) {
             val capabilities = connectivityManager.getNetworkCapabilities(network)
-            if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) return true
+            if (capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true) return true
         }
         return false
     }
@@ -692,8 +592,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         dialog.setPositiveButton(R.string.button_continue, null)
         val customDialog = dialog.create()
 
-        customDialog.setOnShowListener { _ ->
-            customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { _ ->
+        customDialog.setOnShowListener {
+            customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val username = customDialog.find<TextInputEditText>(R.id.text_input_username).text.toString()
                 val password = customDialog.find<TextInputEditText>(R.id.text_input_password).text.toString()
                 val vncPassword = customDialog.find<TextInputEditText>(R.id.text_input_vnc_password).text.toString()
@@ -710,6 +610,14 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         customDialog.show()
     }
 
+    private fun displayLowStorageDialog() {
+        displayGenericErrorDialog(R.string.alert_storage_low_title, R.string.alert_storage_low_message) {
+            viewModel.lowAvailableStorageAcknowledged()
+        }
+    }
+
+    // TODO refactor the names here
+    // TODO could this dialog share a layout with the apps details page somehow?
     private fun getServiceTypePreference() {
         val dialog = AlertDialog.Builder(this)
         val dialogView = layoutInflater.inflate(R.layout.dia_app_select_client, null)
@@ -738,13 +646,13 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
             customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 customDialog.dismiss()
-                val selectedPreference = when {
-                    sshTypePreference.isChecked -> SshTypePreference
-                    vncTypePreference.isChecked -> VncTypePreference
-                    xsdlTypePreference.isChecked -> XsdlTypePreference
-                    else -> PreferenceHasNotBeenSelected
+                val selectedType = when {
+                    sshTypePreference.isChecked -> ServiceType.Ssh
+                    vncTypePreference.isChecked -> ServiceType.Vnc
+                    xsdlTypePreference.isChecked -> ServiceType.Xsdl
+                    else -> ServiceType.Unselected
                 }
-                viewModel.submitAppServicePreference(selectedPreference)
+                viewModel.submitAppServiceType(selectedType)
             }
         }
         customDialog.setOnCancelListener {
@@ -756,7 +664,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     private fun validateCredentials(username: String, password: String, vncPassword: String): Boolean {
         val blacklistedUsernames = this.resources.getStringArray(R.array.blacklisted_usernames)
-        val validator = ValidationUtility()
+        val validator = CredentialValidator()
 
         val usernameCredentials = validator.validateUsername(username, blacklistedUsernames)
         val passwordCredentials = validator.validatePassword(password)

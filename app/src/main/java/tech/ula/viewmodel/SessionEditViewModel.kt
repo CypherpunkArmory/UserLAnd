@@ -1,8 +1,8 @@
 package tech.ula.viewmodel
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.ViewModel
-import android.arch.lifecycle.ViewModelProvider
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Filesystem
@@ -43,6 +43,7 @@ class SessionEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(), 
 
 class SessionEditViewmodelFactory(private val ulaDatabase: UlaDatabase) : ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        @Suppress("UNCHECKED_CAST")
         return SessionEditViewModel(ulaDatabase) as T
     }
 }

@@ -1,21 +1,25 @@
 package tech.ula.ui
 
 import android.app.Activity
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import android.graphics.Color
 import android.os.Bundle
-import android.support.v4.app.Fragment
+import androidx.fragment.app.Fragment
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.* // ktlint-disable no-wildcard-imports
 import android.widget.* // ktlint-disable no-wildcard-imports
+import androidx.core.os.bundleOf
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import kotlinx.android.synthetic.main.frag_session_edit.* // ktlint-disable no-wildcard-imports
-import org.jetbrains.anko.bundleOf
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
+import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.Session
+import tech.ula.model.entities.toServiceType
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.viewmodel.SessionEditViewModel
 import tech.ula.viewmodel.SessionEditViewmodelFactory
@@ -23,14 +27,9 @@ import tech.ula.viewmodel.SessionEditViewmodelFactory
 class SessionEditFragment : Fragment() {
 
     private lateinit var activityContext: Activity
-
-    private val session: Session by lazy {
-        arguments?.getParcelable("session") as Session
-    }
-
-    private val editExisting: Boolean by lazy {
-        arguments?.getBoolean("editExisting") ?: false
-    }
+    private val args: SessionEditFragmentArgs by navArgs()
+    private val session: Session by lazy { args.session!! }
+    private val editExisting by lazy { args.editExisting }
 
     private var filesystemList: List<Filesystem> = emptyList()
 
@@ -133,7 +132,8 @@ class SessionEditFragment : Fragment() {
                         is FilesystemDropdownItem.NonFilesystemItem -> {
                             if (item.text == "Create new") {
                                 val bundle = bundleOf("filesystem" to Filesystem(0), "editExisting" to false)
-                                NavHostFragment.findNavController(this@SessionEditFragment).navigate(R.id.filesystem_edit_fragment, bundle)
+                                this@SessionEditFragment.findNavController()
+                                        .navigate(R.id.filesystem_edit_fragment, bundle)
                             } else { }
                         }
                         is FilesystemDropdownItem.FilesystemItem -> {
@@ -151,9 +151,8 @@ class SessionEditFragment : Fragment() {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val selectedServiceType = parent?.getItemAtPosition(position).toString()
+                val selectedServiceType = parent?.getItemAtPosition(position).toString().toServiceType()
                 session.serviceType = selectedServiceType
-                session.port = getDefaultServicePort(selectedServiceType)
             }
         }
 
@@ -191,9 +190,9 @@ class SessionEditFragment : Fragment() {
         navController.popBackStack()
     }
 
-    private fun getDefaultServicePort(selectedServiceType: String): Long {
+    private fun getDefaultServicePort(selectedServiceType: ServiceType): Long {
         return when (selectedServiceType) {
-            "vnc" -> 51
+            ServiceType.Vnc -> 51
             else -> 2022
         }
     }

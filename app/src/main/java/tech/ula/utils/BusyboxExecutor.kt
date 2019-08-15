@@ -2,11 +2,9 @@ package tech.ula.utils
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStream
-import kotlin.text.Charsets.UTF_8
 
 sealed class ExecutionResult
 data class MissingExecutionAsset(val asset: String) : ExecutionResult()
@@ -15,25 +13,39 @@ data class FailedExecution(val reason: String) : ExecutionResult()
 data class OngoingExecution(val process: Process) : ExecutionResult()
 
 class BusyboxExecutor(
-    private val filesDir: File,
-    private val externalStorageDir: File,
-    private val defaultPreferences: DefaultPreferences,
-    private val busyboxWrapper: BusyboxWrapper = BusyboxWrapper()
+    private val ulaFiles: UlaFiles,
+    private val prootDebugLogger: ProotDebugLogger,
+    private val busyboxWrapper: BusyboxWrapper = BusyboxWrapper(ulaFiles)
 ) {
 
     private val discardOutput: (String) -> Any = { }
+
+    fun executeScript(
+        scriptCall: String,
+        listener: (String) -> Any = discardOutput
+    ): ExecutionResult {
+        val updatedCommand = busyboxWrapper.wrapScript(scriptCall)
+
+        return runCommand(updatedCommand, listener)
+    }
 
     fun executeCommand(
         command: String,
         listener: (String) -> Any = discardOutput
     ): ExecutionResult {
-        if (!busyboxWrapper.busyboxIsPresent(filesDir)) {
+        val updatedCommand = busyboxWrapper.wrapCommand(command)
+
+        return runCommand(updatedCommand, listener)
+    }
+
+    private fun runCommand(command: List<String>, listener: (String) -> Any): ExecutionResult {
+        if (!busyboxWrapper.busyboxIsPresent()) {
             return MissingExecutionAsset("busybox")
         }
-        val updatedCommand = busyboxWrapper.addBusybox(command)
-        val env = busyboxWrapper.getBusyboxEnv(filesDir)
-        val processBuilder = ProcessBuilder(updatedCommand)
-        processBuilder.directory(filesDir)
+
+        val env = busyboxWrapper.getBusyboxEnv()
+        val processBuilder = ProcessBuilder(command)
+        processBuilder.directory(ulaFiles.filesDir)
         processBuilder.environment().putAll(env)
         processBuilder.redirectErrorStream(true)
 
@@ -55,23 +67,25 @@ class BusyboxExecutor(
         coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     ): ExecutionResult {
         when {
-            !busyboxWrapper.busyboxIsPresent(filesDir) -> return MissingExecutionAsset("busybox")
-            !busyboxWrapper.prootIsPresent(filesDir) -> return MissingExecutionAsset("proot")
-            !busyboxWrapper.executionScriptIsPresent(filesDir) -> return MissingExecutionAsset("execution script")
+            !busyboxWrapper.busyboxIsPresent() ->
+                return MissingExecutionAsset("busybox")
+            !busyboxWrapper.prootIsPresent() ->
+                return MissingExecutionAsset("proot")
+            !busyboxWrapper.executionScriptIsPresent() ->
+                return MissingExecutionAsset("execution script")
         }
 
-        val prootDebugEnabled = defaultPreferences.getProotDebuggingEnabled()
+        val prootDebugEnabled = prootDebugLogger.isEnabled
         val prootDebugLevel =
-                if (prootDebugEnabled) defaultPreferences.getProotDebuggingLevel() else "-1"
-        val prootDebugLocation = defaultPreferences.getProotDebugLogLocation()
+                if (prootDebugEnabled) prootDebugLogger.verbosityLevel else "-1"
 
         val updatedCommand = busyboxWrapper.addBusyboxAndProot(command)
-        val filesystemDir = File("${filesDir.absolutePath}/$filesystemDirName")
+        val filesystemDir = File("${ulaFiles.filesDir.absolutePath}/$filesystemDirName")
 
-        env.putAll(busyboxWrapper.getProotEnv(filesDir, filesystemDir, prootDebugLevel, externalStorageDir))
+        env.putAll(busyboxWrapper.getProotEnv(filesystemDir, prootDebugLevel))
 
         val processBuilder = ProcessBuilder(updatedCommand)
-        processBuilder.directory(filesDir)
+        processBuilder.directory(ulaFiles.filesDir)
         processBuilder.environment().putAll(env)
         processBuilder.redirectErrorStream(true)
 
@@ -79,11 +93,15 @@ class BusyboxExecutor(
             val process = processBuilder.start()
             when {
                 prootDebugEnabled && commandShouldTerminate -> {
-                    redirectOutputToDebugLog(process.inputStream, prootDebugLocation, coroutineScope)
+                    // Call the listener explicitly since all output will be captured by the log
+                    listener("Output redirecting to proot debug log")
+                    prootDebugLogger.logStream(process.inputStream, coroutineScope)
                     getProcessResult(process)
                 }
                 prootDebugEnabled && !commandShouldTerminate -> {
-                    redirectOutputToDebugLog(process.inputStream, prootDebugLocation, coroutineScope)
+                    // Call the listener explicitly since all output will be captured by the log
+                    listener("Output redirecting to proot debug log")
+                    prootDebugLogger.logStream(process.inputStream, coroutineScope)
                     OngoingExecution(process)
                 }
                 commandShouldTerminate -> {
@@ -112,24 +130,6 @@ class BusyboxExecutor(
         buf.close()
     }
 
-    private fun redirectOutputToDebugLog(
-        inputStream: InputStream,
-        prootDebugLocation: String,
-        coroutineScope: CoroutineScope
-    ) = coroutineScope.launch {
-        val prootLogFile = File(prootDebugLocation)
-        if (prootLogFile.exists()) {
-            prootLogFile.delete()
-        }
-        prootLogFile.createNewFile()
-        val reader = inputStream.bufferedReader(UTF_8)
-        val writer = prootLogFile.writer(UTF_8)
-        reader.forEachLine { line -> writer.write("$line\n") }
-        reader.close()
-        writer.flush()
-        writer.close()
-    }
-
     private fun getProcessResult(process: Process): ExecutionResult {
         return if (process.waitFor() == 0) SuccessfulExecution
         else FailedExecution("Command failed with: ${process.exitValue()}")
@@ -137,44 +137,77 @@ class BusyboxExecutor(
 }
 
 // This class is intended to allow stubbing of elements that are unavailable during unit tests.
-class BusyboxWrapper {
+class BusyboxWrapper(private val ulaFiles: UlaFiles) {
     // For basic commands, CWD should be `applicationFilesDir`
-    fun addBusybox(command: String): List<String> {
-        return listOf("support/busybox", "sh", "-c", command)
+    fun wrapCommand(command: String): List<String> {
+        return listOf(ulaFiles.busybox.path, "sh", "-c", command)
     }
 
-    fun getBusyboxEnv(filesDir: File): HashMap<String, String> {
-        return hashMapOf("ROOT_PATH" to filesDir.absolutePath)
+    fun wrapScript(command: String): List<String> {
+        return listOf(ulaFiles.busybox.path, "sh") + command.split(" ")
     }
 
-    fun busyboxIsPresent(filesDir: File): Boolean {
-        val busyboxFile = File("${filesDir.absolutePath}/support/busybox")
-        return busyboxFile.exists()
+    fun getBusyboxEnv(): HashMap<String, String> {
+        return hashMapOf(
+                "LIB_PATH" to ulaFiles.supportDir.absolutePath,
+                "ROOT_PATH" to ulaFiles.filesDir.absolutePath
+        )
+    }
+
+    fun busyboxIsPresent(): Boolean {
+        return ulaFiles.busybox.exists()
     }
 
     // Proot scripts expect CWD to be `applicationFilesDir/<filesystem`
     fun addBusyboxAndProot(command: String): List<String> {
-        val commandWithProot = "support/execInProot.sh $command"
-        return listOf("support/busybox", "sh", "-c", commandWithProot)
+        return listOf(ulaFiles.busybox.absolutePath, "sh", "support/execInProot.sh") + command.split(" ")
     }
 
-    fun getProotEnv(filesDir: File, filesystemDir: File, prootDebugLevel: String, externalStorageDir: File): HashMap<String, String> {
+    fun getProotEnv(filesystemDir: File, prootDebugLevel: String): HashMap<String, String> {
+        // TODO This hack should be removed once there are no users on releases 2.5.14 - 2.6.1
+        handleHangingBindingDirectories(filesystemDir)
+        val emulatedStorageBinding = "-b ${ulaFiles.emulatedUserDir.absolutePath}:/storage/internal"
+        val externalStorageBinding = ulaFiles.sdCardUserDir?.run {
+            "-b ${this.absolutePath}:/storage/sdcard"
+        } ?: ""
+        val bindings = "$emulatedStorageBinding $externalStorageBinding"
         return hashMapOf(
-                "LD_LIBRARY_PATH" to "${filesDir.absolutePath}/support",
-                "ROOT_PATH" to filesDir.absolutePath,
+                "LD_LIBRARY_PATH" to ulaFiles.supportDir.absolutePath,
+                "LIB_PATH" to ulaFiles.supportDir.absolutePath,
+                "ROOT_PATH" to ulaFiles.filesDir.absolutePath,
                 "ROOTFS_PATH" to filesystemDir.absolutePath,
                 "PROOT_DEBUG_LEVEL" to prootDebugLevel,
-                "EXTRA_BINDINGS" to "-b ${externalStorageDir.absolutePath}:/sdcard",
-                "OS_VERSION" to System.getProperty("os.version"))
+                "EXTRA_BINDINGS" to bindings,
+                "OS_VERSION" to System.getProperty("os.version")!!
+        )
     }
 
-    fun prootIsPresent(filesDir: File): Boolean {
-        val prootFile = File("${filesDir.absolutePath}/support/proot")
-        return prootFile.exists()
+    fun prootIsPresent(): Boolean {
+        return ulaFiles.proot.exists()
     }
 
-    fun executionScriptIsPresent(filesDir: File): Boolean {
-        val execInProotFile = File("${filesDir.absolutePath}/support/execInProot.sh")
+    fun executionScriptIsPresent(): Boolean {
+        val execInProotFile = File(ulaFiles.supportDir, "execInProot.sh")
         return execInProotFile.exists()
+    }
+
+    // TODO this hack should be removed when no users are left using version 2.5.14 - 2.6.1
+    private fun handleHangingBindingDirectories(filesystemDir: File) {
+        // If users upgraded from a version 2.5.14 - 2.6.1, the storage directory will exist but
+        // with unusable permissions. It needs to be recreated.
+        val storageBindingDir = File(filesystemDir, "storage")
+        val storageBindingDirEmpty = storageBindingDir.listFiles()?.isEmpty() ?: true
+        if (storageBindingDir.exists() && storageBindingDir.isDirectory && storageBindingDirEmpty) {
+            storageBindingDir.delete()
+        }
+        storageBindingDir.mkdirs()
+
+        // If users upgraded from a version before 2.5.14, the old sdcard binding should be removed
+        // to increase clarity.
+        val sdCardBindingDir = File(filesystemDir, "sdcard")
+        val sdCardBindingDirEmpty = sdCardBindingDir.listFiles()?.isEmpty() ?: true
+        if (sdCardBindingDir.exists() && sdCardBindingDir.isDirectory && sdCardBindingDirEmpty) {
+            sdCardBindingDir.delete()
+        }
     }
 }

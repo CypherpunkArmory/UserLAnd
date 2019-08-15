@@ -1,24 +1,26 @@
 package tech.ula.model.state
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MutableLiveData
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Filesystem
+import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 
 class AppsStartupFsm(
     ulaDatabase: UlaDatabase,
-    private val appsPreferences: AppsPreferences,
-    private val filesystemUtility: FilesystemUtility,
-    private val buildWrapper: BuildWrapper = BuildWrapper(),
-    private val acraWrapper: AcraWrapper = AcraWrapper()
+    private val filesystemManager: FilesystemManager,
+    private val deviceArchitecture: DeviceArchitecture = DeviceArchitecture(),
+    private val logger: Logger = SentryLogger()
 ) {
+
+    private val className = "AppsFSM"
 
     private val sessionDao = ulaDatabase.sessionDao()
     private val filesystemDao = ulaDatabase.filesystemDao()
@@ -39,17 +41,17 @@ class AppsStartupFsm(
             is AppSelected -> currentState is WaitingForAppSelection
             is CheckAppsFilesystemCredentials -> currentState is DatabaseEntriesFetched
             is SubmitAppsFilesystemCredentials -> currentState is AppsFilesystemRequiresCredentials
-            is CheckAppServicePreference -> currentState is AppsFilesystemHasCredentials
-            is SubmitAppServicePreference -> currentState is AppRequiresServiceTypePreference
-            is CopyAppScriptToFilesystem -> currentState is AppHasServiceTypePreferenceSet
+            is CheckAppSessionServiceType -> currentState is AppsFilesystemHasCredentials
+            is SubmitAppSessionServiceType -> currentState is AppRequiresServiceType
+            is CopyAppScriptToFilesystem -> currentState is AppHasServiceTypeSet
             is SyncDatabaseEntries -> currentState is AppScriptCopySucceeded
             is ResetAppState -> true
         }
     }
 
     fun submitEvent(event: AppsStartupEvent, coroutineScope: CoroutineScope) = coroutineScope.launch {
-        acraWrapper.putCustomString("Last submitted apps fsm event", "$event")
-        acraWrapper.putCustomString("State during apps fsm event submission", "${state.value}")
+        val eventBreadcrumb = UlaBreadcrumb(className, BreadcrumbType.ReceivedEvent, "Event: $event State: ${state.value}")
+        logger.addBreadcrumb(eventBreadcrumb)
         if (!transitionIsAcceptable(event)) {
             state.postValue(IncorrectAppTransition(event, state.value!!))
             return@launch
@@ -60,9 +62,9 @@ class AppsStartupFsm(
             is SubmitAppsFilesystemCredentials -> {
                 setAppsFilesystemCredentials(event.filesystem, event.username, event.password, event.vncPassword)
             }
-            is CheckAppServicePreference -> checkAppServiceTypePreference(event.app)
-            is SubmitAppServicePreference -> { setAppServicePreference(event.app, event.serviceTypePreference) }
-            is CopyAppScriptToFilesystem -> { copyAppScriptToFilesystem(event.app, event.filesystem) }
+            is CheckAppSessionServiceType -> checkServiceType(event.appSession)
+            is SubmitAppSessionServiceType -> setServiceType(event.appSession, event.serviceType)
+            is CopyAppScriptToFilesystem -> copyAppScriptToFilesystem(event.app, event.filesystem)
             is SyncDatabaseEntries -> updateAppSession(event.app, event.session, event.filesystem)
             is ResetAppState -> state.postValue(WaitingForAppSelection)
         }
@@ -90,20 +92,19 @@ class AppsStartupFsm(
         state.postValue(AppsFilesystemRequiresCredentials(appsFilesystem))
     }
 
-    private fun checkAppServiceTypePreference(app: App) {
-        val serviceTypePreference = appsPreferences.getAppServiceTypePreference(app)
-        if (serviceTypePreference == PreferenceHasNotBeenSelected) {
-            state.postValue(AppRequiresServiceTypePreference)
+    private fun checkServiceType(appSession: Session) {
+        if (appSession.serviceType == ServiceType.Unselected) {
+            state.postValue(AppRequiresServiceType)
             return
         }
-        state.postValue(AppHasServiceTypePreferenceSet)
+        state.postValue(AppHasServiceTypeSet)
     }
 
     private suspend fun copyAppScriptToFilesystem(app: App, filesystem: Filesystem) {
         state.postValue(CopyingAppScript)
         try {
             withContext(Dispatchers.IO) {
-                filesystemUtility.moveAppScriptToRequiredLocation(app.name, filesystem)
+                filesystemManager.moveAppScriptToRequiredLocation(app.name, filesystem)
             }
             state.postValue(AppScriptCopySucceeded)
         } catch (err: Exception) {
@@ -111,9 +112,10 @@ class AppsStartupFsm(
         }
     }
 
-    private fun setAppServicePreference(app: App, serviceTypePreference: AppServiceTypePreference) {
-        appsPreferences.setAppServiceTypePreference(app.name, serviceTypePreference)
-        state.postValue(AppHasServiceTypePreferenceSet)
+    private suspend fun setServiceType(appSession: Session, serviceType: ServiceType) = withContext(Dispatchers.IO) {
+        appSession.serviceType = serviceType
+        sessionDao.updateSession(appSession)
+        state.postValue(AppHasServiceTypeSet)
     }
 
     @Throws(NoSuchElementException::class) // If second database call fails
@@ -121,7 +123,7 @@ class AppsStartupFsm(
         val potentialAppFilesystem = filesystemDao.findAppsFilesystemByType(app.filesystemRequired)
 
         if (potentialAppFilesystem.isEmpty()) {
-            val deviceArchitecture = buildWrapper.getArchType()
+            val deviceArchitecture = deviceArchitecture.getArchType()
             val fsToInsert = Filesystem(0, name = "apps", archType = deviceArchitecture,
                     distributionType = app.filesystemRequired, isAppsFilesystem = true)
             filesystemDao.insertFilesystem(fsToInsert)
@@ -152,11 +154,8 @@ class AppsStartupFsm(
 
     private suspend fun updateAppSession(app: App, appSession: Session, appsFilesystem: Filesystem) {
         state.postValue(SyncingDatabaseEntries)
-        val serviceTypePreference = appsPreferences.getAppServiceTypePreference(app)
         appSession.filesystemId = appsFilesystem.id
         appSession.filesystemName = appsFilesystem.name
-        appSession.serviceType = serviceTypePreference.toString()
-        appSession.port = if (serviceTypePreference is SshTypePreference) 2022 else 51
         appSession.username = appsFilesystem.defaultUsername
         appSession.password = appsFilesystem.defaultPassword
         appSession.vncPassword = appsFilesystem.defaultVncPassword
@@ -173,8 +172,8 @@ data class DatabaseEntriesFetched(val appsFilesystem: Filesystem, val appSession
 object DatabaseEntriesFetchFailed : AppsStartupState()
 object AppsFilesystemHasCredentials : AppsStartupState()
 data class AppsFilesystemRequiresCredentials(val appsFilesystem: Filesystem) : AppsStartupState()
-object AppHasServiceTypePreferenceSet : AppsStartupState()
-object AppRequiresServiceTypePreference : AppsStartupState()
+object AppHasServiceTypeSet : AppsStartupState()
+object AppRequiresServiceType : AppsStartupState()
 object CopyingAppScript : AppsStartupState()
 object AppScriptCopySucceeded : AppsStartupState()
 object AppScriptCopyFailed : AppsStartupState()
@@ -185,8 +184,8 @@ sealed class AppsStartupEvent
 data class AppSelected(val app: App) : AppsStartupEvent()
 data class CheckAppsFilesystemCredentials(val appsFilesystem: Filesystem) : AppsStartupEvent()
 data class SubmitAppsFilesystemCredentials(val filesystem: Filesystem, val username: String, val password: String, val vncPassword: String) : AppsStartupEvent()
-data class CheckAppServicePreference(val app: App) : AppsStartupEvent()
-data class SubmitAppServicePreference(val app: App, val serviceTypePreference: AppServiceTypePreference) : AppsStartupEvent()
+data class CheckAppSessionServiceType(val appSession: Session) : AppsStartupEvent()
+data class SubmitAppSessionServiceType(val appSession: Session, val serviceType: ServiceType) : AppsStartupEvent()
 data class CopyAppScriptToFilesystem(val app: App, val filesystem: Filesystem) : AppsStartupEvent()
 data class SyncDatabaseEntries(val app: App, val session: Session, val filesystem: Filesystem) : AppsStartupEvent()
 object ResetAppState : AppsStartupEvent()

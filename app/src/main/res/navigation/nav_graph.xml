@@ -1,19 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- app:navGraph is defined dynamically so that startDestination can be defined dynamically
+    according to user preference -->
 <navigation xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" >
     <fragment
         android:id="@+id/app_list_fragment"
-        android:name="tech.ula.ui.AppListFragment"
+        android:name="tech.ula.ui.AppsListFragment"
         android:label="@string/apps"
         tools:layout="@layout/frag_app_list" >
+        <action
+            android:id="@+id/action_app_list_to_app_details"
+            app:destination="@id/app_details_fragment" />
     </fragment>
 
     <fragment
-        android:id="@+id/menu_item_app_details"
+        android:id="@+id/app_details_fragment"
         android:name="tech.ula.ui.AppDetailsFragment"
         android:label="App Description"
         tools:layout="@layout/frag_app_details" >
+        <argument
+            android:name="app"
+            android:defaultValue="@null"
+            app:argType="tech.ula.model.entities.App"
+            app:nullable="true" />
     </fragment>
 
     <fragment
@@ -21,26 +31,52 @@
         android:name="tech.ula.ui.SessionListFragment"
         android:label="@string/sessions"
         tools:layout="@layout/frag_session_list" >
-        <argument android:name="session" android:defaultValue="null" />
-        <argument android:name="editExisting" android:defaultValue="false"/>
+        <action
+            android:id="@+id/action_session_list_to_session_edit"
+            app:destination="@id/session_edit_fragment" />
     </fragment>
 
     <fragment
         android:id="@+id/session_edit_fragment"
         android:name="tech.ula.ui.SessionEditFragment"
         android:label="@string/edit_session"
-        tools:layout="@layout/frag_session_edit" />
-
+        tools:layout="@layout/frag_session_edit" >
+        <argument
+            android:name="session"
+            android:defaultValue="@null"
+            app:argType="tech.ula.model.entities.Session"
+            app:nullable="true" />
+        <argument
+            android:name="editExisting"
+            android:defaultValue="false"
+            app:argType="boolean"/>
+    </fragment>
+    
     <fragment
         android:id="@+id/filesystem_list_fragment"
         android:name="tech.ula.ui.FilesystemListFragment"
-        android:label="@string/filesystems" />
+        android:label="@string/filesystems"
+        tools:layout="@layout/frag_filesystem_list">
+        <action
+            android:id="@+id/action_filesystem_list_to_filesystem_edit"
+            app:destination="@id/filesystem_edit_fragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/filesystem_edit_fragment"
         android:name="tech.ula.ui.FilesystemEditFragment"
         android:label="@string/edit_filesystem"
-        tools:layout="@layout/frag_filesystem_edit" />
+        tools:layout="@layout/frag_filesystem_edit" >
+        <argument
+            android:name="filesystem"
+            android:defaultValue="@null"
+            app:argType="tech.ula.model.entities.Filesystem"
+            app:nullable="true" />
+        <argument
+            android:name="editExisting"
+            android:defaultValue="false"
+            app:argType="boolean"/>
+    </fragment>
 
     <fragment
         android:id="@+id/settings_fragment"

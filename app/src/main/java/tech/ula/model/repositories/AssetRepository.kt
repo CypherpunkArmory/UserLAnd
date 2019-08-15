@@ -1,13 +1,16 @@
 package tech.ula.model.repositories
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.remote.GithubApiClient
-import tech.ula.utils.AssetPreferences
-import tech.ula.utils.ConnectionUtility
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import tech.ula.utils.preferences.AssetPreferences
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
+import java.net.UnknownHostException
 import kotlin.Exception
 
 data class DownloadMetadata(
@@ -22,36 +25,30 @@ class AssetRepository(
     private val applicationFilesDirPath: String,
     private val assetPreferences: AssetPreferences,
     private val githubApiClient: GithubApiClient = GithubApiClient(),
-    private val connectionUtility: ConnectionUtility = ConnectionUtility()
+    private val httpStream: HttpStream = HttpStream(),
+    private val logger: Logger = SentryLogger()
 ) {
 
-    @Throws(IllegalStateException::class)
+    @Throws(IllegalStateException::class, UnknownHostException::class)
     suspend fun generateDownloadRequirements(
         filesystem: Filesystem,
-        assetLists: HashMap<String, List<Asset>>,
+        assetList: List<Asset>,
         filesystemNeedsExtraction: Boolean
     ): List<DownloadMetadata> {
         val downloadRequirements = mutableListOf<DownloadMetadata>()
-        for (entry in assetLists) {
-            val (repo, list) = entry
-            // Empty lists should not have propagated this deeply.
-            if (list.isEmpty()) throw IllegalStateException()
-            if (assetsArePresentInSupportDirectories(list) && lastDownloadedVersionIsUpToDate(repo))
-                continue
-            val filename = "assets.tar.gz"
-            val versionCode = githubApiClient.getLatestReleaseVersion(repo)
-            val url = githubApiClient.getAssetEndpoint(filename, repo)
-            val downloadMetadata = DownloadMetadata(filename, repo, versionCode, url)
-            downloadRequirements.add(downloadMetadata)
+        // Empty lists should not have propagated this deeply.
+        if (assetList.isEmpty()) {
+            val err = IllegalStateException()
+            logger.addExceptionBreadcrumb(err)
+            throw err
         }
-        if (filesystemNeedsExtraction && rootFsDownloadRequired(filesystem)) {
-            val repo = filesystem.distributionType
-            val filename = "rootfs.tar.gz"
-            val versionCode = githubApiClient.getLatestReleaseVersion(repo)
-            val url = githubApiClient.getAssetEndpoint(filename, repo)
-            val downloadMetadata = DownloadMetadata(filename, repo, versionCode, url)
-            downloadRequirements.add(downloadMetadata)
+
+        val repo = filesystem.distributionType
+        downloadRequirements.addAll(getRegularAssetDownloadRequirements(assetList, repo))
+        if (filesystemNeedsExtraction) {
+            downloadRequirements.addAll(getRootFsAssetDownloadRequirements(repo))
         }
+
         return downloadRequirements
     }
 
@@ -73,24 +70,21 @@ class AssetRepository(
         return true
     }
 
-    suspend fun getAllAssetLists(distributionType: String): HashMap<String, List<Asset>> {
-        val lists = hashMapOf<String, List<Asset>>()
-        listOf(distributionType, "support").forEach { repo ->
-            try {
-                val list = fetchAssetList(repo)
-                assetPreferences.setAssetList(repo, list)
-                lists[repo] = list
-            } catch (err: Exception) {
-                lists[repo] = assetPreferences.getCachedAssetList(repo)
-            }
+    @Throws(UnknownHostException::class)
+    suspend fun getAssetList(distributionType: String): List<Asset> {
+        return try {
+            val list = fetchAssetList(distributionType)
+            assetPreferences.setAssetList(distributionType, list)
+            list
+        } catch (err: Exception) {
+            assetPreferences.getCachedAssetList(distributionType)
         }
-        return lists
     }
 
-    private suspend fun fetchAssetList(assetType: String): List<Asset> {
+    private suspend fun fetchAssetList(assetType: String): List<Asset> = withContext(Dispatchers.IO) {
         val downloadUrl = githubApiClient.getAssetsListDownloadUrl(assetType)
 
-        val inputStream = connectionUtility.getUrlInputStream(downloadUrl)
+        val inputStream = httpStream.fromUrl(downloadUrl)
         val reader = BufferedReader(InputStreamReader(inputStream))
 
         val assetList = mutableListOf<Asset>()
@@ -102,7 +96,7 @@ class AssetRepository(
 
         reader.close()
 
-        return assetList
+        return@withContext assetList
     }
 
     private suspend fun lastDownloadedVersionIsUpToDate(repo: String): Boolean {
@@ -117,8 +111,48 @@ class AssetRepository(
         return latestCached >= latestRemote
     }
 
-    private suspend fun rootFsDownloadRequired(filesystem: Filesystem): Boolean {
-        val rootFsFile = File("$applicationFilesDirPath/${filesystem.distributionType}/rootfs.tar.gz")
-        return !rootFsFile.exists() || !lastDownloadedFilesystemVersionIsUpToDate(filesystem.distributionType)
+    private suspend fun getRegularAssetDownloadRequirements(
+        assetList: List<Asset>,
+        repo: String
+    ): List<DownloadMetadata> {
+        val downloadRequirements = mutableListOf<DownloadMetadata>()
+        if (assetsArePresentInSupportDirectories(assetList)) {
+            try {
+                if (lastDownloadedVersionIsUpToDate(repo)) {
+                    return downloadRequirements
+                }
+            } catch (err: UnknownHostException) {
+                // If assets are present but the network is unreachable, don't bother trying
+                // to find updates.
+                return downloadRequirements
+            }
+        }
+
+        val filename = "assets.tar.gz"
+        val versionCode = githubApiClient.getLatestReleaseVersion(repo)
+        val url = githubApiClient.getAssetEndpoint(filename, repo)
+        val downloadMetadata = DownloadMetadata(filename, repo, versionCode, url)
+        downloadRequirements.add(downloadMetadata)
+        return downloadRequirements
+    }
+
+    private suspend fun getRootFsAssetDownloadRequirements(repo: String): List<DownloadMetadata> {
+        val downloadRequirements = mutableListOf<DownloadMetadata>()
+        val filename = "rootfs.tar.gz"
+
+        val rootFsIsDownloaded = File("$applicationFilesDirPath/$repo/$filename").exists()
+        val rootFsIsUpToDate = try {
+            lastDownloadedFilesystemVersionIsUpToDate(repo)
+        } catch (err: UnknownHostException) {
+            // Allows usage of existing rootfs files in case of failing network connectivity.
+            true
+        }
+        if (rootFsIsDownloaded && rootFsIsUpToDate) return downloadRequirements
+
+        // If the rootfs is not downloaded, network failures will still propagate.
+        val versionCode = githubApiClient.getLatestReleaseVersion(repo)
+        val url = githubApiClient.getAssetEndpoint(filename, repo)
+        val downloadMetadata = DownloadMetadata(filename, repo, versionCode, url)
+        return listOf(downloadMetadata)
     }
 }

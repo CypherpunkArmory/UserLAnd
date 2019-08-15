@@ -25,10 +25,10 @@ public final class BackgroundJob {
     final Process mProcess;
 
     public BackgroundJob(String cwd, String fileToExecute, final String[] args, final TermuxService service) {
-        String[] env = buildEnvironment(false, cwd);
-        if (cwd == null) cwd = TermuxService.HOME_PATH;
+        String[] env = buildEnvironment(false, cwd, service.filesPath, service.homePath, service.prefixPath);
+        if (cwd == null) cwd = service.homePath;
 
-        final String[] progArray = setupProcessArgs(fileToExecute, args);
+        final String[] progArray = setupProcessArgs(fileToExecute, args, service.prefixPath);
         final String processDescription = Arrays.toString(progArray);
 
         Process process;
@@ -94,14 +94,14 @@ public final class BackgroundJob {
     }
 
 
-    public static String[] buildEnvironment(boolean failSafe, String cwd) {
-        new File(TermuxService.HOME_PATH).mkdirs();
+    public static String[] buildEnvironment(boolean failSafe, String cwd, String files_path, String home_path, String prefix_path) {
+        new File(home_path).mkdirs();
 
-        if (cwd == null) cwd = TermuxService.HOME_PATH;
+        if (cwd == null) cwd = home_path;
 
         final String termEnv = "TERM=xterm-256color";
-        final String homeEnv = "HOME=" + TermuxService.HOME_PATH;
-        final String prefixEnv = "PREFIX=" + TermuxService.PREFIX_PATH;
+        final String homeEnv = "HOME=" + home_path;
+        final String prefixEnv = "PREFIX=" + prefix_path;
         final String androidRootEnv = "ANDROID_ROOT=" + System.getenv("ANDROID_ROOT");
         final String androidDataEnv = "ANDROID_DATA=" + System.getenv("ANDROID_DATA");
         // EXTERNAL_STORAGE is needed for /system/bin/am to work on at least
@@ -112,11 +112,11 @@ public final class BackgroundJob {
             final String pathEnv = "PATH=" + System.getenv("PATH");
             return new String[]{termEnv, homeEnv, prefixEnv, androidRootEnv, androidDataEnv, pathEnv, externalStorageEnv};
         } else {
-            final String ldEnv = "LD_LIBRARY_PATH=" + TermuxService.FILES_PATH + "/support";
+            final String ldEnv = "LD_LIBRARY_PATH=" + files_path + "/support";
             final String langEnv = "LANG=en_US.UTF-8";
-            final String pathEnv = "PATH=" + TermuxService.PREFIX_PATH + "/bin:" + TermuxService.PREFIX_PATH + "/bin/applets";
+            final String pathEnv = "PATH=" + prefix_path + "/bin:" + prefix_path + "/bin/applets";
             final String pwdEnv = "PWD=" + cwd;
-            final String tmpdirEnv = "TMPDIR=" + TermuxService.PREFIX_PATH + "/tmp";
+            final String tmpdirEnv = "TMPDIR=" + prefix_path + "/tmp";
 
             return new String[]{termEnv, homeEnv, prefixEnv, ldEnv, langEnv, pathEnv, pwdEnv, androidRootEnv, androidDataEnv, externalStorageEnv, tmpdirEnv};
         }
@@ -136,7 +136,7 @@ public final class BackgroundJob {
         }
     }
 
-    static String[] setupProcessArgs(String fileToExecute, String[] args) {
+    static String[] setupProcessArgs(String fileToExecute, String[] args, String prefix_path) {
         // The file to execute may either be:
         // - An elf file, in which we execute it directly.
         // - A script file without shebang, which we execute with our standard shell $PREFIX/bin/sh instead of the
@@ -165,7 +165,7 @@ public final class BackgroundJob {
                                     if (executable.startsWith("/usr") || executable.startsWith("/bin")) {
                                         String[] parts = executable.split("/");
                                         String binary = parts[parts.length - 1];
-                                        interpreter = TermuxService.PREFIX_PATH + "/bin/" + binary;
+                                        interpreter = prefix_path + "/bin/" + binary;
                                     }
                                     break;
                                 }
@@ -175,7 +175,7 @@ public final class BackgroundJob {
                         }
                     } else {
                         // No shebang and no ELF, use standard shell.
-                        interpreter = TermuxService.PREFIX_PATH + "/bin/sh";
+                        interpreter = prefix_path + "/bin/sh";
                     }
                 }
             }

@@ -1,8 +1,8 @@
 package tech.ula.viewmodel
 
-import android.arch.core.executor.testing.InstantTaskExecutorRule
-import android.arch.lifecycle.MutableLiveData
-import android.arch.lifecycle.Observer
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import kotlinx.coroutines.runBlocking
@@ -33,7 +33,7 @@ class SessionEditViewModelTest {
 
     private lateinit var filesystemsLiveData: MutableLiveData<List<Filesystem>>
 
-    lateinit var sessionEditViewModel: SessionEditViewModel
+    private lateinit var sessionEditViewModel: SessionEditViewModel
 
     @Before
     fun setup() {

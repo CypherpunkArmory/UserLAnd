@@ -1,8 +1,8 @@
 package tech.ula.viewmodel
 
-import android.arch.core.executor.testing.InstantTaskExecutorRule
-import android.arch.lifecycle.MutableLiveData
-import android.arch.lifecycle.Observer
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import com.nhaarman.mockitokotlin2.* // ktlint-disable no-wildcard-imports
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -12,15 +12,12 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
-import tech.ula.model.entities.App
-import tech.ula.model.entities.Asset
-import tech.ula.model.entities.Filesystem
-import tech.ula.model.entities.Session
+import tech.ula.model.entities.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
-import tech.ula.utils.SshTypePreference
-import tech.ula.utils.AssetFileClearer
-import tech.ula.utils.AcraWrapper
+import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import java.io.FileNotFoundException
+import java.lang.IllegalStateException
 
 @RunWith(MockitoJUnitRunner::class)
 class MainActivityViewModelTest {
@@ -33,7 +30,7 @@ class MainActivityViewModelTest {
 
     @Mock lateinit var mockAssetFileClearer: AssetFileClearer
 
-    @Mock lateinit var mockAcraWrapper: AcraWrapper
+    @Mock lateinit var mockLogger: Logger
 
     @Mock lateinit var mockStateObserver: Observer<State>
 
@@ -47,7 +44,7 @@ class MainActivityViewModelTest {
     private val unselectedFilesystem = Filesystem(id = -1, name = "UNSELECTED")
 
     private val asset = Asset(name = "asset", type = "dist")
-    private val assetList = hashMapOf("dist" to listOf(asset))
+    private val assetList = listOf(asset)
 
     private val downloadMetadata = DownloadMetadata("asset", "type", "v0", "url")
     private val downloadList = listOf(downloadMetadata)
@@ -79,13 +76,13 @@ class MainActivityViewModelTest {
         whenever(mockSessionStartupFsm.getState()).thenReturn(sessionStartupStateLiveData)
         sessionStartupStateLiveData.postValue(WaitingForSessionSelection)
 
-        mainActivityViewModel = MainActivityViewModel(mockAppsStartupFsm, mockSessionStartupFsm, mockAcraWrapper)
+        mainActivityViewModel = MainActivityViewModel(mockAppsStartupFsm, mockSessionStartupFsm, mockLogger)
         mainActivityViewModel.getState().observeForever(mockStateObserver)
     }
 
     @Test
-    fun `State does not initially publish onChanged event`() {
-        verify(mockStateObserver, never()).onChanged(any())
+    fun `State is initially WaitingForInput`() {
+        verify(mockStateObserver).onChanged(WaitingForInput)
     }
 
     @Test
@@ -119,6 +116,7 @@ class MainActivityViewModelTest {
         mainActivityViewModel.permissionsHaveBeenGranted()
 
         verify(mockStateObserver).onChanged(TooManySelectionsMadeWhenPermissionsGranted)
+        verify(mockLogger).sendIllegalStateLog(TooManySelectionsMadeWhenPermissionsGranted)
     }
 
     @Test
@@ -127,6 +125,7 @@ class MainActivityViewModelTest {
         mainActivityViewModel.permissionsHaveBeenGranted()
 
         verify(mockStateObserver).onChanged(NoSelectionsMadeWhenPermissionsGranted)
+        verify(mockLogger).sendIllegalStateLog(NoSelectionsMadeWhenPermissionsGranted)
     }
 
     @Test
@@ -189,6 +188,7 @@ class MainActivityViewModelTest {
         mainActivityViewModel.submitFilesystemCredentials("", "", "")
 
         verify(mockStateObserver).onChanged(NoFilesystemSelectedWhenCredentialsSubmitted)
+        verify(mockLogger).sendIllegalStateLog(NoFilesystemSelectedWhenCredentialsSubmitted)
     }
 
     @Test
@@ -207,19 +207,20 @@ class MainActivityViewModelTest {
 
     @Test
     fun `Posts IllegalState if service preference submitted while no app is selected`() {
-        mainActivityViewModel.submitAppServicePreference(SshTypePreference)
+        mainActivityViewModel.submitAppServiceType(ServiceType.Ssh)
 
         verify(mockStateObserver).onChanged(NoAppSelectedWhenPreferenceSubmitted)
+        verify(mockLogger).sendIllegalStateLog(NoAppSelectedWhenPreferenceSubmitted)
     }
 
     @Test
-    fun `Submits app service preference for last selected app`() {
-        mainActivityViewModel.lastSelectedApp = selectedApp
+    fun `Submits app service preference for last selected session`() {
+        mainActivityViewModel.lastSelectedSession = selectedSession
 
-        mainActivityViewModel.submitAppServicePreference(SshTypePreference)
+        mainActivityViewModel.submitAppServiceType(ServiceType.Ssh)
 
         runBlocking {
-            verify(mockAppsStartupFsm).submitEvent(SubmitAppServicePreference(selectedApp, SshTypePreference), mainActivityViewModel)
+            verify(mockAppsStartupFsm).submitEvent(SubmitAppSessionServiceType(selectedSession, ServiceType.Ssh), mainActivityViewModel)
         }
     }
 
@@ -236,6 +237,7 @@ class MainActivityViewModelTest {
         assertEquals(mainActivityViewModel.lastSelectedFilesystem, unselectedFilesystem)
 
         runBlocking {
+            verify(mockStateObserver, times(2)).onChanged(WaitingForInput)
             verify(mockAppsStartupFsm).submitEvent(ResetAppState, mainActivityViewModel)
             verify(mockSessionStartupFsm).submitEvent(ResetSessionState, mainActivityViewModel)
         }
@@ -261,6 +263,25 @@ class MainActivityViewModelTest {
     }
 
     @Test
+    fun `handleSessionHasBeenActivated resets startup state`() {
+        mainActivityViewModel.lastSelectedApp = selectedApp
+        mainActivityViewModel.lastSelectedSession = selectedSession
+        mainActivityViewModel.lastSelectedFilesystem = selectedFilesystem
+
+        mainActivityViewModel.handleSessionHasBeenActivated()
+
+        assertEquals(mainActivityViewModel.lastSelectedApp, unselectedApp)
+        assertEquals(mainActivityViewModel.lastSelectedSession, unselectedSession)
+        assertEquals(mainActivityViewModel.lastSelectedFilesystem, unselectedFilesystem)
+
+        verify(mockStateObserver, times(2)).onChanged(WaitingForInput)
+        runBlocking {
+            verify(mockAppsStartupFsm).submitEvent(ResetAppState, mainActivityViewModel)
+            verify(mockSessionStartupFsm).submitEvent(ResetSessionState, mainActivityViewModel)
+        }
+    }
+
+    @Test
     fun `Posts ClearingSupportFiles and ProgressBarOperationComplete if clearing succeeds`() = runBlocking {
         whenever(mockSessionStartupFsm.sessionsAreActive())
                 .thenReturn(false)
@@ -277,13 +298,29 @@ class MainActivityViewModelTest {
         whenever(mockSessionStartupFsm.sessionsAreActive())
                 .thenReturn(false)
         whenever(mockAssetFileClearer.clearAllSupportAssets())
-                .thenThrow(Exception())
+                .thenThrow(FileNotFoundException())
 
         mainActivityViewModel.handleClearSupportFiles(mockAssetFileClearer)
 
         verify(mockAssetFileClearer).clearAllSupportAssets()
         verify(mockStateObserver).onChanged(ClearingSupportFiles)
         verify(mockStateObserver).onChanged(FailedToClearSupportFiles)
+        verify(mockLogger).sendIllegalStateLog(FailedToClearSupportFiles)
+    }
+
+    @Test
+    fun `Posts BusyboxMissing if busybox is missing during clearing`() = runBlocking {
+        whenever(mockSessionStartupFsm.sessionsAreActive())
+                .thenReturn(false)
+        whenever(mockAssetFileClearer.clearAllSupportAssets())
+                .thenThrow(IllegalStateException())
+
+        mainActivityViewModel.handleClearSupportFiles(mockAssetFileClearer)
+
+        verify(mockAssetFileClearer).clearAllSupportAssets()
+        verify(mockStateObserver).onChanged(ClearingSupportFiles)
+        verify(mockStateObserver).onChanged(BusyboxMissing)
+        verify(mockLogger).sendIllegalStateLog(BusyboxMissing)
     }
 
     // Private function tests.
@@ -307,18 +344,21 @@ class MainActivityViewModelTest {
         appsStartupStateLiveData.postValue(DatabaseEntriesFetchFailed)
 
         verify(mockStateObserver).onChanged(NoAppSelectedWhenTransitionNecessary)
+        verify(mockLogger).sendIllegalStateLog(NoAppSelectedWhenTransitionNecessary)
     }
 
     @Test
     fun `Posts IllegalState on incorrect app transitions`() {
         makeAppSelections()
 
-        val event = SubmitAppServicePreference(selectedApp, SshTypePreference)
+        val event = SubmitAppSessionServiceType(selectedSession, ServiceType.Ssh)
         val state = WaitingForAppSelection
         val badTransition = IncorrectAppTransition(event, state)
         appsStartupStateLiveData.postValue(IncorrectAppTransition(event, state))
 
-        verify(mockStateObserver).onChanged(IllegalStateTransition("$badTransition"))
+        val expectedState = IllegalStateTransition("$badTransition")
+        verify(mockStateObserver).onChanged(expectedState)
+        verify(mockLogger).sendIllegalStateLog(expectedState)
     }
 
     @Test
@@ -342,6 +382,7 @@ class MainActivityViewModelTest {
         appsStartupStateLiveData.postValue(DatabaseEntriesFetchFailed)
 
         verify(mockStateObserver).onChanged(ErrorFetchingAppDatabaseEntries)
+        verify(mockLogger).sendIllegalStateLog(ErrorFetchingAppDatabaseEntries)
     }
 
     @Test
@@ -351,7 +392,7 @@ class MainActivityViewModelTest {
         appsStartupStateLiveData.postValue(AppsFilesystemHasCredentials)
 
         runBlocking {
-            verify(mockAppsStartupFsm).submitEvent(CheckAppServicePreference(selectedApp), mainActivityViewModel)
+            verify(mockAppsStartupFsm).submitEvent(CheckAppSessionServiceType(selectedSession), mainActivityViewModel)
         }
     }
 
@@ -368,7 +409,7 @@ class MainActivityViewModelTest {
     fun `Submits CopyAppScript event if observed event is app has service preference set`() {
         makeAppSelections()
 
-        appsStartupStateLiveData.postValue(AppHasServiceTypePreferenceSet)
+        appsStartupStateLiveData.postValue(AppHasServiceTypeSet)
 
         runBlocking {
             verify(mockAppsStartupFsm).submitEvent(CopyAppScriptToFilesystem(selectedApp, selectedFilesystem), mainActivityViewModel)
@@ -379,7 +420,7 @@ class MainActivityViewModelTest {
     fun `Posts PreferenceRequired if equivalent event observed`() {
         makeAppSelections()
 
-        appsStartupStateLiveData.postValue(AppRequiresServiceTypePreference)
+        appsStartupStateLiveData.postValue(AppRequiresServiceType)
 
         verify(mockStateObserver).onChanged(AppServiceTypePreferenceRequired)
     }
@@ -402,6 +443,7 @@ class MainActivityViewModelTest {
         appsStartupStateLiveData.postValue(AppScriptCopyFailed)
 
         verify(mockStateObserver).onChanged(ErrorCopyingAppScript)
+        verify(mockLogger).sendIllegalStateLog(ErrorCopyingAppScript)
     }
 
     @Test
@@ -425,6 +467,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(NoDownloadsRequired)
 
         verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
+        verify(mockLogger).sendIllegalStateLog(NoSessionSelectedWhenTransitionNecessary)
     }
 
     @Test
@@ -436,7 +479,9 @@ class MainActivityViewModelTest {
         val badTransition = IncorrectSessionTransition(event, state)
         sessionStartupStateLiveData.postValue(badTransition)
 
-        verify(mockStateObserver).onChanged(IllegalStateTransition("$badTransition"))
+        val expectedState = IllegalStateTransition("$badTransition")
+        verify(mockStateObserver).onChanged(expectedState)
+        verify(mockLogger).sendIllegalStateLog(expectedState)
     }
 
     @Test
@@ -462,6 +507,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(SessionIsReadyForPreparation(unselectedSession, unselectedFilesystem))
 
         verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
+        verify(mockLogger).sendIllegalStateLog(NoSessionSelectedWhenTransitionNecessary)
     }
 
     @Test
@@ -491,6 +537,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(AssetListsRetrievalSucceeded(assetList))
 
         verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
+        verify(mockLogger).sendIllegalStateLog(NoSessionSelectedWhenTransitionNecessary)
     }
 
     @Test
@@ -511,6 +558,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(AssetListsRetrievalFailed)
 
         verify(mockStateObserver).onChanged(ErrorFetchingAssetLists)
+        verify(mockLogger).sendIllegalStateLog(ErrorFetchingAssetLists)
     }
 
     @Test
@@ -547,6 +595,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(NoDownloadsRequired)
 
         verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
+        verify(mockLogger).sendIllegalStateLog(NoSessionSelectedWhenTransitionNecessary)
     }
 
     @Test
@@ -582,10 +631,11 @@ class MainActivityViewModelTest {
     fun `Posts IllegalState if downloads fail`() {
         makeSessionSelections()
 
-        val reason = "cause"
+        val reason = DownloadFailureLocalizationData(0)
         sessionStartupStateLiveData.postValue(DownloadsHaveFailed(reason))
 
         verify(mockStateObserver).onChanged(DownloadsDidNotCompleteSuccessfully(reason))
+        verify(mockLogger).sendIllegalStateLog(DownloadsDidNotCompleteSuccessfully(reason))
     }
 
     @Test
@@ -593,13 +643,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(AttemptedCacheAccessWhileEmpty)
 
         verify(mockStateObserver).onChanged(DownloadCacheAccessedWhileEmpty)
-    }
-
-    @Test
-    fun `Posts DownloadCacheAccessedInAnIncorrectState if AttemptedCacheAccessInIncorrectState is observed`() {
-        sessionStartupStateLiveData.postValue(AttemptedCacheAccessInIncorrectState)
-
-        verify(mockStateObserver).onChanged(DownloadCacheAccessedInAnIncorrectState)
+        verify(mockLogger).sendIllegalStateLog(DownloadCacheAccessedWhileEmpty)
     }
 
     @Test
@@ -629,6 +673,7 @@ class MainActivityViewModelTest {
         assertEquals(unselectedSession, mainActivityViewModel.lastSelectedSession)
         assertEquals(unselectedFilesystem, mainActivityViewModel.lastSelectedFilesystem)
         runBlocking {
+            verify(mockStateObserver, times(2)).onChanged(WaitingForInput)
             verify(mockSessionStartupFsm).submitEvent(ResetSessionState, mainActivityViewModel)
             verify(mockAppsStartupFsm).submitEvent(ResetAppState, mainActivityViewModel)
         }
@@ -639,6 +684,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(LocalDirectoryCopyFailed)
 
         verify(mockStateObserver).onChanged(FailedToCopyAssetsToLocalStorage)
+        verify(mockLogger).sendIllegalStateLog(FailedToCopyAssetsToLocalStorage)
     }
 
     @Test
@@ -655,13 +701,25 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(FilesystemAssetVerificationSucceeded)
 
         verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
+        verify(mockLogger).sendIllegalStateLog(NoSessionSelectedWhenTransitionNecessary)
     }
 
     @Test
-    fun `Submits ExtractFilesystem when observing FilesystemAssetVerificationSucceeded`() {
+    fun `Submits VerifyAvailableStorage when observing FilesystemAssetVerificationSucceeded`() {
         makeSessionSelections()
 
         sessionStartupStateLiveData.postValue(FilesystemAssetVerificationSucceeded)
+
+        runBlocking {
+            verify(mockSessionStartupFsm).submitEvent(VerifyAvailableStorage, mainActivityViewModel)
+        }
+    }
+
+    @Test
+    fun `Submits ExtractFilesystem when observing StorageVerificationCompletedSuccessfully`() {
+        makeSessionSelections()
+
+        sessionStartupStateLiveData.postValue(StorageVerificationCompletedSuccessfully)
 
         runBlocking {
             verify(mockSessionStartupFsm).submitEvent(ExtractFilesystem(selectedFilesystem), mainActivityViewModel)
@@ -684,6 +742,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(FilesystemAssetCopyFailed)
 
         verify(mockStateObserver).onChanged(FailedToCopyAssetsToFilesystem)
+        verify(mockLogger).sendIllegalStateLog(FailedToCopyAssetsToFilesystem)
     }
 
     @Test
@@ -701,30 +760,25 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(ExtractionHasCompletedSuccessfully)
 
         verify(mockStateObserver).onChanged(NoSessionSelectedWhenTransitionNecessary)
+        verify(mockLogger).sendIllegalStateLog(NoSessionSelectedWhenTransitionNecessary)
     }
 
     @Test
-    fun `Posts SessionCanBeStarted and resets state when observing ExtractionHasCompletedSuccessfully`() {
+    fun `Posts SessionCanBeStarted  when observing ExtractionHasCompletedSuccessfully`() {
         makeSessionSelections()
 
         sessionStartupStateLiveData.postValue(ExtractionHasCompletedSuccessfully)
 
         verify(mockStateObserver).onChanged(SessionCanBeStarted(selectedSession))
-        assertEquals(unselectedApp, mainActivityViewModel.lastSelectedApp)
-        assertEquals(unselectedSession, mainActivityViewModel.lastSelectedSession)
-        assertEquals(unselectedFilesystem, mainActivityViewModel.lastSelectedFilesystem)
-        runBlocking {
-            verify(mockSessionStartupFsm).submitEvent(ResetSessionState, mainActivityViewModel)
-            verify(mockAppsStartupFsm).submitEvent(ResetAppState, mainActivityViewModel)
-        }
     }
 
     @Test
     fun `Posts IllegalState when extraction failure is observed`() {
         makeSessionSelections()
 
-        sessionStartupStateLiveData.postValue(ExtractionFailed)
+        sessionStartupStateLiveData.postValue(ExtractionFailed("reason"))
 
-        verify(mockStateObserver).onChanged(FailedToExtractFilesystem)
+        verify(mockStateObserver).onChanged(FailedToExtractFilesystem("reason"))
+        verify(mockLogger).sendIllegalStateLog(FailedToExtractFilesystem("reason"))
     }
 }

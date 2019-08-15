@@ -4,45 +4,42 @@ import android.app.Service
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
-import android.os.Environment
 import android.os.IBinder
-import android.support.v4.content.LocalBroadcastManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import org.jetbrains.anko.defaultSharedPreferences
-import org.jetbrains.anko.doAsync
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import kotlinx.coroutines.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.entities.App
+import tech.ula.model.entities.ServiceType
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Session
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import kotlin.coroutines.CoroutineContext
 
-class ServerService : Service() {
+class ServerService : Service(), CoroutineScope {
+
+    private val job = Job()
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Default + job
 
     companion object {
-        const val SERVER_SERVICE_RESULT = "tech.ula.ServerService.RESULT"
+        const val SERVER_SERVICE_RESULT: String = "tech.ula.ServerService.RESULT"
     }
 
     private val activeSessions: MutableMap<Long, Session> = mutableMapOf()
 
     private lateinit var broadcaster: LocalBroadcastManager
 
-    private val notificationManager: NotificationUtility by lazy {
-        NotificationUtility(this)
+    private val notificationManager: NotificationConstructor by lazy {
+        NotificationConstructor(this)
     }
 
     private val busyboxExecutor by lazy {
-        val externalStorage = Environment.getExternalStorageDirectory()
-        BusyboxExecutor(this.filesDir, externalStorage, DefaultPreferences(this.defaultSharedPreferences))
+        val ulaFiles = UlaFiles(this, this.applicationInfo.nativeLibraryDir)
+        val prootDebugLogger = ProotDebugLogger(this.defaultSharedPreferences, ulaFiles)
+        BusyboxExecutor(ulaFiles, prootDebugLogger)
     }
 
-    private val filesystemUtility by lazy {
-        FilesystemUtility(this.filesDir.path, busyboxExecutor)
-    }
-
-    private val serverUtility by lazy {
-        ServerUtility(this.filesDir.path, busyboxExecutor)
+    private val localServerManager by lazy {
+        LocalServerManager(this.filesDir.path, busyboxExecutor)
     }
 
     override fun onCreate() {
@@ -56,40 +53,51 @@ class ServerService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
-        val intentType = intent?.getStringExtra("type")
-        when (intentType) {
+        when (intent?.getStringExtra("type")) {
             "start" -> {
-                val coroutineScope = CoroutineScope(Dispatchers.Default)
-                val session: Session = intent.getParcelableExtra("session")
-                coroutineScope.launch { startSession(session) }
+                val session: Session = intent.getParcelableExtra("session")!!
+                this.launch { startSession(session) }
             }
             "stopApp" -> {
-                val app: App = intent.getParcelableExtra("app")
+                val app: App = intent.getParcelableExtra("app")!!
                 stopApp(app)
             }
             "restartRunningSession" -> {
-                val session: Session = intent.getParcelableExtra("session")
+                val session: Session = intent.getParcelableExtra("session")!!
                 startClient(session)
             }
             "kill" -> {
-                val session: Session = intent.getParcelableExtra("session")
+                val session: Session = intent.getParcelableExtra("session")!!
                 killSession(session)
             }
             "filesystemIsBeingDeleted" -> {
                 val filesystemId: Long = intent.getLongExtra("filesystemId", -1)
                 cleanUpFilesystem(filesystemId)
             }
+            "stopAll" -> {
+                activeSessions.forEach { (_, session) ->
+                    killSession(session)
+                }
+            }
         }
 
-        return Service.START_STICKY
+        return START_STICKY
     }
 
     // Used in conjunction with manifest attribute `android:stopWithTask="true"`
     // to clean up when app is swiped away.
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
+        // Redundancy to ensure no hanging processes, given broad device spectrum.
+        this.coroutineContext.cancel()
         stopForeground(true)
         stopSelf()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Redundancy to ensure no hanging processes, given broad device spectrum.
+        this.coroutineContext.cancel()
     }
 
     private fun removeSession(session: Session) {
@@ -100,22 +108,22 @@ class ServerService : Service() {
         }
     }
 
-    private fun updateSession(session: Session) {
-        doAsync { UlaDatabase.getInstance(this@ServerService).sessionDao().updateSession(session) }
+    private fun updateSession(session: Session) = CoroutineScope(Dispatchers.Default).launch {
+        UlaDatabase.getInstance(this@ServerService).sessionDao().updateSession(session)
     }
 
     private fun killSession(session: Session) {
-        serverUtility.stopService(session)
+        localServerManager.stopService(session)
         removeSession(session)
         session.active = false
         updateSession(session)
     }
 
     private suspend fun startSession(session: Session) {
-        startForeground(NotificationUtility.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
-        session.pid = serverUtility.startServer(session)
+        startForeground(NotificationConstructor.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
+        session.pid = localServerManager.startServer(session)
 
-        while (!serverUtility.isServerRunning(session)) {
+        while (!localServerManager.isServerRunning(session)) {
             delay(500)
         }
 
@@ -126,8 +134,7 @@ class ServerService : Service() {
     }
 
     private fun stopApp(app: App) {
-        val appSessions = activeSessions.filter {
-            (_, session) ->
+        val appSessions = activeSessions.filter { (_, session) ->
             session.name == app.name
         }
         appSessions.forEach { (_, session) ->
@@ -137,18 +144,18 @@ class ServerService : Service() {
 
     private fun startClient(session: Session) {
         when (session.serviceType) {
-            "ssh" -> startSshClient(session, "org.connectbot")
-            "vnc" -> startVncClient(session, "com.iiordanov.freebVNC")
-            "xsdl" -> startXsdlClient("x.org.server")
+            ServiceType.Ssh -> startSshClient(session)
+            ServiceType.Vnc -> startVncClient(session, "com.iiordanov.freebVNC")
+            ServiceType.Xsdl -> startXsdlClient("x.org.server")
             else -> sendDialogBroadcast("unhandledSessionServiceType")
         }
         sendSessionActivatedBroadcast()
     }
 
-    private fun startSshClient(session: Session, packageName: String) {
+    private fun startSshClient(session: Session) {
         val connectBotIntent = Intent()
-        connectBotIntent.action = "android.intent.action.VIEW"
-        connectBotIntent.data = Uri.parse("ssh://${session.username}@localhost:${session.port}/#userland")
+        connectBotIntent.action = Intent.ACTION_VIEW
+        connectBotIntent.data = Uri.parse("ssh://${session.username}@localhost:2022/#userland")
         connectBotIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
 
         startActivity(connectBotIntent)
@@ -156,7 +163,7 @@ class ServerService : Service() {
 
     private fun startVncClient(session: Session, packageName: String) {
         val bVncIntent = Intent()
-        bVncIntent.action = "android.intent.action.VIEW"
+        bVncIntent.action = Intent.ACTION_VIEW
         bVncIntent.type = "application/vnd.vnc"
         bVncIntent.data = Uri.parse("vnc://127.0.0.1:5951/?VncUsername=${session.username}&VncPassword=${session.vncPassword}")
         bVncIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -182,7 +189,7 @@ class ServerService : Service() {
 
     private fun clientIsPresent(intent: Intent): Boolean {
         val activities = packageManager.queryIntentActivities(intent, 0)
-        return(activities.size > 0)
+        return (activities.size > 0)
     }
 
     private fun getClient(packageName: String) {
@@ -196,15 +203,8 @@ class ServerService : Service() {
     }
 
     private fun cleanUpFilesystem(filesystemId: Long) {
-        // TODO This could potentially be handled by the main activity (viewmodel) now
-        if (filesystemId == (-1).toLong()) {
-            throw Exception("Did not receive filesystemId")
-        }
-
         activeSessions.values.filter { it.filesystemId == filesystemId }
                 .forEach { killSession(it) }
-
-        CoroutineScope(Dispatchers.Main).launch { filesystemUtility.deleteFilesystem(filesystemId) }
     }
 
     private fun sendSessionActivatedBroadcast() {

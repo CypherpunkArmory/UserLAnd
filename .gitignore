@@ -45,17 +45,17 @@ captures/
 
 # Generated files for deployment
 app/versionCode.txt
+app/versionName.txt
 fastlane/README.md
 fastlane/report.xml
+fastlane/metadata/android/*/changelogs
 
 # External native build folder generated in Android Studio 2.2 and later
 .externalNativeBuild
 
 # Google Services (e.g. APIs or Firebase)
 google-services.json
-app/tracepot.properties
+app/src/main/resources/sentry.properties
 
-# Freeline
-freeline.py
-freeline/
-freeline_project_description.json
+# Lib resources should be left out of source tree
+app/src/main/jniLibs/*

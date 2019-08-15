@@ -1,98 +1,217 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-        <string name="app_name">UserLAnd</string>
-        <string name="apps">應用程序</string>
-        <string name="sessions">會話</string>
-        <string name="edit_session">編輯會話</string>
-        <string name="filesystems">文件系統</string>
-        <string name="edit_filesystem">編輯文件系統</string>
-        <string name="settings">設置</string>
-        <string name="help">幫助</string>
-        <string name="toc">條款和條件</string>
-        <string name="button_continue">繼續</string>
-        <string name="app_info">應用信息</string>
-        <string name="stop_app">停止應用程序</string>
-        <string name="stop_session">停止服務</string>
-        <string name="edit">編輯</string>
-        <string name="delete">刪除</string>
-        <string name="save">儲存</string>
-        <string name="prompt_app_connection_type_preference">請選擇連接方式：</string>
-        <string name="add">加</string>
-        <string name="refresh">刷新</string>
-        <string name="hint_filesystem_name">文件系統名</string>
-        <string name="welcome">歡迎使用Userland</string>
-        <string name="permission_request_code">1000</string>
-        <string name="hint_session_name">會話名</string>
-        <string name="hint_username">用戶名</string>
-        <string name="hint_password">密碼</string>
-        <string name="hint_vnc_password">VNC 密碼</string>
-        <string name="error_session_name">您必須提供會話名</string>
-        <string name="error_filesystem_name">您必須提供文件系統名</string>
-        <string name="error_username">您必須提供用戶名</string>
-        <string name="error_empty_field">請填寫所有選項！ </string>
-        <string name="error_app_description_not_found">​​無法查詢此應用，請刷新</string>
-        <string name="error_vnc_password_length_incorrect">VNC密碼必須在6到8字符</string>
-        <string name="error_username_invalid">用戶名含有無效字符</string>
-        <string name="error_password_invalid">密碼含有無效字符</string>
-        <string name="error_vnc_password_invalid">VNC密碼含有無效字符</string>
-        <string name="prompt_filesystem">文件系統：</string>
-        <string name="prompt_service_type">服務類別：</string>
-        <string name="prompt_client_type">客戶端類別：</string>
-        <string name="services_notification_channel_id">Userland服務</string>
-        <string name="services_notification_channel_name">服務</string>
-        <string name="services_notification_channel_description">永久服務</string>
-        <string name="service_notification_title">Userland</string>
-        <string name="service_notification_description">Userland正在後台運行.</string>
-        <string name="progress_fetching_asset_lists">正在取得素材列表…</string>
-        <string name="progress_checking_for_required_updates">正在檢查更新信息…</string>
-        <string name="progress_downloading">正在下載需要的素材…</string>
-        <string name="progress_downloading_out_of">%1$d/%2$d已完成</string>
-        <string name="progress_copying_downloads">正在將已下載文件複製到本地儲存…</string>
-        <string name="progress_starting">開始服務…</string>
-        <string name="pref_app_category">應用偏好…</string>
-        <string name="pref_default_landing_page_title">默認登陸頁面</string>
-        <string name="pref_default_landing_page_message">選擇您喜好的登陸頁面.</string>
-        <string name="pref_proot_category">PRoot偏好</string>
-        <string name="pref_proot_debugging_enabled_title">已開啟PRoot除錯日誌</string>
-        <string name="pref_proot_debugging_enabled_summary">如若應用出錯，日誌文件儲存在[…]</string>
-        <string name="pref_proot_debugging_level_title">除錯的冗餘級別</string>
-        <string name="pref_proot_debugging_level_default">-1</string>
-        <string name="pref_proot_delete_debug_file_title">刪除除錯記錄</string>
-        <string name="supported_services">目前支持的服務：</string>
-        <string name="terminology">專業術語:</string>
-        <string name="desc_apps_title">應用程序：</string>
-        <string name="desc_apps_message">應用程序是啟動Linux程序的最簡單的方式</string>
-        <string name="desc_sessions_title">會話：</string>
-        <string name="desc_sessions_message">會話將在文件系統中開啟一個服務器，讓您通過第三方客戶端來連接此服務器</string>
-        <string name="desc_filesystems_title">文件系統：</string>
-        <string name="desc_filesystems_message">文件系統就是：用戶群體和文件組織方式下產生的如同linux的行為</string>
-        <string name="support_dropbear">SSH-Dropbear</string>
-        <string name="support_tightvnc">VNC- TightVNC</string>
-        <string name="client_ssh">SSH</string>
-        <string name="client_vnc">VNC</string>
-        <string name="button_ok">好的！ </string>
-        <string name="general_error_title">好像哪裡出錯了！ </string>
-        <string name="filesystem_credentials_reasoning">我們正在為您的程序創建一個文件系統，請輸入相關信息，我們將為您設置成此文件系統的默認信息</string>
-        <string name="alert_need_client_app_title">無法找到客戶端應用！ </string>
-        <string name="alert_need_client_app_message">您需要一個SSH 或者VNC客戶端來完成這項指令，看起來您並沒有裝載Google Play商店。請裝載SSH或者VNC客戶端.</string>
-        <string name="alert_permissions_necessary_title">UserLand需要您的允許！ </string>
-        <string name="alert_permissions_necessary_message">請允許UserLand下載文件並將它們儲存在本地.</string>
-        <string name="alert_permissions_necessary_cancel_button">取消</string>
-        <string name="alert_network_required_for_refresh">刷新程序需要更好的網絡連接強度</string>
-        <string name="alert_wifi_disabled_title">沒有無線網絡!</string>
-        <string name="alert_wifi_disabled_message">一個較大的素材（~80mb）需要下載.</string>
-        <string name="alert_wifi_disabled_continue_button">繼續</string>
-        <string name="alert_wifi_disabled_turn_on_wifi_button">關閉無線網絡</string>
-        <string name="alert_wifi_disabled_cancel_button">取消</string>
-        <string name="session_unique_name_required">此會話需要一個特殊的名字！ </string>
-        <string name="filesystem_unique_name_required">文件系統需要一個特殊的名字！ </string>
-        <string name="single_session_supported">Userland目前僅支持一個會話！ </string>
-        <string name="no_supported_architecture">Userland目前無法支持您的設備.</string>
-        <string name="debug_log_deleted">除錯日誌已被刪除或者不存在！ </string>
-        <string name="desc_arrow">圖像：箭頭指示會話與文件系統之間的關係</string>
-        <string name="desc_filesystem_type">圖像：分發圖標</string>
-        <string name="custom_sessions">自定義會話</string>
-        <string name="apps_sessions">應用程序會話</string>
-        <string name="github_message">發現錯誤並且想要申請新的功能？上我們的Github，在那裡您能得到最快的答复！ </string>
-        <string name="pref_proot_debugging_level_summary">數值越大，越冗餘越高.</string>
+<resources>                                                         <!-- Translators, pay attention to these notes! --> 
+    <string name="app_name">UserLAnd</string>
+    <string name="welcome">歡迎使用 UserLAnd！</string>
+    <string name="permission_request_code">1000</string>
+
+    <!-- Labels -->
+    <string name="apps">應用程式</string>                               <!-- This is a button, so the word used should be short! -->
+    <string name="sessions">工作階段</string>
+    <string name="edit_session">編輯工作階段</string>
+    <string name="filesystems">檔案系統</string>
+    <string name="edit_filesystem">編輯檔案系統</string>
+    <string name="settings">設定</string>
+    <string name="help">說明</string>
+    <string name="toc">條款與細則</string>
+
+    <!-- Buttons -->
+    <string name="button_continue">繼續</string>
+    <string name="button_advanced_options_show">顯示進階選項</string>
+    <string name="button_advanced_options_hide">隱藏進階選項</string>
+    <string name="button_select_backup_import">選取要匯入的備份檔案</string>
+
+    <!-- Menus -->
+    <string name="app_info">應用程式資訊</string>
+    <string name="stop_app">停止應用程式</string>
+    <string name="stop_session">停止工作階段</string>
+    <string name="edit">編輯</string>
+    <string name="delete">刪除</string>
+    <string name="backup">匯出</string>
+    <string name="save">儲存</string>
+    <string name="add">新增</string>
+    <string name="refresh">重新整理</string>
+    <string name="clear_support_files">清除所有支援檔案</string>
+
+    <!-- Hints -->
+    <string name="hint_filesystem_name">檔案系統名稱</string>
+    <string name="hint_session_name">工作階段名稱</string>
+    <string name="hint_username">使用者名稱</string>
+    <string name="hint_password">密碼</string>
+    <string name="hint_vnc_password">VNC 密碼</string>
+    
+    <!-- Errors -->
+    <string name="error_session_name">您必須提供工作階段名稱</string>
+    <string name="error_filesystem_name">您必須提供檔案系統名稱</string>
+    <string name="error_username">您必須提供使用者名稱</string>
+    <string name="error_empty_field">每個欄位都必須輸入！</string>
+    <string name="error_app_description_not_found">找不到此應用程式的描述。嘗試重新整理。</string>
+    <string name="error_vnc_password_length_incorrect">VNC 密碼必須在6到8個字元之間！</string>
+    <string name="error_username_invalid">使用者名稱有無效的字元</string>
+    <string name="error_password_invalid">密碼有無效的字元</string>
+    <string name="error_vnc_password_invalid">VNC 密碼有無效的字元</string>
+    <string name="error_username_invalid_characters">使用者名字必須是1到30個字元的小寫字母或數字。</string>
+    <string name="error_username_in_blacklist">使用者名稱可能被 Linux 保留，不能用於檔案系統的使用者名稱。</string>
+    <string name="error_filesystem_name_invalid_characters">檔案系統名稱必須在1到50個字元間，且不能有如 \"/:*\\| 等符號</string>
+    <string name="error_export_execution_failure">匯出失敗。理由：%1$s</string>
+
+    <!-- Illegal State Dialog -->
+    <string name="illegal_state_title">UserLAnd 已進入違規狀態！</string>
+
+    <string name="illegal_state_transition">狀態轉換不良：%1$s</string>
+
+    <string name="illegal_state_too_many_selections_when_permissions_granted">在授予權限時，必須同時選取工作階段與應用程式。</string>
+    <string name="illegal_state_no_selections_when_permissions_granted">在授予權限時，沒有選取任何工作階段與應用程式。</string>
+
+    <string name="illegal_state_no_filesystem_selected_when_credentials_selected">已為檔案系統遞交憑證，但並未選取任何一個。</string>
+    <string name="illegal_state_no_app_selected_when_preference_submitted">應用程式偏好設定已遞交，但並未選取任何一個。</string>
+    <string name="illegal_state_no_app_selected_when_preparation_started">嘗試開始準備應用程式，但並未選取任何一個。</string>
+    <string name="illegal_state_error_fetching_app_database_entries">無法擷取資料庫項目。</string>
+    <string name="illegal_state_error_copying_app_script">無法複製應用程式指令稿。</string>
+
+    <string name="illegal_state_no_session_selected_when_preparation_started">嘗試在選取前處理工作階段準備事宜。</string>
+    <string name="illegal_state_error_fetching_asset_lists">擷取資源清單失敗。</string>
+    
+    <string name="illegal_state_remote_unreachable_during_generation">
+        生成下載需求時無法連線到遠端主機。請確定您的網路
+        連線夠穩定，然後再試一次。
+    </string>
+    
+    <string name="illegal_state_downloads_did_not_complete_successfully">下載失敗，因為：%1$s。</string>
+    <string name="illegal_state_failed_to_copy_assets_to_local">複製資源至本機儲存空間失敗。嘗試清除支援檔案。</string>
+    <string name="illegal_state_assets_have_not_been_downloaded">資源必須複製到您的檔案系統，但看起來它們還沒被下載。嘗試清除支援檔案。</string>
+    <string name="illegal_state_empty_download_cache_access">試圖存取時，下載快取被清空。</string>
+    <string name="illegal_state_failed_to_copy_assets_to_filesystem">複製資源到檔案系統失敗。</string>
+    <string name="illegal_state_failed_to_extract_filesystem">解壓縮檔案系統失敗。嘗試清除支援檔案。失敗理由：%1$s</string>
+    <string name="illegal_state_failed_to_clear_support_files">清除支援檔案失敗。</string>
+
+    <!-- Misc illegal state -->
+    <string name="illegal_state_unhandled_session_service_type">嘗試啟動未知服務類型的工作階段。</string>
+
+    <!-- Prompts -->
+    <string name="prompt_filesystem">檔案系統：</string>
+    <string name="prompt_service_type">服務類型：</string>
+    <string name="prompt_client_type">客戶端類型：</string>
+    <string name="prompt_app_connection_type_preference">請選取連線類型：</string>
+    <string name="prompt_select_backup">選取檔案系統備份檔</string>
+    <string name="prompt_install_file_manager">請安裝檔案管理員</string>
+
+    <!-- Notification strings -->
+    <string name="services_notification_channel_name">服務</string>
+    <string name="services_notification_channel_description">永久服務</string>
+    <string name="service_notification_title">UserLAnd</string>
+    <string name="service_notification_description">UserLAnd 正在執行背景服務。</string>
+
+    <!-- Progress bar messages -->
+    <string name="progress_start_step">正在為您準備東西&#8230;</string>
+    <string name="progress_fetching_asset_lists">正在擷取資源清單&#8230;</string>
+    <string name="progress_checking_for_required_updates">正在檢查是否需要更新&#8230;</string>
+    <string name="progress_downloading">正在下載必要的資源&#8230;</string>
+    <string name="progress_downloading_out_of">%1$d 中的 %2$d 完成</string>
+    <string name="progress_copying_downloads">正在複製下載的檔案到本機儲存空間&#8230;</string>
+    <string name="progress_setting_up_filesystem">正在設定檔案系統&#8230;</string>
+    <string name="progress_extraction_details">正在解壓縮：%1$s</string>
+    <string name="progress_verifying_assets">正在驗證資源&#8230;</string>
+    <string name="progress_starting">正在開始服務&#8230;</string>
+    <string name="progress_clearing_support_files">正在清除所有支援檔案&#8230;</string>
+    <string name="progress_exporting_filesystem">正在匯出檔案系統</string>
+
+    <!-- Preferences -->
+    <string name="pref_app_category">應用程式偏好設定</string>
+    <string name="pref_default_landing_page_title">預設首頁</string>
+    <string name="pref_default_landing_page_message">選取開啟應用程式時要看到的網頁。</string>
+    <string name="pref_proot_category">PRoot 偏好設定</string>
+    <string name="pref_proot_debugging_enabled_title">PRoot 除錯紀錄已啟用</string>
+    <string name="pref_proot_debugging_enabled_summary">僅在應用程式有問題時才需要。紀錄檔儲存在\n/mnt/sdcard/PRoot_Debug_Log</string>
+    <string name="pref_proot_debugging_level_title">除錯資訊等級</string>
+    <string name="pref_proot_debugging_level_summary">數字愈大，詳細程度愈大。</string>
+    <string name="pref_proot_debugging_level_default">-1</string>
+    <string name="pref_proot_delete_debug_file_title">刪除除錯檔案</string>
+
+    <!-- Help Activity -->
+    <string name="github_message">遇到臭蟲或想要什麼功能嗎？我們的 GitHub 頁面是取得快速回應的最佳方法。</string>
+    <string name="supported_services">目前支援的裝置：</string>
+    <string name="terminology">術語：</string>
+    <string name="desc_apps_title">應用程式：</string>
+    <string name="desc_apps_message">應用程式是啟動常見的 Linux 應用程式最簡單的方法。</string>
+    <string name="desc_sessions_title">工作階段：</string>
+    <string name="desc_sessions_message">工作階段會在檔案系統上啟動伺服器，讓您可以使用第三方客戶端應用程式連線進去使用。</string>
+    <string name="desc_filesystems_title">檔案系統：</string>
+    <string name="desc_filesystems_message">檔案系統就是顧名思義：使用者的集合與允許類似 Linux 行為的檔案結構。</string>
+
+    <!-- Supported Services -->
+    <string name="support_dropbear">SSH - Dropbear</string>
+    <string name="support_tightvnc">VNC - TightVNC</string>
+
+    <!-- Client Types -->
+    <string name="client_ssh">SSH</string>
+    <string name="client_vnc">VNC</string>
+    <string name="client_xsdl">XSDL</string>
+
+    <!-- Alerts -->
+    <string name="button_yes">是的！</string>
+    <string name="button_negative">並不是</string>
+    <string name="button_refuse">不用了，謝謝</string>
+    <string name="button_positive">好的，當然</string>
+    <string name="button_ok">確定！</string>
+    <string name="button_cancel">取消</string>
+    <string name="general_error_title">發生了預料之外的錯誤！</string>
+    <string name="filesystem_credentials_reasoning">我們正在為您的應用程式建立檔案系統。\n請輸入相關的必要資訊，以讓我們將此做為檔案系統的預設值。</string>
+    <string name="deactivate_sessions">必須停用所有工作階段才能繼續此動作。</string>
+    <string name="import_success">成功匯入備份</string>
+    <string name="import_failure">無法匯入備份</string>
+    <string name="export_success">成功匯出備份</string>
+    <string name="export_failure">匯出備份失敗</string>
+    <string name="export_started">匯出已開始，請稍候</string>
+
+    <!-- Clear support files alert -->
+    <string name="alert_clear_support_files_title">清除所有支援檔案？</string>
+    <string name="alert_clear_support_files_message">
+        這將會刪除所有的支援檔案。但不會影響您在您的檔案系統上建立的任何東西。
+        不過會導致資源必須在工作階段或應用程式下次執行時再下載一次。
+    </string>
+    <string name="alert_clear_support_files_clear_button">清除</string>
+
+    <!-- Play service error alerts -->
+    <string name="alert_need_client_app_title">找不到客戶端應用程式！</string>
+    <string name="alert_need_client_app_message">您將會需要 SSH 或 VNC 或 XSDL 客戶端來完成這個動作，但看起來您並未安裝 Play 商店。\n\n請安裝與工作階段類型相關的客戶端應用程式 (SSH/VNC/XSDL) 以繼續。</string>
+
+    <!-- Permissions necessary alert -->
+    <string name="alert_permissions_necessary_title">UserLAnd 需要權限！</string>
+    <string name="alert_permissions_necessary_message">要繼續，請啟用儲存空間權限以允許 UserLAnd 下載檔案並將它們從外部儲存空間移動到應用程式本機儲存空間。</string>
+    <string name="alert_permissions_necessary_cancel_button">取消</string>
+
+    <!-- Network unavailable alert -->
+    <string name="alert_network_required_for_refresh">重新整理應用程式需要可用或訊號較佳的網路連線。</string>
+
+    <!-- Wifi alert -->
+    <string name="alert_wifi_disabled_title">沒有 wifi！</string>
+    <string name="alert_wifi_disabled_message">需要下載大型資源檔案 (~80mb)。</string>
+    <string name="alert_wifi_disabled_continue_button">繼續</string>
+    <string name="alert_wifi_disabled_turn_on_wifi_button">開啟 Wifi</string>
+    <string name="alert_wifi_disabled_cancel_button">取消</string>
+
+    <!-- Toasts -->
+    <string name="session_unique_name_required">工作階段必須有獨一無二的名稱！</string>
+    <string name="filesystem_unique_name_required">檔案系統必須有獨一無二的名稱！</string>
+    <string name="single_session_supported">UserLAnd 目前僅支援單一個作用中的工作階段！</string>
+    <string name="no_supported_architecture">UserLAnd 目前並不支援您的裝置架構。</string>
+    <string name="debug_log_deleted">除錯紀錄檔已被刪除或不存在！</string>
+
+    <!-- Content descriptions -->
+    <string name="desc_arrow">圖片：箭頭表示工作階段與檔案系統間的連線。</string>
+    <string name="desc_filesystem_type">圖片：散佈版圖示</string>
+
+    <!-- Misc -->
+    <string name="custom_sessions">自訂工作階段</string>
+    <string name="apps_sessions">應用程式工作階段</string>
+    <string name="info_xsdl_support">XSDL 尚未完整支援\nAndroid 9.0 或更新的版本</string>
+    <string name="no_backup_selected">未選擇要匯入的檔案系統</string>
+    
+    <!-- Review request -->
+    <string name="review_is_user_enjoying">正在享受 UserLAnd？</string>
+    <string name="review_ask_for_rating">可以在 Play 上為我們評分嗎？</string>
+    <string name="review_ask_for_feedback">您介意在 GitHub 上給我們一些回饋嗎？</string>
+    
+    <!-- Advanced options -->
+    <string name="desc_import_backups_should_use_same_settings">填入相同的東西：\n\n\u2022 使用者名稱 \n\u2022 密碼 \n\u2022 VNC 密碼 \n\u2022 散佈版 \n\n 作為備份以確保功能運作順暢</string>
+  
 </resources>

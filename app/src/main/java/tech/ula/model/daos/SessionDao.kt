@@ -1,11 +1,11 @@
 package tech.ula.model.daos
 
-import android.arch.lifecycle.LiveData
-import android.arch.persistence.room.Dao
-import android.arch.persistence.room.Insert
-import android.arch.persistence.room.OnConflictStrategy
-import android.arch.persistence.room.Query
-import android.arch.persistence.room.Update
+import androidx.lifecycle.LiveData
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
 import tech.ula.model.entities.Session
 
 @Dao
@@ -25,11 +25,7 @@ interface SessionDao {
     @Query("select * from session where active = 1")
     fun findActiveSessions(): LiveData<List<Session>>
 
-    // TODO test
-    @Query("select * from session where active = 1 and isAppsSession = 1")
-    fun findActiveAppsSessions(): LiveData<List<Session>>
-
-    @Insert(onConflict = OnConflictStrategy.FAIL)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     fun insertSession(session: Session)
 
     @Query("delete from session where id = :id")

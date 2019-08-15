@@ -51,7 +51,6 @@
     <string name="prompt_app_connection_type_preference">لطفا نوع اتصال را تعیین کنید: </string>
 
     <!-- Notification strings -->
-    <string name="services_notification_channel_id">خدمات یوزرلند</string>
     <string name="services_notification_channel_name">خدمات</string>
     <string name="services_notification_channel_description">خدمات مداوم</string>
     <string name="service_notification_title">یوزرلند</string>

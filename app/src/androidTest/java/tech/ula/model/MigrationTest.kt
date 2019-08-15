@@ -1,28 +1,35 @@
 package tech.ula.model
 
-import android.arch.persistence.db.SupportSQLiteDatabase
-import android.arch.persistence.db.framework.FrameworkSQLiteOpenHelperFactory
-import android.arch.persistence.room.Room
-import android.arch.persistence.room.testing.MigrationTestHelper
+import android.content.Context
+import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
+import androidx.room.Room
+import androidx.room.testing.MigrationTestHelper
 import android.database.sqlite.SQLiteDatabase
-import android.support.test.InstrumentationRegistry
-import android.support.test.runner.AndroidJUnit4
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.filters.LargeTest
+import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import tech.ula.blockingObserve
+import tech.ula.androidTestHelpers.blockingObserve
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.* // ktlint-disable no-wildcard-imports
 import java.io.IOException
 
 @RunWith(AndroidJUnit4::class)
+@LargeTest
 class MigrationTest {
     private val TEST_DB = "migration-test"
 
     private val migrationHelper = MigrationTestHelper()
+
+    @get:Rule val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     @get:Rule
     val helper = MigrationTestHelper(InstrumentationRegistry.getInstrumentation(),
@@ -120,8 +127,8 @@ class MigrationTest {
     }
 
     private fun getMigratedDatabase(): UlaDatabase {
-        val db = Room.databaseBuilder(InstrumentationRegistry.getTargetContext(),
-                UlaDatabase::class.java, TEST_DB)
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val db = Room.databaseBuilder(context, UlaDatabase::class.java, TEST_DB)
                 .addMigrations(
                         Migration1To2(),
                         Migration2To3(),

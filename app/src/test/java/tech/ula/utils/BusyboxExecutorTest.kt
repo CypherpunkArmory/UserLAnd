@@ -1,5 +1,7 @@
 package tech.ula.utils
 
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
@@ -18,19 +20,20 @@ class BusyboxExecutorTest {
 
     @get:Rule val tempFolder = TemporaryFolder()
 
-    lateinit var mockFilesDir: File
+    @Mock lateinit var mockUlaFiles: UlaFiles
 
-    lateinit var mockExternalStorage: File
+    private lateinit var mockFilesDir: File
 
-    lateinit var mockFilesystemDir: File
+    private lateinit var mockExternalStorage: File
 
-    @Mock lateinit var mockDefaultPreferences: DefaultPreferences
+    private lateinit var mockFilesystemDir: File
+
+    @Mock lateinit var mockProotDebugLogger: ProotDebugLogger
 
     @Mock lateinit var mockBusyboxWrapper: BusyboxWrapper
 
     private val testFilesystemDirName = "filesystem"
     private val testProotDebugLevel = "9"
-    private val prootDebugFileName = "PRoot_Debug_Log"
 
     private val outputCollection = mutableListOf<String>()
     private val testListener: (String) -> Unit = { outputCollection.add(it) }
@@ -49,43 +52,42 @@ class BusyboxExecutorTest {
         outputCollection.clear()
 
         mockFilesDir = tempFolder.newFolder("files")
+        whenever(mockUlaFiles.filesDir).thenReturn(mockFilesDir)
         mockExternalStorage = tempFolder.newFolder("external")
 
         mockFilesystemDir = File("${mockFilesDir.absolutePath}/$testFilesystemDirName")
         mockFilesDir.mkdirs()
 
-        busyboxExecutor = BusyboxExecutor(mockFilesDir, mockExternalStorage, mockDefaultPreferences, mockBusyboxWrapper)
+        busyboxExecutor = BusyboxExecutor(mockUlaFiles, mockProotDebugLogger, mockBusyboxWrapper)
     }
 
     private fun stubBusyboxIsPresent(present: Boolean) {
-        whenever(mockBusyboxWrapper.busyboxIsPresent(mockFilesDir)).thenReturn(present)
+        whenever(mockBusyboxWrapper.busyboxIsPresent()).thenReturn(present)
     }
 
     private fun stubBusyboxCommand(command: String) {
-        whenever(mockBusyboxWrapper.addBusybox(command)).thenReturn(command.toExecutableList())
+        whenever(mockBusyboxWrapper.wrapCommand(command)).thenReturn(command.toExecutableList())
+    }
+
+    private fun stubBusyboxScript(command: String) {
+        whenever(mockBusyboxWrapper.wrapScript(command)).thenReturn(command.toExecutableList())
     }
 
     private fun stubBusyboxEnv() {
-        whenever(mockBusyboxWrapper.getBusyboxEnv(mockFilesDir)).thenReturn(hashMapOf())
+        whenever(mockBusyboxWrapper.getBusyboxEnv()).thenReturn(hashMapOf())
     }
 
     private fun stubProotIsPresent(present: Boolean) {
-        whenever(mockBusyboxWrapper.prootIsPresent(mockFilesDir)).thenReturn(present)
+        whenever(mockBusyboxWrapper.prootIsPresent()).thenReturn(present)
     }
 
     private fun stubExecutionScriptIsPresent(present: Boolean) {
-        whenever(mockBusyboxWrapper.executionScriptIsPresent(mockFilesDir)).thenReturn(present)
+        whenever(mockBusyboxWrapper.executionScriptIsPresent()).thenReturn(present)
     }
 
     private fun stubProotDebuggingEnabled(enabled: Boolean) {
-        if (enabled) {
-            whenever(mockDefaultPreferences.getProotDebuggingEnabled()).thenReturn(true)
-        } else {
-            whenever(mockDefaultPreferences.getProotDebuggingEnabled()).thenReturn(false)
-        }
-        // Stub these regardless to ensure unwanted writes don't occur
-        whenever(mockDefaultPreferences.getProotDebuggingLevel()).thenReturn(testProotDebugLevel)
-        whenever(mockDefaultPreferences.getProotDebugLogLocation()).thenReturn("${mockExternalStorage.absolutePath}/$prootDebugFileName")
+        whenever(mockProotDebugLogger.isEnabled).thenReturn(enabled)
+        whenever(mockProotDebugLogger.verbosityLevel).thenReturn(testProotDebugLevel)
     }
 
     private fun stubProotCommand(command: String) {
@@ -93,7 +95,7 @@ class BusyboxExecutorTest {
     }
 
     private fun stubProotEnv() {
-        whenever(mockBusyboxWrapper.getProotEnv(mockFilesDir, mockFilesystemDir, testProotDebugLevel, mockExternalStorage))
+        whenever(mockBusyboxWrapper.getProotEnv(mockFilesystemDir, testProotDebugLevel))
                 .thenReturn(hashMapOf())
     }
 
@@ -118,13 +120,13 @@ class BusyboxExecutorTest {
         val testCommand = "echo $testOutput"
         stubBusyboxIsPresent(false)
 
-        val result = busyboxExecutor.executeCommand(testCommand, testListener)
+        val result = busyboxExecutor.executeScript(testCommand, testListener)
         assertTrue(result is MissingExecutionAsset)
         result as MissingExecutionAsset
         assertEquals("busybox", result.asset)
     }
 
-    @Test()
+    @Test
     fun `Fails to execute illegal commands, 'adding' busybox`() {
         val testCommand = "badCommand"
         stubBusyboxIsPresent(true)
@@ -133,6 +135,21 @@ class BusyboxExecutorTest {
 
         val result = busyboxExecutor.executeCommand(testCommand, testListener)
         assertTrue(result is FailedExecution)
+    }
+
+    @Test
+    fun `Successfully executes 'scripts', using BusyboxWrapper#wrapScript`() {
+        val testOutput = "hello"
+        val testCommand = "echo $testOutput"
+        stubBusyboxIsPresent(true)
+        stubBusyboxScript(testCommand)
+        stubBusyboxEnv()
+
+        val result = busyboxExecutor.executeScript(testCommand, testListener)
+
+        assertEquals(1, outputCollection.size)
+        assertEquals(testOutput, outputCollection[0])
+        assertTrue(result is SuccessfulExecution)
     }
 
     @Test
@@ -175,12 +192,9 @@ class BusyboxExecutorTest {
     }
 
     @Test
-    fun `Overwrites PRoot debug logs with redirected output if logging is enabled`() {
+    fun `Calls ProotDebugLogger#logStream if logging is enabled`() {
         val testOutput = "hello"
         val testCommand = "echo $testOutput"
-        val debugFile = File("${mockExternalStorage.absolutePath}/$prootDebugFileName")
-        debugFile.createNewFile()
-        debugFile.writeText("original text")
 
         stubBusyboxIsPresent(true)
         stubProotIsPresent(true)
@@ -200,10 +214,8 @@ class BusyboxExecutorTest {
         }
 
         assertTrue(result is SuccessfulExecution)
-        assertEquals(0, outputCollection.size)
-
-        val debugText = debugFile.readText()
-        assertEquals(testOutput, debugText.trim())
+        assertEquals(1, outputCollection.size)
+        verify(mockProotDebugLogger).logStream(any(), any())
     }
 
     @Test
@@ -251,7 +263,7 @@ class BusyboxExecutorTest {
         assertEquals("execution script", result.asset)
     }
 
-    @Test()
+    @Test
     fun `Fails to execute illegal commands, 'adding' proot and busybox`() {
         val testCommand = "badCommand"
 

@@ -36,6 +36,12 @@ public final class ExtraKeysView extends GridLayout {
     private static final int INTERESTING_COLOR = 0xFF80DEEA;
     private static final int BUTTON_PRESSED_COLOR = 0x7FFFFFFF;
 
+    /**
+     *  Variables used when swiping the extra keys row. Prevent a KEY_PRESS_DOWN when swiping
+     */
+    private float actionDownPosition;
+    private static final int MIN_SWIPE_DISTANCE = 50;
+
     public ExtraKeysView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
@@ -359,6 +365,7 @@ public final class ExtraKeysView extends GridLayout {
                     final View root = getRootView();
                     switch (event.getAction()) {
                         case MotionEvent.ACTION_DOWN:
+                            actionDownPosition = event.getX();
                             longPressCount = 0;
                             v.setBackgroundColor(BUTTON_PRESSED_COLOR);
                             if (Arrays.asList("UP", "DOWN", "LEFT", "RIGHT").contains(buttonText)) {
@@ -393,6 +400,12 @@ public final class ExtraKeysView extends GridLayout {
                                 scheduledExecutor.shutdownNow();
                                 scheduledExecutor = null;
                             }
+
+                            float actionUpLocation = event.getX();
+                            float deltaX = actionUpLocation - actionDownPosition;
+                            if (Math.abs(deltaX) > MIN_SWIPE_DISTANCE)
+                                return true;
+
                             if (longPressCount == 0) {
                                 if (popupWindow != null && Arrays.asList("/", "-").contains(buttonText)) {
                                     popupWindow.setContentView(null);

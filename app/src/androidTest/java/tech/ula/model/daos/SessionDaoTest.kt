@@ -1,10 +1,11 @@
 package tech.ula.model.daos
 
-import android.arch.core.executor.testing.InstantTaskExecutorRule
-import android.arch.persistence.room.Room
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.room.Room
 import android.database.sqlite.SQLiteConstraintException
-import android.support.test.InstrumentationRegistry
-import android.support.test.runner.AndroidJUnit4
+import androidx.test.InstrumentationRegistry
+import androidx.test.filters.SmallTest
+import androidx.test.runner.AndroidJUnit4
 import org.junit.After
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
@@ -14,9 +15,10 @@ import org.junit.runner.RunWith
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.Session
-import tech.ula.blockingObserve
+import tech.ula.androidTestHelpers.blockingObserve
 
 @RunWith(AndroidJUnit4::class)
+@SmallTest
 class SessionDaoTest {
 
     private lateinit var db: UlaDatabase

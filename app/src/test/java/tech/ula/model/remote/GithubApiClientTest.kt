@@ -15,7 +15,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
-import tech.ula.utils.BuildWrapper
+import tech.ula.utils.Logger
+import tech.ula.utils.DeviceArchitecture
 import java.io.IOException
 
 @RunWith(MockitoJUnitRunner::class)
@@ -23,13 +24,15 @@ class GithubApiClientTest {
 
     @get:Rule val server = MockWebServer()
 
-    @Mock lateinit var mockBuildWrapper: BuildWrapper
+    @Mock lateinit var mockDeviceArchitecture: DeviceArchitecture
 
     @Mock lateinit var mockUrlProvider: UrlProvider
 
+    @Mock lateinit var mockLogger: Logger
+
     private val moshi = Moshi.Builder().build()
 
-    lateinit var githubApiClient: GithubApiClient
+    private lateinit var githubApiClient: GithubApiClient
 
     private val testRepo = "repo"
     private val testReleaseToUse = "latest"
@@ -73,9 +76,9 @@ class GithubApiClientTest {
 
     @Before
     fun setup() {
-        whenever(mockBuildWrapper.getArchType()).thenReturn(testArch)
+        whenever(mockDeviceArchitecture.getArchType()).thenReturn(testArch)
 
-        githubApiClient = GithubApiClient(buildWrapper = mockBuildWrapper, urlProvider = mockUrlProvider)
+        githubApiClient = GithubApiClient(mockDeviceArchitecture, mockUrlProvider, mockLogger)
     }
 
     @After
@@ -83,14 +86,14 @@ class GithubApiClientTest {
         server.shutdown()
     }
 
-    fun stubBaseUrl() {
+    private fun stubBaseUrl() {
         val url = server.url("/")
         whenever(mockUrlProvider.getBaseUrl()).thenReturn("${url.url()}")
     }
 
     @Test
     fun `JsonClass correctly generate ReleasesResponse`() {
-        val adapter = moshi.adapter<GithubApiClient.ReleasesResponse>(GithubApiClient.ReleasesResponse::class.java)
+        val adapter = moshi.adapter(GithubApiClient.ReleasesResponse::class.java)
         val releasesResponse: GithubApiClient.ReleasesResponse = adapter.fromJson(json)!!
 
         assertEquals(testUrl, releasesResponse.url)
@@ -138,6 +141,8 @@ class GithubApiClientTest {
         stubBaseUrl()
 
         runBlocking { githubApiClient.getAssetsListDownloadUrl(testRepo) }
+
+        verify(mockLogger.addExceptionBreadcrumb(IOException()))
     }
 
     @Test
@@ -179,6 +184,8 @@ class GithubApiClientTest {
         stubBaseUrl()
 
         runBlocking { githubApiClient.getLatestReleaseVersion(testRepo) }
+
+        verify(mockLogger.addExceptionBreadcrumb(IOException()))
     }
 
     @Test
@@ -220,6 +227,8 @@ class GithubApiClientTest {
         stubBaseUrl()
 
         runBlocking { githubApiClient.getAssetEndpoint(testAssetType, testRepo) }
+
+        verify(mockLogger).addExceptionBreadcrumb(IOException())
     }
 
     @Test
