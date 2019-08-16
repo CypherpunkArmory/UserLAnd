@@ -52,7 +52,7 @@ reference:
   android_config: &android_config
     working_directory: *workspace
     docker:
-      - image: circleci/android:api-28-ndk
+      - image: circleci/android@sha256:fa7a00c75f4b28cc4f2a15a382fb76e830d62a77efd1a3f8549f7f5fdad4ca44
     environment:
       TERM: dumb
       # Limit JVM heap size to prevent exceeding container memory
