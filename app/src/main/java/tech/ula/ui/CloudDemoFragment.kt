@@ -170,7 +170,7 @@ class CloudDemoFragment : Fragment() {
     private fun startTermux(ipAddress: String, sshPort: Int) {
         val intent = Intent()
         intent.action = "android.intent.action.VIEW"
-        intent.data = Uri.parse("ssh://blah@$ipAddress:$sshPort/#userland")
+        intent.data = Uri.parse("ssh://ULACLOUDDEMO@$ipAddress:$sshPort/#userland")
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
 
         startActivity(intent)

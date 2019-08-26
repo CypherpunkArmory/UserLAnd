@@ -69,7 +69,6 @@ internal data class CreateData(
 
 @JsonClass(generateAdapter = true)
 internal data class CreateAttributes(
-        val port: List<String>,
         val sshPort: Int,
         val ipAddress: String
 )
@@ -91,7 +90,7 @@ class CloudDemoViewModel : ViewModel(), CoroutineScope {
     }
 
     private val client = OkHttpClient()
-    private val baseUrl = "https://api.thomas.orbtestenv.net/"
+    private val baseUrl = "https://api.userland.tech/"
     private val jsonType = MediaType.parse("application/json")
     private val moshi = Moshi.Builder().build()
     private var accessToken = ""
@@ -241,7 +240,7 @@ class CloudDemoViewModel : ViewModel(), CoroutineScope {
         val json = """
             {
               "data": {
-                "type": "tunnel",
+                "type": "box",
                 "attributes": {
                   "port": ["http"],
                   "sshKey": "$sshKey"
@@ -252,7 +251,7 @@ class CloudDemoViewModel : ViewModel(), CoroutineScope {
 
         val body = RequestBody.create(jsonType, json)
         return Request.Builder()
-                .url("$baseUrl/tunnels")
+                .url("$baseUrl/boxes")
                 .post(body)
                 .addHeader("Authorization","Bearer $accessToken")
                 .build()
@@ -260,7 +259,7 @@ class CloudDemoViewModel : ViewModel(), CoroutineScope {
 
     private fun createListRequest(): Request {
         return Request.Builder()
-                .url("$baseUrl/tunnels")
+                .url("$baseUrl/boxes")
                 .addHeader("Authorization","Bearer $accessToken")
                 .get()
                 .build()
@@ -268,7 +267,7 @@ class CloudDemoViewModel : ViewModel(), CoroutineScope {
 
     private fun createDeleteRequest(id: Int): Request {
         return Request.Builder()
-                .url("$baseUrl/tunnels/$id")
+                .url("$baseUrl/boxes/$id")
                 .addHeader("Authorization","Bearer $accessToken")
                 .delete()
                 .build()
