@@ -268,8 +268,23 @@ public final class TermuxService extends Service implements SessionChangedCallba
         }
 
         // TODO: Replace -y -y option with a way to support hostkey checking
+        String sshKeyFilePath = filesPath + "/sshkey.priv";
+        String debugFile = filesPath + "/debug.txt";
+
+        String proxyCommand = supportPath + "/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i " +
+                sshKeyFilePath + " -W %h:%p punch@api.ula.orbtestenv.net";
+
+        String sshCommand = supportPath + "/ssh -o ProxyCommand=\"" + proxyCommand +
+                "\" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i " +
+                sshKeyFilePath +  " -p " + port + " -t -A root@" + hostname +
+                " '/usr/bin/clear; /bin/bash -i' &> " + debugFile;
+
+        String[] sshArgs = { "sh", "-c", sshCommand };
         String[] dbclientArgs = {"sh", "-c", supportPath + "dbclient -y -y " + username + "@" + hostname + "/" + port};
-        String[] processArgs = BackgroundJob.setupProcessArgs(executablePath, dbclientArgs, prefixPath);
+
+        String[] processArgs = "ULACLOUDDEMO".equals(username) ?
+                BackgroundJob.setupProcessArgs(executablePath, sshArgs, prefixPath) :
+                BackgroundJob.setupProcessArgs(executablePath, dbclientArgs, prefixPath);
         executablePath = processArgs[0];
         int lastSlashIndex = executablePath.lastIndexOf('/');
         String processName = (isLoginShell ? "-" : "") +

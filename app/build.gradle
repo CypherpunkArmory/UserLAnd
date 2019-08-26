@@ -88,6 +88,10 @@ android {
         }
     }
 
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
     sourceSets {
         androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
     }
@@ -198,32 +202,48 @@ ext.architectures = ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"]
 ext.libDir = "$project.projectDir/src/main/jniLibs"
 
 task downloadAssets(type: Download) {
-    def assetVersion = "v1.1.0"
+    def assetVersion = "v7.7.7"
     def baseUrl = "https://github.com/CypherpunkArmory/UserLAnd-Assets-Support/releases/download/$assetVersion"
-    for (arch in architectures) {
-        src "$baseUrl/$arch-assets.zip"
-        dest buildDir
-    }
+    src "$baseUrl/arm64-assets.tar.gz"
+    dest buildDir
+//    for (arch in architectures) {
+//        src "$baseUrl/$arch-assets.zip"
+//        dest buildDir
+//    }
 }
 
 task fetchAssets(dependsOn: downloadAssets) {
     doLast {
-        for (arch in architectures) {
-            delete {
-                "$buildDir/$arch"
-            }
-            copy {
-                from zipTree("$buildDir/$arch-assets.zip")
-                into "$buildDir/$arch"
-            }
-            copy {
-                from "$buildDir/$arch"
-                into "$libDir/$arch"
-                // Lib files must start with 'lib' and end with '.so.'
-                rename '(.*)', 'lib_$1.so'
-            }
-            new File("$libDir/$arch","lib_arch.so").text = "$arch"
+        def arch = "arm64"
+        def libArch = "arm64-v8a"
+        delete {
+            "$buildDir/$arch"
         }
+        copy {
+            from tarTree(resources.gzip("$buildDir/$arch-assets.tar.gz"))
+            into "$buildDir/$arch"
+        }
+        copy {
+            from "$buildDir/$arch"
+            into "$libDir/$libArch"
+            rename '(.*)', 'lib_$1.so'
+        }
+        new File("$libDir/$arch","lib_arch.so").text = "$arch"
+//        for (arch in architectures) {
+//            delete {
+//                "$buildDir/$arch"
+//            }
+//            copy {
+//                from tarTree(resources.gzip("$buildDir/$arch-assets.zip"))
+//                into "$buildDir/$arch"
+//            }
+//            copy {
+//                from "$buildDir/$arch"
+//                into "$libDir/$arch"
+//                 Lib files must start with 'lib' and end with '.so.'
+//                rename '(.*)', 'lib_$1.so'
+//            }
+//        }
     }
 }
 
