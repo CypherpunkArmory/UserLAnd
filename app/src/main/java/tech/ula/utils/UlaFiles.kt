@@ -73,7 +73,7 @@ class UlaFiles(
     }
 
     fun getArchType(): String {
-        val usedABI = File(libDir,"lib_arch.so").readText()
+        val usedABI = File(libDir, "lib_arch.so").readText()
         return translateABI(usedABI)
     }
 

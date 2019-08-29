@@ -20,9 +20,9 @@ class UrlProvider {
 }
 
 class GithubApiClient(
-        private val ulaFiles: UlaFiles,
-        private val urlProvider: UrlProvider = UrlProvider(),
-        private val logger: Logger = SentryLogger()
+    private val ulaFiles: UlaFiles,
+    private val urlProvider: UrlProvider = UrlProvider(),
+    private val logger: Logger = SentryLogger()
 ) {
     private val client = OkHttpClient()
     private val latestResults: HashMap<String, ReleasesResponse?> = hashMapOf()
