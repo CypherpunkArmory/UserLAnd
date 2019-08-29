@@ -15,6 +15,7 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.remote.GithubApiClient
 import tech.ula.utils.Logger
 import tech.ula.utils.HttpStream
+import tech.ula.utils.UlaFiles
 import tech.ula.utils.preferences.AssetPreferences
 import java.io.File
 import java.io.IOException
@@ -29,6 +30,8 @@ class AssetRepositoryTest {
     private lateinit var applicationFilesDirPath: String
 
     @Mock lateinit var mockAssetPreferences: AssetPreferences
+
+    @Mock lateinit var mockUlaFiles: UlaFiles
 
     @Mock lateinit var mockGithubApiClient: GithubApiClient
 
@@ -100,7 +103,7 @@ class AssetRepositoryTest {
     fun setup() {
         applicationFilesDirPath = tempFolder.root.absolutePath
 
-        assetRepository = AssetRepository(applicationFilesDirPath, mockAssetPreferences, mockGithubApiClient, mockHttpStream, mockLogger)
+        assetRepository = AssetRepository(applicationFilesDirPath, mockAssetPreferences, mockUlaFiles, mockGithubApiClient, mockHttpStream, mockLogger)
     }
 
     @Test(expected = IllegalStateException::class)
