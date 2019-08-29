@@ -6,7 +6,7 @@ These are intended as just that: guidelines, so use your best judgement when sub
 All contributions must follow the UserLAnd [Code of Conduct](https://github.com/CypherpunkArmory/UserLAnd/blob/master/CODE_OF_CONDUCT.md).
 
 ## Connect with us
-If you have any questions please join us on our [slack](https://communityinviter.com/apps/userlandtech/userland) #contributors channel
+Please talk with us here in the form of a PR or an issue.
  
 ## Architecture
 We follow the MVVM-C architecture in UserLAnd. UI updates should exist exclusively within XML and be inflated exclusively from

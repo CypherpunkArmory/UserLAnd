@@ -8,9 +8,9 @@ Features:
 * Install and uninstall like a regular app.
 * No root required.
 
-[<img src="https://f-droid.org/badge/get-it-on.png"
-     alt="Get it on F-Droid"
-     height="80">](https://f-droid.org/packages/tech.ula/)
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
+    alt="Get it on F-Droid"
+    height="80">](https://f-droid.org/packages/tech.ula)
 [<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png"
      alt="Get it on Google Play"
      height="80">](https://play.google.com/store/apps/details?id=tech.ula)
@@ -18,7 +18,6 @@ Features:
 ## Have a bug report or a feature request?
 You can see our templates by visiting our [issue center](https://github.com/CypherpunkArmory/UserLAnd/issues).
 
-You can also chat with us on [slack](https://communityinviter.com/apps/userlandtech/userland).
 ## Want to contribute?
 See our [CONTRIBUTING](https://github.com/CypherpunkArmory/UserLAnd/blob/master/CONTRIBUTING.md) document.
 
