@@ -24,9 +24,9 @@ import kotlinx.android.synthetic.main.frag_filesystem_edit.*
 import tech.ula.MainActivity
 import tech.ula.R
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.utils.DeviceArchitecture
 import tech.ula.utils.PermissionHandler
 import tech.ula.utils.CredentialValidator
+import tech.ula.utils.UlaFiles
 import tech.ula.utils.preferences.AppsPreferences
 import tech.ula.viewmodel.FilesystemImportStatus
 import tech.ula.viewmodel.ImportSuccess
@@ -233,7 +233,8 @@ class FilesystemEditFragment : Fragment() {
             navController.popBackStack()
         } else {
             try {
-                filesystem.archType = DeviceArchitecture().getArchType()
+                val ulaFiles = UlaFiles(activityContext, activityContext.applicationInfo.nativeLibraryDir)
+                filesystem.archType = ulaFiles.getArchType()
             } catch (err: Exception) {
                 Toast.makeText(activityContext, R.string.no_supported_architecture, Toast.LENGTH_LONG).show()
                 return true
