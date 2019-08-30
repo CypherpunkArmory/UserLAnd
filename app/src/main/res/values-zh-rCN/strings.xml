@@ -92,7 +92,6 @@
     <string name="session_unique_name_required">此会话需要一个特殊的名字！</string>
     <string name="filesystem_unique_name_required">文件系统需要一个特殊的名字！</string>
     <string name="single_session_supported">UserLAnd目前仅支持一个会话！</string>
-    <string name="no_supported_architecture">UserLAnd目前无法支持您的设备.</string>
     <string name="debug_log_deleted">除错日志已被删除或者不存在！</string>
     <string name="desc_arrow">图像：箭头指示会话与文件系统之间的关系</string>
     <string name="desc_filesystem_type">图像：分发图标</string>

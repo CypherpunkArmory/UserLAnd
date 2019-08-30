@@ -232,13 +232,8 @@ class FilesystemEditFragment : Fragment() {
             filesystemEditViewModel.updateFilesystem(filesystem)
             navController.popBackStack()
         } else {
-            try {
-                val ulaFiles = UlaFiles(activityContext, activityContext.applicationInfo.nativeLibraryDir)
-                filesystem.archType = ulaFiles.getArchType()
-            } catch (err: Exception) {
-                Toast.makeText(activityContext, R.string.no_supported_architecture, Toast.LENGTH_LONG).show()
-                return true
-            }
+            val ulaFiles = UlaFiles(activityContext, activityContext.applicationInfo.nativeLibraryDir)
+            filesystem.archType = ulaFiles.getArchType()
             if (filesystem.isCreatedFromBackup) {
                 filesystemEditViewModel.insertFilesystemFromBackup(activityContext.contentResolver, filesystem, activityContext.filesDir)
             } else {

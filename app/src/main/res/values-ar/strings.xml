@@ -179,7 +179,6 @@
     <string name="session_unique_name_required">الجلسات تتطلب اسمًا فريدًا!</string>
     <string name="filesystem_unique_name_required">تتطلب أنظمة الملفات اسمًا فريدًا!</string>
     <string name="single_session_supported">UserLAnd يدعم حاليا فقط جلسة واحدة نشطة!</string>
-    <string name="no_supported_architecture">لا يدعم UserLAnd بنية الأجهزة حاليًا.</string>
     <string name="debug_log_deleted">سجل تصحيح حذف أو غير موجود!</string>
 
     <!-- Content descriptions -->

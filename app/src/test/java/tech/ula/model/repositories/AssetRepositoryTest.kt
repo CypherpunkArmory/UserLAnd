@@ -31,8 +31,6 @@ class AssetRepositoryTest {
 
     @Mock lateinit var mockAssetPreferences: AssetPreferences
 
-    @Mock lateinit var mockUlaFiles: UlaFiles
-
     @Mock lateinit var mockGithubApiClient: GithubApiClient
 
     @Mock lateinit var mockHttpStream: HttpStream
@@ -103,7 +101,7 @@ class AssetRepositoryTest {
     fun setup() {
         applicationFilesDirPath = tempFolder.root.absolutePath
 
-        assetRepository = AssetRepository(applicationFilesDirPath, mockAssetPreferences, mockUlaFiles, mockGithubApiClient, mockHttpStream, mockLogger)
+        assetRepository = AssetRepository(applicationFilesDirPath, mockAssetPreferences, mockGithubApiClient, mockHttpStream, mockLogger)
     }
 
     @Test(expected = IllegalStateException::class)
