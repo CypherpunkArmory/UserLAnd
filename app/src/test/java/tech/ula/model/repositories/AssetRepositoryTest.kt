@@ -15,7 +15,6 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.remote.GithubApiClient
 import tech.ula.utils.Logger
 import tech.ula.utils.HttpStream
-import tech.ula.utils.UlaFiles
 import tech.ula.utils.preferences.AssetPreferences
 import java.io.File
 import java.io.IOException
