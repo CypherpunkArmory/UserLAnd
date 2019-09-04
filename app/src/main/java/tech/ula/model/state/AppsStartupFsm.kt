@@ -16,7 +16,7 @@ import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 class AppsStartupFsm(
     ulaDatabase: UlaDatabase,
     private val filesystemManager: FilesystemManager,
-    private val deviceArchitecture: DeviceArchitecture = DeviceArchitecture(),
+    private val ulaFiles: UlaFiles,
     private val logger: Logger = SentryLogger()
 ) {
 
@@ -123,7 +123,7 @@ class AppsStartupFsm(
         val potentialAppFilesystem = filesystemDao.findAppsFilesystemByType(app.filesystemRequired)
 
         if (potentialAppFilesystem.isEmpty()) {
-            val deviceArchitecture = deviceArchitecture.getArchType()
+            val deviceArchitecture = ulaFiles.getArchType()
             val fsToInsert = Filesystem(0, name = "apps", archType = deviceArchitecture,
                     distributionType = app.filesystemRequired, isAppsFilesystem = true)
             filesystemDao.insertFilesystem(fsToInsert)

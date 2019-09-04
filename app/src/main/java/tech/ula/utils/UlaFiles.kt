@@ -71,6 +71,21 @@ class UlaFiles(
             symlinker.createSymlink(libFile.path, linkFile.path)
         }
     }
+
+    fun getArchType(): String {
+        val usedABI = File(libDir, "lib_arch.so").readText()
+        return translateABI(usedABI)
+    }
+
+    private fun translateABI(abi: String): String {
+        return when (abi) {
+            "arm64-v8a" -> "arm64"
+            "armeabi-v7a" -> "arm"
+            "x86_64" -> "x86_64"
+            "x86" -> "x86"
+            else -> ""
+        }
+    }
 }
 
 class Symlinker {

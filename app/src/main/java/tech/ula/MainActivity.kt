@@ -40,6 +40,7 @@ import kotlinx.coroutines.launch
 import tech.ula.model.entities.App
 import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.Session
+import tech.ula.model.remote.GithubApiClient
 import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
@@ -117,7 +118,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val ulaDatabase = UlaDatabase.getInstance(this)
 
         val assetPreferences = AssetPreferences(this)
-        val assetRepository = AssetRepository(filesDir.path, assetPreferences)
+        val githubApiClient = GithubApiClient(ulaFiles)
+        val assetRepository = AssetRepository(filesDir.path, assetPreferences, githubApiClient)
 
         val filesystemManager = FilesystemManager(ulaFiles, busyboxExecutor)
         val storageCalculator = StorageCalculator(StatFs(filesDir.path))
@@ -126,7 +128,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val downloadManagerWrapper = DownloadManagerWrapper(downloadManager)
         val assetDownloader = AssetDownloader(assetPreferences, downloadManagerWrapper, ulaFiles)
 
-        val appsStartupFsm = AppsStartupFsm(ulaDatabase, filesystemManager)
+        val appsStartupFsm = AppsStartupFsm(ulaDatabase, filesystemManager, ulaFiles)
         val sessionStartupFsm = SessionStartupFsm(ulaDatabase, assetRepository, filesystemManager, assetDownloader, storageCalculator)
         ViewModelProviders.of(this, MainActivityViewModelFactory(appsStartupFsm, sessionStartupFsm))
                 .get(MainActivityViewModel::class.java)

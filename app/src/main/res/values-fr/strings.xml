@@ -123,7 +123,6 @@
     <string name="session_unique_name_required">Les Sessions ont besoin d\'un nom unique !</string>
     <string name="filesystem_unique_name_required">Les Systèmes de fichiers ont besoin d\'un nom unique !</string>
     <string name="single_session_supported">Actuellement UserLAnd ne prend en charge qu’une seule session active !</string>
-    <string name="no_supported_architecture">L’architecture de votre dispositif n’est pas actuellement prise en charge par UserLAnd.</string>
     <string name="debug_log_deleted">Le journal de débogage a été supprimé ou n’existe pas !</string>
 
     <!-- Content descriptions -->
