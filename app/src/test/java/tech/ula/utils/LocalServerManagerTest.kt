@@ -42,7 +42,7 @@ class LocalServerManagerTest {
 
     private fun createVNCPidFile(session: Session) {
         val folder = tempFolder.newFolder(filesystemDirName, "home", session.username, ".vnc")
-        vncPidFile = File("${folder.path}/localhost:${session.port}.pid")
+        vncPidFile = File("${folder.path}/localhost:51.pid")
         vncPidFile.createNewFile()
     }
 

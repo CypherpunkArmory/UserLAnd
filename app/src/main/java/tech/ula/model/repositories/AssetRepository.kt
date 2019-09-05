@@ -24,7 +24,7 @@ data class DownloadMetadata(
 class AssetRepository(
     private val applicationFilesDirPath: String,
     private val assetPreferences: AssetPreferences,
-    private val githubApiClient: GithubApiClient = GithubApiClient(),
+    private val githubApiClient: GithubApiClient,
     private val httpStream: HttpStream = HttpStream(),
     private val logger: Logger = SentryLogger()
 ) {

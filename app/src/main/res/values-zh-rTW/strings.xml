@@ -193,7 +193,6 @@
     <string name="session_unique_name_required">工作階段必須有獨一無二的名稱！</string>
     <string name="filesystem_unique_name_required">檔案系統必須有獨一無二的名稱！</string>
     <string name="single_session_supported">UserLAnd 目前僅支援單一個作用中的工作階段！</string>
-    <string name="no_supported_architecture">UserLAnd 目前並不支援您的裝置架構。</string>
     <string name="debug_log_deleted">除錯紀錄檔已被刪除或不存在！</string>
 
     <!-- Content descriptions -->

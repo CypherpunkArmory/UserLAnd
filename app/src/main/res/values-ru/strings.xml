@@ -165,7 +165,6 @@
     <string name="session_unique_name_required">Сессии должны иметь различные имена!</string>
     <string name="filesystem_unique_name_required">Файловые системы должны иметь различные имена!</string>
     <string name="single_session_supported">На текущий момент UserLAnd поддерживает лишь единственную активную сессию!</string>
-    <string name="no_supported_architecture">На текущий момент UserLAnd не поддерживает архитектуру вашего устройства.</string>
     <string name="debug_log_deleted">Журнал отладки удалён или не существует!</string>
 
     <!-- Content descriptions -->

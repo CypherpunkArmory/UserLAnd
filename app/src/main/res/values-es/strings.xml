@@ -173,7 +173,6 @@
     <string name="session_unique_name_required">¡Las sesiones requieren un nombre único!</string>
     <string name="filesystem_unique_name_required">¡Los sistemas de archivos requieren un nombre único!</string>
     <string name="single_session_supported">¡UserLAnd por ahora sólo soporta una sesión activa!</string>
-    <string name="no_supported_architecture">UserLAnd por ahora no soporta la arquitectura de tu dispositivo.</string>
     <string name="debug_log_deleted">¡El archivo de registro de depuración fue eliminado o es inexistente!</string>
 
     <!-- Content descriptions -->

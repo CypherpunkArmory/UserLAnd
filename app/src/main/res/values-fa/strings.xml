@@ -123,7 +123,6 @@
     <string name="session_unique_name_required">نام نشست‌ها باید یک‌تا باشد!</string>
     <string name="filesystem_unique_name_required">نام فایل‌سیستم‌ها باید یک‌تا باشد!</string>
     <string name="single_session_supported">یوزرلند در حال حاضر تنها از یک نشست فعال پشتیبانی می‌کند!</string>
-    <string name="no_supported_architecture">یوزرلند در حال حاضر از معماری دستگاه شما پیشتیبانی نمی‌کند.</string>
     <string name="debug_log_deleted">لاگ دیباگ یا پاک شده و یا وجود ندارد!</string>
 
     <!-- Content descriptions -->

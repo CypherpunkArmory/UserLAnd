@@ -16,7 +16,7 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.utils.Logger
-import tech.ula.utils.DeviceArchitecture
+import tech.ula.utils.UlaFiles
 import java.io.IOException
 
 @RunWith(MockitoJUnitRunner::class)
@@ -24,7 +24,7 @@ class GithubApiClientTest {
 
     @get:Rule val server = MockWebServer()
 
-    @Mock lateinit var mockDeviceArchitecture: DeviceArchitecture
+    @Mock lateinit var mockUlaFiles: UlaFiles
 
     @Mock lateinit var mockUrlProvider: UrlProvider
 
@@ -76,9 +76,9 @@ class GithubApiClientTest {
 
     @Before
     fun setup() {
-        whenever(mockDeviceArchitecture.getArchType()).thenReturn(testArch)
+        whenever(mockUlaFiles.getArchType()).thenReturn(testArch)
 
-        githubApiClient = GithubApiClient(mockDeviceArchitecture, mockUrlProvider, mockLogger)
+        githubApiClient = GithubApiClient(mockUlaFiles, mockUrlProvider, mockLogger)
     }
 
     @After

@@ -105,7 +105,6 @@ class AppDetailsViewModel(private val sessionDao: SessionDao, private val appDet
             if (appSession == null) return@launch
 
             appSession.serviceType = selectedServiceType
-            appSession.port = if (selectedServiceType == ServiceType.Vnc) 51 else 2022
             this.launch {
                 withContext(Dispatchers.IO) {
                     sessionDao.updateSession(appSession)

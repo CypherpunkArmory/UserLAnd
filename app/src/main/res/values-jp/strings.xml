@@ -123,7 +123,6 @@
     <string name="session_unique_name_required">他のセッションと同じ名前は使用できません。</string>
     <string name="filesystem_unique_name_required">他のファイルシステムと同じ名前は使用できません。</string>
     <string name="single_session_supported">UserLAnd は今の所１個しかセッションを立ち上げられません!</string>
-    <string name="no_supported_architecture">UserLAnd は現在、ご使用の端末のアーキテクチャに対応していません。</string>
     <string name="debug_log_deleted">デバッグ情報のログが削除されたか、存在していません!</string>
 
     <!-- Content descriptions -->

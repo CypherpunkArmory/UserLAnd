@@ -200,7 +200,6 @@
     <string name="session_unique_name_required">Sessões exigem um nome único!</string>
     <string name="filesystem_unique_name_required">Sistemas de Arquivos exigem um nome único!</string>
     <string name="single_session_supported">UserLAnd atualmente suporta apenas uma única sessão ativa!</string>
-    <string name="no_supported_architecture">O UserLAnd não suporta atualmente a arquitetura de seus dispositivo.</string>
     <string name="debug_log_deleted">Log de depuração excluído ou não existe!</string>
 
     <!-- Content descriptions -->

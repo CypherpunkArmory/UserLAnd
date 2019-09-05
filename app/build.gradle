@@ -24,7 +24,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 29
         versionCode vcode
-        versionName "2.6.2"
+        versionName "2.6.3"
         
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunnerArguments clearPackageData: 'true'
@@ -198,7 +198,7 @@ ext.architectures = ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"]
 ext.libDir = "$project.projectDir/src/main/jniLibs"
 
 task downloadAssets(type: Download) {
-    def assetVersion = "v1.0.1"
+    def assetVersion = "v1.1.0"
     def baseUrl = "https://github.com/CypherpunkArmory/UserLAnd-Assets-Support/releases/download/$assetVersion"
     for (arch in architectures) {
         src "$baseUrl/$arch-assets.zip"
@@ -222,6 +222,7 @@ task fetchAssets(dependsOn: downloadAssets) {
                 // Lib files must start with 'lib' and end with '.so.'
                 rename '(.*)', 'lib_$1.so'
             }
+            new File("$libDir/$arch","lib_arch.so").text = "$arch"
         }
     }
 }
@@ -280,7 +281,6 @@ dependencies {
     def mockito_version = '2.23.0'
     def mockito_kotlin_version = '2.1.0'
     def core_testing_version = '2.0.0-beta01'
-    def espresso_version = '3.2.0'
     def androidx_test_version = '1.2.0'
     def androidx_test_ext_version = '1.1.0'
 
@@ -296,6 +296,7 @@ dependencies {
     androidTestImplementation "androidx.test:rules:$androidx_test_version"
     androidTestImplementation "androidx.test.ext:junit:$androidx_test_ext_version"
     // Barista packages espresso-core and espresso-contrib
+    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.2.0'
     androidTestImplementation('com.schibsted.spain:barista:3.1.0') {
         exclude group: 'com.android.support'
         exclude group: 'org.jetbrains.kotlin'
