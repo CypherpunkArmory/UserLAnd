@@ -1,6 +1,6 @@
 <resources>                                                         <!-- Translators, pay attention to these notes! --> 
     <string name="app_name">UserLAnd</string>
-    <string name="welcome">UserLAnd'e Hoş Geldiniz!</string>
+    <string name="welcome">UserLAnd\'e Hoş Geldiniz!</string>
     <string name="permission_request_code">1000</string>
 
     <!-- Labels -->
@@ -57,8 +57,8 @@
     <string name="error_export_filesystem_not_found">Yedeklenecek dosya sistemi belirlenemedi. Lütfen tekrar deneyin.</string>
     <string name="error_export_copy_public_external_failure">Yedeğin harici depolamaya kopyalanması başarısız oldu.</string>
     <string name="error_library_file_missing">Gerek duyulan bir kütüphaneyi bulamamışız gibi gözüküyor!</string>
-    <string name="error_library_setup_failure">İlk kurulum başarısız olmuşa benziyor. Lütfen bizle GitHub'dan iletişime geçin.</string>
-    <string name="error_no_lib_directory">Görünüşe göre aradığımız kütüphane klasörü yok. Lütfen bizle GitHub'dan iletişime geçin.</string>
+    <string name="error_library_setup_failure">İlk kurulum başarısız olmuşa benziyor. Lütfen bizle GitHub\'dan iletişime geçin.</string>
+    <string name="error_no_lib_directory">Görünüşe göre aradığımız kütüphane klasörü yok. Lütfen bizle GitHub\'dan iletişime geçin.</string>
     <string name="error_filesystem_delete">Dosya sistemi silinemedi! Tüm oturumları durdurup tekrar deneyin.</string>
 
     <!-- Download Failure Reasons -->
@@ -109,7 +109,7 @@
     <string name="illegal_state_failed_to_copy_assets_to_filesystem">Dosya sistemine dosya aktarımı başarısız oldu. Destek dosyalarını silmeyi deneyin.</string>
     <string name="illegal_state_failed_to_extract_filesystem">Dosya sistemi çıkartılamadı. Destek dosyalarını silmeyi deneyin. Hata sebebi: %1$s</string>
     <string name="illegal_state_failed_to_clear_support_files">Destek dosyaları silinemedi.</string>
-    <string name="illegal_state_insufficient_storage">Yeterli depolama alanı algılanamadı. Kullanılabilir depolama alanını en az 250 MB'a çıkartmayı deneyin.</string>
+    <string name="illegal_state_insufficient_storage">Yeterli depolama alanı algılanamadı. Kullanılabilir depolama alanını en az 250 MB\'a çıkartmayı deneyin.</string>
     <string name="illegal_state_unhandled_session_service_type">Bilinmeyen bir servis tipiyle bir uygulama açılmaya çalışıldı.</string>
     <string name="illegal_state_busybox_missing">Busybox bu işlem için gereklidir. Yüklü olduğundan emin olmak için bir oturum açmayı deneyin.</string>
 
@@ -204,8 +204,8 @@
     <string name="alert_need_client_app_message">Bu işlemi gerçekleştirmek için SSH, VNC veya XSDL istemcilerine ihtiyacınız var, ancak Play Store sizde yüklü değilmiş gibi gözüküyor. \n\nDevam etmek için lütfen oturumun istemci tipiyle uyuşan bir istemci uygulaması (SSH/VNC/XSDL) yükleyin.</string>
 
     <!-- Permissions necessary alert -->
-    <string name="alert_permissions_necessary_title">UserLAnd'in izinlere ihtiyacı var!</string>
-    <string name="alert_permissions_necessary_message">Devam etmek için UserLAnd'in depolama alanını kullanabilmesi, dosyaları indirebilmesi ve dosyaları harici depolama ile kendi yerel uygulama klasörü arasında taşıyabilmesi için izinler gerekiyor.</string>
+    <string name="alert_permissions_necessary_title">UserLAnd\'in izinlere ihtiyacı var!</string>
+    <string name="alert_permissions_necessary_message">Devam etmek için UserLAnd\'in depolama alanını kullanabilmesi, dosyaları indirebilmesi ve dosyaları harici depolama ile kendi yerel uygulama klasörü arasında taşıyabilmesi için izinler gerekiyor.</string>
     <string name="alert_permissions_necessary_cancel_button">İptal</string>
 
     <!-- Network unavailable alert -->
@@ -213,13 +213,13 @@
 
     <!-- Storage capacity low alert -->
     <string name="alert_storage_low_title">Depolama alanı doluyor</string>
-    <string name="alert_storage_low_message">UserLAnd'deki bir dosya sistemini en akıcı biçimde kullanabilmek için en az 1 GB boş alanınızın olduğundan emin olun.</string>
+    <string name="alert_storage_low_message">UserLAnd\'deki bir dosya sistemini en akıcı biçimde kullanabilmek için en az 1 GB boş alanınızın olduğundan emin olun.</string>
 
     <!-- Wifi alert -->
     <string name="alert_wifi_disabled_title">Wifi yok!</string>
     <string name="alert_wifi_disabled_message">Büyük bir dosya (~80mb) indirilmesi gerekiyor.</string>
     <string name="alert_wifi_disabled_continue_button">Devam Et</string>
-    <string name="alert_wifi_disabled_turn_on_wifi_button">Wifi'yi Aç</string>
+    <string name="alert_wifi_disabled_turn_on_wifi_button">Wifi\'yi Aç</string>
     <string name="alert_wifi_disabled_cancel_button">İptal</string>
 
     <!-- Toasts -->
@@ -246,14 +246,14 @@
     <string name="no_backup_selected">Dosya sistemi içe aktarımı seçilmedi</string>
     
     <!-- Review request -->
-    <string name="review_is_user_enjoying">UserLAnd'de eğleniyor musunuz?</string>
-    <string name="review_ask_for_rating">O zaman Play Store'da bize oy vermeye ne dersiniz?</string>
-    <string name="review_ask_for_feedback">Sakıncası yoksa bize GitHub'da geri bildirim verir misiniz?</string>
+    <string name="review_is_user_enjoying">UserLAnd\'de eğleniyor musunuz?</string>
+    <string name="review_ask_for_rating">O zaman Play Store\'da bize oy vermeye ne dersiniz?</string>
+    <string name="review_ask_for_feedback">Sakıncası yoksa bize GitHub\'da geri bildirim verir misiniz?</string>
 
     <!-- Error collection opt-in -->
     <string name="opt_in_preference">Hata raporlama sistemine dahil olun</string>
-    <string name="opt_in_preference_summary">Hata raporlarını toplayıp UserLAnd'i geliştirmemize yardımcı olun.</string>
-    <string name="opt_in_help_prompt">Bize hata raporlarınızı göndererek UserLAnd'in daha stabil olmasına yardımcı olmak ister misiniz?</string>
+    <string name="opt_in_preference_summary">Hata raporlarını toplayıp UserLAnd\'i geliştirmemize yardımcı olun.</string>
+    <string name="opt_in_help_prompt">Bize hata raporlarınızı göndererek UserLAnd\'in daha stabil olmasına yardımcı olmak ister misiniz?</string>
     <string name="opt_in_error_collection_prompt">Hata raporlama sistemine dahil olunsun mu?</string>
     <string name="opt_in_secondary_prompt">Emin misiniz? Daha sonra bu ayarı ayarlar penceresinden değiştirebilirsiniz.</string>
     <string name="opt_in_secondary_pos_btn">Tamam, dahil olacağım.</string>
@@ -261,10 +261,10 @@
     <!-- Q Warning -->
     <string name="q_warning_title">Dosya erişimi değişti!</string>
     <string name="q_warning_message">
-        Android'in sonraki sürümü, Q, uygulamamızı ve kullanıcılarımızın nasıl UserLAnd dosya
+        Android\'in sonraki sürümü, Q, uygulamamızı ve kullanıcılarımızın nasıl UserLAnd dosya
         sistemlerine erişeceklerini etkileyen güncellemeler getiriyor. Bu değişikliklere uyum
         sağlamak durumunda olduğumuz için, \"/sdcard\"a ve dışına dosya aktarımı artık eskisi
-        gibi işlemeyecek. Daha fazla bilgi için GitHub'daki wiki'mizi ziyaret edebilirsiniz.
+        gibi işlemeyecek. Daha fazla bilgi için GitHub\'daki wiki\'mizi ziyaret edebilirsiniz.
     </string>
 
     <!-- Advanced options -->
