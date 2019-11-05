@@ -610,10 +610,9 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                     // TODO: create remote session
                     Toast.makeText(this, "REMOTE", Toast.LENGTH_SHORT).show()
                 } else {
-                    //customDialog.dismiss()
-                    customDialog.cancel()
+                    customDialog.dismiss()
                     Toast.makeText(this, "Need account info", Toast.LENGTH_SHORT).show()
-                    //NavHostFragment.findNavController(this).navigate(R.id.account_fragment)
+                    navController.navigate(R.id.account_fragment)
                 }
             }
         }
