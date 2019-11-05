@@ -84,6 +84,12 @@
         android:label="@string/settings" />
 
     <fragment
+        android:id="@+id/account_fragment"
+        android:name="tech.ula.ui.AccountFragment"
+        android:label="@string/account"
+        tools:layout="@layout/frag_account" />
+
+    <fragment
         android:id="@+id/help_fragment"
         android:name="tech.ula.ui.HelpFragment"
         android:label="@string/help"

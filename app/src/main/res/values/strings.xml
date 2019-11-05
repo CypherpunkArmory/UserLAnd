@@ -15,6 +15,9 @@
     <string name="wiki">Wiki</string>
     <string name="local">Local</string>
     <string name="remote">Remote</string>
+    <string name="account">Account</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
 
     <!-- Buttons -->
     <string name="button_continue">Continue</string>
@@ -37,6 +40,7 @@
     <!-- Hints -->
     <string name="hint_filesystem_name">Filesystem name</string>
     <string name="hint_session_name">Session Name</string>
+    <string name="hint_email">Email</string>
     <string name="hint_username">Username</string>
     <string name="hint_password">Password</string>
     <string name="hint_vnc_password">VNC Password</string>
@@ -123,6 +127,8 @@
     <string name="prompt_select_backup">Select filesystem backup file</string>
     <string name="prompt_install_file_manager">Please install a File Manager</string>
     <string name="prompt_remote_or_local">Would you like to run this session locally on your device or remotely on the cloud?</string>
+    <string name="prompt_create_account">Don\'t have an account? Register here</string>
+    <string name="prompt_login">Already have an account? Login here</string>
 
     <!-- Notification strings -->
     <string name="services_notification_channel_name">Services</string>
