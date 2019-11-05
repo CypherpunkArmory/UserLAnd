@@ -27,6 +27,7 @@ import android.view.WindowManager
 import android.view.animation.AlphaAnimation
 import android.widget.RadioButton
 import android.widget.TextView
+import android.widget.Button
 import android.widget.Toast
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
@@ -380,7 +381,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 displayLowStorageDialog()
             }
             is FilesystemCredentialsRequired -> {
-                getCredentials()
+                chooseLocalOrRemote()
             }
             is AppServiceTypePreferenceRequired -> {
                 getServiceTypePreference()
@@ -584,6 +585,38 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 }
                 .create()
                 .show()
+    }
+
+    private fun chooseLocalOrRemote() {
+        val dialog = AlertDialog.Builder(this)
+        val dialogView = this.layoutInflater.inflate(R.layout.dia_app_local_or_remote, null)
+        dialog.setView(dialogView)
+        dialog.setCancelable(true)
+        val customDialog = dialog.create()
+
+        customDialog.setOnShowListener { _ ->
+            val localSession = customDialog.find<Button>(R.id.btn_local)
+            val remoteSession = customDialog.find<Button>(R.id.btn_remote)
+
+            localSession.setOnClickListener {
+                customDialog.dismiss()
+                getCredentials()
+            }
+
+            remoteSession.setOnClickListener {
+                val accountPrefs = this.getSharedPreferences("account", Context.MODE_PRIVATE)
+                val currentUser = accountPrefs.getString("currentUser", "") ?: ""
+                if (currentUser.isNotEmpty()) {
+                    // TODO: create remote session
+                    Toast.makeText(this, "REMOTE", Toast.LENGTH_SHORT).show()
+                } else {
+                    customDialog.dismiss()
+                    Toast.makeText(this, "Need account info", Toast.LENGTH_SHORT).show()
+                    //NavHostFragment.findNavController(this).navigate(R.id.account_fragment)
+                }
+            }
+        }
+        customDialog.show()
     }
 
     private fun getCredentials() {
