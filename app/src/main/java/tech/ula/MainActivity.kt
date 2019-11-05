@@ -605,7 +605,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
             remoteSession.setOnClickListener {
                 val accountPrefs = this.getSharedPreferences("account", Context.MODE_PRIVATE)
-                val currentUser = accountPrefs.getString("currentUser", "") ?: ""
+                val currentUser = accountPrefs.getString("account_email", "") ?: ""
                 if (currentUser.isNotEmpty()) {
                     // TODO: create remote session
                     Toast.makeText(this, "REMOTE", Toast.LENGTH_SHORT).show()
