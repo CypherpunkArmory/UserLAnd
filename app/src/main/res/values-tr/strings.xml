@@ -1,0 +1,273 @@
+<resources>                                                         <!-- Translators, pay attention to these notes! --> 
+    <string name="app_name">UserLAnd</string>
+    <string name="welcome">UserLAnd\'e Hoş Geldiniz!</string>
+    <string name="permission_request_code">1000</string>
+
+    <!-- Labels -->
+    <string name="apps">Uygulamalar</string>                               <!-- This is a button, so the word used should be short! -->
+    <string name="sessions">Oturumlar</string>
+    <string name="edit_session">Oturumu Düzenle</string>
+    <string name="filesystems">Dosya Sistemleri</string>
+    <string name="edit_filesystem">Dosya Sistemini Düzenle</string>
+    <string name="settings">Ayarlar</string>
+    <string name="help">Yardım</string>
+    <string name="toc">Hükümler &amp; Koşullar</string>
+    <string name="wiki">Wiki</string>
+
+    <!-- Buttons -->
+    <string name="button_continue">Devam Et</string>
+    <string name="button_advanced_options_show">Gelişmiş Seçenekleri Göster</string>
+    <string name="button_advanced_options_hide">Gelişmiş Seçenekleri Gizle</string>
+    <string name="button_select_backup_import">İçeri aktarmak için yedek dosyası seçin</string>
+
+    <!-- Menus -->
+    <string name="app_info">Uygulama Bilgisi</string>
+    <string name="stop_app">Uygulamayı Durdur</string>
+    <string name="stop_session">Oturumu Durdur</string>
+    <string name="edit">Düzenle</string>
+    <string name="delete">Sil</string>
+    <string name="backup">Dışarı Aktar</string>
+    <string name="save">Kaydet</string>
+    <string name="add">Ekle</string>
+    <string name="refresh">Yenile</string>
+    <string name="clear_support_files">Tüm Destek Dosyalarını Sil</string>
+
+    <!-- Hints -->
+    <string name="hint_filesystem_name">Dosya sistemi adı</string>
+    <string name="hint_session_name">Oturum Adı</string>
+    <string name="hint_username">Kullanıcı Adı</string>
+    <string name="hint_password">Şifre</string>
+    <string name="hint_vnc_password">VNC Şifresi</string>
+    
+    <!-- Errors -->
+    <string name="error_session_name">Bir oturum adı yazmalısınız</string>
+    <string name="error_filesystem_name">Bir dosya sistemi adı yazmalısınız</string>
+    <string name="error_username">Bir kullanıcı adı yazmalısınız</string>
+    <string name="error_empty_field">Her alan doldurulmalıdır!</string>
+    <string name="error_app_description_not_found">Bu uygulama için açıklama bulunamadı. Yenilemeyi deneyin.</string>
+    <string name="error_vnc_password_length_incorrect">VNC Şifresi 6 ila 8 karakter arasında olmalıdır!</string>
+    <string name="error_username_invalid">Kullanıcı adında geçersiz karakterler mevcut</string>
+    <string name="error_password_invalid">Şifrede geçersiz karakterler mevcut</string>
+    <string name="error_vnc_password_invalid">VNC Şifresinde geçersiz karakterler mevcut</string>
+    <string name="error_username_invalid_characters">Kullanıcı adındaki karakterler küçük harfler ve/veya numaralardan oluşmalı ve 1 ila 30 karakter uzunluğunda olmalıdır.</string>
+    <string name="error_username_in_blacklist">Bu kullanıcı adı muhtemelen Linux tarafından ayrılmış ve dosya sistemi adı olarak kullanılamıyor.</string>
+    <string name="error_filesystem_name_invalid_characters">Dosya sistemi adı 1 ile 50 karakter arasında olmalıdır ve \"/:*\\| benzeri karakterler içermemelidir</string>
+    <string name="error_export_execution_failure">Dışarı aktarma başarısız oldu. Sebep: %1$s</string>
+    <string name="error_export_local_failure">Yerel depolamaya aktarma başarısız oldu.</string>
+    <string name="error_export_filesystem_not_found">Yedeklenecek dosya sistemi belirlenemedi. Lütfen tekrar deneyin.</string>
+    <string name="error_export_copy_public_external_failure">Yedeğin harici depolamaya kopyalanması başarısız oldu.</string>
+    <string name="error_library_file_missing">Gerek duyulan bir kütüphaneyi bulamamışız gibi gözüküyor!</string>
+    <string name="error_library_setup_failure">İlk kurulum başarısız olmuşa benziyor. Lütfen bizle GitHub\'dan iletişime geçin.</string>
+    <string name="error_no_lib_directory">Görünüşe göre aradığımız kütüphane klasörü yok. Lütfen bizle GitHub\'dan iletişime geçin.</string>
+    <string name="error_filesystem_delete">Dosya sistemi silinemedi! Tüm oturumları durdurup tekrar deneyin.</string>
+
+    <!-- Download Failure Reasons -->
+    <string name="download_failure_http_error">Http Hatası: %1$s</string>
+    <string name="download_failure_cannot_resume">İndirme devam ettirilemiyor.</string>
+    <string name="download_failure_no_external_devices">Hiç harici aygıt (depolama) bulunamadı.</string>
+    <string name="download_failure_destination_exists">Hedef zaten var.</string>
+    <string name="download_failure_unknown_file_error">Bilinmeyen dosya hatası.</string>
+    <string name="download_failure_http_processing">HTTP veri işleme hatası.</string>
+    <string name="download_failure_insufficient_external_storage">Yetersiz harici depolama alanı.</string>
+    <string name="download_failure_too_many_redirects">Çok fazla yönlendirme.</string>
+    <string name="download_failure_unhandled_http_response">Beklenmeyen HTTP yanıt kodu.</string>
+    <string name="download_failure_unknown_error">Bilinmeyen hata.</string>
+    <string name="download_failure_missing_error">Hata kodu bilinmiyor.</string>
+    <string name="download_failure_reason_not_found">Sebep mevcut değil.</string>
+    <string name="download_failure_finished_wrong_items">İndirme işlemi bizim sıraya koymadığımız öğelerle bitirildi.</string>
+    
+    <!-- Illegal State Dialog -->
+    <string name="illegal_state_github_message">
+        %1$s \nBu sorunları gidermeye uğraşıyoruz. Yardımcı olmak isterseniz bize
+        GitHub üzerinden bu hata hakkında bilgi verebilirsiniz!
+    </string>
+    <string name="illegal_state_title">UserLAnd yasak bir duruma girdi!</string>
+
+    <string name="illegal_state_transition">Kötü durum geçişi: %1$s</string>
+
+    <string name="illegal_state_too_many_selections_when_permissions_granted">İzinler verilirken hem oturum, hem uygulama seçildi.</string>
+    <string name="illegal_state_no_selections_when_permissions_granted">İzinler verilirken ne oturum, ne de uygulama seçildi.</string>
+
+    <string name="illegal_state_no_filesystem_selected_when_credentials_selected">Dosya sistemi kimlikleri bildirildi ama biri seçilmedi.</string>
+    <string name="illegal_state_no_app_selected_when_preference_submitted">Uygulama tercihleri bildirildi ama biri seçilmedi.</string>
+    <string name="illegal_state_no_app_selected_when_preparation_started">Uygulama hazırlığı başlatılmaya çalışılıyor, ama hiçbir uygulama seçilmedi.</string>
+    <string name="illegal_state_error_fetching_app_database_entries">Uygulama veritabanı kayıtları alınamadı.</string>
+    <string name="illegal_state_error_copying_app_script">Uygulama betiği kopyalanamadı.</string>
+
+    <string name="illegal_state_no_session_selected_when_preparation_started">Uygulama hazırlığı biri seçilmeden önce halledilmeye çalışıldı.</string>
+    <string name="illegal_state_error_fetching_asset_lists">Dosya listeleri alınamadı.</string>
+
+    <string name="illegal_state_remote_unreachable_during_generation">
+        İndirme gereksinimleri oluşturulurken uzak sunucuya bağlantı sağlanamadı. Güçlü bir ağ
+        bağlantınız olduğundan emin olun ve tekrar deneyin.
+    </string>
+
+    <string name="illegal_state_downloads_did_not_complete_successfully">İndirmeler şu sebepten dolayı başarısız oldu: %1$s.</string>
+    <string name="illegal_state_failed_to_copy_assets_to_local">Dosyalar yerel depolamaya kopyalanamadı. Destek dosyalarını silmeyi deneyin.</string>
+    <string name="illegal_state_assets_have_not_been_downloaded">Dosyaların dosya sisteminize kopyalanması gerekiyor ama indirilmemiş gibi gözüküyorlar. Destek dosyalarını silmeyi deneyin.</string>
+    <string name="illegal_state_empty_download_cache_access">İndirme önbrllrği erişim denendiğinde boştu.</string>
+    <string name="illegal_state_failed_to_copy_assets_to_filesystem">Dosya sistemine dosya aktarımı başarısız oldu. Destek dosyalarını silmeyi deneyin.</string>
+    <string name="illegal_state_failed_to_extract_filesystem">Dosya sistemi çıkartılamadı. Destek dosyalarını silmeyi deneyin. Hata sebebi: %1$s</string>
+    <string name="illegal_state_failed_to_clear_support_files">Destek dosyaları silinemedi.</string>
+    <string name="illegal_state_insufficient_storage">Yeterli depolama alanı algılanamadı. Kullanılabilir depolama alanını en az 250 MB\'a çıkartmayı deneyin.</string>
+    <string name="illegal_state_unhandled_session_service_type">Bilinmeyen bir servis tipiyle bir uygulama açılmaya çalışıldı.</string>
+    <string name="illegal_state_busybox_missing">Busybox bu işlem için gereklidir. Yüklü olduğundan emin olmak için bir oturum açmayı deneyin.</string>
+
+    <!-- Prompts -->
+    <string name="prompt_filesystem">Dosya Sistemi:</string>
+    <string name="prompt_service_type">Servis Tipi:</string>
+    <string name="prompt_client_type">İstemci Tipi:</string>
+    <string name="prompt_app_connection_type_preference">Lütfen bir bağlantı tipi seçin: </string>
+    <string name="prompt_select_backup">Dosya sistemi yedek dosyası seçin</string>
+    <string name="prompt_install_file_manager">Lütfen bir Dosya Yöneticisi kurun</string>
+
+    <!-- Notification strings -->
+    <string name="services_notification_channel_name">Servisler</string>
+    <string name="services_notification_channel_description">Devamlı servisler</string>
+    <string name="service_notification_title">UserLAnd</string>
+    <string name="service_notification_description">UserLAnd bir arka plan servisi çalıştırıyor.</string>
+
+    <!-- Progress bar messages -->
+    <string name="progress_start_step">Sizin için her şeyi hazırlıyoruz&#8230;</string>
+    <string name="progress_fetching_asset_lists">Dosya linkleri alınıyor&#8230;</string>
+    <string name="progress_checking_for_required_updates">Güncelleme gerekip gerekmediği kontrol ediliyor&#8230;</string>
+    <string name="progress_downloading">Gereken dosyalar indiriliyor&#8230;</string>
+    <string name="progress_downloading_out_of">%1$d/%2$d tamamlandı</string>
+    <string name="progress_copying_downloads">İndirilen dosyalar yerel depolamaya kopyalanıyor&#8230;</string>
+    <string name="progress_verifying_sufficient_storage">Yeterli alan olup olmadığı doğrulanıyor&#8230;</string>
+    <string name="progress_setting_up_filesystem">Dosya sistemi kontrol ediliyor&#8230;</string>
+    <string name="progress_extraction_details">Çıkartılıyor: %1$s</string>
+    <string name="progress_verifying_assets">Dosyalar doğrulanıyor&#8230;</string>
+    <string name="progress_starting">Servis başlatılıyor&#8230;</string>
+    <string name="progress_clearing_support_files">Tüm destek dosyaları siliniyor&#8230;</string>
+    <string name="progress_exporting_filesystem">Dosya sistemi dışa aktarılıyor</string>
+    <string name="progress_deleting_filesystem">Dosya sistemi siliniyor</string>
+
+    <!-- Preferences -->
+    <string name="pref_app_category">Uygulama Tercihleri</string>
+    <string name="pref_default_landing_page_title">Varsayılan Açılış Sayfası</string>
+    <string name="pref_default_landing_page_message">Bu uygulamayı açmak istediğiniz sayfayı seçin.</string>
+    <string name="pref_proot_category">PRoot Tercihleri</string>
+    <string name="pref_proot_debugging_enabled_title">PRoot Hata Ayıklama Kayıtları Etkinleştirildi</string>
+    <string name="pref_proot_debugging_enabled_summary">Sadece uygulamada sorunlar yaşıyorsanız gereklidir. Kayıt dosyası \n/mnt/sdcard/PRoot_Debug_Log \nklasöründe saklanır</string>
+    <string name="pref_proot_debugging_level_title">Hata Ayıklama Ayrıntı Seviyesi</string>
+    <string name="pref_proot_debugging_level_summary">Numara ne kadar büyürse o kadar ayrıntılı olur.</string>
+    <string name="pref_proot_debugging_level_default">-1</string>
+    <string name="pref_proot_delete_debug_file_title">Eski Hata Ayıklama Dosyalarını Sil</string>
+
+    <!-- Help Activity -->
+    <string name="github_message">Hatalar mı alıyorsunuz? Yoksa bir özellik mi isteyeceksibiz? GitHub sayfamız hızlı bir cevap alabilmek için en iyi yerdir.</string>
+    <string name="supported_services">Şu anda desteklenen servisler:</string>
+    <string name="terminology">Terminoloji:</string>
+    <string name="desc_apps_title">Uygulamalar:</string>
+    <string name="desc_apps_message">Uygulamalar sıradan Linux programlarını çalıştırmanın en kolay yoludur.</string>
+    <string name="desc_sessions_title">Oturumlar:</string>
+    <string name="desc_sessions_message">Oturumlar dosya sisteminde bir sunucu başlatır ve üçüncü parti bir istemci uygulaması kullanarak bu sunucuya bağlanabilirsiniz.</string>
+    <string name="desc_filesystems_title">Dosya sistemleri:</string>
+    <string name="desc_filesystems_message">Dosya sistemleri adından da anlaşılacağı üzere; Linux benzeri davranışları sağlayan bir dosya düzeni ve bir kullanıcı yığınıdır.</string>
+
+    <!-- Supported Services -->
+    <string name="support_dropbear">SSH - Dropbear</string>
+    <string name="support_tightvnc">VNC - TightVNC</string>
+
+    <!-- Client Types -->
+    <string name="client_ssh">SSH</string>
+    <string name="client_vnc">VNC</string>
+    <string name="client_xsdl">XSDL</string>
+
+    <!-- Alerts -->
+    <string name="button_yes">Evet!</string>
+    <string name="button_negative">Pek sayılmaz</string>
+    <string name="button_refuse">Hayır, teşekkürler</string>
+    <string name="button_positive">Tabi ki</string>
+    <string name="button_ok">Tamam!</string>
+    <string name="button_cancel">İptal</string>
+    <string name="general_error_title">Beklenmeyen bir şey oldu!</string>
+    <string name="filesystem_credentials_reasoning">Uygulamalarınız için bir dosya sistemi oluşturuyoruz.\nLütfen bu dosya sisteminde kullanılacak gereken ilişkili varsayılanları girin.</string>
+    <string name="deactivate_sessions">Bu eyleme devam edebilmek için tüm oturumların devre dışı bırakılması gerekiyor.</string>
+    <string name="import_success">Yedek başarıyla içeri aktarıldı</string>
+    <string name="import_failure">Yedek içeri aktarılamadı</string>
+    <string name="export_success">Yedek başarıyla dışarı aktarıldı</string>
+    <string name="export_failure">Yedek dışarı aktarılamadı</string>
+    <string name="export_started">Dışa aktarma başlatıldı, lütfen bekleyin</string>
+
+    <!-- Clear support files alert -->
+    <string name="alert_clear_support_files_title">Tüm destek dosyaları silinsin mi?</string>
+    <string name="alert_clear_support_files_message">
+        Bu işlem tüm destek dosyalarını siler. Kendi dosya sistemlerinizde oluşturduğunuz hiçbir şeyi
+        etkielemz. Bir oturum veya uygulama tekrar açıldığında dosyaların tekrar indirilmesi gerekebilir.
+    </string>
+    <string name="alert_clear_support_files_clear_button">Temizle</string>
+
+    <!-- Play service error alerts -->
+    <string name="alert_need_client_app_title">İstemci uygulaması bulunamadı!</string>
+    <string name="alert_need_client_app_message">Bu işlemi gerçekleştirmek için SSH, VNC veya XSDL istemcilerine ihtiyacınız var, ancak Play Store sizde yüklü değilmiş gibi gözüküyor. \n\nDevam etmek için lütfen oturumun istemci tipiyle uyuşan bir istemci uygulaması (SSH/VNC/XSDL) yükleyin.</string>
+
+    <!-- Permissions necessary alert -->
+    <string name="alert_permissions_necessary_title">UserLAnd\'in izinlere ihtiyacı var!</string>
+    <string name="alert_permissions_necessary_message">Devam etmek için UserLAnd\'in depolama alanını kullanabilmesi, dosyaları indirebilmesi ve dosyaları harici depolama ile kendi yerel uygulama klasörü arasında taşıyabilmesi için izinler gerekiyor.</string>
+    <string name="alert_permissions_necessary_cancel_button">İptal</string>
+
+    <!-- Network unavailable alert -->
+    <string name="alert_network_required_for_refresh">Uygulamaları yenilemek internet bağlantısı, veya varsa daha güçlüsünü, gerektirir.</string>
+
+    <!-- Storage capacity low alert -->
+    <string name="alert_storage_low_title">Depolama alanı doluyor</string>
+    <string name="alert_storage_low_message">UserLAnd\'deki bir dosya sistemini en akıcı biçimde kullanabilmek için en az 1 GB boş alanınızın olduğundan emin olun.</string>
+
+    <!-- Wifi alert -->
+    <string name="alert_wifi_disabled_title">Wifi yok!</string>
+    <string name="alert_wifi_disabled_message">Büyük bir dosya (~80mb) indirilmesi gerekiyor.</string>
+    <string name="alert_wifi_disabled_continue_button">Devam Et</string>
+    <string name="alert_wifi_disabled_turn_on_wifi_button">Wifi\'yi Aç</string>
+    <string name="alert_wifi_disabled_cancel_button">İptal</string>
+
+    <!-- Toasts -->
+    <string name="session_unique_name_required">Oturumlar özel bir isim gerektirir!</string>
+    <string name="filesystem_unique_name_required">Dosya sistemleri özel bir isim gerektirir!</string>
+    <string name="single_session_supported">UserLAnd şu anda sadece tek bir aktif oturumu destekliyor!</string>
+    <string name="debug_log_export_success">Hata ayıklama kaydı başarıyla dışa aktarıldı!</string>
+    <string name="debug_log_export_failure">Hata ayıklama kaydı başarısız oldu!</string>
+    <string name="debug_log_deleted">Hata ayıklama kaydı silindi!</string>
+    <string name="backup_export_success">Yedek başarıyla dışa aktarıldı!</string>
+
+    <!-- Content descriptions -->
+    <string name="desc_arrow">Resim: Oturum ve dosya sistemi arasındaki bağlantıyı gösteren ok.</string>
+    <string name="desc_filesystem_type">Resim: Dağıtım simgesi</string>
+    <string name="desc_default_app_icon">Resim: Uygulama Simgesi Yer Tutucusu</string>
+
+    <!-- Misc -->
+    <string name="placeholder">Yer tutucu metin</string>
+    <string name="custom_sessions">Kişisel Oturumlar</string>
+    <string name="apps_sessions">Uygulama Oturumları</string>
+    <string name="info_finish_app_setup">Bu özellikleri kullanabilmek için uygulama kurulumunu tamamlayın.</string>
+    <string name="info_stop_app">Ayarlarını değiştirebilmek için bu uygulamayı durdurun.</string>
+    <string name="info_xsdl_support">XSDL, henüz Android 9.0 ve üstü sistemler üzerinde tam olarak desteklenmiyor</string>
+    <string name="no_backup_selected">Dosya sistemi içe aktarımı seçilmedi</string>
+    
+    <!-- Review request -->
+    <string name="review_is_user_enjoying">UserLAnd\'de eğleniyor musunuz?</string>
+    <string name="review_ask_for_rating">O zaman Play Store\'da bize oy vermeye ne dersiniz?</string>
+    <string name="review_ask_for_feedback">Sakıncası yoksa bize GitHub\'da geri bildirim verir misiniz?</string>
+
+    <!-- Error collection opt-in -->
+    <string name="opt_in_preference">Hata raporlama sistemine dahil olun</string>
+    <string name="opt_in_preference_summary">Hata raporlarını toplayıp UserLAnd\'i geliştirmemize yardımcı olun.</string>
+    <string name="opt_in_help_prompt">Bize hata raporlarınızı göndererek UserLAnd\'in daha stabil olmasına yardımcı olmak ister misiniz?</string>
+    <string name="opt_in_error_collection_prompt">Hata raporlama sistemine dahil olunsun mu?</string>
+    <string name="opt_in_secondary_prompt">Emin misiniz? Daha sonra bu ayarı ayarlar penceresinden değiştirebilirsiniz.</string>
+    <string name="opt_in_secondary_pos_btn">Tamam, dahil olacağım.</string>
+
+    <!-- Q Warning -->
+    <string name="q_warning_title">Dosya erişimi değişti!</string>
+    <string name="q_warning_message">
+        Android\'in sonraki sürümü, Q, uygulamamızı ve kullanıcılarımızın nasıl UserLAnd dosya
+        sistemlerine erişeceklerini etkileyen güncellemeler getiriyor. Bu değişikliklere uyum
+        sağlamak durumunda olduğumuz için, \"/sdcard\"a ve dışına dosya aktarımı artık eskisi
+        gibi işlemeyecek. Daha fazla bilgi için GitHub\'daki wiki\'mizi ziyaret edebilirsiniz.
+    </string>
+
+    <!-- Advanced options -->
+    <string name="desc_import_backups_should_use_same_settings">Fill out the same: \n\n\u2022 username \n\u2022 password \n\u2022 VNC password \n\u2022 distribution \n\n as the backup to ensure smooth functionality</string>
+  
+</resources>
