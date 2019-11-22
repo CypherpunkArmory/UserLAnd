@@ -15,7 +15,7 @@ import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
 
-@Database(entities = [Session::class, Filesystem::class, App::class], version = 7, exportSchema = true)
+@Database(entities = [Session::class, Filesystem::class, App::class], version = 8, exportSchema = true)
 abstract class UlaDatabase : RoomDatabase() {
 
     abstract fun sessionDao(): SessionDao
@@ -42,7 +42,8 @@ abstract class UlaDatabase : RoomDatabase() {
                                 Migration3To4(),
                                 Migration4To5(),
                                 Migration5To6(),
-                                Migration6To7()
+                                Migration6To7(),
+                                Migration7To8()
                         )
                         .addCallback(object : RoomDatabase.Callback() {
                             override fun onOpen(db: SupportSQLiteDatabase) {
@@ -146,5 +147,14 @@ class Migration6To7 : Migration(6, 7) {
 
         database.execSQL("COMMIT;")
         database.execSQL("PRAGMA foreign_keys_on")
+    }
+}
+
+class Migration7To8 : Migration(7, 8) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE session ADD COLUMN serviceLocation TEXT NOT NULL DEFAULT 'local'")
+
+        database.execSQL("ALTER TABLE apps ADD COLUMN supportsLocal INTEGER NOT NULL DEFAULT 1")
+        database.execSQL("ALTER TABLE apps ADD COLUMN supportsRemote INTEGER NOT NULL DEFAULT 0")
     }
 }

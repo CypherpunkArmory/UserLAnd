@@ -12,6 +12,7 @@ import tech.ula.R
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
 import tech.ula.model.entities.ServiceType
+import tech.ula.model.entities.ServiceLocation
 import tech.ula.model.entities.Session
 import tech.ula.utils.AppDetails
 import kotlin.coroutines.CoroutineContext
@@ -23,14 +24,18 @@ data class AppDetailsViewState(
     val sshEnabled: Boolean,
     val vncEnabled: Boolean,
     val xsdlEnabled: Boolean,
+    val localEnabled: Boolean,
+    val remoteEnabled: Boolean,
     val describeStateHintEnabled: Boolean,
     @StringRes val describeStateText: Int?,
-    @IdRes val selectedServiceTypeButton: Int?
+    @IdRes val selectedServiceTypeButton: Int?,
+    @IdRes val selectedServiceLocationButton: Int?
 )
 
 sealed class AppDetailsEvent {
     data class SubmitApp(val app: App) : AppDetailsEvent()
     data class ServiceTypeChanged(@IdRes val selectedButton: Int, val app: App) : AppDetailsEvent()
+    data class ServiceLocationChanged(@IdRes val selectedButton: Int, val app: App) : AppDetailsEvent()
 }
 
 class AppDetailsViewModel(private val sessionDao: SessionDao, private val appDetails: AppDetails, private val buildVersion: Int) : ViewModel(), CoroutineScope {
@@ -44,6 +49,7 @@ class AppDetailsViewModel(private val sessionDao: SessionDao, private val appDet
         return@launch when (event) {
             is AppDetailsEvent.SubmitApp -> constructView(event.app)
             is AppDetailsEvent.ServiceTypeChanged -> handleServiceTypeChanged(event)
+            is AppDetailsEvent.ServiceLocationChanged -> handleServiceLocationChanged(event)
         }
     }
 
@@ -68,6 +74,8 @@ class AppDetailsViewModel(private val sessionDao: SessionDao, private val appDet
         val sshEnabled = app.supportsCli && enableRadioButtons
         val vncEnabled = app.supportsGui && enableRadioButtons
         val xsdlEnabled = app.supportsGui && buildVersion <= Build.VERSION_CODES.O_MR1 && enableRadioButtons
+        val localEnabled = app.supportsLocal && enableRadioButtons
+        val remoteEnabled = app.supportsRemote && enableRadioButtons
 
         val describeStateHintEnabled = getStateHintEnabled(appSession)
         val describeStateText = getStateDescription(appSession)
@@ -79,6 +87,12 @@ class AppDetailsViewModel(private val sessionDao: SessionDao, private val appDet
             else -> null
         }
 
+        val selectedServiceLocationButton = when (appSession?.serviceLocation) {
+            ServiceLocation.Local -> R.id.apps_local_preference
+            ServiceLocation.Remote -> R.id.apps_remote_preference
+            else -> null
+        }
+
         return AppDetailsViewState(
                 appIconUri,
                 appTitle,
@@ -86,9 +100,12 @@ class AppDetailsViewModel(private val sessionDao: SessionDao, private val appDet
                 sshEnabled,
                 vncEnabled,
                 xsdlEnabled,
+                localEnabled,
+                remoteEnabled,
                 describeStateHintEnabled,
                 describeStateText,
-                selectedServiceTypeButton
+                selectedServiceTypeButton,
+                selectedServiceLocationButton
         )
     }
 
@@ -105,6 +122,26 @@ class AppDetailsViewModel(private val sessionDao: SessionDao, private val appDet
             if (appSession == null) return@launch
 
             appSession.serviceType = selectedServiceType
+            this.launch {
+                withContext(Dispatchers.IO) {
+                    sessionDao.updateSession(appSession)
+                }
+            }
+        }
+    }
+
+    private fun handleServiceLocationChanged(event: AppDetailsEvent.ServiceLocationChanged) {
+        this.launch {
+            val appSession = getAppSession(event.app)
+            val selectedServiceLocation = when (event.selectedButton) {
+                R.id.apps_local_preference -> ServiceLocation.Local
+                R.id.apps_remote_preference -> ServiceLocation.Remote
+                else -> ServiceLocation.Unselected
+            }
+
+            if (appSession == null) return@launch
+
+            appSession.serviceLocation = selectedServiceLocation
             this.launch {
                 withContext(Dispatchers.IO) {
                     sessionDao.updateSession(appSession)

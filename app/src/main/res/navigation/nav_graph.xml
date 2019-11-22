@@ -18,7 +18,7 @@
         android:id="@+id/app_details_fragment"
         android:name="tech.ula.ui.AppDetailsFragment"
         android:label="App Description"
-        tools:layout="@layout/frag_app_details" >
+        tools:layout="@layout/fragfrag_app_details" >
         <argument
             android:name="app"
             android:defaultValue="@null"

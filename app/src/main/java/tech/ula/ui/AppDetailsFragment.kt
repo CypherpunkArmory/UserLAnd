@@ -63,11 +63,16 @@ class AppDetailsFragment : Fragment() {
         if (viewState.selectedServiceTypeButton != null) {
             apps_service_type_preferences.check(viewState.selectedServiceTypeButton)
         }
+        if (viewState.selectedServiceLocationButton != null) {
+            apps_service_location_preferences.check(viewState.selectedServiceLocationButton)
+        }
     }
 
     private fun handleEnableRadioButtons(viewState: AppDetailsViewState) {
         apps_ssh_preference.isEnabled = viewState.sshEnabled
         apps_vnc_preference.isEnabled = viewState.vncEnabled
+        apps_local_preference.isEnabled = viewState.localEnabled
+        apps_remote_preference.isEnabled = viewState.remoteEnabled
 
         if (viewState.xsdlEnabled) {
             apps_xsdl_preference.isEnabled = true

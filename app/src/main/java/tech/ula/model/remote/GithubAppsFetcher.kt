@@ -37,6 +37,13 @@ class GithubAppsFetcher(
                         isPaidApp,
                         version
                 ) = line.toLowerCase().split(", ")
+                //TODO - make this and supportsLocal part of the app data
+                val supportsRemote = when (name) {
+                    "debian" -> true
+                    "ubuntu" -> true
+                    "kali" -> true
+                    else -> false
+                }
                 // Construct app
                 App(
                         name,
@@ -44,6 +51,8 @@ class GithubAppsFetcher(
                         filesystemRequired,
                         supportsCli.toBoolean(),
                         supportsGui.toBoolean(),
+                        true,
+                        supportsRemote,
                         isPaidApp.toBoolean(),
                         version.toLong()
                 )

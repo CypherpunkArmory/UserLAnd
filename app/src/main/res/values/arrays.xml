@@ -29,6 +29,11 @@
         <item>xsdl</item>
     </string-array>
 
+    <string-array name="supported_locations">
+        <item>local</item>
+        <item>remote</item>
+    </string-array>
+
     <string-array name="supported_services_and_types">
         <item>SSH - Dropbear</item>
         <item>VNC - TightVNC</item>

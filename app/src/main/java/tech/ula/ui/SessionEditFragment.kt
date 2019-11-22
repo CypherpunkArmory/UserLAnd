@@ -20,6 +20,7 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.Session
 import tech.ula.model.entities.toServiceType
+import tech.ula.model.entities.toServiceLocation
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.viewmodel.SessionEditViewModel
 import tech.ula.viewmodel.SessionEditViewmodelFactory
@@ -145,6 +146,26 @@ class SessionEditFragment : Fragment() {
                 }
             }
         }
+
+        val serviceLocationAdapter = spinner_session_service_location.adapter as ArrayAdapter<String>
+        var serviceLocationPosition = serviceLocationAdapter.getPosition(session.serviceLocation.toString())
+        serviceLocationPosition = if (serviceLocationPosition < 0) 0 else serviceLocationPosition
+        spinner_session_service_location.setSelection(serviceLocationPosition)
+
+        spinner_session_service_location.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val selectedServiceLocation = parent?.getItemAtPosition(position).toString().toServiceLocation()
+                session.serviceLocation = selectedServiceLocation
+            }
+        }
+
+        val serviceTypeAdapter = spinner_session_service_type.adapter as ArrayAdapter<String>
+        var serviceTypePosition = serviceTypeAdapter.getPosition(session.serviceType.toString())
+        serviceTypePosition = if (serviceTypePosition < 0) 0 else serviceTypePosition
+        spinner_session_service_type.setSelection(serviceTypePosition)
 
         spinner_session_service_type.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
 

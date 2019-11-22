@@ -122,12 +122,13 @@
 
     <!-- Prompts -->
     <string name="prompt_filesystem">Filesystem:</string>
+    <string name="prompt_service_location">Service Location:</string>
     <string name="prompt_service_type">Service Type:</string>
     <string name="prompt_client_type">Client Type:</string>
     <string name="prompt_app_connection_type_preference">Please select a connection type: </string>
     <string name="prompt_select_backup">Select filesystem backup file</string>
     <string name="prompt_install_file_manager">Please install a File Manager</string>
-    <string name="prompt_remote_or_local">Would you like to run this session locally on your device or remotely on the cloud?</string>
+    <string name="prompt_remote_or_local">Would you like to run this session locally on your device or remotely in the cloud?</string>
 
     <!-- Notification strings -->
     <string name="services_notification_channel_name">Services</string>

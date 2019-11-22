@@ -40,6 +40,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import tech.ula.model.entities.App
 import tech.ula.model.entities.ServiceType
+import tech.ula.model.entities.ServiceLocation
 import tech.ula.model.entities.Session
 import tech.ula.model.remote.GithubApiClient
 import tech.ula.model.repositories.AssetRepository
@@ -380,8 +381,11 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             is LowStorageAcknowledgementRequired -> {
                 displayLowStorageDialog()
             }
+            is AppServiceLocationPreferenceRequired -> {
+                getServiceLocationPreference()
+            }
             is FilesystemCredentialsRequired -> {
-                chooseLocalOrRemote()
+                getCredentials()
             }
             is AppServiceTypePreferenceRequired -> {
                 getServiceTypePreference()
@@ -587,23 +591,38 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 .show()
     }
 
-    private fun chooseLocalOrRemote() {
+    private fun getServiceLocationPreference() {
         val dialog = AlertDialog.Builder(this)
         val dialogView = this.layoutInflater.inflate(R.layout.dia_app_local_or_remote, null)
         dialog.setView(dialogView)
         dialog.setCancelable(true)
         val customDialog = dialog.create()
 
-        customDialog.setOnShowListener { _ ->
+        customDialog.setOnShowListener {
             val localSession = customDialog.find<Button>(R.id.btn_local)
             val remoteSession = customDialog.find<Button>(R.id.btn_remote)
 
             localSession.setOnClickListener {
                 customDialog.dismiss()
-                getCredentials()
+                viewModel.submitAppServiceLocation(ServiceLocation.Local)
             }
 
             remoteSession.setOnClickListener {
+                customDialog.dismiss()
+                viewModel.submitAppServiceLocation(ServiceLocation.Remote)
+            }
+
+            if (!viewModel.lastSelectedApp.supportsRemote) {
+                customDialog.dismiss()
+                viewModel.submitAppServiceLocation(ServiceLocation.Local)
+            }
+
+            if (!viewModel.lastSelectedApp.supportsLocal) {
+                customDialog.dismiss()
+                viewModel.submitAppServiceLocation(ServiceLocation.Remote)
+            }
+
+            /*remoteSession.setOnClickListener {
                 val accountPrefs = this.getSharedPreferences("account", Context.MODE_PRIVATE)
                 val currentUser = accountPrefs.getString("account_email", "") ?: ""
                 if (currentUser.isNotEmpty()) {
@@ -614,7 +633,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                     Toast.makeText(this, "Need account info", Toast.LENGTH_SHORT).show()
                     navController.navigate(R.id.account_fragment)
                 }
-            }
+            }*/
         }
         customDialog.setOnCancelListener {
             viewModel.handleUserInputCancelled()

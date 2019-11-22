@@ -45,14 +45,58 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/apps_title" />
 
+
         <RadioGroup
-            android:id="@+id/apps_service_type_preferences"
+            android:id="@+id/apps_service_location_preferences"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textAlignment="center"
             android:gravity="center"
             app:layout_constraintTop_toBottomOf="@id/apps_description"
             android:paddingTop="32dp">
+
+            <TextView
+                android:id="@+id/apps_location_preference_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Service Location"
+                />
+
+            <RadioButton
+                android:id="@+id/apps_local_preference"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableEnd="@drawable/ic_phone_android_black_24dp"
+                android:drawablePadding="8dp"
+                android:text="@string/local"
+                android:padding="10dp" />
+
+            <RadioButton
+                android:id="@+id/apps_remote_preference"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableEnd="@drawable/ic_cloud_black_24dp"
+                android:drawablePadding="8dp"
+                android:text="@string/remote"
+                android:padding="10dp" />
+
+        </RadioGroup>
+
+        <RadioGroup
+            android:id="@+id/apps_service_type_preferences"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:gravity="center"
+            app:layout_constraintTop_toBottomOf="@id/apps_service_location_preferences"
+            android:paddingTop="32dp">
+
+            <TextView
+                android:id="@+id/apps_service_type_preference_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Service Type"
+                />
 
             <RadioButton
                 android:id="@+id/apps_ssh_preference"

@@ -15,6 +15,8 @@ data class App(
     var filesystemRequired: String = "",
     var supportsCli: Boolean = false,
     var supportsGui: Boolean = false,
+    var supportsLocal: Boolean = false,
+    var supportsRemote: Boolean = false,
     var isPaidApp: Boolean = false,
     var version: Long = 0
 ) : Parcelable

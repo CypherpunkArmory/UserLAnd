@@ -11,6 +11,7 @@ import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.ServiceType
+import tech.ula.model.entities.ServiceLocation
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.DownloadMetadata
 import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
@@ -150,6 +151,14 @@ class MainActivityViewModel(
         submitSessionStartupEvent(VerifyAvailableStorageComplete)
     }
 
+    fun submitAppServiceLocation(serviceLocation: ServiceLocation) {
+        if (lastSelectedSession == unselectedSession) {
+            postIllegalStateWithLog(NoAppSelectedWhenPreferenceSubmitted)
+            return
+        }
+        submitAppsStartupEvent(SubmitAppSessionServiceLocation(lastSelectedSession, serviceLocation))
+    }
+
     fun submitAppServiceType(serviceType: ServiceType) {
         if (lastSelectedSession == unselectedSession) {
             postIllegalStateWithLog(NoAppSelectedWhenPreferenceSubmitted)
@@ -204,10 +213,16 @@ class MainActivityViewModel(
             is WaitingForAppSelection -> {}
             is FetchingDatabaseEntries -> {}
             is DatabaseEntriesFetched -> {
-                submitAppsStartupEvent(CheckAppsFilesystemCredentials(lastSelectedFilesystem))
+                submitAppsStartupEvent(CheckAppSessionServiceLocation(lastSelectedSession))
             }
             is DatabaseEntriesFetchFailed -> {
                 postIllegalStateWithLog(ErrorFetchingAppDatabaseEntries)
+            }
+            is AppHasServiceLocationSet -> {
+                submitAppsStartupEvent(CheckAppsFilesystemCredentials(lastSelectedFilesystem))
+            }
+            is AppRequiresServiceLocation -> {
+                state.postValue(AppServiceLocationPreferenceRequired)
             }
             is AppsFilesystemHasCredentials -> {
                 submitAppsStartupEvent(CheckAppSessionServiceType(lastSelectedSession))
@@ -449,6 +464,7 @@ object BusyboxMissing : IllegalState()
 sealed class UserInputRequiredState : State()
 object FilesystemCredentialsRequired : UserInputRequiredState()
 object LowStorageAcknowledgementRequired : UserInputRequiredState()
+object AppServiceLocationPreferenceRequired : UserInputRequiredState()
 object AppServiceTypePreferenceRequired : UserInputRequiredState()
 data class LargeDownloadRequired(val downloadRequirements: List<DownloadMetadata>) : UserInputRequiredState()
 object ActiveSessionsMustBeDeactivated : UserInputRequiredState()

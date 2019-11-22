@@ -55,6 +55,49 @@ class ServiceTypeConverter {
     }
 }
 
+fun String.toServiceLocation(): ServiceLocation {
+    return when (this) {
+        "local" -> ServiceLocation.Local
+        "remote" -> ServiceLocation.Remote
+        else -> ServiceLocation.Unselected
+    }
+}
+
+sealed class ServiceLocation : Parcelable {
+    @Parcelize
+    object Unselected : ServiceLocation() {
+        override fun toString(): String {
+            return "unselected"
+        }
+    }
+
+    @Parcelize
+    object Local : ServiceLocation() {
+        override fun toString(): String {
+            return "local"
+        }
+    }
+
+    @Parcelize
+    object Remote : ServiceLocation() {
+        override fun toString(): String {
+            return "remote"
+        }
+    }
+}
+
+class ServiceLocationConverter {
+    @TypeConverter
+    fun fromString(value: String): ServiceLocation {
+        return value.toServiceLocation()
+    }
+
+    @TypeConverter
+    fun fromServiceLocation(value: ServiceLocation): String {
+        return value.toString()
+    }
+}
+
 @Parcelize
 @Entity(tableName = "session",
         foreignKeys = [ForeignKey(
@@ -65,7 +108,7 @@ class ServiceTypeConverter {
         indices = [
             Index(value = ["filesystemId"])
         ])
-@TypeConverters(ServiceTypeConverter::class)
+@TypeConverters(ServiceTypeConverter::class, ServiceLocationConverter::class)
 data class Session(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
@@ -77,6 +120,7 @@ data class Session(
     var password: String = "",
     var vncPassword: String = "",
     var serviceType: ServiceType = ServiceType.Unselected,
+    var serviceLocation: ServiceLocation = ServiceLocation.Unselected,
     var port: Long = 2022, // TODO This can be removed. Any eventual port managing should be done at a high     er abstraction.
     var pid: Long = 0,
     var geometry: String = "",

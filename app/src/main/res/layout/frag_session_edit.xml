@@ -47,11 +47,36 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="40dp"
             android:spinnerMode="dropdown"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/text_filesystem"
             app:layout_constraintTop_toBottomOf="@id/text_input_layout_session_name" />
+
+        <!-- Service location -->
+        <TextView
+            android:id="@+id/text_session_service_location"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/prompt_service_location"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintBaseline_toBaselineOf="@id/spinner_session_service_location"
+            app:layout_constraintTop_toBottomOf="@id/text_filesystem"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/spinner_session_service_location" />
+
+        <Spinner
+            android:id="@+id/spinner_session_service_location"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:spinnerMode="dropdown"
+            android:entries="@array/supported_locations"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/spinner_filesystem_list"
+            app:layout_constraintStart_toEndOf="@id/text_session_service_location"
+            app:layout_constraintTop_toBottomOf="@id/spinner_filesystem_list" />
 
         <!-- Service type -->
         <TextView
@@ -62,7 +87,7 @@
             android:text="@string/prompt_service_type"
             app:layout_constraintHorizontal_bias="0"
             app:layout_constraintBaseline_toBaselineOf="@id/spinner_session_service_type"
-            app:layout_constraintTop_toBottomOf="@id/text_filesystem"
+            app:layout_constraintTop_toBottomOf="@id/text_session_service_location"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/spinner_session_service_type" />
 
@@ -74,9 +99,9 @@
             android:spinnerMode="dropdown"
             android:entries="@array/supported_services"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@id/spinner_filesystem_list"
+            app:layout_constraintStart_toStartOf="@id/spinner_session_service_location"
             app:layout_constraintStart_toEndOf="@id/text_session_service_type"
-            app:layout_constraintTop_toBottomOf="@id/spinner_filesystem_list" />
+            app:layout_constraintTop_toBottomOf="@id/spinner_session_service_location" />
 
         <!-- Username -->
         <com.google.android.material.textfield.TextInputLayout
