@@ -28,10 +28,10 @@ class AppDetailsFragment : Fragment() {
     private val app by lazy { args.app!! }
 
     private val viewModel by lazy {
-        val sessionDao = UlaDatabase.getInstance(activityContext).sessionDao()
+        val appsDao = UlaDatabase.getInstance(activityContext).appsDao()
         val appDetails = AppDetails(activityContext.filesDir.path, activityContext.resources)
         val buildVersion = Build.VERSION.SDK_INT
-        val factory = AppDetailsViewmodelFactory(sessionDao, appDetails, buildVersion)
+        val factory = AppDetailsViewmodelFactory(appsDao, appDetails, buildVersion)
         ViewModelProviders.of(this, factory)
                 .get(AppDetailsViewModel::class.java)
     }
@@ -51,14 +51,13 @@ class AppDetailsFragment : Fragment() {
         })
         viewModel.submitEvent(AppDetailsEvent.SubmitApp(app))
         setupPreferredServiceTypeRadioGroup()
+        setupPreferredServiceLocationRadioGroup()
     }
 
     private fun handleViewStateChange(viewState: AppDetailsViewState) {
         apps_icon.setImageURI(viewState.appIconUri)
         apps_title.text = viewState.appTitle
         apps_description.text = viewState.appDescription
-        handleEnableRadioButtons(viewState)
-        handleShowStateHint(viewState)
 
         if (viewState.selectedServiceTypeButton != null) {
             apps_service_type_preferences.check(viewState.selectedServiceTypeButton)
@@ -68,36 +67,15 @@ class AppDetailsFragment : Fragment() {
         }
     }
 
-    private fun handleEnableRadioButtons(viewState: AppDetailsViewState) {
-        apps_ssh_preference.isEnabled = viewState.sshEnabled
-        apps_vnc_preference.isEnabled = viewState.vncEnabled
-        apps_local_preference.isEnabled = viewState.localEnabled
-        apps_remote_preference.isEnabled = viewState.remoteEnabled
-
-        if (viewState.xsdlEnabled) {
-            apps_xsdl_preference.isEnabled = true
-        } else {
-            // Xsdl is unavailable on Android 9 and greater
-            apps_xsdl_preference.isEnabled = false
-            apps_xsdl_preference.alpha = 0.5f
-
-            val xsdlSupportedText = view?.find<TextView>(R.id.text_xsdl_version_supported_description)
-            xsdlSupportedText?.visibility = View.VISIBLE
-        }
-    }
-
-    private fun handleShowStateHint(viewState: AppDetailsViewState) {
-        if (viewState.describeStateHintEnabled) {
-            text_describe_state.visibility = View.VISIBLE
-            text_describe_state.setText(viewState.describeStateText!!)
-        } else {
-            text_describe_state.visibility = View.GONE
-        }
-    }
-
     private fun setupPreferredServiceTypeRadioGroup() {
         apps_service_type_preferences.setOnCheckedChangeListener { _, checkedId ->
             viewModel.submitEvent(AppDetailsEvent.ServiceTypeChanged(checkedId, app))
+        }
+    }
+
+    private fun setupPreferredServiceLocationRadioGroup() {
+        apps_service_location_preferences.setOnCheckedChangeListener { _, checkedId ->
+            viewModel.submitEvent(AppDetailsEvent.ServiceLocationChanged(checkedId, app))
         }
     }
 }

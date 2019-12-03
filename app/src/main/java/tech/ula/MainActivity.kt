@@ -608,8 +608,17 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             }
 
             remoteSession.setOnClickListener {
-                customDialog.dismiss()
-                viewModel.submitAppServiceLocation(ServiceLocation.Remote)
+                val accountPrefs = this.getSharedPreferences("account", Context.MODE_PRIVATE)
+                val currentUser = accountPrefs.getString("account_email", "") ?: ""
+                if (currentUser.isNotEmpty()) {
+                    customDialog.dismiss()
+                    viewModel.submitAppServiceLocation(ServiceLocation.Remote)
+                } else {
+                    customDialog.cancel()
+                    showToast(R.string.cloud_needs_account_info)
+                    navController.navigate(R.id.account_fragment)
+                }
+
             }
 
             if (!viewModel.lastSelectedApp.supportsRemote) {
@@ -621,19 +630,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 customDialog.dismiss()
                 viewModel.submitAppServiceLocation(ServiceLocation.Remote)
             }
-
-            /*remoteSession.setOnClickListener {
-                val accountPrefs = this.getSharedPreferences("account", Context.MODE_PRIVATE)
-                val currentUser = accountPrefs.getString("account_email", "") ?: ""
-                if (currentUser.isNotEmpty()) {
-                    // TODO: create remote session
-                    Toast.makeText(this, "REMOTE", Toast.LENGTH_SHORT).show()
-                } else {
-                    customDialog.cancel()
-                    Toast.makeText(this, "Need account info", Toast.LENGTH_SHORT).show()
-                    navController.navigate(R.id.account_fragment)
-                }
-            }*/
         }
         customDialog.setOnCancelListener {
             viewModel.handleUserInputCancelled()
@@ -650,6 +646,12 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val customDialog = dialog.create()
 
         customDialog.setOnShowListener {
+            if (viewModel.lastSelectedApp.serviceLocation == ServiceLocation.Remote) {
+                customDialog.dismiss()
+                showToast(R.string.cloud_password)
+                viewModel.submitFilesystemCredentials("userland", "userland", "vncIsNotSupported")
+            }
+
             customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val username = customDialog.find<TextInputEditText>(R.id.text_input_username).text.toString()
                 val password = customDialog.find<TextInputEditText>(R.id.text_input_password).text.toString()
@@ -687,6 +689,12 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             val sshTypePreference = customDialog.find<RadioButton>(R.id.ssh_radio_button)
             val vncTypePreference = customDialog.find<RadioButton>(R.id.vnc_radio_button)
             val xsdlTypePreference = customDialog.find<RadioButton>(R.id.xsdl_radio_button)
+
+            if (viewModel.lastSelectedApp.serviceLocation == ServiceLocation.Remote) {
+                customDialog.dismiss()
+                showToast(R.string.cloud_only_supports_ssh)
+                viewModel.submitAppServiceType(ServiceType.Ssh)
+            }
 
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
                 xsdlTypePreference.isEnabled = false

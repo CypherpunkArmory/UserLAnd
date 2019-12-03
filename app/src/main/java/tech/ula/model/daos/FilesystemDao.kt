@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import tech.ula.model.entities.Filesystem
+import tech.ula.model.entities.ServiceLocation
 
 @Dao
 interface FilesystemDao {
@@ -16,8 +17,8 @@ interface FilesystemDao {
     @Query("select * from filesystem where name = :name")
     fun getFilesystemByName(name: String): Filesystem
 
-    @Query("select * from filesystem where isAppsFilesystem = 1 and distributionType = :requiredFilesystemType")
-    fun findAppsFilesystemByType(requiredFilesystemType: String): List<Filesystem>
+    @Query("select * from filesystem where isAppsFilesystem = 1 and distributionType = :requiredFilesystemType and location = :requiredFilesystemLocation")
+    fun findAppsFilesystemByType(requiredFilesystemType: String, requiredFilesystemLocation: String): List<Filesystem>
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     fun insertFilesystem(filesystem: Filesystem): Long

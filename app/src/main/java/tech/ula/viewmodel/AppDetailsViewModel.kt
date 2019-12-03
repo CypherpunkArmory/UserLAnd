@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.* // ktlint-disable no-wildcard-imports
 import tech.ula.R
 import tech.ula.model.daos.SessionDao
+import tech.ula.model.daos.AppsDao
 import tech.ula.model.entities.App
 import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.ServiceLocation
@@ -26,8 +27,6 @@ data class AppDetailsViewState(
     val xsdlEnabled: Boolean,
     val localEnabled: Boolean,
     val remoteEnabled: Boolean,
-    val describeStateHintEnabled: Boolean,
-    @StringRes val describeStateText: Int?,
     @IdRes val selectedServiceTypeButton: Int?,
     @IdRes val selectedServiceLocationButton: Int?
 )
@@ -38,7 +37,7 @@ sealed class AppDetailsEvent {
     data class ServiceLocationChanged(@IdRes val selectedButton: Int, val app: App) : AppDetailsEvent()
 }
 
-class AppDetailsViewModel(private val sessionDao: SessionDao, private val appDetails: AppDetails, private val buildVersion: Int) : ViewModel(), CoroutineScope {
+class AppDetailsViewModel(private val appsDao: AppsDao, private val appDetails: AppDetails, private val buildVersion: Int) : ViewModel(), CoroutineScope {
     private val job = Job()
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
@@ -54,40 +53,28 @@ class AppDetailsViewModel(private val sessionDao: SessionDao, private val appDet
     }
 
     private suspend fun constructView(app: App) {
-        val appSession = getAppSession(app)
-        viewState.postValue(buildViewState(app, appSession))
+        viewState.postValue(buildViewState(app))
     }
 
-    private suspend fun getAppSession(app: App): Session? = withContext(Dispatchers.IO) {
-        val listOfPotentialSessions = sessionDao.findAppsSession(app.name)
-        return@withContext if (listOfPotentialSessions.isEmpty()) null
-        else listOfPotentialSessions.first()
-    }
-
-    private fun buildViewState(app: App, appSession: Session?): AppDetailsViewState {
-        val enableRadioButtons = radioButtonsShouldBeEnabled(appSession)
-
+    private fun buildViewState(app: App): AppDetailsViewState {
         val appIconUri = appDetails.findIconUri(app.name)
         val appTitle = app.name
         val appDescription = appDetails.findAppDescription(app.name)
 
-        val sshEnabled = app.supportsCli && enableRadioButtons
-        val vncEnabled = app.supportsGui && enableRadioButtons
-        val xsdlEnabled = app.supportsGui && buildVersion <= Build.VERSION_CODES.O_MR1 && enableRadioButtons
-        val localEnabled = app.supportsLocal && enableRadioButtons
-        val remoteEnabled = app.supportsRemote && enableRadioButtons
+        val sshEnabled = app.supportsCli
+        val vncEnabled = app.supportsGui
+        val xsdlEnabled = app.supportsGui && buildVersion <= Build.VERSION_CODES.O_MR1
+        val localEnabled = app.supportsLocal
+        val remoteEnabled = app.supportsRemote
 
-        val describeStateHintEnabled = getStateHintEnabled(appSession)
-        val describeStateText = getStateDescription(appSession)
-
-        val selectedServiceTypeButton = when (appSession?.serviceType) {
+        val selectedServiceTypeButton = when (app.serviceType) {
             ServiceType.Ssh -> R.id.apps_ssh_preference
             ServiceType.Vnc -> R.id.apps_vnc_preference
             ServiceType.Xsdl -> R.id.apps_xsdl_preference
             else -> null
         }
 
-        val selectedServiceLocationButton = when (appSession?.serviceLocation) {
+        val selectedServiceLocationButton = when (app.serviceLocation) {
             ServiceLocation.Local -> R.id.apps_local_preference
             ServiceLocation.Remote -> R.id.apps_remote_preference
             else -> null
@@ -102,8 +89,6 @@ class AppDetailsViewModel(private val sessionDao: SessionDao, private val appDet
                 xsdlEnabled,
                 localEnabled,
                 remoteEnabled,
-                describeStateHintEnabled,
-                describeStateText,
                 selectedServiceTypeButton,
                 selectedServiceLocationButton
         )
@@ -111,7 +96,6 @@ class AppDetailsViewModel(private val sessionDao: SessionDao, private val appDet
 
     private fun handleServiceTypeChanged(event: AppDetailsEvent.ServiceTypeChanged) {
         this.launch {
-            val appSession = getAppSession(event.app)
             val selectedServiceType = when (event.selectedButton) {
                 R.id.apps_ssh_preference -> ServiceType.Ssh
                 R.id.apps_vnc_preference -> ServiceType.Vnc
@@ -119,12 +103,10 @@ class AppDetailsViewModel(private val sessionDao: SessionDao, private val appDet
                 else -> ServiceType.Unselected
             }
 
-            if (appSession == null) return@launch
-
-            appSession.serviceType = selectedServiceType
+            event.app.serviceType = selectedServiceType
             this.launch {
                 withContext(Dispatchers.IO) {
-                    sessionDao.updateSession(appSession)
+                    appsDao.updateApp(event.app)
                 }
             }
         }
@@ -132,55 +114,25 @@ class AppDetailsViewModel(private val sessionDao: SessionDao, private val appDet
 
     private fun handleServiceLocationChanged(event: AppDetailsEvent.ServiceLocationChanged) {
         this.launch {
-            val appSession = getAppSession(event.app)
             val selectedServiceLocation = when (event.selectedButton) {
                 R.id.apps_local_preference -> ServiceLocation.Local
                 R.id.apps_remote_preference -> ServiceLocation.Remote
                 else -> ServiceLocation.Unselected
             }
 
-            if (appSession == null) return@launch
-
-            appSession.serviceLocation = selectedServiceLocation
+            event.app.serviceLocation = selectedServiceLocation
             this.launch {
                 withContext(Dispatchers.IO) {
-                    sessionDao.updateSession(appSession)
+                    appsDao.updateApp(event.app)
                 }
             }
         }
     }
-
-    private fun getStateHintEnabled(appSession: Session?): Boolean {
-        return !radioButtonsShouldBeEnabled(appSession)
-    }
-
-    @StringRes
-    private fun getStateDescription(appSession: Session?): Int? {
-        return when {
-            appSession == null || appSession.serviceType == ServiceType.Unselected -> {
-                R.string.info_finish_app_setup
-            }
-            appSession.active -> {
-                R.string.info_stop_app
-            }
-            else -> {
-                null
-            }
-        }
-    }
-
-    private fun radioButtonsShouldBeEnabled(appSession: Session?): Boolean {
-        val serviceType = appSession?.serviceType ?: ServiceType.Unselected
-        val isNotActive = appSession?.active == false
-        return appSession != null &&
-                isNotActive &&
-                serviceType != ServiceType.Unselected
-    }
 }
 
-class AppDetailsViewmodelFactory(private val sessionDao: SessionDao, private val appDetails: AppDetails, private val buildVersion: Int) : ViewModelProvider.NewInstanceFactory() {
+class AppDetailsViewmodelFactory(private val appsDao: AppsDao, private val appDetails: AppDetails, private val buildVersion: Int) : ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         @Suppress("UNCHECKED_CAST")
-        return AppDetailsViewModel(sessionDao, appDetails, buildVersion) as T
+        return AppDetailsViewModel(appsDao, appDetails, buildVersion) as T
     }
 }

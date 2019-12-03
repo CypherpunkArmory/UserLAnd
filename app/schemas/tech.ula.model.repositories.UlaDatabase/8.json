@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 8,
-    "identityHash": "37f4109cc76f80aecc6cd3071483eb09",
+    "identityHash": "2d0fe87480eb33dfe4df0db3671ca3af",
     "entities": [
       {
         "tableName": "session",
@@ -125,7 +125,7 @@
       },
       {
         "tableName": "filesystem",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `distributionType` TEXT NOT NULL, `archType` TEXT NOT NULL, `defaultUsername` TEXT NOT NULL, `defaultPassword` TEXT NOT NULL, `defaultVncPassword` TEXT NOT NULL, `isAppsFilesystem` INTEGER NOT NULL, `versionCodeUsed` TEXT NOT NULL, `isCreatedFromBackup` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `distributionType` TEXT NOT NULL, `location` TEXT NOT NULL, `archType` TEXT NOT NULL, `defaultUsername` TEXT NOT NULL, `defaultPassword` TEXT NOT NULL, `defaultVncPassword` TEXT NOT NULL, `isAppsFilesystem` INTEGER NOT NULL, `versionCodeUsed` TEXT NOT NULL, `isCreatedFromBackup` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -142,6 +142,12 @@
           {
             "fieldPath": "distributionType",
             "columnName": "distributionType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "location",
+            "columnName": "location",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -199,7 +205,7 @@
       },
       {
         "tableName": "apps",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `category` TEXT NOT NULL, `filesystemRequired` TEXT NOT NULL, `supportsCli` INTEGER NOT NULL, `supportsGui` INTEGER NOT NULL, `supportsLocal` INTEGER NOT NULL, `supportsRemote` INTEGER NOT NULL, `isPaidApp` INTEGER NOT NULL, `version` INTEGER NOT NULL, PRIMARY KEY(`name`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `category` TEXT NOT NULL, `filesystemRequired` TEXT NOT NULL, `supportsCli` INTEGER NOT NULL, `supportsGui` INTEGER NOT NULL, `supportsLocal` INTEGER NOT NULL, `supportsRemote` INTEGER NOT NULL, `serviceType` TEXT NOT NULL, `serviceLocation` TEXT NOT NULL, `isPaidApp` INTEGER NOT NULL, `version` INTEGER NOT NULL, PRIMARY KEY(`name`))",
         "fields": [
           {
             "fieldPath": "name",
@@ -244,6 +250,18 @@
             "notNull": true
           },
           {
+            "fieldPath": "serviceType",
+            "columnName": "serviceType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "serviceLocation",
+            "columnName": "serviceLocation",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
             "fieldPath": "isPaidApp",
             "columnName": "isPaidApp",
             "affinity": "INTEGER",
@@ -278,7 +296,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"37f4109cc76f80aecc6cd3071483eb09\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"2d0fe87480eb33dfe4df0db3671ca3af\")"
     ]
   }
 }

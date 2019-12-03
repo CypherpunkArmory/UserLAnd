@@ -3,6 +3,8 @@ package tech.ula.model.remote
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import tech.ula.model.entities.App
+import tech.ula.model.entities.ServiceLocation
+import tech.ula.model.entities.ServiceType
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import java.io.File
 import java.io.IOException
@@ -53,6 +55,8 @@ class GithubAppsFetcher(
                         supportsGui.toBoolean(),
                         true,
                         supportsRemote,
+                        ServiceType.Unselected,
+                        ServiceLocation.Unselected,
                         isPaidApp.toBoolean(),
                         version.toLong()
                 )

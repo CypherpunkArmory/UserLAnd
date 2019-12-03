@@ -24,6 +24,7 @@ class AppsStartupFsm(
 
     private val className = "AppsFSM"
 
+    private val appsDao = ulaDatabase.appsDao()
     private val sessionDao = ulaDatabase.sessionDao()
     private val filesystemDao = ulaDatabase.filesystemDao()
 
@@ -62,14 +63,14 @@ class AppsStartupFsm(
         }
         return@launch when (event) {
             is AppSelected -> fetchDatabaseEntries(event.app)
-            is CheckAppSessionServiceLocation -> checkServiceLocation(event.appSession)
-            is SubmitAppSessionServiceLocation -> setServiceLocation(event.appSession, event.serviceLocation)
+            is CheckAppSessionServiceLocation -> checkServiceLocation(event.app)
+            is SubmitAppSessionServiceLocation -> setServiceLocation(event.app, event.serviceLocation)
             is CheckAppsFilesystemCredentials -> checkAppsFilesystemCredentials(event.appsFilesystem)
             is SubmitAppsFilesystemCredentials -> {
                 setAppsFilesystemCredentials(event.filesystem, event.username, event.password, event.vncPassword)
             }
-            is CheckAppSessionServiceType -> checkServiceType(event.appSession)
-            is SubmitAppSessionServiceType -> setServiceType(event.appSession, event.serviceType)
+            is CheckAppSessionServiceType -> checkServiceType(event.app)
+            is SubmitAppSessionServiceType -> setServiceType(event.app, event.serviceType)
             is CopyAppScriptToFilesystem -> copyAppScriptToFilesystem(event.app, event.filesystem)
             is SyncDatabaseEntries -> updateAppSession(event.app, event.session, event.filesystem)
             is ResetAppState -> state.postValue(WaitingForAppSelection)
@@ -87,17 +88,17 @@ class AppsStartupFsm(
         }
     }
 
-    private fun checkServiceLocation(appSession: Session) {
-        if (appSession.serviceLocation == ServiceLocation.Unselected) {
+    private fun checkServiceLocation(app: App) {
+        if (app.serviceLocation == ServiceLocation.Unselected) {
             state.postValue(AppRequiresServiceLocation)
             return
         }
         state.postValue(AppHasServiceLocationSet)
     }
 
-    private suspend fun setServiceLocation(appSession: Session, serviceLocation: ServiceLocation) = withContext(Dispatchers.IO) {
-        appSession.serviceLocation = serviceLocation
-        sessionDao.updateSession(appSession)
+    private suspend fun setServiceLocation(app: App, serviceLocation: ServiceLocation) = withContext(Dispatchers.IO) {
+        app.serviceLocation = serviceLocation
+        appsDao.updateApp(app)
         state.postValue(AppHasServiceLocationSet)
     }
 
@@ -112,8 +113,8 @@ class AppsStartupFsm(
         state.postValue(AppsFilesystemRequiresCredentials(appsFilesystem))
     }
 
-    private fun checkServiceType(appSession: Session) {
-        if (appSession.serviceType == ServiceType.Unselected) {
+    private fun checkServiceType(app: App) {
+        if (app.serviceType == ServiceType.Unselected) {
             state.postValue(AppRequiresServiceType)
             return
         }
@@ -132,24 +133,24 @@ class AppsStartupFsm(
         }
     }
 
-    private suspend fun setServiceType(appSession: Session, serviceType: ServiceType) = withContext(Dispatchers.IO) {
-        appSession.serviceType = serviceType
-        sessionDao.updateSession(appSession)
+    private suspend fun setServiceType(app: App, serviceType: ServiceType) = withContext(Dispatchers.IO) {
+        app.serviceType = serviceType
+        appsDao.updateApp(app)
         state.postValue(AppHasServiceTypeSet)
     }
 
     @Throws(NoSuchElementException::class) // If second database call fails
     private suspend fun findAppsFilesystem(app: App): Filesystem = withContext(Dispatchers.IO) {
-        val potentialAppFilesystem = filesystemDao.findAppsFilesystemByType(app.filesystemRequired)
+        val potentialAppFilesystem = filesystemDao.findAppsFilesystemByType(app.filesystemRequired, app.serviceLocation.toString())
 
         if (potentialAppFilesystem.isEmpty()) {
             val deviceArchitecture = ulaFiles.getArchType()
             val fsToInsert = Filesystem(0, name = "apps", archType = deviceArchitecture,
-                    distributionType = app.filesystemRequired, isAppsFilesystem = true)
+                    distributionType = app.filesystemRequired, location = app.serviceLocation, isAppsFilesystem = true)
             filesystemDao.insertFilesystem(fsToInsert)
         }
 
-        return@withContext filesystemDao.findAppsFilesystemByType(app.filesystemRequired).first()
+        return@withContext filesystemDao.findAppsFilesystemByType(app.filesystemRequired, app.serviceLocation.toString()).first()
     }
 
     @Throws(NoSuchElementException::class) // If second database call fails
@@ -176,6 +177,8 @@ class AppsStartupFsm(
         state.postValue(SyncingDatabaseEntries)
         appSession.filesystemId = appsFilesystem.id
         appSession.filesystemName = appsFilesystem.name
+        appSession.serviceType = app.serviceType
+        appSession.serviceLocation = app.serviceLocation
         appSession.username = appsFilesystem.defaultUsername
         appSession.password = appsFilesystem.defaultPassword
         appSession.vncPassword = appsFilesystem.defaultVncPassword
@@ -204,12 +207,12 @@ data class AppDatabaseEntriesSynced(val app: App, val session: Session, val file
 
 sealed class AppsStartupEvent
 data class AppSelected(val app: App) : AppsStartupEvent()
-data class CheckAppSessionServiceLocation(val appSession: Session) : AppsStartupEvent()
-data class SubmitAppSessionServiceLocation(val appSession: Session, val serviceLocation: ServiceLocation) : AppsStartupEvent()
+data class CheckAppSessionServiceLocation(val app: App) : AppsStartupEvent()
+data class SubmitAppSessionServiceLocation(val app: App, val serviceLocation: ServiceLocation) : AppsStartupEvent()
 data class CheckAppsFilesystemCredentials(val appsFilesystem: Filesystem) : AppsStartupEvent()
 data class SubmitAppsFilesystemCredentials(val filesystem: Filesystem, val username: String, val password: String, val vncPassword: String) : AppsStartupEvent()
-data class CheckAppSessionServiceType(val appSession: Session) : AppsStartupEvent()
-data class SubmitAppSessionServiceType(val appSession: Session, val serviceType: ServiceType) : AppsStartupEvent()
+data class CheckAppSessionServiceType(val app: App) : AppsStartupEvent()
+data class SubmitAppSessionServiceType(val app: App, val serviceType: ServiceType) : AppsStartupEvent()
 data class CopyAppScriptToFilesystem(val app: App, val filesystem: Filesystem) : AppsStartupEvent()
 data class SyncDatabaseEntries(val app: App, val session: Session, val filesystem: Filesystem) : AppsStartupEvent()
 object ResetAppState : AppsStartupEvent()

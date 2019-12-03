@@ -3,6 +3,7 @@ package tech.ula.model.daos
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.Update
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import tech.ula.model.entities.App
@@ -20,6 +21,9 @@ interface AppsDao {
     @Query("select apps.* from apps inner join session on apps.name = session.name and session.active = 1")
     fun getActiveApps(): LiveData<List<App>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     fun insertApp(application: App)
+
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    fun updateApp(application: App)
 }

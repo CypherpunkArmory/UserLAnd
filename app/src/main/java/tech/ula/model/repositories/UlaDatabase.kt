@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import android.content.Context
+import android.database.Cursor
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import tech.ula.model.daos.AppsDao
@@ -156,5 +157,26 @@ class Migration7To8 : Migration(7, 8) {
 
         database.execSQL("ALTER TABLE apps ADD COLUMN supportsLocal INTEGER NOT NULL DEFAULT 1")
         database.execSQL("ALTER TABLE apps ADD COLUMN supportsRemote INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE apps ADD COLUMN serviceType TEXT NOT NULL DEFAULT ''")
+        database.execSQL("ALTER TABLE apps ADD COLUMN serviceLocation TEXT NOT NULL DEFAULT ''")
+
+        database.execSQL("ALTER TABLE filesystem ADD COLUMN location TEXT NOT NULL DEFAULT 'local'")
+
+        var cursor = database.query("SELECT * FROM apps")
+        try {
+            while (cursor.moveToNext()) {
+                var appName = cursor.getString(cursor.getColumnIndex("name"))
+                var cursor2 = database.query("SELECT * FROM session WHERE name = $appName and isAppsSession = 1 LIMIT 1")
+                try {
+                    cursor2.moveToNext()
+                    var serviceType = cursor2.getString(cursor2.getColumnIndex("serviceType"))
+                    database.execSQL("UPDATE apps SET serviceType = $serviceType WHERE name = $appName")
+                } finally {
+                    cursor2.close()
+                }
+            }
+        } finally {
+            cursor.close()
+        }
     }
 }

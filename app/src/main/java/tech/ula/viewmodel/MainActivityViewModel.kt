@@ -152,19 +152,19 @@ class MainActivityViewModel(
     }
 
     fun submitAppServiceLocation(serviceLocation: ServiceLocation) {
-        if (lastSelectedSession == unselectedSession) {
+        if (lastSelectedApp == unselectedApp) {
             postIllegalStateWithLog(NoAppSelectedWhenPreferenceSubmitted)
             return
         }
-        submitAppsStartupEvent(SubmitAppSessionServiceLocation(lastSelectedSession, serviceLocation))
+        submitAppsStartupEvent(SubmitAppSessionServiceLocation(lastSelectedApp, serviceLocation))
     }
 
     fun submitAppServiceType(serviceType: ServiceType) {
-        if (lastSelectedSession == unselectedSession) {
+        if (lastSelectedApp == unselectedApp) {
             postIllegalStateWithLog(NoAppSelectedWhenPreferenceSubmitted)
             return
         }
-        submitAppsStartupEvent(SubmitAppSessionServiceType(lastSelectedSession, serviceType))
+        submitAppsStartupEvent(SubmitAppSessionServiceType(lastSelectedApp, serviceType))
     }
 
     fun handleUserInputCancelled() {
@@ -213,7 +213,7 @@ class MainActivityViewModel(
             is WaitingForAppSelection -> {}
             is FetchingDatabaseEntries -> {}
             is DatabaseEntriesFetched -> {
-                submitAppsStartupEvent(CheckAppSessionServiceLocation(lastSelectedSession))
+                submitAppsStartupEvent(CheckAppSessionServiceLocation(lastSelectedApp))
             }
             is DatabaseEntriesFetchFailed -> {
                 postIllegalStateWithLog(ErrorFetchingAppDatabaseEntries)
@@ -225,7 +225,7 @@ class MainActivityViewModel(
                 state.postValue(AppServiceLocationPreferenceRequired)
             }
             is AppsFilesystemHasCredentials -> {
-                submitAppsStartupEvent(CheckAppSessionServiceType(lastSelectedSession))
+                submitAppsStartupEvent(CheckAppSessionServiceType(lastSelectedApp))
             }
             is AppsFilesystemRequiresCredentials -> {
                 state.postValue(FilesystemCredentialsRequired)
