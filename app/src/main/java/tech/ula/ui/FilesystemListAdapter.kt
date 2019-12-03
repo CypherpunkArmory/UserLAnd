@@ -10,11 +10,13 @@ import android.widget.ImageView
 import android.widget.TextView
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
+import tech.ula.model.entities.ServiceLocation
 import tech.ula.utils.AppDetails
 
 class FilesystemListAdapter(private var activity: Activity, private var items: List<Filesystem>) : BaseAdapter() {
     private class ViewHolder(row: View) {
         var imageViewType: ImageView = row.findViewById(R.id.image_list_item_filesystem_type)
+        var imageViewLocation: ImageView = row.findViewById(R.id.image_list_item_filesystem_location)
         var textViewName: TextView = row.findViewById(R.id.text_filesystem_name)
     }
 
@@ -35,6 +37,11 @@ class FilesystemListAdapter(private var activity: Activity, private var items: L
 
         val fileLocator = AppDetails(activity.filesDir.path, activity.resources)
         viewHolder.imageViewType.setImageURI(fileLocator.findIconUri(filesystem.distributionType))
+        if (filesystem.location == ServiceLocation.Remote) {
+            viewHolder.imageViewLocation.setImageResource(R.drawable.ic_cloud_black_24dp)
+        } else {
+            viewHolder.imageViewLocation.setImageResource(R.drawable.ic_phone_android_black_24dp)
+        }
         viewHolder.textViewName.text = filesystem.name
 
         return view as View

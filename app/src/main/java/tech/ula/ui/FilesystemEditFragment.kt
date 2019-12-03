@@ -23,6 +23,7 @@ import androidx.navigation.fragment.navArgs
 import kotlinx.android.synthetic.main.frag_filesystem_edit.*
 import tech.ula.MainActivity
 import tech.ula.R
+import tech.ula.model.entities.toServiceLocation
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.PermissionHandler
 import tech.ula.utils.CredentialValidator
@@ -97,6 +98,10 @@ class FilesystemEditFragment : Fragment() {
                 val item = spinner_filesystem_type.adapter.getItem(i).toString().toLowerCase()
                 if (item == filesystem.distributionType) spinner_filesystem_type.setSelection(i)
             }
+            for (i in 0 until spinner_filesystem_location.adapter.count) {
+                val item = spinner_filesystem_location.adapter.getItem(i).toString().toLowerCase()
+                if (item == filesystem.location.toString()) spinner_filesystem_location.setSelection(i)
+            }
         }
     }
 
@@ -108,16 +113,27 @@ class FilesystemEditFragment : Fragment() {
         if (editExisting) {
             btn_show_advanced_options.visibility = View.GONE
             spinner_filesystem_type.isEnabled = false
+            spinner_filesystem_location.isEnabled = false
         } else {
             setupImportButton()
             setupAdvancedOptionButton()
         }
+
         spinner_filesystem_type.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 filesystem.distributionType = parent?.getItemAtPosition(position).toString().toLowerCase()
+            }
+        }
+
+        spinner_filesystem_location.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                filesystem.location = parent?.getItemAtPosition(position).toString().toLowerCase().toServiceLocation()
             }
         }
     }

@@ -122,7 +122,7 @@
 
     <!-- Prompts -->
     <string name="prompt_filesystem">Filesystem:</string>
-    <string name="prompt_service_location">Service Location:</string>
+    <string name="prompt_location">Location:</string>
     <string name="prompt_service_type">Service Type:</string>
     <string name="prompt_client_type">Client Type:</string>
     <string name="prompt_app_connection_type_preference">Please select a connection type: </string>
@@ -246,6 +246,7 @@
     <!-- Content descriptions -->
     <string name="desc_arrow">Image: Arrow denoting connection between session and filesystem.</string>
     <string name="desc_filesystem_type">Image: Distribution logo</string>
+    <string name="desc_filesystem_location">Image: Distribution location</string>
     <string name="desc_default_app_icon">Image: App Icon Placeholder</string>
 
     <!-- Misc -->
