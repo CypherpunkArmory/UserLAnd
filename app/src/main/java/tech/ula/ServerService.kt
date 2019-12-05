@@ -168,8 +168,16 @@ class ServerService : Service(), CoroutineScope {
     private fun startSshClient(session: Session) {
         val connectBotIntent = Intent()
         connectBotIntent.action = Intent.ACTION_VIEW
-        connectBotIntent.data = Uri.parse("ssh://${session.username}@localhost:2022/#userland")
         connectBotIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        if (session.serviceLocation == ServiceLocation.Remote) {
+            connectBotIntent.setClassName("tech.ula","com.termux.app.TermuxActivity")
+            connectBotIntent.data = Uri.parse("ssh://${session.username}@${session.ip}:${session.port}/#userland")
+            connectBotIntent.putExtra("jumpUsername", session.username)
+            connectBotIntent.putExtra("jumpPort", "22")
+            connectBotIntent.putExtra("jumpHost", "api.userland.tech")
+        } else {
+            connectBotIntent.data = Uri.parse("ssh://${session.username}@localhost:2022/#userland")
+        }
 
         startActivity(connectBotIntent)
     }
@@ -216,7 +224,7 @@ class ServerService : Service(), CoroutineScope {
     }
 
     private fun cleanUpFilesystem(filesystemId: Long) {
-     import android.system.Os   activeSessions.values.filter { it.filesystemId == filesystemId }
+        activeSessions.values.filter { it.filesystemId == filesystemId }
                 .forEach { killSession(it) }
     }
 
