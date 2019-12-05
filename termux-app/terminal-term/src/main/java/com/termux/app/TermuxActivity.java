@@ -313,6 +313,9 @@ public final class TermuxActivity extends Activity implements ServiceConnection 
         serviceIntent.putExtra("hostname", hostname);
         serviceIntent.putExtra("port", port);
         serviceIntent.putExtra("sessionName", sessionName);
+        serviceIntent.putExtra("jumpUser",getIntent().getStringExtra("jumpUser"));
+        serviceIntent.putExtra("jumpPort",getIntent().getStringExtra("jumpPort"));
+        serviceIntent.putExtra("jumpHost",getIntent().getStringExtra("jumpHost"));
 
         serviceIntent.setAction(TermuxService.ACTION_EXECUTE);
 

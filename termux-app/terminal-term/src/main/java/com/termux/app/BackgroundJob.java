@@ -99,6 +99,7 @@ public final class BackgroundJob {
 
         if (cwd == null) cwd = home_path;
 
+        final String shEnv = "SHELL=" + files_path + "/support/sh";
         final String termEnv = "TERM=xterm-256color";
         final String homeEnv = "HOME=" + home_path;
         final String prefixEnv = "PREFIX=" + prefix_path;
@@ -118,7 +119,7 @@ public final class BackgroundJob {
             final String pwdEnv = "PWD=" + cwd;
             final String tmpdirEnv = "TMPDIR=" + prefix_path + "/tmp";
 
-            return new String[]{termEnv, homeEnv, prefixEnv, ldEnv, langEnv, pathEnv, pwdEnv, androidRootEnv, androidDataEnv, externalStorageEnv, tmpdirEnv};
+            return new String[]{shEnv, termEnv, homeEnv, prefixEnv, ldEnv, langEnv, pathEnv, pwdEnv, androidRootEnv, androidDataEnv, externalStorageEnv, tmpdirEnv};
         }
     }
 

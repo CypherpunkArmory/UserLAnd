@@ -1,5 +1,6 @@
 package tech.ula.utils
 
+import android.system.Os
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
@@ -8,7 +9,12 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import tech.ula.model.entities.Session
+import java.io.File
 import java.lang.Exception
+import com.jcraft.jsch.*
+import com.jcraft.jsch.JSch
+
+
 
 @JsonClass(generateAdapter = true)
 internal data class LoginResponse(
@@ -47,6 +53,7 @@ class CloudService {
     companion object {
         var accountEmail = ""
         var accountPassword = ""
+        var filesPath = ""
     }
 
     private val baseUrl = "https://api.userland.tech/"
@@ -54,7 +61,7 @@ class CloudService {
     private var accessToken = ""
     private val client = OkHttpClient()
     private val moshi = Moshi.Builder().build()
-    private val publicKey ="hi"
+    private var publicKey =""
 
     val SUCCESS = 0
     val LOGIN_FAILURE = 1
@@ -63,10 +70,31 @@ class CloudService {
     val DELETE_FAILURE = 4
 
     fun createBox(session: Session): Int {
+        //TODO: this symlink stuff should be somewhere else
+        val busyboxFile = File(filesPath, "/support/busybox")
+        val shFile = File(filesPath, "/support/sh")
+        if (shFile.exists()) shFile.delete()
+        Os.symlink(busyboxFile.path, shFile.path)
+
         var result = login()
         if (result != 0)
             return result
+        createKeys()
         return box(session)
+    }
+
+    private fun createKeys() {
+        val jsch = JSch()
+        val kpair=KeyPair.genKeyPair(jsch, KeyPair.RSA, 1024)
+        kpair.writePrivateKey(filesPath + "/sshkey.priv")
+        kpair.writePublicKey(filesPath + "/sshkey.pub", "bogus@bogus.com")
+        publicKey = File(filesPath + "/sshkey.pub").readText(Charsets.UTF_8).trim()
+        val privateKey = File(filesPath + "/sshkey.priv").readText(Charsets.UTF_8).trim()
+        File(filesPath + "/sshkey.priv").setExecutable(false, false)
+        File(filesPath + "/sshkey.priv").setReadable(false, false)
+        File(filesPath + "/sshkey.priv").setWritable(false, false)
+        File(filesPath + "/sshkey.priv").setReadable(true, true)
+        File(filesPath + "/sshkey.priv").setWritable(true, true)
     }
 
     private fun login(): Int {

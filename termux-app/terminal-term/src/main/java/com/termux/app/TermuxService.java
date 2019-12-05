@@ -74,6 +74,9 @@ public final class TermuxService extends Service implements SessionChangedCallba
     String hostname = "";
     String port = "";
     String sessionName = "";
+    String jumpUser = "";
+    String jumpPort = "";
+    String jumpHost = "";
 
     /**
      * The terminal sessions which this service manages.
@@ -132,6 +135,9 @@ public final class TermuxService extends Service implements SessionChangedCallba
             hostname = intent.getStringExtra("hostname");
             port = intent.getStringExtra("port");
             sessionName = intent.getStringExtra("sessionName");
+            jumpUser = intent.getStringExtra("jumpUser");
+            jumpPort = intent.getStringExtra("jumpPort");
+            jumpHost = intent.getStringExtra("jumpHost");
 
             if (username.isEmpty() || hostname.isEmpty() || port.isEmpty() || sessionName.isEmpty()) {
                 Log.e(EmulatorDebug.LOG_TAG, "Currently only intents from UserLAnd are supported");
@@ -268,8 +274,23 @@ public final class TermuxService extends Service implements SessionChangedCallba
         }
 
         // TODO: Replace -y -y option with a way to support hostkey checking
+        String sshKeyFilePath = filesPath + "/sshkey.priv";
+        String debugFile = filesPath + "/debug.txt";
+
+        String proxyCommand = supportPath + "/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i " +
+                sshKeyFilePath + " -W %h:%p punch@api.userland.tech";
+
+        String sshCommand = supportPath + "/ssh -o ProxyCommand=\"" + proxyCommand +
+                "\" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i " +
+                sshKeyFilePath +  " -p " + port + " -t -A userland@" + hostname +
+                " '/usr/bin/clear; /bin/bash -i' ";
+
+        String[] sshArgs = { "sh", "-c", sshCommand };
         String[] dbclientArgs = {"sh", "-c", supportPath + "dbclient -y -y " + username + "@" + hostname + "/" + port};
-        String[] processArgs = BackgroundJob.setupProcessArgs(executablePath, dbclientArgs, prefixPath);
+        String[] processArgs = (!jumpUser.isEmpty()) ?
+                BackgroundJob.setupProcessArgs(executablePath, sshArgs, prefixPath) :
+                BackgroundJob.setupProcessArgs(executablePath, dbclientArgs, prefixPath);
+
         executablePath = processArgs[0];
         int lastSlashIndex = executablePath.lastIndexOf('/');
         String processName = (isLoginShell ? "-" : "") +

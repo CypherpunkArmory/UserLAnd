@@ -126,6 +126,7 @@ class ServerService : Service(), CoroutineScope {
             val accountPrefs = this.getSharedPreferences("account", Context.MODE_PRIVATE)
             CloudService.accountEmail = accountPrefs.getString("account_email", "")!!
             CloudService.accountPassword = accountPrefs.getString("account_password", "")!!
+            CloudService.filesPath = this.getFilesDir().getAbsolutePath()
         }
     }
 
@@ -155,7 +156,6 @@ class ServerService : Service(), CoroutineScope {
     }
 
     private fun startClient(session: Session) {
-        setCloudCredentials(session)
         when (session.serviceType) {
             ServiceType.Ssh -> startSshClient(session)
             ServiceType.Vnc -> startVncClient(session, "com.iiordanov.freebVNC")
@@ -172,7 +172,7 @@ class ServerService : Service(), CoroutineScope {
         if (session.serviceLocation == ServiceLocation.Remote) {
             connectBotIntent.setClassName("tech.ula","com.termux.app.TermuxActivity")
             connectBotIntent.data = Uri.parse("ssh://${session.username}@${session.ip}:${session.port}/#userland")
-            connectBotIntent.putExtra("jumpUsername", session.username)
+            connectBotIntent.putExtra("jumpUser", "punch")
             connectBotIntent.putExtra("jumpPort", "22")
             connectBotIntent.putExtra("jumpHost", "api.userland.tech")
         } else {

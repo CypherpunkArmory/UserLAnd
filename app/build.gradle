@@ -198,30 +198,29 @@ ext.architectures = ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"]
 ext.libDir = "$project.projectDir/src/main/jniLibs"
 
 task downloadAssets(type: Download) {
-    def assetVersion = "v1.1.7"
+    def assetVersion = "v7.7.7"
     def baseUrl = "https://github.com/CypherpunkArmory/UserLAnd-Assets-Support/releases/download/$assetVersion"
-    for (arch in architectures) {
-        src "$baseUrl/$arch-assets.zip"
-        dest buildDir
-    }
+    src "$baseUrl/arm64-assets.tar.gz"
+    dest buildDir
 }
 
 task fetchAssets(dependsOn: downloadAssets) {
     doLast {
-        for (arch in architectures) {
-            delete "$buildDir/$arch"
-            copy {
-                from zipTree("$buildDir/$arch-assets.zip")
-                into "$buildDir/$arch"
-            }
-            copy {
-                from "$buildDir/$arch"
-                into "$libDir/$arch"
-                // Lib files must start with 'lib' and end with '.so.'
-                rename '(.*)', 'lib_$1.so'
-            }
-            new File("$libDir/$arch","lib_arch.so").text = "$arch"
+        def arch = "arm64"
+        def libArch = "arm64-v8a"
+        delete {
+            "$buildDir/$arch"
         }
+        copy {
+            from tarTree(resources.gzip("$buildDir/$arch-assets.tar.gz"))
+            into "$buildDir/$arch"
+        }
+        copy {
+            from "$buildDir/$arch"
+            into "$libDir/$libArch"
+            rename '(.*)', 'lib_$1.so'
+        }
+        new File("$libDir/$libArch","lib_arch.so").text = "$arch"
     }
 }
 
@@ -241,6 +240,7 @@ dependencies {
     def okhttp_version = '3.13.1'
     def sentry_version = '1.7.22'
     def slf4j_version = '1.7.26'
+    def jsch_version = '0.1.55'
 
     def kotlinx_coroutines_version = '1.0.0'
     def kotlin_jdk_version = '1.3.31'
@@ -275,6 +275,8 @@ dependencies {
     implementation 'org.rauschig:jarchivelib:0.8.0' // v1.0.0 breaks all sdk versions < 26 https://github.com/thrau/jarchivelib/issues/75
     implementation "io.sentry:sentry-android:$sentry_version"
     implementation "org.slf4j:slf4j-nop:$slf4j_version"
+
+    implementation "com.jcraft:jsch:$jsch_version"
 
     def mockito_version = '2.23.0'
     def mockito_kotlin_version = '2.1.0'
