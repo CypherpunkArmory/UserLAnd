@@ -220,7 +220,7 @@ task fetchAssets(dependsOn: downloadAssets) {
             into "$libDir/$libArch"
             rename '(.*)', 'lib_$1.so'
         }
-        new File("$libDir/$libArch","lib_arch.so").text = "$arch"
+        new File("$libDir/$libArch","lib_arch.so").text = "$libArch"
     }
 }
 

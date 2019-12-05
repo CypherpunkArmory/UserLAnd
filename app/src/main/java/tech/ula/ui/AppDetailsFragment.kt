@@ -58,12 +58,31 @@ class AppDetailsFragment : Fragment() {
         apps_icon.setImageURI(viewState.appIconUri)
         apps_title.text = viewState.appTitle
         apps_description.text = viewState.appDescription
+        handleEnableRadioButtons(viewState)
 
         if (viewState.selectedServiceTypeButton != null) {
             apps_service_type_preferences.check(viewState.selectedServiceTypeButton)
         }
         if (viewState.selectedServiceLocationButton != null) {
             apps_service_location_preferences.check(viewState.selectedServiceLocationButton)
+        }
+    }
+
+    private fun handleEnableRadioButtons(viewState: AppDetailsViewState) {
+        apps_local_preference.isEnabled = viewState.localEnabled
+        apps_remote_preference.isEnabled = viewState.remoteEnabled
+        apps_ssh_preference.isEnabled = viewState.sshEnabled
+        apps_vnc_preference.isEnabled = viewState.vncEnabled
+
+        if (viewState.xsdlEnabled) {
+            apps_xsdl_preference.isEnabled = true
+        } else {
+            // Xsdl is unavailable on Android 9 and greater
+            apps_xsdl_preference.isEnabled = false
+            apps_xsdl_preference.alpha = 0.5f
+
+            val xsdlSupportedText = view?.find<TextView>(R.id.text_xsdl_version_supported_description)
+            xsdlSupportedText?.visibility = View.VISIBLE
         }
     }
 
