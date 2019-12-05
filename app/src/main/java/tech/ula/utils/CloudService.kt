@@ -1,17 +1,13 @@
 package tech.ula.utils
 
-import android.system.Os
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
-import java.io.File
+import tech.ula.model.entities.Session
 import java.lang.Exception
 
 @JsonClass(generateAdapter = true)
@@ -48,6 +44,11 @@ internal data class TunnelData(val id: Int)
 
 class CloudService {
 
+    companion object {
+        var accountEmail = ""
+        var accountPassword = ""
+    }
+
     private val baseUrl = "https://api.userland.tech/"
     private val jsonType = MediaType.parse("application/json")
     private var accessToken = ""
@@ -55,127 +56,106 @@ class CloudService {
     private val moshi = Moshi.Builder().build()
     private val publicKey ="hi"
 
-    /*
+    val SUCCESS = 0
+    val LOGIN_FAILURE = 1
+    val BOX_FAILURE = 2
+    val LIST_FAILURE = 3
+    val DELETE_FAILURE = 4
 
-    fun handleLoginClick(email: String, password: String) = launch { withContext(Dispatchers.IO) {
-        cloudState.postValue(LoginResult.InProgress)
+    fun createBox(session: Session): Int {
+        var result = login()
+        if (result != 0)
+            return result
+        return box(session)
+    }
 
-        val request = createLoginRequest(email, password)
+    private fun login(): Int {
+        val request = createLoginRequest()
 
         val response = try {
             client.newCall(request).execute()
         } catch (err: Exception) {
-            cloudState.postValue(LoginResult.Failure)
-            return@withContext
+            return LOGIN_FAILURE
         }
         if (!response.isSuccessful) {
-            cloudState.postValue(LoginResult.Failure)
-            return@withContext
+            return LOGIN_FAILURE
         }
 
         val adapter = moshi.adapter(LoginResponse::class.java)
         val loginResponse = adapter.fromJson(response.body()!!.source())!!
         accessToken = loginResponse.accessToken
-        cloudState.postValue(LoginResult.Success)
-    } }
 
-    fun handleConnectClick(filesDir: File) = launch { withContext(Dispatchers.IO) {
-        val busyboxFile = File(filesDir, "/support/busybox")
-        if (!busyboxFile.exists()) {
-            cloudState.postValue(ConnectResult.BusyboxMissing)
-            return@withContext
-        }
+        return SUCCESS
+    }
 
-        try {
-            val shFile = File(filesDir, "/support/sh")
-            if (shFile.exists()) shFile.delete()
-            Os.symlink(busyboxFile.path, shFile.path)
-        } catch (err: Exception) {
-            cloudState.postValue(ConnectResult.LinkFailed)
-            return@withContext
-        }
-
+    private fun box(session: Session): Int {
         if (accessToken == "") {
-            cloudState.postValue(LoginResult.Failure)
-            return@withContext
+            return LOGIN_FAILURE
         }
 
-        cloudState.postValue(ConnectResult.InProgress)
-        val request = createBoxCreateRequest(filesDir) ?: return@withContext
+        val request = createBoxCreateRequest()
 
         val response = try {
             client.newCall(request).execute()
         } catch (err: Exception) {
-            cloudState.postValue(ConnectResult.BoxCreateFailure)
-            return@withContext
+            return BOX_FAILURE
         }
         if (!response.isSuccessful) {
-            cloudState.postValue(ConnectResult.RequestFailed(response.message()))
-            return@withContext
+            return BOX_FAILURE
         }
 
         val adapter = moshi.adapter(CreateResponse::class.java)
         val createResponse = try {
             adapter.fromJson(response.body()!!.source())!!
         } catch (err: NullPointerException) {
-            cloudState.postValue(ConnectResult.NullResponseFromCreate)
-            return@withContext
+            return BOX_FAILURE
         }
-        val ipAddress = createResponse.data.attributes.ipAddress
-        val sshPort = createResponse.data.attributes.sshPort
+        session.ip = createResponse.data.attributes.ipAddress
+        session.port = createResponse.data.attributes.sshPort.toLong()
 
-        cloudState.postValue(ConnectResult.Success(ipAddress, sshPort))
-    } }
+        return SUCCESS
+    }
 
-    fun handleDeleteClick() = launch { withContext(Dispatchers.IO) {
+    fun delete(): Int {
         if (accessToken == "") {
-            cloudState.postValue(LoginResult.Failure)
-            return@withContext
+            return LOGIN_FAILURE
         }
-
-        cloudState.postValue(DeleteResult.InProgress)
 
         val request = createListRequest()
         val response = try {
             client.newCall(request).execute()
         } catch (err: Exception) {
-            cloudState.postValue(DeleteResult.ListRequestFailure)
-            return@withContext
+            return LIST_FAILURE
         }
         if (!response.isSuccessful) {
-            cloudState.postValue(DeleteResult.ListResponseFailure(response.message()))
-            return@withContext
+            return LIST_FAILURE
         }
 
         val listAdapter = moshi.adapter(ListResponse::class.java)
         val id = try {
             listAdapter.fromJson(response.body()!!.source())!!.data.first().id
         } catch (err: NullPointerException) {
-            cloudState.postValue(DeleteResult.NullResponseFromList)
-            return@withContext
+            return LIST_FAILURE
         }
 
         val deleteRequest = createDeleteRequest(id)
         val deleteResponse = try {
             client.newCall(deleteRequest).execute()
         } catch (err: Exception) {
-            cloudState.postValue(DeleteResult.DeleteRequestFailure)
-            return@withContext
+            return DELETE_FAILURE
         }
         if (!deleteResponse.isSuccessful) {
-            cloudState.postValue(DeleteResult.DeleteResponseFailure(response.message()))
-            return@withContext
+            return DELETE_FAILURE
         }
 
-        cloudState.postValue(DeleteResult.Success(id))
-    } }
-    */
+        return SUCCESS
+    }
 
-    private fun createLoginRequest(email: String, password: String): Request {
+    private fun createLoginRequest(): Request {
         val json = """
             {
-                "email": "$email",
-                "password": "$password"
+                "email": "$accountEmail",
+                "password": "$accountPassword"
             }
         """.trimIndent()
 
@@ -186,7 +166,7 @@ class CloudService {
                 .build()
     }
 
-    private fun createBoxCreateRequest(filesDir: File): Request? {
+    private fun createBoxCreateRequest(): Request? {
         val sshKey = publicKey
 
         val json = """

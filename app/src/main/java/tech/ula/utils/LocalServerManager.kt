@@ -1,5 +1,6 @@
 package tech.ula.utils
 
+import tech.ula.model.entities.ServiceLocation
 import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.Session
 import java.io.File
@@ -11,6 +12,7 @@ class LocalServerManager(
 ) {
 
     private val vncDisplayNumber = 51
+    private val cloudService = CloudService()
 
     fun Process.pid(): Long {
         return this.toString()
@@ -21,10 +23,19 @@ class LocalServerManager(
     }
 
     fun startServer(session: Session): Long {
-        return when (session.serviceType) {
-            ServiceType.Ssh -> startSSHServer(session)
-            ServiceType.Vnc -> startVNCServer(session)
-            ServiceType.Xsdl -> setDisplayNumberAndStartTwm(session)
+        return when (session.serviceLocation) {
+            ServiceLocation.Remote -> {
+                when (cloudService.createBox(session)) {
+                    cloudService.SUCCESS -> 0
+                    else -> -1
+                }
+            }
+            ServiceLocation.Local -> when (session.serviceType) {
+                ServiceType.Ssh -> startSSHServer(session)
+                ServiceType.Vnc -> startVNCServer(session)
+                ServiceType.Xsdl -> setDisplayNumberAndStartTwm(session)
+                else -> 0
+            }
             else -> 0
         }
     }
@@ -43,6 +54,7 @@ class LocalServerManager(
         val command = "support/isServerInProcTree.sh ${session.serverPid()}"
         // The server itself is run by a third-party, so we can consider this to always be true.
         // The third-party app is responsible for handling errors starting their server.
+        if (session.serviceLocation == ServiceLocation.Remote) return true
         if (session.serviceType == ServiceType.Xsdl) return true
         val result = busyboxExecutor.executeScript(command)
         return when (result) {

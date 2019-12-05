@@ -201,7 +201,7 @@ class MainActivityViewModel(
         if (newState is WaitingForAppSelection || newState is FetchingDatabaseEntries) {
             return
         }
-        if (!appsPreparationRequirementsHaveBeenSelected()) {
+        if (!appsPreparationRequirementsHaveBeenSelected() && !((newState == AppHasServiceLocationSet) || (newState == AppRequiresServiceLocation))) {
             postIllegalStateWithLog(NoAppSelectedWhenTransitionNecessary)
             return
         }
@@ -211,18 +211,18 @@ class MainActivityViewModel(
                 postIllegalStateWithLog(IllegalStateTransition("$newState"))
             }
             is WaitingForAppSelection -> {}
-            is FetchingDatabaseEntries -> {}
-            is DatabaseEntriesFetched -> {
-                submitAppsStartupEvent(CheckAppSessionServiceLocation(lastSelectedApp))
-            }
-            is DatabaseEntriesFetchFailed -> {
-                postIllegalStateWithLog(ErrorFetchingAppDatabaseEntries)
-            }
             is AppHasServiceLocationSet -> {
-                submitAppsStartupEvent(CheckAppsFilesystemCredentials(lastSelectedFilesystem))
+                submitAppsStartupEvent(FetchDatabaseEntries(lastSelectedApp))
             }
             is AppRequiresServiceLocation -> {
                 state.postValue(AppServiceLocationPreferenceRequired)
+            }
+            is FetchingDatabaseEntries -> {}
+            is DatabaseEntriesFetched -> {
+                submitAppsStartupEvent(CheckAppsFilesystemCredentials(lastSelectedFilesystem))
+            }
+            is DatabaseEntriesFetchFailed -> {
+                postIllegalStateWithLog(ErrorFetchingAppDatabaseEntries)
             }
             is AppsFilesystemHasCredentials -> {
                 submitAppsStartupEvent(CheckAppSessionServiceType(lastSelectedApp))
@@ -361,7 +361,7 @@ class MainActivityViewModel(
         return when (newState) {
             is VerifyingFilesystemAssets -> state.postValue(VerifyingFilesystem)
             is FilesystemAssetVerificationSucceeded -> { doTransitionIfRequirementsAreSelected {
-                    submitSessionStartupEvent(VerifyAvailableStorage)
+                    submitSessionStartupEvent(VerifyAvailableStorage(lastSelectedFilesystem))
             } }
             is AssetsAreMissingFromSupportDirectories -> postIllegalStateWithLog(AssetsHaveNotBeenDownloaded)
             is FilesystemAssetCopyFailed -> postIllegalStateWithLog(FailedToCopyAssetsToFilesystem)

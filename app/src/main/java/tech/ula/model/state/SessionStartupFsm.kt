@@ -8,6 +8,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import tech.ula.model.entities.Asset
 import tech.ula.model.entities.Filesystem
+import tech.ula.model.entities.ServiceLocation
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.AssetRepository
 import tech.ula.model.repositories.DownloadMetadata
@@ -109,7 +110,7 @@ class SessionStartupFsm(
             is SyncDownloadState -> { handleSyncDownloadState() }
             is CopyDownloadsToLocalStorage -> { handleCopyDownloadsToLocalDirectories() }
             is VerifyFilesystemAssets -> { handleVerifyFilesystemAssets(event.filesystem) }
-            is VerifyAvailableStorage -> { handleVerifyAvailableStorage() }
+            is VerifyAvailableStorage -> { handleVerifyAvailableStorage(event.filesystem) }
             is VerifyAvailableStorageComplete -> { handleVerifyAvailableStorageComplete() }
             is ExtractFilesystem -> { handleExtractFilesystem(event.filesystem) }
             is ResetSessionState -> { state.postValue(WaitingForSessionSelection) }
@@ -138,6 +139,11 @@ class SessionStartupFsm(
     private suspend fun handleRetrieveAssetLists(filesystem: Filesystem) {
         state.postValue(RetrievingAssetLists)
 
+        if (filesystem.location == ServiceLocation.Remote) {
+            state.postValue(AssetListsRetrievalSucceeded(listOf<Asset>()))
+            return
+        }
+
         val assetList = assetRepository.getAssetList(filesystem.distributionType)
 
         if (assetList.isEmpty()) {
@@ -150,6 +156,11 @@ class SessionStartupFsm(
 
     private suspend fun handleGenerateDownloads(filesystem: Filesystem, assetList: List<Asset>) {
         state.postValue(GeneratingDownloadRequirements)
+
+        if (filesystem.location == ServiceLocation.Remote) {
+            state.postValue(NoDownloadsRequired)
+            return
+        }
 
         val filesystemNeedsExtraction =
                 !filesystemManager.hasFilesystemBeenSuccessfullyExtracted("${filesystem.id}") &&
@@ -218,6 +229,11 @@ class SessionStartupFsm(
     private suspend fun handleVerifyFilesystemAssets(filesystem: Filesystem) = withContext(Dispatchers.IO) {
         state.postValue(VerifyingFilesystemAssets)
 
+        if (filesystem.location == ServiceLocation.Remote) {
+            state.postValue(FilesystemAssetVerificationSucceeded)
+            return@withContext
+        }
+
         val filesystemDirectoryName = "${filesystem.id}"
         val requiredAssets = assetRepository.getDistributionAssetsForExistingFilesystem(filesystem)
         val allAssetsArePresentOnFilesystem = filesystemManager.areAllRequiredAssetsPresent(filesystemDirectoryName, requiredAssets)
@@ -247,8 +263,12 @@ class SessionStartupFsm(
         state.postValue(FilesystemAssetVerificationSucceeded)
     }
 
-    private fun handleVerifyAvailableStorage() {
+    private fun handleVerifyAvailableStorage(filesystem: Filesystem) {
         state.postValue(VerifyingSufficientStorage)
+        if (filesystem.location == ServiceLocation.Remote) {
+            state.postValue(StorageVerificationCompletedSuccessfully)
+            return
+        }
 
         when (storageCalculator.getAvailableStorageInMB()) {
             in 0..250 -> state.postValue(VerifyingSufficientStorageFailed)
@@ -263,6 +283,11 @@ class SessionStartupFsm(
 
     private suspend fun handleExtractFilesystem(filesystem: Filesystem) {
         val filesystemDirectoryName = "${filesystem.id}"
+
+        if (filesystem.location == ServiceLocation.Remote) {
+            state.postValue(ExtractionHasCompletedSuccessfully)
+            return
+        }
 
         if (filesystemManager.hasFilesystemBeenSuccessfullyExtracted(filesystemDirectoryName)) {
             filesystemManager.removeRootfsFilesFromFilesystem(filesystemDirectoryName)
@@ -345,7 +370,7 @@ data class AssetDownloadComplete(val downloadAssetId: Long) : SessionStartupEven
 object SyncDownloadState : SessionStartupEvent()
 object CopyDownloadsToLocalStorage : SessionStartupEvent()
 data class VerifyFilesystemAssets(val filesystem: Filesystem) : SessionStartupEvent()
-object VerifyAvailableStorage : SessionStartupEvent()
+data class VerifyAvailableStorage(val filesystem: Filesystem) : SessionStartupEvent()
 object VerifyAvailableStorageComplete : SessionStartupEvent()
 data class ExtractFilesystem(val filesystem: Filesystem) : SessionStartupEvent()
 object ResetSessionState : SessionStartupEvent()

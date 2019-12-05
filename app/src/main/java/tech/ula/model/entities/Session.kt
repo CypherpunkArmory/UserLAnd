@@ -121,7 +121,8 @@ data class Session(
     var vncPassword: String = "",
     var serviceType: ServiceType = ServiceType.Unselected,
     var serviceLocation: ServiceLocation = ServiceLocation.Unselected,
-    var port: Long = 2022, // TODO This can be removed. Any eventual port managing should be done at a high     er abstraction.
+    var ip: String = "",
+    var port: Long = 2022,
     var pid: Long = 0,
     var geometry: String = "",
     val isAppsSession: Boolean = false

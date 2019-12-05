@@ -2,7 +2,6 @@ package tech.ula.model.state
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.room.Database
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -42,9 +41,9 @@ class AppsStartupFsm(
         val currentState = state.value!!
         return when (event) {
             is AppSelected -> currentState is WaitingForAppSelection
-            is CheckAppSessionServiceLocation -> currentState is DatabaseEntriesFetched
             is SubmitAppSessionServiceLocation -> currentState is AppRequiresServiceLocation
-            is CheckAppsFilesystemCredentials -> currentState is AppHasServiceLocationSet
+            is FetchDatabaseEntries -> currentState is AppHasServiceLocationSet
+            is CheckAppsFilesystemCredentials -> currentState is DatabaseEntriesFetched
             is SubmitAppsFilesystemCredentials -> currentState is AppsFilesystemRequiresCredentials
             is CheckAppSessionServiceType -> currentState is AppsFilesystemHasCredentials
             is SubmitAppSessionServiceType -> currentState is AppRequiresServiceType
@@ -62,9 +61,9 @@ class AppsStartupFsm(
             return@launch
         }
         return@launch when (event) {
-            is AppSelected -> fetchDatabaseEntries(event.app)
-            is CheckAppSessionServiceLocation -> checkServiceLocation(event.app)
+            is AppSelected -> checkServiceLocation(event.app)
             is SubmitAppSessionServiceLocation -> setServiceLocation(event.app, event.serviceLocation)
+            is FetchDatabaseEntries -> fetchDatabaseEntries(event.app)
             is CheckAppsFilesystemCredentials -> checkAppsFilesystemCredentials(event.appsFilesystem)
             is SubmitAppsFilesystemCredentials -> {
                 setAppsFilesystemCredentials(event.filesystem, event.username, event.password, event.vncPassword)
@@ -74,17 +73,6 @@ class AppsStartupFsm(
             is CopyAppScriptToFilesystem -> copyAppScriptToFilesystem(event.app, event.filesystem)
             is SyncDatabaseEntries -> updateAppSession(event.app, event.session, event.filesystem)
             is ResetAppState -> state.postValue(WaitingForAppSelection)
-        }
-    }
-
-    private suspend fun fetchDatabaseEntries(app: App) {
-        state.postValue(FetchingDatabaseEntries)
-        try {
-            val appsFilesystem = findAppsFilesystem(app)
-            val appSession = findAppSession(app, appsFilesystem.id)
-            state.postValue(DatabaseEntriesFetched(appsFilesystem, appSession))
-        } catch (err: Exception) {
-            state.postValue(DatabaseEntriesFetchFailed)
         }
     }
 
@@ -100,6 +88,17 @@ class AppsStartupFsm(
         app.serviceLocation = serviceLocation
         appsDao.updateApp(app)
         state.postValue(AppHasServiceLocationSet)
+    }
+
+    private suspend fun fetchDatabaseEntries(app: App) {
+        state.postValue(FetchingDatabaseEntries)
+        try {
+            val appsFilesystem = findAppsFilesystem(app)
+            val appSession = findAppSession(app, appsFilesystem.id)
+            state.postValue(DatabaseEntriesFetched(appsFilesystem, appSession))
+        } catch (err: Exception) {
+            state.postValue(DatabaseEntriesFetchFailed)
+        }
     }
 
     private fun checkAppsFilesystemCredentials(appsFilesystem: Filesystem) {
@@ -190,11 +189,11 @@ class AppsStartupFsm(
 sealed class AppsStartupState
 data class IncorrectAppTransition(val event: AppsStartupEvent, val state: AppsStartupState) : AppsStartupState()
 object WaitingForAppSelection : AppsStartupState()
+object AppHasServiceLocationSet : AppsStartupState()
+object AppRequiresServiceLocation : AppsStartupState()
 object FetchingDatabaseEntries : AppsStartupState()
 data class DatabaseEntriesFetched(val appsFilesystem: Filesystem, val appSession: Session) : AppsStartupState()
 object DatabaseEntriesFetchFailed : AppsStartupState()
-object AppHasServiceLocationSet : AppsStartupState()
-object AppRequiresServiceLocation : AppsStartupState()
 object AppsFilesystemHasCredentials : AppsStartupState()
 data class AppsFilesystemRequiresCredentials(val appsFilesystem: Filesystem) : AppsStartupState()
 object AppHasServiceTypeSet : AppsStartupState()
@@ -207,8 +206,8 @@ data class AppDatabaseEntriesSynced(val app: App, val session: Session, val file
 
 sealed class AppsStartupEvent
 data class AppSelected(val app: App) : AppsStartupEvent()
-data class CheckAppSessionServiceLocation(val app: App) : AppsStartupEvent()
 data class SubmitAppSessionServiceLocation(val app: App, val serviceLocation: ServiceLocation) : AppsStartupEvent()
+data class FetchDatabaseEntries(val app: App) : AppsStartupEvent()
 data class CheckAppsFilesystemCredentials(val appsFilesystem: Filesystem) : AppsStartupEvent()
 data class SubmitAppsFilesystemCredentials(val filesystem: Filesystem, val username: String, val password: String, val vncPassword: String) : AppsStartupEvent()
 data class CheckAppSessionServiceType(val app: App) : AppsStartupEvent()

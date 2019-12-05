@@ -2,12 +2,14 @@ package tech.ula
 
 import android.app.Service
 import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.IBinder
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.coroutines.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.entities.App
+import tech.ula.model.entities.ServiceLocation
 import tech.ula.model.entities.ServiceType
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Session
@@ -119,8 +121,18 @@ class ServerService : Service(), CoroutineScope {
         updateSession(session)
     }
 
+    private fun setCloudCredentials(session: Session) {
+        if (session.serviceLocation == ServiceLocation.Remote) {
+            val accountPrefs = this.getSharedPreferences("account", Context.MODE_PRIVATE)
+            CloudService.accountEmail = accountPrefs.getString("account_email", "")!!
+            CloudService.accountPassword = accountPrefs.getString("account_password", "")!!
+        }
+    }
+
     private suspend fun startSession(session: Session) {
         startForeground(NotificationConstructor.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
+
+        setCloudCredentials(session)
         session.pid = localServerManager.startServer(session)
 
         while (!localServerManager.isServerRunning(session)) {
@@ -143,6 +155,7 @@ class ServerService : Service(), CoroutineScope {
     }
 
     private fun startClient(session: Session) {
+        setCloudCredentials(session)
         when (session.serviceType) {
             ServiceType.Ssh -> startSshClient(session)
             ServiceType.Vnc -> startVncClient(session, "com.iiordanov.freebVNC")
@@ -203,7 +216,7 @@ class ServerService : Service(), CoroutineScope {
     }
 
     private fun cleanUpFilesystem(filesystemId: Long) {
-        activeSessions.values.filter { it.filesystemId == filesystemId }
+     import android.system.Os   activeSessions.values.filter { it.filesystemId == filesystemId }
                 .forEach { killSession(it) }
     }
 
