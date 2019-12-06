@@ -64,10 +64,10 @@ class CloudService {
     private var publicKey =""
 
     val SUCCESS = 0
-    val LOGIN_FAILURE = 1
-    val BOX_FAILURE = 2
-    val LIST_FAILURE = 3
-    val DELETE_FAILURE = 4
+    val LOGIN_FAILURE = -1
+    val BOX_FAILURE = -2
+    val LIST_FAILURE = -3
+    val DELETE_FAILURE = -4
 
     fun createBox(session: Session): Int {
         //TODO: this symlink stuff should be somewhere else
@@ -81,6 +81,23 @@ class CloudService {
             return result
         createKeys()
         return box(session)
+    }
+
+    fun stopBox(session: Session): Int {
+        var result = login()
+        if (result != 0)
+            return result
+        return delete()
+    }
+
+    fun isBoxRunning(session: Session): Boolean {
+        var result = login()
+        if (result != 0)
+            return session.active
+        val boxId = find().toLong()
+        if (boxId < 0)
+            return session.active
+        return (boxId == session.pid)
     }
 
     private fun createKeys() {
@@ -140,8 +157,32 @@ class CloudService {
         }
         session.ip = createResponse.data.attributes.ipAddress
         session.port = createResponse.data.attributes.sshPort.toLong()
+        return createResponse.data.id
+    }
 
-        return SUCCESS
+    fun find(): Int {
+        if (accessToken == "") {
+            return LOGIN_FAILURE
+        }
+
+        val request = createListRequest()
+        val response = try {
+            client.newCall(request).execute()
+        } catch (err: Exception) {
+            return LIST_FAILURE
+        }
+        if (!response.isSuccessful) {
+            return LIST_FAILURE
+        }
+
+        val listAdapter = moshi.adapter(ListResponse::class.java)
+        val id = try {
+            //TODO: this should find a specific box and kill it, this will be needed when we support multiple
+            listAdapter.fromJson(response.body()!!.source())!!.data.first().id
+        } catch (err: NullPointerException) {
+            return LIST_FAILURE
+        }
+        return id
     }
 
     fun delete(): Int {
@@ -161,6 +202,7 @@ class CloudService {
 
         val listAdapter = moshi.adapter(ListResponse::class.java)
         val id = try {
+            //TODO: this should find a specific box and kill it, this will be needed when we support multiple
             listAdapter.fromJson(response.body()!!.source())!!.data.first().id
         } catch (err: NullPointerException) {
             return LIST_FAILURE

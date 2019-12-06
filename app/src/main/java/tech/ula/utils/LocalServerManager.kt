@@ -25,10 +25,11 @@ class LocalServerManager(
     fun startServer(session: Session): Long {
         return when (session.serviceLocation) {
             ServiceLocation.Remote -> {
-                when (cloudService.createBox(session)) {
-                    cloudService.SUCCESS -> 0
-                    else -> -1
-                }
+                val boxId = cloudService.createBox(session)
+                if (boxId >= 0)
+                    boxId.toLong()
+                else
+                    -1
             }
             ServiceLocation.Local -> when (session.serviceType) {
                 ServiceType.Ssh -> startSSHServer(session)
@@ -41,6 +42,10 @@ class LocalServerManager(
     }
 
     fun stopService(session: Session) {
+        if (session.serviceLocation == ServiceLocation.Remote) {
+            cloudService.stopBox(session)
+            return
+        }
         val command = "support/killProcTree.sh ${session.pid} ${session.serverPid()}"
         val result = busyboxExecutor.executeScript(command)
         if (result is FailedExecution) {
@@ -51,6 +56,9 @@ class LocalServerManager(
     }
 
     fun isServerRunning(session: Session): Boolean {
+        if (session.serviceLocation == ServiceLocation.Remote) {
+            return cloudService.isBoxRunning(session)
+        }
         val command = "support/isServerInProcTree.sh ${session.serverPid()}"
         // The server itself is run by a third-party, so we can consider this to always be true.
         // The third-party app is responsible for handling errors starting their server.

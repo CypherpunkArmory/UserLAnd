@@ -62,7 +62,7 @@ class ServerService : Service(), CoroutineScope {
             }
             "stopApp" -> {
                 val app: App = intent.getParcelableExtra("app")!!
-                stopApp(app)
+                this.launch { stopApp(app) }
             }
             "restartRunningSession" -> {
                 val session: Session = intent.getParcelableExtra("session")!!
@@ -70,15 +70,15 @@ class ServerService : Service(), CoroutineScope {
             }
             "kill" -> {
                 val session: Session = intent.getParcelableExtra("session")!!
-                killSession(session)
+                this.launch { killSession(session) }
             }
             "filesystemIsBeingDeleted" -> {
                 val filesystemId: Long = intent.getLongExtra("filesystemId", -1)
-                cleanUpFilesystem(filesystemId)
+                this.launch { cleanUpFilesystem(filesystemId) }
             }
             "stopAll" -> {
                 activeSessions.forEach { (_, session) ->
-                    killSession(session)
+                    this.launch { killSession(session) }
                 }
             }
         }
@@ -114,13 +114,6 @@ class ServerService : Service(), CoroutineScope {
         UlaDatabase.getInstance(this@ServerService).sessionDao().updateSession(session)
     }
 
-    private fun killSession(session: Session) {
-        localServerManager.stopService(session)
-        removeSession(session)
-        session.active = false
-        updateSession(session)
-    }
-
     private fun setCloudCredentials(session: Session) {
         if (session.serviceLocation == ServiceLocation.Remote) {
             val accountPrefs = this.getSharedPreferences("account", Context.MODE_PRIVATE)
@@ -128,6 +121,14 @@ class ServerService : Service(), CoroutineScope {
             CloudService.accountPassword = accountPrefs.getString("account_password", "")!!
             CloudService.filesPath = this.getFilesDir().getAbsolutePath()
         }
+    }
+
+    private suspend fun killSession(session: Session) {
+        setCloudCredentials(session)
+        localServerManager.stopService(session)
+        removeSession(session)
+        session.active = false
+        updateSession(session)
     }
 
     private suspend fun startSession(session: Session) {
@@ -146,7 +147,7 @@ class ServerService : Service(), CoroutineScope {
         activeSessions[session.pid] = session
     }
 
-    private fun stopApp(app: App) {
+    private suspend fun stopApp(app: App) {
         val appSessions = activeSessions.filter { (_, session) ->
             session.name == app.name
         }
@@ -223,7 +224,7 @@ class ServerService : Service(), CoroutineScope {
         }
     }
 
-    private fun cleanUpFilesystem(filesystemId: Long) {
+    private suspend fun cleanUpFilesystem(filesystemId: Long) {
         activeSessions.values.filter { it.filesystemId == filesystemId }
                 .forEach { killSession(it) }
     }
