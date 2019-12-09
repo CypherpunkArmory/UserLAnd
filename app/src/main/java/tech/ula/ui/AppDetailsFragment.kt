@@ -29,9 +29,10 @@ class AppDetailsFragment : Fragment() {
 
     private val viewModel by lazy {
         val appsDao = UlaDatabase.getInstance(activityContext).appsDao()
+        val sessionDao = UlaDatabase.getInstance(activityContext).sessionDao()
         val appDetails = AppDetails(activityContext.filesDir.path, activityContext.resources)
         val buildVersion = Build.VERSION.SDK_INT
-        val factory = AppDetailsViewmodelFactory(appsDao, appDetails, buildVersion)
+        val factory = AppDetailsViewmodelFactory(appsDao, sessionDao, appDetails, buildVersion)
         ViewModelProviders.of(this, factory)
                 .get(AppDetailsViewModel::class.java)
     }
@@ -59,6 +60,7 @@ class AppDetailsFragment : Fragment() {
         apps_title.text = viewState.appTitle
         apps_description.text = viewState.appDescription
         handleEnableRadioButtons(viewState)
+        handleShowStateHint(viewState)
 
         if (viewState.selectedServiceTypeButton != null) {
             apps_service_type_preferences.check(viewState.selectedServiceTypeButton)
@@ -83,6 +85,15 @@ class AppDetailsFragment : Fragment() {
 
             val xsdlSupportedText = view?.find<TextView>(R.id.text_xsdl_version_supported_description)
             xsdlSupportedText?.visibility = View.VISIBLE
+        }
+    }
+
+    private fun handleShowStateHint(viewState: AppDetailsViewState) {
+        if (viewState.describeStateHintEnabled) {
+            text_describe_state.visibility = View.VISIBLE
+            text_describe_state.setText(viewState.describeStateText!!)
+        } else {
+            text_describe_state.visibility = View.GONE
         }
     }
 

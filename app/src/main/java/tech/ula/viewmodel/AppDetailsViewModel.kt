@@ -27,6 +27,8 @@ data class AppDetailsViewState(
     val xsdlEnabled: Boolean,
     val localEnabled: Boolean,
     val remoteEnabled: Boolean,
+    val describeStateHintEnabled: Boolean,
+    @StringRes val describeStateText: Int?,
     @IdRes val selectedServiceTypeButton: Int?,
     @IdRes val selectedServiceLocationButton: Int?
 )
@@ -37,7 +39,7 @@ sealed class AppDetailsEvent {
     data class ServiceLocationChanged(@IdRes val selectedButton: Int, val app: App) : AppDetailsEvent()
 }
 
-class AppDetailsViewModel(private val appsDao: AppsDao, private val appDetails: AppDetails, private val buildVersion: Int) : ViewModel(), CoroutineScope {
+class AppDetailsViewModel(private val appsDao: AppsDao, private val sessionDao: SessionDao, private val appDetails: AppDetails, private val buildVersion: Int) : ViewModel(), CoroutineScope {
     private val job = Job()
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
@@ -53,19 +55,31 @@ class AppDetailsViewModel(private val appsDao: AppsDao, private val appDetails: 
     }
 
     private suspend fun constructView(app: App) {
-        viewState.postValue(buildViewState(app))
+        val appSession = getAppSession(app)
+        viewState.postValue(buildViewState(app, appSession))
     }
 
-    private fun buildViewState(app: App): AppDetailsViewState {
+    private suspend fun getAppSession(app: App): Session? = withContext(Dispatchers.IO) {
+        val listOfPotentialSessions = sessionDao.findAppsSession(app.name)
+        return@withContext if (listOfPotentialSessions.isEmpty()) null
+        else listOfPotentialSessions.first()
+    }
+
+    private fun buildViewState(app: App, appSession: Session?): AppDetailsViewState {
+        val enableRadioButtons = radioButtonsShouldBeEnabled(appSession)
+
         val appIconUri = appDetails.findIconUri(app.name)
         val appTitle = app.name
         val appDescription = appDetails.findAppDescription(app.name)
 
-        val sshEnabled = app.supportsCli
-        val vncEnabled = app.supportsGui
-        val xsdlEnabled = app.supportsGui && buildVersion <= Build.VERSION_CODES.O_MR1
-        val localEnabled = app.supportsLocal
-        val remoteEnabled = app.supportsRemote
+        val sshEnabled = app.supportsCli && enableRadioButtons
+        val vncEnabled = app.supportsGui && enableRadioButtons
+        val xsdlEnabled = app.supportsGui && buildVersion <= Build.VERSION_CODES.O_MR1 && enableRadioButtons
+        val localEnabled = app.supportsLocal && enableRadioButtons
+        val remoteEnabled = app.supportsRemote && enableRadioButtons
+
+        val describeStateHintEnabled = getStateHintEnabled(appSession)
+        val describeStateText = getStateDescription(appSession)
 
         val selectedServiceTypeButton = when (app.serviceType) {
             ServiceType.Ssh -> R.id.apps_ssh_preference
@@ -89,6 +103,8 @@ class AppDetailsViewModel(private val appsDao: AppsDao, private val appDetails: 
                 xsdlEnabled,
                 localEnabled,
                 remoteEnabled,
+                describeStateHintEnabled,
+                describeStateText,
                 selectedServiceTypeButton,
                 selectedServiceLocationButton
         )
@@ -128,11 +144,33 @@ class AppDetailsViewModel(private val appsDao: AppsDao, private val appDetails: 
             }
         }
     }
+
+    private fun getStateHintEnabled(appSession: Session?): Boolean {
+        return !radioButtonsShouldBeEnabled(appSession)
+    }
+
+    @StringRes
+    private fun getStateDescription(appSession: Session?): Int? {
+        return when {
+            appSession == null -> null
+            appSession.active -> {
+                R.string.info_stop_app
+            }
+            else -> {
+                null
+            }
+        }
+    }
+
+    private fun radioButtonsShouldBeEnabled(appSession: Session?): Boolean {
+        val isNotActive = appSession?.active == false
+        return appSession == null || isNotActive
+    }
 }
 
-class AppDetailsViewmodelFactory(private val appsDao: AppsDao, private val appDetails: AppDetails, private val buildVersion: Int) : ViewModelProvider.NewInstanceFactory() {
+class AppDetailsViewmodelFactory(private val appsDao: AppsDao, private val sessionDao: SessionDao, private val appDetails: AppDetails, private val buildVersion: Int) : ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         @Suppress("UNCHECKED_CAST")
-        return AppDetailsViewModel(appsDao, appDetails, buildVersion) as T
+        return AppDetailsViewModel(appsDao, sessionDao, appDetails, buildVersion) as T
     }
 }

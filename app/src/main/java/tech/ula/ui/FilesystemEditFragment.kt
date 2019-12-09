@@ -23,6 +23,7 @@ import androidx.navigation.fragment.navArgs
 import kotlinx.android.synthetic.main.frag_filesystem_edit.*
 import tech.ula.MainActivity
 import tech.ula.R
+import tech.ula.model.entities.ServiceLocation
 import tech.ula.model.entities.toServiceLocation
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.utils.PermissionHandler
@@ -64,6 +65,10 @@ class FilesystemEditFragment : Fragment() {
         AppsPreferences(activityContext).getDistributionsList()
     }
 
+    private val cloudDistributionList by lazy {
+        AppsPreferences(activityContext).getCloudDistributionsList()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
@@ -88,21 +93,7 @@ class FilesystemEditFragment : Fragment() {
         activityContext = activity!! as MainActivity
         filesystemEditViewModel.getImportStatusLiveData().observe(viewLifecycleOwner, filesystemImportStatusObserver)
 
-        if (distributionList.isNotEmpty()) {
-            spinner_filesystem_type.adapter = ArrayAdapter(activityContext,
-                    android.R.layout.simple_spinner_dropdown_item,
-                    distributionList.map { it.capitalize() })
-        }
-        if (editExisting) {
-            for (i in 0 until spinner_filesystem_type.adapter.count) {
-                val item = spinner_filesystem_type.adapter.getItem(i).toString().toLowerCase()
-                if (item == filesystem.distributionType) spinner_filesystem_type.setSelection(i)
-            }
-            for (i in 0 until spinner_filesystem_location.adapter.count) {
-                val item = spinner_filesystem_location.adapter.getItem(i).toString().toLowerCase()
-                if (item == filesystem.location.toString()) spinner_filesystem_location.setSelection(i)
-            }
-        }
+        setupFilesystemSpinner()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -134,6 +125,55 @@ class FilesystemEditFragment : Fragment() {
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 filesystem.location = parent?.getItemAtPosition(position).toString().toLowerCase().toServiceLocation()
+                setupFilesystemSpinner()
+                when (filesystem.location) {
+                    ServiceLocation.Remote -> {
+                        input_filesystem_username.setText("userland")
+                        input_filesystem_password.setText("userland")
+                        input_filesystem_vncpassword.setText("notSprtd")
+                        input_filesystem_username.isEnabled = false
+                        input_filesystem_password.isEnabled = false
+                        input_filesystem_vncpassword.isEnabled = false
+                        import_button.isEnabled = false
+                    }
+                    else -> {
+                        if (!editExisting) {
+                            input_filesystem_username.isEnabled = true
+                            input_filesystem_password.isEnabled = true
+                            input_filesystem_vncpassword.isEnabled = true
+                            import_button.isEnabled = true
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun setupFilesystemSpinner() {
+        when (filesystem.location) {
+            ServiceLocation.Remote -> {
+                if (cloudDistributionList.isNotEmpty()) {
+                    spinner_filesystem_type.adapter = ArrayAdapter(activityContext,
+                            android.R.layout.simple_spinner_dropdown_item,
+                            cloudDistributionList.map { it.capitalize() })
+                }
+            }
+            else -> {
+                if (distributionList.isNotEmpty()) {
+                    spinner_filesystem_type.adapter = ArrayAdapter(activityContext,
+                            android.R.layout.simple_spinner_dropdown_item,
+                            distributionList.map { it.capitalize() })
+                }
+            }
+        }
+        if (editExisting || filesystem.distributionType.isNotEmpty()) {
+            for (i in 0 until spinner_filesystem_type.adapter.count) {
+                val item = spinner_filesystem_type.adapter.getItem(i).toString().toLowerCase()
+                if (item == filesystem.distributionType) spinner_filesystem_type.setSelection(i)
+            }
+            for (i in 0 until spinner_filesystem_location.adapter.count) {
+                val item = spinner_filesystem_location.adapter.getItem(i).toString().toLowerCase()
+                if (item == filesystem.location.toString()) spinner_filesystem_location.setSelection(i)
             }
         }
     }

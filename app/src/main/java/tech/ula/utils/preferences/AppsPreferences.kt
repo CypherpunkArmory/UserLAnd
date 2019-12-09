@@ -16,4 +16,15 @@ class AppsPreferences(context: Context) {
     fun getDistributionsList(): Set<String> {
         return prefs.getStringSet("distributionsList", setOf()) ?: setOf()
     }
+
+    fun setCloudDistributionsList(distributionList: Set<String>) {
+        with(prefs.edit()) {
+            putStringSet("cloudDistributionsList", distributionList)
+            apply()
+        }
+    }
+
+    fun getCloudDistributionsList(): Set<String> {
+        return prefs.getStringSet("cloudDistributionsList", setOf()) ?: setOf()
+    }
 }

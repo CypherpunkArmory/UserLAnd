@@ -1,5 +1,6 @@
 package tech.ula.model.repositories
 
+import android.database.sqlite.SQLiteConstraintException
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.* // ktlint-disable no-wildcard-imports
@@ -34,18 +35,31 @@ class AppsRepository(
         return refreshStatus
     }
 
+    fun upsertApp(application: App) {
+        try {
+            appsDao.insertApp(application)
+        } catch (exception: SQLiteConstraintException) {
+            val oldApplication = appsDao.getAppByName(application.name)
+            application.serviceType = oldApplication.serviceType
+            application.serviceLocation = oldApplication.serviceLocation
+            appsDao.updateApp(application)
+        }
+    }
+
     suspend fun refreshData(scope: CoroutineScope) {
         val distributionsList = mutableSetOf<String>()
+        val cloudDistributionsList = mutableSetOf<String>()
         refreshStatus.postValue(RefreshStatus.ACTIVE)
         val jobs = mutableListOf<Job>()
         try {
             remoteAppsSource.fetchAppsList().forEach { app ->
                 jobs.add(scope.launch {
-                    if (app.category.toLowerCase() == "distribution") distributionsList.add(app.name)
+                    if (app.category.toLowerCase() == "distribution" && app.supportsLocal) distributionsList.add(app.name)
+                    if (app.category.toLowerCase() == "distribution" && app.supportsRemote) cloudDistributionsList.add(app.name)
                     remoteAppsSource.fetchAppIcon(app)
                     remoteAppsSource.fetchAppDescription(app)
                     remoteAppsSource.fetchAppScript(app)
-                    appsDao.insertApp(app) // Insert the db element last to force observer refresh
+                    upsertApp(app)
             }) }
         } catch (err: Exception) {
             refreshStatus.postValue(RefreshStatus.FAILED)
@@ -58,6 +72,7 @@ class AppsRepository(
         jobs.joinAll()
         refreshStatus.postValue(RefreshStatus.FINISHED)
         appsPreferences.setDistributionsList(distributionsList)
+        appsPreferences.setCloudDistributionsList(cloudDistributionsList)
     }
 }
 

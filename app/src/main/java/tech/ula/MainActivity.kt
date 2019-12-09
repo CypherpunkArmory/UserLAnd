@@ -649,7 +649,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             if (viewModel.lastSelectedApp.serviceLocation == ServiceLocation.Remote) {
                 customDialog.dismiss()
                 showToast(R.string.cloud_password)
-                viewModel.submitFilesystemCredentials("userland", "userland", "vncIsNotSupported")
+                viewModel.submitFilesystemCredentials("userland", "userland", "notSprtd")
             }
 
             customDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {

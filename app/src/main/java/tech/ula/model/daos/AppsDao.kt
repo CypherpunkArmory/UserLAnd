@@ -7,6 +7,7 @@ import androidx.room.Update
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import tech.ula.model.entities.App
+import android.database.sqlite.SQLiteConstraintException
 
 @Dao
 interface AppsDao {
