@@ -16,6 +16,7 @@ import tech.ula.MainActivity
 import tech.ula.R
 import tech.ula.ServerService
 import tech.ula.model.entities.Filesystem
+import tech.ula.model.entities.ServiceLocation
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
 import tech.ula.model.entities.Session
@@ -105,6 +106,12 @@ class FilesystemListFragment : Fragment() {
     override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo?) {
         super.onCreateContextMenu(menu, v, menuInfo)
         activityContext.menuInflater.inflate(R.menu.context_menu_filesystems, menu)
+
+        val newMenuInfo = menuInfo as AdapterView.AdapterContextMenuInfo
+        val position = newMenuInfo.position
+        val filesystem = filesystemList[position]
+        if (filesystem.location == ServiceLocation.Remote)
+            menu.findItem(R.id.menu_item_filesystem_export).isVisible = false
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
