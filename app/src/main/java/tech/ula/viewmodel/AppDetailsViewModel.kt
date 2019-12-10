@@ -73,8 +73,8 @@ class AppDetailsViewModel(private val appsDao: AppsDao, private val sessionDao: 
         val appDescription = appDetails.findAppDescription(app.name)
 
         val sshEnabled = app.supportsCli && enableRadioButtons
-        val vncEnabled = app.supportsGui && enableRadioButtons
-        val xsdlEnabled = app.supportsGui && buildVersion <= Build.VERSION_CODES.O_MR1 && enableRadioButtons
+        val vncEnabled = app.supportsGui && enableRadioButtons && (app.serviceLocation != ServiceLocation.Remote)
+        val xsdlEnabled = app.supportsGui && buildVersion <= Build.VERSION_CODES.O_MR1 && enableRadioButtons && (app.serviceLocation != ServiceLocation.Remote)
         val localEnabled = app.supportsLocal && enableRadioButtons
         val remoteEnabled = app.supportsRemote && enableRadioButtons
 
@@ -128,7 +128,7 @@ class AppDetailsViewModel(private val appsDao: AppsDao, private val sessionDao: 
         }
     }
 
-    private fun handleServiceLocationChanged(event: AppDetailsEvent.ServiceLocationChanged) {
+    private suspend fun handleServiceLocationChanged(event: AppDetailsEvent.ServiceLocationChanged) {
         this.launch {
             val selectedServiceLocation = when (event.selectedButton) {
                 R.id.apps_local_preference -> ServiceLocation.Local
@@ -137,11 +137,16 @@ class AppDetailsViewModel(private val appsDao: AppsDao, private val sessionDao: 
             }
 
             event.app.serviceLocation = selectedServiceLocation
+            if (event.app.serviceLocation == ServiceLocation.Remote)
+                event.app.serviceType = ServiceType.Ssh
+
             this.launch {
                 withContext(Dispatchers.IO) {
                     appsDao.updateApp(event.app)
                 }
             }
+
+            constructView(event.app)
         }
     }
 

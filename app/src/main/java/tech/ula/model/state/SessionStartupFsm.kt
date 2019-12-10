@@ -133,6 +133,7 @@ class SessionStartupFsm(
         }
 
         val filesystem = findFilesystemForSession(session)
+        session.serviceLocation = filesystem.location
         state.postValue(SessionIsReadyForPreparation(session, filesystem))
     }
 
