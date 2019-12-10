@@ -16,10 +16,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import kotlinx.android.synthetic.main.frag_session_edit.* // ktlint-disable no-wildcard-imports
 import tech.ula.R
-import tech.ula.model.entities.Filesystem
-import tech.ula.model.entities.ServiceType
-import tech.ula.model.entities.Session
-import tech.ula.model.entities.toServiceType
+import tech.ula.model.entities.*
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.viewmodel.SessionEditViewModel
 import tech.ula.viewmodel.SessionEditViewmodelFactory
@@ -139,6 +136,16 @@ class SessionEditFragment : Fragment() {
                         is FilesystemDropdownItem.FilesystemItem -> {
                             val filesystem = item.filesystem
                             updateFilesystemDetailsForSession(filesystem)
+                            if (filesystem.location == ServiceLocation.Remote) {
+                                session.serviceType = ServiceType.Ssh
+                                val serviceTypeAdapter = spinner_session_service_type.adapter as ArrayAdapter<String>
+                                var serviceTypePosition = serviceTypeAdapter.getPosition(session.serviceType.toString())
+                                serviceTypePosition = if (serviceTypePosition < 0) 0 else serviceTypePosition
+                                spinner_session_service_type.setSelection(serviceTypePosition)
+                                spinner_session_service_type.isEnabled = false
+                            } else {
+                                spinner_session_service_type.isEnabled = true
+                            }
                             text_input_username.setText(filesystem.defaultUsername)
                         }
                     }
