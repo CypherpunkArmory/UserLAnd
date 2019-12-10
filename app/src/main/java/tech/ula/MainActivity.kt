@@ -290,6 +290,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private fun prepareSessionForStart(session: Session) {
         val step = getString(R.string.progress_starting)
         val details = ""
+        showToast(getString(R.string.cloud_password) + "\n" + getString(R.string.cloud_only_supports_ssh))
         updateProgressBar(step, details)
 
         // TODO: Alert user when defaulting to VNC
@@ -373,6 +374,10 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     private fun showToast(resId: Int) {
         val content = getString(resId)
+        showToast(content)
+    }
+
+    private fun showToast(content: String) {
         Toast.makeText(this, content, Toast.LENGTH_LONG).show()
     }
 
@@ -648,7 +653,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         customDialog.setOnShowListener {
             if (viewModel.lastSelectedApp.serviceLocation == ServiceLocation.Remote) {
                 customDialog.dismiss()
-                showToast(R.string.cloud_password)
                 viewModel.submitFilesystemCredentials("userland", "userland", "notSprtd")
             }
 
@@ -692,7 +696,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
             if (viewModel.lastSelectedApp.serviceLocation == ServiceLocation.Remote) {
                 customDialog.dismiss()
-                showToast(R.string.cloud_only_supports_ssh)
                 viewModel.submitAppServiceType(ServiceType.Ssh)
             }
 
