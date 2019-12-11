@@ -1,25 +1,34 @@
 package tech.ula.ui
 
 import android.app.Activity
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import android.graphics.Color
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.* // ktlint-disable no-wildcard-imports
-import android.widget.* // ktlint-disable no-wildcard-imports
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.TextView
+import android.widget.Toast
 import androidx.core.os.bundleOf
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import kotlinx.android.synthetic.main.frag_session_edit.* // ktlint-disable no-wildcard-imports
+import kotlinx.android.synthetic.main.frag_session_edit.*
 import tech.ula.R
 import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.ServiceLocation
 import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.Session
+import tech.ula.model.entities.toServiceType
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.viewmodel.SessionEditViewModel
 import tech.ula.viewmodel.SessionEditViewmodelFactory

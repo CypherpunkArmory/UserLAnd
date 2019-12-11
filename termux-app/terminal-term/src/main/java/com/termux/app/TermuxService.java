@@ -2,7 +2,6 @@ package com.termux.app;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -15,7 +14,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.system.Os;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 
@@ -277,10 +275,10 @@ public final class TermuxService extends Service implements SessionChangedCallba
         String sshKeyFilePath = filesPath + "/sshkey.priv";
         String debugFile = filesPath + "/debug.txt";
 
-        String proxyCommand = supportPath + "/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i " +
+        String proxyCommand = supportPath + "/ssh -o ConnectionAttempts=1000 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i " +
                 sshKeyFilePath + " -W %h:%p punch@api.userland.tech";
 
-        String sshCommand = supportPath + "/ssh -o ConnectionAttempts=1000 -o ProxyCommand=\"" + proxyCommand +
+        String sshCommand = supportPath + "/ssh -o ConnectionAttempts=10 -o ProxyCommand=\"" + proxyCommand +
                 "\" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i " +
                 sshKeyFilePath +  " -p " + port + " -t -A userland@" + hostname +
                 " '/usr/bin/clear; /bin/bash -i' ";
