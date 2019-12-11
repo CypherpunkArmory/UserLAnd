@@ -7,7 +7,6 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import tech.ula.model.entities.Filesystem
-import tech.ula.model.entities.ServiceLocation
 
 @Dao
 interface FilesystemDao {

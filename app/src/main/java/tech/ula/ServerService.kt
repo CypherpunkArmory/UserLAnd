@@ -171,7 +171,7 @@ class ServerService : Service(), CoroutineScope {
         connectBotIntent.action = Intent.ACTION_VIEW
         connectBotIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
         if (session.serviceLocation == ServiceLocation.Remote) {
-            connectBotIntent.setClassName("tech.ula","com.termux.app.TermuxActivity")
+            connectBotIntent.setClassName("tech.ula", "com.termux.app.TermuxActivity")
             connectBotIntent.data = Uri.parse("ssh://${session.username}@${session.ip}:${session.port}/#userland")
             connectBotIntent.putExtra("jumpUser", "punch")
             connectBotIntent.putExtra("jumpPort", "22")

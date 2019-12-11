@@ -1,6 +1,8 @@
 package tech.ula.utils
 
 import android.system.Os
+import com.jcraft.jsch.JSch
+import com.jcraft.jsch.KeyPair
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
@@ -10,36 +12,31 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import tech.ula.model.entities.Session
 import java.io.File
-import java.lang.Exception
-import com.jcraft.jsch.*
-import com.jcraft.jsch.JSch
-
-
 
 @JsonClass(generateAdapter = true)
 internal data class LoginResponse(
-        @Json(name = "access_token") val accessToken: String,
-        @Json(name = "expires-in") val expiresIn: Int,
-        @Json(name = "refresh_token") val refreshToken: String,
-        @Json(name = "token_type")val tokenType: String
+    @Json(name = "access_token") val accessToken: String,
+    @Json(name = "expires-in") val expiresIn: Int,
+    @Json(name = "refresh_token") val refreshToken: String,
+    @Json(name = "token_type") val tokenType: String
 )
 
 @JsonClass(generateAdapter = true)
 internal data class CreateResponse(
-        val data: CreateData
+    val data: CreateData
 )
 
 @JsonClass(generateAdapter = true)
 internal data class CreateData(
-        val type: String,
-        val attributes: CreateAttributes,
-        val id: Int
+    val type: String,
+    val attributes: CreateAttributes,
+    val id: Int
 )
 
 @JsonClass(generateAdapter = true)
 internal data class CreateAttributes(
-        val sshPort: Int,
-        val ipAddress: String
+    val sshPort: Int,
+    val ipAddress: String
 )
 
 @JsonClass(generateAdapter = true)
@@ -61,7 +58,7 @@ class CloudService {
     private var accessToken = ""
     private val client = OkHttpClient()
     private val moshi = Moshi.Builder().build()
-    private var publicKey =""
+    private var publicKey = ""
 
     val SUCCESS = 0
     val LOGIN_FAILURE = -1
@@ -70,7 +67,7 @@ class CloudService {
     val DELETE_FAILURE = -4
 
     fun createBox(session: Session): Int {
-        //TODO: this symlink stuff should be somewhere else
+        // TODO: this symlink stuff should be somewhere else
         val busyboxFile = File(filesPath, "/support/busybox")
         val shFile = File(filesPath, "/support/sh")
         if (shFile.exists()) shFile.delete()
@@ -102,7 +99,7 @@ class CloudService {
 
     private fun createKeys() {
         val jsch = JSch()
-        val kpair=KeyPair.genKeyPair(jsch, KeyPair.RSA, 1024)
+        val kpair = KeyPair.genKeyPair(jsch, KeyPair.RSA, 1024)
         kpair.writePrivateKey(filesPath + "/sshkey.priv")
         kpair.writePublicKey(filesPath + "/sshkey.pub", "bogus@bogus.com")
         publicKey = File(filesPath + "/sshkey.pub").readText(Charsets.UTF_8).trim()
@@ -177,7 +174,7 @@ class CloudService {
 
         val listAdapter = moshi.adapter(ListResponse::class.java)
         val id = try {
-            //TODO: this should find a specific box and kill it, this will be needed when we support multiple
+            // TODO: this should find a specific box and kill it, this will be needed when we support multiple
             listAdapter.fromJson(response.body()!!.source())!!.data.first().id
         } catch (err: NullPointerException) {
             return LIST_FAILURE
@@ -202,7 +199,7 @@ class CloudService {
 
         val listAdapter = moshi.adapter(ListResponse::class.java)
         val id = try {
-            //TODO: this should find a specific box and kill it, this will be needed when we support multiple
+            // TODO: this should find a specific box and kill it, this will be needed when we support multiple
             listAdapter.fromJson(response.body()!!.source())!!.data.first().id
         } catch (err: NullPointerException) {
             return LIST_FAILURE
@@ -231,9 +228,9 @@ class CloudService {
 
         val body = RequestBody.create(jsonType, json)
         return Request.Builder()
-                .url("$baseUrl/login")
-                .post(body)
-                .build()
+            .url("$baseUrl/login")
+            .post(body)
+            .build()
     }
 
     private fun createBoxCreateRequest(session: Session): Request? {
@@ -254,26 +251,25 @@ class CloudService {
 
         val body = RequestBody.create(jsonType, json)
         return Request.Builder()
-                .url("$baseUrl/boxes")
-                .post(body)
-                .addHeader("Authorization","Bearer $accessToken")
-                .build()
+            .url("$baseUrl/boxes")
+            .post(body)
+            .addHeader("Authorization", "Bearer $accessToken")
+            .build()
     }
 
     private fun createListRequest(): Request {
         return Request.Builder()
-                .url("$baseUrl/boxes")
-                .addHeader("Authorization","Bearer $accessToken")
-                .get()
-                .build()
+            .url("$baseUrl/boxes")
+            .addHeader("Authorization", "Bearer $accessToken")
+            .get()
+            .build()
     }
 
     private fun createDeleteRequest(id: Int): Request {
         return Request.Builder()
-                .url("$baseUrl/boxes/$id")
-                .addHeader("Authorization","Bearer $accessToken")
-                .delete()
-                .build()
+            .url("$baseUrl/boxes/$id")
+            .addHeader("Authorization", "Bearer $accessToken")
+            .delete()
+            .build()
     }
-
 }

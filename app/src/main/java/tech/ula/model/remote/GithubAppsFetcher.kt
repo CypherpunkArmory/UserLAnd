@@ -39,7 +39,7 @@ class GithubAppsFetcher(
                         isPaidApp,
                         version
                 ) = line.toLowerCase().split(", ")
-                //TODO - make this and supportsLocal part of the app data
+                // TODO - make this and supportsLocal part of the app data
                 val supportsRemote = when (name) {
                     "debian" -> true
                     "ubuntu" -> true

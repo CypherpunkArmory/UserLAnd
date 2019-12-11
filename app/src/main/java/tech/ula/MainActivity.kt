@@ -623,7 +623,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                     showToast(R.string.cloud_needs_account_info)
                     navController.navigate(R.id.account_fragment)
                 }
-
             }
 
             if (!viewModel.lastSelectedApp.supportsRemote) {

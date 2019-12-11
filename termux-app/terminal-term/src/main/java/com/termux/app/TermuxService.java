@@ -280,7 +280,7 @@ public final class TermuxService extends Service implements SessionChangedCallba
         String proxyCommand = supportPath + "/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i " +
                 sshKeyFilePath + " -W %h:%p punch@api.userland.tech";
 
-        String sshCommand = supportPath + "/ssh -o ProxyCommand=\"" + proxyCommand +
+        String sshCommand = supportPath + "/ssh -o ConnectionAttempts=1000 -o ProxyCommand=\"" + proxyCommand +
                 "\" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i " +
                 sshKeyFilePath +  " -p " + port + " -t -A userland@" + hostname +
                 " '/usr/bin/clear; /bin/bash -i' ";

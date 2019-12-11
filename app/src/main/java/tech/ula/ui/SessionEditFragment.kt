@@ -16,7 +16,10 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import kotlinx.android.synthetic.main.frag_session_edit.* // ktlint-disable no-wildcard-imports
 import tech.ula.R
-import tech.ula.model.entities.*
+import tech.ula.model.entities.Filesystem
+import tech.ula.model.entities.ServiceLocation
+import tech.ula.model.entities.ServiceType
+import tech.ula.model.entities.Session
 import tech.ula.model.repositories.UlaDatabase
 import tech.ula.viewmodel.SessionEditViewModel
 import tech.ula.viewmodel.SessionEditViewmodelFactory
