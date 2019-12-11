@@ -176,6 +176,7 @@ class AppsStartupFsm(
         state.postValue(SyncingDatabaseEntries)
         appSession.filesystemId = appsFilesystem.id
         appSession.filesystemName = appsFilesystem.name
+        appSession.filesystemType = appsFilesystem.distributionType
         appSession.serviceType = app.serviceType
         appSession.serviceLocation = app.serviceLocation
         appSession.username = appsFilesystem.defaultUsername

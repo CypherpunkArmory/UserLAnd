@@ -13,6 +13,7 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.R
+import tech.ula.model.daos.AppsDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
 import tech.ula.model.entities.ServiceType
@@ -25,6 +26,7 @@ class AppDetailsViewModelTest {
     @get:Rule val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     // Constructor parameters
+    @Mock lateinit var mockAppsDao: AppsDao
     @Mock lateinit var mockSessionDao: SessionDao
     @Mock lateinit var mockAppDetails: AppDetails
 
@@ -61,7 +63,7 @@ class AppDetailsViewModelTest {
         whenever(mockSessionDao.findAppsSession(inactiveName)).thenReturn(listOf(session))
 
         val buildVersion = Build.VERSION_CODES.M
-        viewModel = AppDetailsViewModel(mockSessionDao, mockAppDetails, buildVersion)
+        viewModel = AppDetailsViewModel(mockAppsDao, mockSessionDao, mockAppDetails, buildVersion)
         viewModel.viewState.observeForever(mockViewStateObserver)
 
         runBlocking {
@@ -75,9 +77,12 @@ class AppDetailsViewModelTest {
                 sshEnabled = true,
                 vncEnabled = true,
                 xsdlEnabled = true,
+                localEnabled = true,
+                remoteEnabled = false,
                 describeStateHintEnabled = false,
                 describeStateText = null,
-                selectedServiceTypeButton = R.id.apps_ssh_preference
+                selectedServiceTypeButton = R.id.apps_ssh_preference,
+                selectedServiceLocationButton = R.id.apps_local_preference
         )
         verify(mockViewStateObserver).onChanged(expectedResult)
     }
@@ -90,7 +95,7 @@ class AppDetailsViewModelTest {
         whenever(mockSessionDao.findAppsSession(activeName)).thenReturn(listOf(session))
 
         val buildVersion = Build.VERSION_CODES.M
-        viewModel = AppDetailsViewModel(mockSessionDao, mockAppDetails, buildVersion)
+        viewModel = AppDetailsViewModel(mockAppsDao, mockSessionDao, mockAppDetails, buildVersion)
         viewModel.viewState.observeForever(mockViewStateObserver)
 
         runBlocking {
@@ -104,9 +109,12 @@ class AppDetailsViewModelTest {
                 sshEnabled = false,
                 vncEnabled = false,
                 xsdlEnabled = false,
+                localEnabled = true,
+                remoteEnabled = false,
                 describeStateHintEnabled = true,
                 describeStateText = R.string.info_stop_app,
-                selectedServiceTypeButton = R.id.apps_ssh_preference
+                selectedServiceTypeButton = R.id.apps_ssh_preference,
+                selectedServiceLocationButton = R.id.apps_local_preference
         )
         verify(mockViewStateObserver).onChanged(expectedResult)
     }
@@ -119,7 +127,7 @@ class AppDetailsViewModelTest {
         whenever(mockSessionDao.findAppsSession(inactiveName)).thenReturn(listOf(session))
 
         val buildVersion = Build.VERSION_CODES.P
-        viewModel = AppDetailsViewModel(mockSessionDao, mockAppDetails, buildVersion)
+        viewModel = AppDetailsViewModel(mockAppsDao, mockSessionDao, mockAppDetails, buildVersion)
         viewModel.viewState.observeForever(mockViewStateObserver)
 
         runBlocking {
@@ -133,9 +141,12 @@ class AppDetailsViewModelTest {
                 sshEnabled = true,
                 vncEnabled = true,
                 xsdlEnabled = false,
+                localEnabled = true,
+                remoteEnabled = false,
                 describeStateHintEnabled = false,
                 describeStateText = null,
-                selectedServiceTypeButton = R.id.apps_ssh_preference
+                selectedServiceTypeButton = R.id.apps_ssh_preference,
+                selectedServiceLocationButton = R.id.apps_local_preference
         )
         verify(mockViewStateObserver).onChanged(expectedResult)
     }
@@ -148,7 +159,7 @@ class AppDetailsViewModelTest {
         whenever(mockSessionDao.findAppsSession(inactiveName)).thenReturn(listOf(session))
 
         val buildVersion = Build.VERSION_CODES.M
-        viewModel = AppDetailsViewModel(mockSessionDao, mockAppDetails, buildVersion)
+        viewModel = AppDetailsViewModel(mockAppsDao, mockSessionDao, mockAppDetails, buildVersion)
         viewModel.viewState.observeForever(mockViewStateObserver)
 
         runBlocking {
@@ -162,9 +173,12 @@ class AppDetailsViewModelTest {
                 sshEnabled = false,
                 vncEnabled = false,
                 xsdlEnabled = false,
+                localEnabled = true,
+                remoteEnabled = false,
                 describeStateHintEnabled = true,
                 describeStateText = R.string.info_finish_app_setup,
-                selectedServiceTypeButton = null
+                selectedServiceTypeButton = null,
+                selectedServiceLocationButton = R.id.apps_local_preference
         )
         verify(mockViewStateObserver).onChanged(expectedResult)
     }
@@ -176,7 +190,7 @@ class AppDetailsViewModelTest {
         whenever(mockSessionDao.findAppsSession(inactiveName)).thenReturn(listOf())
 
         val buildVersion = Build.VERSION_CODES.M
-        viewModel = AppDetailsViewModel(mockSessionDao, mockAppDetails, buildVersion)
+        viewModel = AppDetailsViewModel(mockAppsDao, mockSessionDao, mockAppDetails, buildVersion)
         viewModel.viewState.observeForever(mockViewStateObserver)
 
         runBlocking {
@@ -190,9 +204,12 @@ class AppDetailsViewModelTest {
                 sshEnabled = false,
                 vncEnabled = false,
                 xsdlEnabled = false,
+                localEnabled = true,
+                remoteEnabled = false,
                 describeStateHintEnabled = true,
                 describeStateText = R.string.info_finish_app_setup,
-                selectedServiceTypeButton = null
+                selectedServiceTypeButton = null,
+                selectedServiceLocationButton = R.id.apps_local_preference
         )
         verify(mockViewStateObserver).onChanged(expectedResult)
     }

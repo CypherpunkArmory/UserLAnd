@@ -220,7 +220,7 @@ class MainActivityViewModelTest {
         mainActivityViewModel.submitAppServiceType(ServiceType.Ssh)
 
         runBlocking {
-            verify(mockAppsStartupFsm).submitEvent(SubmitAppSessionServiceType(selectedSession, ServiceType.Ssh), mainActivityViewModel)
+            verify(mockAppsStartupFsm).submitEvent(SubmitAppSessionServiceType(selectedApp, ServiceType.Ssh), mainActivityViewModel)
         }
     }
 
@@ -351,7 +351,7 @@ class MainActivityViewModelTest {
     fun `Posts IllegalState on incorrect app transitions`() {
         makeAppSelections()
 
-        val event = SubmitAppSessionServiceType(selectedSession, ServiceType.Ssh)
+        val event = SubmitAppSessionServiceType(selectedApp, ServiceType.Ssh)
         val state = WaitingForAppSelection
         val badTransition = IncorrectAppTransition(event, state)
         appsStartupStateLiveData.postValue(IncorrectAppTransition(event, state))
@@ -392,7 +392,7 @@ class MainActivityViewModelTest {
         appsStartupStateLiveData.postValue(AppsFilesystemHasCredentials)
 
         runBlocking {
-            verify(mockAppsStartupFsm).submitEvent(CheckAppSessionServiceType(selectedSession), mainActivityViewModel)
+            verify(mockAppsStartupFsm).submitEvent(CheckAppSessionServiceType(selectedApp), mainActivityViewModel)
         }
     }
 
@@ -711,7 +711,7 @@ class MainActivityViewModelTest {
         sessionStartupStateLiveData.postValue(FilesystemAssetVerificationSucceeded)
 
         runBlocking {
-            verify(mockSessionStartupFsm).submitEvent(VerifyAvailableStorage, mainActivityViewModel)
+            verify(mockSessionStartupFsm).submitEvent(VerifyAvailableStorage(selectedFilesystem), mainActivityViewModel)
         }
     }
 

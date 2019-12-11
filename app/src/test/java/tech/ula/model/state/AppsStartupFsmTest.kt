@@ -70,8 +70,8 @@ class AppsStartupFsmTest {
             AppSelected(app),
             CheckAppsFilesystemCredentials(appsFilesystem),
             SubmitAppsFilesystemCredentials(appsFilesystem, "", "", ""),
-            CheckAppSessionServiceType(appSession),
-            SubmitAppSessionServiceType(appSession, ServiceType.Unselected),
+            CheckAppSessionServiceType(app),
+            SubmitAppSessionServiceType(app, ServiceType.Unselected),
             CopyAppScriptToFilesystem(app, appsFilesystem),
             SyncDatabaseEntries(app, appSession, appsFilesystem),
             ResetAppState
@@ -167,7 +167,7 @@ class AppsStartupFsmTest {
                 .thenReturn(listOf(appSession))
         whenever(mockUlaFiles.getArchType())
                 .thenReturn("")
-        whenever(mockFilesystemDao.findAppsFilesystemByType(app.filesystemRequired))
+        whenever(mockFilesystemDao.findAppsFilesystemByType(app.filesystemRequired, app.serviceLocation.toString()))
                 .thenReturn(listOf())
                 .thenReturn(listOf(appsFilesystem))
 
@@ -175,7 +175,7 @@ class AppsStartupFsmTest {
 
         verify(mockStateObserver).onChanged(FetchingDatabaseEntries)
         verify(mockStateObserver).onChanged(DatabaseEntriesFetched(appsFilesystem, appSession))
-        verify(mockFilesystemDao, times(2)).findAppsFilesystemByType(app.filesystemRequired)
+        verify(mockFilesystemDao, times(2)).findAppsFilesystemByType(app.filesystemRequired, app.serviceLocation.toString())
         verify(mockFilesystemDao).insertFilesystem(appsFilesystem)
     }
 
@@ -184,7 +184,7 @@ class AppsStartupFsmTest {
         appsFsm.setState(WaitingForAppSelection)
         appsFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockFilesystemDao.findAppsFilesystemByType(app.filesystemRequired))
+        whenever(mockFilesystemDao.findAppsFilesystemByType(app.filesystemRequired, app.serviceLocation.toString()))
                 .thenReturn(listOf(appsFilesystem))
         whenever(mockSessionDao.findAppsSession(app.name))
                 .thenReturn(listOf())
@@ -203,7 +203,7 @@ class AppsStartupFsmTest {
         appsFsm.setState(WaitingForAppSelection)
         appsFsm.getState().observeForever(mockStateObserver)
 
-        whenever(mockFilesystemDao.findAppsFilesystemByType(app.filesystemRequired))
+        whenever(mockFilesystemDao.findAppsFilesystemByType(app.filesystemRequired, app.serviceLocation.toString()))
                 .thenReturn(listOf(appsFilesystem))
         whenever(mockSessionDao.findAppsSession(app.name))
                 .thenReturn(listOf(appSession))
@@ -221,13 +221,13 @@ class AppsStartupFsmTest {
 
         whenever(mockUlaFiles.getArchType())
                 .thenReturn("")
-        whenever(mockFilesystemDao.findAppsFilesystemByType(app.filesystemRequired))
+        whenever(mockFilesystemDao.findAppsFilesystemByType(app.filesystemRequired, app.serviceLocation.toString()))
                 .thenReturn(listOf())
                 .thenReturn(listOf()) // Simulate failure to retrieve previous insertion
 
         runBlocking { appsFsm.submitEvent(AppSelected(app), this) }
 
-        verify(mockFilesystemDao, times(2)).findAppsFilesystemByType(app.filesystemRequired)
+        verify(mockFilesystemDao, times(2)).findAppsFilesystemByType(app.filesystemRequired, app.serviceLocation.toString())
         verify(mockFilesystemDao).insertFilesystem(appsFilesystem)
         verify(mockStateObserver).onChanged(FetchingDatabaseEntries)
         verify(mockStateObserver).onChanged(DatabaseEntriesFetchFailed)
@@ -296,7 +296,7 @@ class AppsStartupFsmTest {
         appsFsm.getState().observeForever(mockStateObserver)
         appSession.serviceType = ServiceType.Ssh
 
-        runBlocking { appsFsm.submitEvent(CheckAppSessionServiceType(appSession), this) }
+        runBlocking { appsFsm.submitEvent(CheckAppSessionServiceType(app), this) }
 
         verify(mockStateObserver).onChanged(AppHasServiceTypeSet)
     }
@@ -307,7 +307,7 @@ class AppsStartupFsmTest {
         appsFsm.getState().observeForever(mockStateObserver)
         appSession.serviceType = ServiceType.Unselected
 
-        runBlocking { appsFsm.submitEvent(CheckAppSessionServiceType(appSession), this) }
+        runBlocking { appsFsm.submitEvent(CheckAppSessionServiceType(app), this) }
 
         verify(mockStateObserver).onChanged(AppRequiresServiceType)
     }
@@ -317,7 +317,7 @@ class AppsStartupFsmTest {
         appsFsm.setState(AppRequiresServiceType)
         appsFsm.getState().observeForever(mockStateObserver)
 
-        runBlocking { appsFsm.submitEvent(SubmitAppSessionServiceType(appSession, ServiceType.Ssh), this) }
+        runBlocking { appsFsm.submitEvent(SubmitAppSessionServiceType(app, ServiceType.Ssh), this) }
 
         val expectedSession = appSession
         expectedSession.serviceType = ServiceType.Ssh

@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 8,
-    "identityHash": "801191fdc5bb74a1b6540fabecae4bf2",
+    "identityHash": "071d59cd9c4683798658affe6fe9ee9f",
     "entities": [
       {
         "tableName": "session",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `filesystemId` INTEGER NOT NULL, `filesystemName` TEXT NOT NULL, `active` INTEGER NOT NULL, `username` TEXT NOT NULL, `password` TEXT NOT NULL, `vncPassword` TEXT NOT NULL, `serviceType` TEXT NOT NULL, `serviceLocation` TEXT NOT NULL, `ip` TEXT NOT NULL, `port` INTEGER NOT NULL, `pid` INTEGER NOT NULL, `geometry` TEXT NOT NULL, `isAppsSession` INTEGER NOT NULL, FOREIGN KEY(`filesystemId`) REFERENCES `filesystem`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `filesystemId` INTEGER NOT NULL, `filesystemName` TEXT NOT NULL, `filesystemType` TEXT NOT NULL, `active` INTEGER NOT NULL, `username` TEXT NOT NULL, `password` TEXT NOT NULL, `vncPassword` TEXT NOT NULL, `serviceType` TEXT NOT NULL, `serviceLocation` TEXT NOT NULL, `ip` TEXT NOT NULL, `port` INTEGER NOT NULL, `pid` INTEGER NOT NULL, `geometry` TEXT NOT NULL, `isAppsSession` INTEGER NOT NULL, FOREIGN KEY(`filesystemId`) REFERENCES `filesystem`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -29,6 +29,12 @@
           {
             "fieldPath": "filesystemName",
             "columnName": "filesystemName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "filesystemType",
+            "columnName": "filesystemType",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -302,7 +308,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"801191fdc5bb74a1b6540fabecae4bf2\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"071d59cd9c4683798658affe6fe9ee9f\")"
     ]
   }
 }

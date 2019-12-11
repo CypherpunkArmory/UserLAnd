@@ -673,7 +673,7 @@ class SessionStartupFsmTest {
         sessionFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockStorageCalculator.getAvailableStorageInMB()).thenReturn(300)
-        runBlocking { sessionFsm.submitEvent(VerifyAvailableStorage, this) }
+        runBlocking { sessionFsm.submitEvent(VerifyAvailableStorage(filesystem), this) }
 
         verify(mockStateObserver).onChanged(VerifyingSufficientStorage)
         verify(mockStateObserver).onChanged(LowAvailableStorage)
@@ -685,7 +685,7 @@ class SessionStartupFsmTest {
         sessionFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockStorageCalculator.getAvailableStorageInMB()).thenReturn(150)
-        runBlocking { sessionFsm.submitEvent(VerifyAvailableStorage, this) }
+        runBlocking { sessionFsm.submitEvent(VerifyAvailableStorage(filesystem), this) }
 
         verify(mockStateObserver).onChanged(VerifyingSufficientStorage)
         verify(mockStateObserver).onChanged(VerifyingSufficientStorageFailed)
@@ -697,7 +697,7 @@ class SessionStartupFsmTest {
         sessionFsm.getState().observeForever(mockStateObserver)
 
         whenever(mockStorageCalculator.getAvailableStorageInMB()).thenReturn(1001)
-        runBlocking { sessionFsm.submitEvent(VerifyAvailableStorage, this) }
+        runBlocking { sessionFsm.submitEvent(VerifyAvailableStorage(filesystem), this) }
 
         verify(mockStateObserver).onChanged(VerifyingSufficientStorage)
         verify(mockStateObserver, never()).onChanged(VerifyingSufficientStorageFailed)

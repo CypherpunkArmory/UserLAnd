@@ -138,7 +138,7 @@ class CloudService {
             return LOGIN_FAILURE
         }
 
-        val request = createBoxCreateRequest()
+        val request = createBoxCreateRequest(session)
 
         val response = try {
             client.newCall(request).execute()
@@ -236,7 +236,7 @@ class CloudService {
                 .build()
     }
 
-    private fun createBoxCreateRequest(): Request? {
+    private fun createBoxCreateRequest(session: Session): Request? {
         val sshKey = publicKey
 
         val json = """
@@ -245,6 +245,7 @@ class CloudService {
                 "type": "box",
                 "attributes": {
                   "port": ["http"],
+                  "image": "${session.filesystemType.toLowerCase()}",
                   "sshKey": "$sshKey"
                 }
               }

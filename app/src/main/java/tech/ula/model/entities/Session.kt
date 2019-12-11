@@ -115,6 +115,7 @@ data class Session(
     var name: String = "",
     var filesystemId: Long,
     var filesystemName: String = "",
+    var filesystemType: String = "",
     var active: Boolean = false,
     var username: String = "",
     var password: String = "",
@@ -129,7 +130,7 @@ data class Session(
 ) : Parcelable {
     override fun toString(): String {
         return "Session(id=$id, name=$name, filesystemId=$filesystemId, filesystemName=" +
-                "$filesystemName, active=$active, serviceType=$serviceType, port=$port, pid=" +
-                "$pid, isAppsSession=$isAppsSession)"
+                "$filesystemName, filesystemType=$filesystemType, active=$active, serviceType=" +
+                "$serviceType, port=$port, pid=$pid, isAppsSession=$isAppsSession)"
     }
 }
