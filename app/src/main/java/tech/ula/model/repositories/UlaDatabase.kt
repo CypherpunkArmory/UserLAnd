@@ -1,19 +1,19 @@
 package tech.ula.model.repositories
 
-import androidx.sqlite.db.SupportSQLiteDatabase
+import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
-import android.content.Context
+import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import tech.ula.model.daos.AppsDao
-import tech.ula.model.entities.Filesystem
-import tech.ula.model.entities.Session
 import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
+import tech.ula.model.entities.Filesystem
+import tech.ula.model.entities.Session
 
 @Database(entities = [Session::class, Filesystem::class, App::class], version = 8, exportSchema = true)
 abstract class UlaDatabase : RoomDatabase() {
@@ -167,15 +167,20 @@ class Migration7To8 : Migration(7, 8) {
         try {
             while (cursor.moveToNext()) {
                 var appName = cursor.getString(cursor.getColumnIndex("name"))
-                var cursor2 = database.query("SELECT * FROM session WHERE name = $appName and isAppsSession = 1 LIMIT 1")
+                var cursor2 =
+                    database.query("SELECT * FROM session WHERE name = '$appName' and isAppsSession = 1 LIMIT 1")
                 try {
                     cursor2.moveToNext()
                     var serviceType = cursor2.getString(cursor2.getColumnIndex("serviceType"))
-                    database.execSQL("UPDATE apps SET serviceType = $serviceType WHERE name = $appName")
+                    database.execSQL("UPDATE apps SET serviceType = '$serviceType' WHERE name = '$appName'")
+                } catch (t: Throwable) {
+                    // do nothing
                 } finally {
                     cursor2.close()
                 }
             }
+        } catch (t: Throwable) {
+            // do nothing
         } finally {
             cursor.close()
         }

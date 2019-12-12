@@ -2,8 +2,6 @@ package tech.ula
 
 import android.app.AlertDialog
 import android.app.DownloadManager
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -15,9 +13,6 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
 import android.os.StatFs
-import com.google.android.material.textfield.TextInputEditText
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import androidx.appcompat.app.AppCompatActivity
 import android.util.DisplayMetrics
 import android.view.Menu
 import android.view.MenuItem
@@ -25,34 +20,87 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.animation.AlphaAnimation
+import android.widget.Button
 import android.widget.RadioButton
 import android.widget.TextView
-import android.widget.Button
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.navigation.findNavController
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.NavigationUI.setupWithNavController
-import kotlinx.android.synthetic.main.activity_main.* // ktlint-disable no-wildcard-imports
+import com.google.android.material.textfield.TextInputEditText
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import tech.ula.model.entities.App
-import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.ServiceLocation
+import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.Session
 import tech.ula.model.remote.GithubApiClient
 import tech.ula.model.repositories.AssetRepository
-import tech.ula.model.repositories.UlaDatabase
-import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
-import tech.ula.ui.AppsListFragment
-import tech.ula.ui.SessionListFragment
-import tech.ula.utils.* // ktlint-disable no-wildcard-imports
-import tech.ula.viewmodel.* // ktlint-disable no-wildcard-imports
-import tech.ula.ui.FilesystemListFragment
 import tech.ula.model.repositories.DownloadMetadata
-import tech.ula.utils.preferences.* // ktlint-disable no-wildcard-imports
+import tech.ula.model.repositories.UlaDatabase
+import tech.ula.model.state.AppsStartupFsm
+import tech.ula.model.state.SessionStartupFsm
+import tech.ula.ui.AppsListFragment
+import tech.ula.ui.FilesystemListFragment
+import tech.ula.ui.SessionListFragment
+import tech.ula.utils.AssetDownloader
+import tech.ula.utils.AssetFileClearer
+import tech.ula.utils.BreadcrumbType
+import tech.ula.utils.BusyboxExecutor
+import tech.ula.utils.CollectionOptInPrompter
+import tech.ula.utils.CredentialValidator
+import tech.ula.utils.DeviceDimensions
+import tech.ula.utils.DownloadManagerWrapper
+import tech.ula.utils.FilesystemManager
+import tech.ula.utils.IllegalStateHandler
+import tech.ula.utils.NotificationConstructor
+import tech.ula.utils.PermissionHandler
+import tech.ula.utils.ProotDebugLogger
+import tech.ula.utils.QWarningHandler
+import tech.ula.utils.SentryLogger
+import tech.ula.utils.StorageCalculator
+import tech.ula.utils.UlaBreadcrumb
+import tech.ula.utils.UlaFiles
+import tech.ula.utils.UserFeedbackPrompter
+import tech.ula.utils.defaultSharedPreferences
+import tech.ula.utils.displayGenericErrorDialog
+import tech.ula.utils.find
+import tech.ula.utils.preferences.AppsPreferences
+import tech.ula.utils.preferences.AssetPreferences
+import tech.ula.viewmodel.ActiveSessionsMustBeDeactivated
+import tech.ula.viewmodel.AppServiceLocationPreferenceRequired
+import tech.ula.viewmodel.AppServiceTypePreferenceRequired
+import tech.ula.viewmodel.CanOnlyStartSingleSession
+import tech.ula.viewmodel.CheckingForAssetsUpdates
+import tech.ula.viewmodel.ClearingSupportFiles
+import tech.ula.viewmodel.CopyingDownloads
+import tech.ula.viewmodel.DownloadProgress
+import tech.ula.viewmodel.FetchingAssetLists
+import tech.ula.viewmodel.FilesystemCredentialsRequired
+import tech.ula.viewmodel.FilesystemExtractionStep
+import tech.ula.viewmodel.IllegalState
+import tech.ula.viewmodel.LargeDownloadRequired
+import tech.ula.viewmodel.LowStorageAcknowledgementRequired
+import tech.ula.viewmodel.MainActivityViewModel
+import tech.ula.viewmodel.MainActivityViewModelFactory
+import tech.ula.viewmodel.ProgressBarOperationComplete
+import tech.ula.viewmodel.ProgressBarUpdateState
+import tech.ula.viewmodel.SessionCanBeRestarted
+import tech.ula.viewmodel.SessionCanBeStarted
+import tech.ula.viewmodel.StartingSetup
+import tech.ula.viewmodel.State
+import tech.ula.viewmodel.UserInputRequiredState
+import tech.ula.viewmodel.VerifyingAvailableStorage
+import tech.ula.viewmodel.VerifyingFilesystem
+import tech.ula.viewmodel.WaitingForInput
 
 class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, AppsListFragment.AppSelection, FilesystemListFragment.FilesystemListProgress {
 
@@ -290,7 +338,8 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     private fun prepareSessionForStart(session: Session) {
         val step = getString(R.string.progress_starting)
         val details = ""
-        showToast(getString(R.string.cloud_password) + "\n" + getString(R.string.cloud_only_supports_ssh))
+        if (session.serviceLocation == ServiceLocation.Remote)
+            showToast(getString(R.string.cloud_password) + "\n" + getString(R.string.cloud_only_supports_ssh))
         updateProgressBar(step, details)
 
         // TODO: Alert user when defaulting to VNC
