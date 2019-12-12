@@ -88,13 +88,28 @@ class CloudService {
     }
 
     fun isBoxRunning(session: Session): Boolean {
-        var result = login()
-        if (result != 0)
-            return session.active
-        val boxId = find().toLong()
-        if (boxId < 0)
-            return session.active
-        return (boxId == session.pid)
+        val env = hashMapOf(
+            "SHELL" to "$filesPath/support/sh",
+            "LD_LIBRARY_PATH" to "$filesPath/support"
+        )
+
+        val proxyCommand = "$filesPath/support/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i $filesPath/sshkey.priv -W %h:%p punch@api.userland.tech"
+        val command = "$filesPath/support/ssh -o ProxyCommand=\"$proxyCommand\" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i $filesPath/sshkey.priv -p ${session.port} -t -A userland@${session.ip} '/bin/ls'"
+        val sshArgs = listOf("$filesPath/support/busybox", "sh", "-c", command)
+
+        val processBuilder = ProcessBuilder(sshArgs)
+        processBuilder.directory(File(filesPath))
+        processBuilder.environment().putAll(env)
+        processBuilder.redirectErrorStream(true)
+
+        try {
+            val process = processBuilder.start()
+            if (process.waitFor() != 0)
+                return false
+        } catch (err: Exception) {
+            return false
+        }
+        return true
     }
 
     private fun createKeys() {
