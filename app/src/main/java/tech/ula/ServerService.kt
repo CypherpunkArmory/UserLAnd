@@ -150,6 +150,7 @@ class ServerService : Service(), CoroutineScope {
             var iterator = getCurrentSessions().iterator()
             iterator.forEach {
                 if (it.serviceLocation == ServiceLocation.Remote) {
+                    var oldActive = it.active
                     it.active = CloudService().isActive(it)
                     updateSession(it)
                 }
@@ -186,11 +187,10 @@ class ServerService : Service(), CoroutineScope {
     }
 
     private suspend fun stopApp(app: App) {
-        val appSessions = activeSessions.filter { (_, session) ->
-            session.name == app.name
-        }
-        appSessions.forEach { (_, session) ->
-            killSession(session)
+        val appSessions = UlaDatabase.getInstance(this@ServerService).sessionDao().findAppsSession(app.name)
+        var iterator = appSessions.iterator()
+        iterator.forEach {
+            killSession(it)
         }
     }
 
