@@ -7,13 +7,24 @@ import android.content.Intent
 import android.net.Uri
 import android.os.IBinder
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import kotlinx.coroutines.* // ktlint-disable no-wildcard-imports
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import tech.ula.model.entities.App
 import tech.ula.model.entities.ServiceLocation
 import tech.ula.model.entities.ServiceType
-import tech.ula.model.repositories.UlaDatabase
 import tech.ula.model.entities.Session
-import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import tech.ula.model.repositories.UlaDatabase
+import tech.ula.utils.BusyboxExecutor
+import tech.ula.utils.CloudService
+import tech.ula.utils.LocalServerManager
+import tech.ula.utils.NotificationConstructor
+import tech.ula.utils.ProotDebugLogger
+import tech.ula.utils.UlaFiles
+import tech.ula.utils.defaultSharedPreferences
 import kotlin.coroutines.CoroutineContext
 
 class ServerService : Service(), CoroutineScope {
@@ -21,6 +32,8 @@ class ServerService : Service(), CoroutineScope {
     private val job = Job()
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Default + job
+
+    private var cloudJob = Job()
 
     companion object {
         const val SERVER_SERVICE_RESULT: String = "tech.ula.ServerService.RESULT"
@@ -81,6 +94,12 @@ class ServerService : Service(), CoroutineScope {
                     this.launch { killSession(session) }
                 }
             }
+            "startCloudUpdates" -> {
+                cloudJob = this.launch { updateCloud() }
+            }
+            "stopCloudUpdates" -> {
+                cloudJob.cancel()
+            }
         }
 
         return START_STICKY
@@ -114,17 +133,34 @@ class ServerService : Service(), CoroutineScope {
         UlaDatabase.getInstance(this@ServerService).sessionDao().updateSession(session)
     }
 
-    private fun setCloudCredentials(session: Session) {
-        if (session.serviceLocation == ServiceLocation.Remote) {
+    private fun setCloudCredentials() {
             val accountPrefs = this.getSharedPreferences("account", Context.MODE_PRIVATE)
             CloudService.accountEmail = accountPrefs.getString("account_email", "")!!
             CloudService.accountPassword = accountPrefs.getString("account_password", "")!!
             CloudService.filesPath = this.getFilesDir().getAbsolutePath()
+    }
+
+    private fun getCurrentSessions(): List<Session> {
+        return UlaDatabase.getInstance(this@ServerService).sessionDao().getCurrentSessions()
+    }
+
+    private suspend fun updateCloud() {
+        while (true) {
+            setCloudCredentials()
+            var iterator = getCurrentSessions().iterator()
+            iterator.forEach {
+                if (it.serviceLocation == ServiceLocation.Remote) {
+                    it.active = CloudService().isActive(it)
+                    updateSession(it)
+                }
+            }
+            delay(10000)
         }
     }
 
     private suspend fun killSession(session: Session) {
-        setCloudCredentials(session)
+        if (session.serviceLocation == ServiceLocation.Remote)
+            setCloudCredentials()
         localServerManager.stopService(session)
         removeSession(session)
         session.active = false
@@ -134,7 +170,9 @@ class ServerService : Service(), CoroutineScope {
     private suspend fun startSession(session: Session) {
         startForeground(NotificationConstructor.serviceNotificationId, notificationManager.buildPersistentServiceNotification())
 
-        setCloudCredentials(session)
+        if (session.serviceLocation == ServiceLocation.Remote)
+            setCloudCredentials()
+
         session.pid = localServerManager.startServer(session)
 
         while (!localServerManager.isServerRunning(session)) {

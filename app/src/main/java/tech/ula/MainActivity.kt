@@ -269,8 +269,13 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     override fun onResume() {
         super.onResume()
-
+        startCloudUpdates()
         viewModel.handleOnResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        stopCloudUpdates()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -368,6 +373,18 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val orientation = applicationContext.resources.configuration.orientation
         deviceDimensions.saveDeviceDimensions(windowManager, DisplayMetrics(), orientation)
         session.geometry = deviceDimensions.getScreenResolution()
+    }
+
+    private fun startCloudUpdates() {
+        val serviceIntent = Intent(this, ServerService::class.java)
+            .putExtra("type", "startCloudUpdates")
+        startService(serviceIntent)
+    }
+
+    private fun stopCloudUpdates() {
+        val serviceIntent = Intent(this, ServerService::class.java)
+            .putExtra("type", "stopCloudUpdates")
+        startService(serviceIntent)
     }
 
     private fun startSession(session: Session) {

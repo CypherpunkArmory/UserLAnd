@@ -87,6 +87,13 @@ class CloudService {
         return delete()
     }
 
+    fun isActive(session: Session): Boolean {
+        var result = login()
+        if (result != 0)
+            return session.active
+        return (find() == session.pid.toInt())
+    }
+
     fun isBoxRunning(session: Session): Boolean {
         val env = hashMapOf(
             "SHELL" to "$filesPath/support/sh",
@@ -164,7 +171,7 @@ class CloudService {
         val adapter = moshi.adapter(CreateResponse::class.java)
         val createResponse = try {
             adapter.fromJson(response.body()!!.source())!!
-        } catch (err: NullPointerException) {
+        } catch (err: Exception) {
             return BOX_FAILURE
         }
         session.ip = createResponse.data.attributes.ipAddress
@@ -191,7 +198,7 @@ class CloudService {
         val id = try {
             // TODO: this should find a specific box and kill it, this will be needed when we support multiple
             listAdapter.fromJson(response.body()!!.source())!!.data.first().id
-        } catch (err: NullPointerException) {
+        } catch (err: Exception) {
             return LIST_FAILURE
         }
         return id
@@ -216,7 +223,7 @@ class CloudService {
         val id = try {
             // TODO: this should find a specific box and kill it, this will be needed when we support multiple
             listAdapter.fromJson(response.body()!!.source())!!.data.first().id
-        } catch (err: NullPointerException) {
+        } catch (err: Exception) {
             return LIST_FAILURE
         }
 
