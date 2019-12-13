@@ -242,6 +242,11 @@
     <string name="cloud_needs_account_info">Please provide you UserLAnd account info.</string>
     <string name="cloud_password">sudo password is \"userland\" for cloud sessions.</string>
     <string name="cloud_only_supports_ssh">Cloud sessions currently only support ssh connections.</string>
+    <string name="cloud_login_error">
+        Incorrect cloud account information or no internet connection.
+        Please correct this and try again.
+    </string>
+    <string name="cloud_other_error">Issue communicating with cloud server, please try again.</string>
 
     <!-- Content descriptions -->
     <string name="desc_arrow">Image: Arrow denoting connection between session and filesystem.</string>

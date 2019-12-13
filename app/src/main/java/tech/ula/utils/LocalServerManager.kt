@@ -26,10 +26,7 @@ class LocalServerManager(
         return when (session.serviceLocation) {
             ServiceLocation.Remote -> {
                 val boxId = cloudService.createBox(session)
-                if (boxId >= 0)
-                    boxId.toLong()
-                else
-                    -1
+                boxId.toLong()
             }
             ServiceLocation.Local -> when (session.serviceType) {
                 ServiceType.Ssh -> startSSHServer(session)

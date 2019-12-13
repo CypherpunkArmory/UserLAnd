@@ -175,6 +175,9 @@ class ServerService : Service(), CoroutineScope {
             setCloudCredentials()
 
         session.pid = localServerManager.startServer(session)
+        if ((session.serviceLocation == ServiceLocation.Remote) && (session.pid < 0)) {
+            sendErrorBroadcast(getString(CloudService().getErrorText(session.pid.toInt())))
+        }
 
         while (!localServerManager.isServerRunning(session)) {
             delay(500)
@@ -270,6 +273,13 @@ class ServerService : Service(), CoroutineScope {
     private fun sendSessionActivatedBroadcast() {
         val intent = Intent(SERVER_SERVICE_RESULT)
                 .putExtra("type", "sessionActivated")
+        broadcaster.sendBroadcast(intent)
+    }
+
+    private fun sendErrorBroadcast(errorText: String) {
+        val intent = Intent(SERVER_SERVICE_RESULT)
+            .putExtra("type", "error")
+            .putExtra("errorText", errorText)
         broadcaster.sendBroadcast(intent)
     }
 

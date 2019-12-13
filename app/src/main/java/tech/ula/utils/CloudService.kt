@@ -10,6 +10,7 @@ import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
+import tech.ula.R
 import tech.ula.model.entities.Session
 import java.io.File
 
@@ -65,6 +66,13 @@ class CloudService {
     val BOX_FAILURE = -2
     val LIST_FAILURE = -3
     val DELETE_FAILURE = -4
+
+    fun getErrorText(result: Int): Int {
+        return when (result) {
+            LOGIN_FAILURE -> R.string.cloud_login_error
+            else -> R.string.cloud_other_error
+        }
+    }
 
     fun createBox(session: Session): Int {
         // TODO: this symlink stuff should be somewhere else

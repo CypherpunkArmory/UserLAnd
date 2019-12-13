@@ -146,6 +146,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 val breadcrumb = UlaBreadcrumb(className, BreadcrumbType.ReceivedIntent, intentType)
                 logger.addBreadcrumb(breadcrumb)
                 when (intentType) {
+                    "error" -> handleError(intent)
                     "sessionActivated" -> handleSessionHasBeenActivated()
                     "dialog" -> {
                         val type = intent.getStringExtra("dialogType") ?: ""
@@ -431,6 +432,13 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
                 .putExtra("type", "restartRunningSession")
                 .putExtra("session", session)
         startService(serviceIntent)
+    }
+
+    private fun handleError(intent: Intent) {
+        val errorText = intent.getStringExtra("errorText") ?: ""
+        showToast(errorText)
+        viewModel.handleError()
+        killProgressBar()
     }
 
     private fun handleSessionHasBeenActivated() {

@@ -10,12 +10,97 @@ import kotlinx.coroutines.Job
 import tech.ula.R
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Filesystem
-import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.ServiceLocation
+import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.DownloadMetadata
-import tech.ula.model.state.* // ktlint-disable no-wildcard-imports
-import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import tech.ula.model.state.AppDatabaseEntriesSynced
+import tech.ula.model.state.AppHasServiceLocationSet
+import tech.ula.model.state.AppHasServiceTypeSet
+import tech.ula.model.state.AppRequiresServiceLocation
+import tech.ula.model.state.AppRequiresServiceType
+import tech.ula.model.state.AppScriptCopyFailed
+import tech.ula.model.state.AppScriptCopySucceeded
+import tech.ula.model.state.AppSelected
+import tech.ula.model.state.AppsFilesystemHasCredentials
+import tech.ula.model.state.AppsFilesystemRequiresCredentials
+import tech.ula.model.state.AppsStartupEvent
+import tech.ula.model.state.AppsStartupFsm
+import tech.ula.model.state.AppsStartupState
+import tech.ula.model.state.AssetDownloadComplete
+import tech.ula.model.state.AssetListsRetrievalFailed
+import tech.ula.model.state.AssetListsRetrievalSucceeded
+import tech.ula.model.state.AssetRetrievalState
+import tech.ula.model.state.AssetVerificationState
+import tech.ula.model.state.AssetsAreMissingFromSupportDirectories
+import tech.ula.model.state.AttemptedCacheAccessWhileEmpty
+import tech.ula.model.state.CheckAppSessionServiceType
+import tech.ula.model.state.CheckAppsFilesystemCredentials
+import tech.ula.model.state.CopyAppScriptToFilesystem
+import tech.ula.model.state.CopyDownloadsToLocalStorage
+import tech.ula.model.state.CopyingAppScript
+import tech.ula.model.state.CopyingFilesLocallyState
+import tech.ula.model.state.CopyingFilesToLocalDirectories
+import tech.ula.model.state.DatabaseEntriesFetchFailed
+import tech.ula.model.state.DatabaseEntriesFetched
+import tech.ula.model.state.DownloadAssets
+import tech.ula.model.state.DownloadRequirementsGenerationState
+import tech.ula.model.state.DownloadingAssets
+import tech.ula.model.state.DownloadingAssetsState
+import tech.ula.model.state.DownloadsHaveFailed
+import tech.ula.model.state.DownloadsHaveSucceeded
+import tech.ula.model.state.DownloadsRequired
+import tech.ula.model.state.ExtractFilesystem
+import tech.ula.model.state.ExtractingFilesystem
+import tech.ula.model.state.ExtractionFailed
+import tech.ula.model.state.ExtractionHasCompletedSuccessfully
+import tech.ula.model.state.ExtractionState
+import tech.ula.model.state.FetchDatabaseEntries
+import tech.ula.model.state.FetchingDatabaseEntries
+import tech.ula.model.state.FilesystemAssetCopyFailed
+import tech.ula.model.state.FilesystemAssetVerificationSucceeded
+import tech.ula.model.state.GenerateDownloads
+import tech.ula.model.state.GeneratingDownloadRequirements
+import tech.ula.model.state.IncorrectAppTransition
+import tech.ula.model.state.IncorrectSessionTransition
+import tech.ula.model.state.LocalDirectoryCopyFailed
+import tech.ula.model.state.LocalDirectoryCopySucceeded
+import tech.ula.model.state.LowAvailableStorage
+import tech.ula.model.state.NoDownloadsRequired
+import tech.ula.model.state.RemoteUnreachableForGeneration
+import tech.ula.model.state.ResetAppState
+import tech.ula.model.state.ResetSessionState
+import tech.ula.model.state.RetrieveAssetLists
+import tech.ula.model.state.RetrievingAssetLists
+import tech.ula.model.state.SessionIsReadyForPreparation
+import tech.ula.model.state.SessionIsRestartable
+import tech.ula.model.state.SessionSelected
+import tech.ula.model.state.SessionStartupEvent
+import tech.ula.model.state.SessionStartupFsm
+import tech.ula.model.state.SessionStartupState
+import tech.ula.model.state.SingleSessionSupported
+import tech.ula.model.state.StorageVerificationCompletedSuccessfully
+import tech.ula.model.state.StorageVerificationState
+import tech.ula.model.state.SubmitAppSessionServiceLocation
+import tech.ula.model.state.SubmitAppSessionServiceType
+import tech.ula.model.state.SubmitAppsFilesystemCredentials
+import tech.ula.model.state.SyncDatabaseEntries
+import tech.ula.model.state.SyncDownloadState
+import tech.ula.model.state.SyncingDatabaseEntries
+import tech.ula.model.state.VerifyAvailableStorage
+import tech.ula.model.state.VerifyAvailableStorageComplete
+import tech.ula.model.state.VerifyFilesystemAssets
+import tech.ula.model.state.VerifyingFilesystemAssets
+import tech.ula.model.state.VerifyingSufficientStorage
+import tech.ula.model.state.VerifyingSufficientStorageFailed
+import tech.ula.model.state.WaitingForAppSelection
+import tech.ula.model.state.WaitingForSessionSelection
+import tech.ula.utils.AssetFileClearer
+import tech.ula.utils.BreadcrumbType
+import tech.ula.utils.DownloadFailureLocalizationData
+import tech.ula.utils.Logger
+import tech.ula.utils.SentryLogger
+import tech.ula.utils.UlaBreadcrumb
 import java.io.FileNotFoundException
 import kotlin.coroutines.CoroutineContext
 
@@ -168,6 +253,10 @@ class MainActivityViewModel(
     }
 
     fun handleUserInputCancelled() {
+        resetStartupState()
+    }
+
+    fun handleError() {
         resetStartupState()
     }
 
