@@ -12,6 +12,8 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import tech.ula.model.entities.App
+import tech.ula.model.entities.ServiceLocation
+import tech.ula.model.entities.ServiceType
 import tech.ula.utils.HttpStream
 import tech.ula.utils.Logger
 import java.io.File
@@ -68,6 +70,10 @@ class GithubAppsFetcherTest {
                 filesystemRequired = appFilesystem,
                 supportsCli = supportsCli.toBoolean(),
                 supportsGui = supportsGui.toBoolean(),
+                supportsLocal = true,
+                supportsRemote = false,
+                serviceType = ServiceType.Unselected,
+                serviceLocation = ServiceLocation.Unselected,
                 isPaidApp = isPaidApp.toBoolean(),
                 version = appVersion.toLong()
         )
