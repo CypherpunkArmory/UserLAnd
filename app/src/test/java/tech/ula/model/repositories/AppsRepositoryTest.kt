@@ -38,7 +38,7 @@ class AppsRepositoryTest {
     @Mock lateinit var mockRefreshStatusObserver: Observer<RefreshStatus>
 
     private val inactiveAppName = "inactive"
-    private val inactiveApp = App(name = inactiveAppName, category = "distribution")
+    private val inactiveApp = App(name = inactiveAppName, category = "distribution", supportsLocal = true)
     private val activeAppName = "active"
     private val activeApp = App(name = activeAppName)
     private val appsList = listOf(inactiveApp)

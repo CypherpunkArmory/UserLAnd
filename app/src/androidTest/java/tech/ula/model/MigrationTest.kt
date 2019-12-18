@@ -140,7 +140,7 @@ class MigrationTest {
     fun migrate7To8() {
         helper.createDatabase(TEST_DB, 7)
 
-        helper.runMigrationsAndValidate(TEST_DB, 8, true, Migration6To7())
+        helper.runMigrationsAndValidate(TEST_DB, 8, true, Migration7To8())
     }
 
     private fun getMigratedDatabase(): UlaDatabase {
