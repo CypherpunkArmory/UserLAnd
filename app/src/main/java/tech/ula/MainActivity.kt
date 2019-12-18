@@ -435,7 +435,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleError(intent: Intent) {
-        val errorResource = intent.getIntExtra("errorResource",0)
+        val errorResource = intent.getIntExtra("errorResource", 0)
         showToast(errorResource)
         viewModel.handleError()
         killProgressBar()
