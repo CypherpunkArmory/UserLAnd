@@ -67,7 +67,7 @@ class CloudService {
     val LIST_FAILURE = -3
     val DELETE_FAILURE = -4
 
-    fun getErrorText(result: Int): Int {
+    fun getErrorResource(result: Int): Int {
         return when (result) {
             LOGIN_FAILURE -> R.string.cloud_login_error
             else -> R.string.cloud_other_error

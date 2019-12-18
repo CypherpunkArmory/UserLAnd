@@ -176,7 +176,7 @@ class ServerService : Service(), CoroutineScope {
 
         session.pid = localServerManager.startServer(session)
         if ((session.serviceLocation == ServiceLocation.Remote) && (session.pid < 0)) {
-            sendErrorBroadcast(getString(CloudService().getErrorText(session.pid.toInt())))
+            sendErrorBroadcast(CloudService().getErrorResource(session.pid.toInt()))
         }
 
         while (!localServerManager.isServerRunning(session)) {
@@ -276,10 +276,10 @@ class ServerService : Service(), CoroutineScope {
         broadcaster.sendBroadcast(intent)
     }
 
-    private fun sendErrorBroadcast(errorText: String) {
+    private fun sendErrorBroadcast(errorResource: Int) {
         val intent = Intent(SERVER_SERVICE_RESULT)
             .putExtra("type", "error")
-            .putExtra("errorText", errorText)
+            .putExtra("errorResource", errorResource)
         broadcaster.sendBroadcast(intent)
     }
 

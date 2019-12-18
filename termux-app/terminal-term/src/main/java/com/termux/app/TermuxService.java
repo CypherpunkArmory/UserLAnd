@@ -285,7 +285,7 @@ public final class TermuxService extends Service implements SessionChangedCallba
 
         String[] sshArgs = { "sh", "-c", sshCommand };
         String[] dbclientArgs = {"sh", "-c", supportPath + "dbclient -y -y " + username + "@" + hostname + "/" + port};
-        String[] processArgs = (!jumpUser.isEmpty()) ?
+        String[] processArgs = (jumpUser != null) ?
                 BackgroundJob.setupProcessArgs(executablePath, sshArgs, prefixPath) :
                 BackgroundJob.setupProcessArgs(executablePath, dbclientArgs, prefixPath);
 

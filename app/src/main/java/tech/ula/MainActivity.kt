@@ -435,10 +435,12 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private fun handleError(intent: Intent) {
-        val errorText = intent.getStringExtra("errorText") ?: ""
-        showToast(errorText)
+        val errorResource = intent.getIntExtra("errorResource",0)
+        showToast(errorResource)
         viewModel.handleError()
         killProgressBar()
+        if (errorResource == R.string.cloud_login_error)
+            navController.navigate(R.id.account_fragment)
     }
 
     private fun handleSessionHasBeenActivated() {

@@ -82,7 +82,7 @@ class LocalServerManager(
     private fun startSSHServer(session: Session): Long {
         val filesystemDirName = session.filesystemId.toString()
         deletePidFile(session)
-        val command = "/support/startSSHServer.sh"
+        val command = "/support/common/startSSHServer.sh"
         val result = busyboxExecutor.executeProotCommand(command, filesystemDirName, false)
         return when (result) {
             is OngoingExecution -> result.process.pid()
@@ -99,7 +99,7 @@ class LocalServerManager(
     private fun startVNCServer(session: Session): Long {
         val filesystemDirName = session.filesystemId.toString()
         deletePidFile(session)
-        val command = "/support/startVNCServer.sh"
+        val command = "/support/common/startVNCServer.sh"
         val env = HashMap<String, String>()
         env["INITIAL_USERNAME"] = session.username
         env["INITIAL_VNC_PASSWORD"] = session.vncPassword
