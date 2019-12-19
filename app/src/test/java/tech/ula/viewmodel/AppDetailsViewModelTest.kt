@@ -16,6 +16,7 @@ import tech.ula.R
 import tech.ula.model.daos.AppsDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
+import tech.ula.model.entities.ServiceLocation
 import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.Session
 import tech.ula.utils.AppDetails
@@ -38,11 +39,12 @@ class AppDetailsViewModelTest {
 
     private val inactiveName = "inactive"
     private val inactiveDescription = "super fun text game"
-    private val inactiveApp = App(name = inactiveName, supportsGui = true, supportsCli = true)
+    private val inactiveApp = App(name = inactiveName, supportsGui = true, supportsCli = true, supportsLocal = true, supportsRemote = false, serviceType = ServiceType.Ssh, serviceLocation = ServiceLocation.Local)
+
 
     private val activeName = "active"
     private val activeDescription = "super fun non-functioning browser"
-    private val activeApp = App(name = activeName, supportsGui = true, supportsCli = true)
+    private val activeApp = App(name = activeName, supportsGui = true, supportsCli = true, supportsLocal = true, supportsRemote = false, serviceType = ServiceType.Ssh, serviceLocation = ServiceLocation.Local)
 
     private fun stubAppDetails(app: App) {
         whenever(mockAppDetails.findIconUri(app.name)).thenReturn(mockUri)
@@ -109,7 +111,7 @@ class AppDetailsViewModelTest {
                 sshEnabled = false,
                 vncEnabled = false,
                 xsdlEnabled = false,
-                localEnabled = true,
+                localEnabled = false,
                 remoteEnabled = false,
                 describeStateHintEnabled = true,
                 describeStateText = R.string.info_stop_app,
