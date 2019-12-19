@@ -40,8 +40,7 @@ class AppDetailsViewModelTest {
     private val inactiveName = "inactive"
     private val inactiveDescription = "super fun text game"
     private val inactiveApp = App(name = inactiveName, supportsGui = true, supportsCli = true, supportsLocal = true, supportsRemote = false, serviceType = ServiceType.Ssh, serviceLocation = ServiceLocation.Local)
-
-
+    
     private val activeName = "active"
     private val activeDescription = "super fun non-functioning browser"
     private val activeApp = App(name = activeName, supportsGui = true, supportsCli = true, supportsLocal = true, supportsRemote = false, serviceType = ServiceType.Ssh, serviceLocation = ServiceLocation.Local)
