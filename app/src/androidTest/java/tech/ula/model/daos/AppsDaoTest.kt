@@ -5,11 +5,11 @@ import androidx.room.Room
 import androidx.test.InstrumentationRegistry
 import androidx.test.filters.SmallTest
 import org.junit.After
-import org.junit.Assert.* // ktlint-disable no-wildcard-imports
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import tech.ula.androidTestHelpers.blockingObserve
 import tech.ula.model.entities.App
 import tech.ula.model.repositories.UlaDatabase
 
@@ -41,19 +41,6 @@ class AppsDaoTest {
 
         assertNotNull(retrieved)
         assertEquals(inserted, retrieved)
-    }
-
-    @Test
-    fun dbApplicationIsReplacedOnConflict() {
-        val app1 = App(name = "test", category = "")
-        val app2 = App(name = "test", category = "test")
-        db.appsDao().insertApp(app1)
-        db.appsDao().insertApp(app2)
-
-        val retrieved = db.appsDao().getAllApps().blockingObserve()!!
-
-        assertTrue(retrieved.contains(app2))
-        assertFalse(retrieved.contains(app1))
     }
 
     companion object {

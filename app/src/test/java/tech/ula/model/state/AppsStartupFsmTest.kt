@@ -20,6 +20,7 @@ import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
 import tech.ula.model.entities.Filesystem
+import tech.ula.model.entities.ServiceLocation
 import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.UlaDatabase
@@ -68,7 +69,7 @@ class AppsStartupFsmTest {
 
     private val appSession = Session(id = 0, name = appName, filesystemId = 0, isAppsSession = true)
 
-    private val app = App(name = appName, filesystemRequired = appsFilesystemType)
+    private val app = App(name = appName, filesystemRequired = appsFilesystemType, serviceLocation = ServiceLocation.Local)
 
     private val incorrectTransitionEvent = AppSelected(app)
     private val incorrectTransitionState = FetchingDatabaseEntries
@@ -102,6 +103,7 @@ class AppsStartupFsmTest {
     fun setup() {
         whenever(mockUlaDatabase.filesystemDao()).thenReturn(mockFilesystemDao)
         whenever(mockUlaDatabase.sessionDao()).thenReturn(mockSessionDao)
+        whenever(mockUlaDatabase.appsDao()).thenReturn(mockAppsDao)
 
         appsFsm = AppsStartupFsm(mockUlaDatabase, mockFilesystemManager, mockUlaFiles, mockLogger)
     }
@@ -165,81 +167,6 @@ class AppsStartupFsmTest {
     }
 
     @Test
-    fun `Inserts apps filesystem DB entry if not yet present in DB`() {
-        appsFsm.setState(WaitingForAppSelection)
-        appsFsm.getState().observeForever(mockStateObserver)
-
-        whenever(mockSessionDao.findAppsSession(app.name))
-                .thenReturn(listOf(appSession))
-        whenever(mockUlaFiles.getArchType())
-                .thenReturn("")
-        whenever(mockFilesystemDao.findAppsFilesystemByType(app.filesystemRequired, app.serviceLocation.toString()))
-                .thenReturn(listOf())
-                .thenReturn(listOf(appsFilesystem))
-
-        runBlocking { appsFsm.submitEvent(AppSelected(app), this) }
-
-        verify(mockStateObserver).onChanged(FetchingDatabaseEntries)
-        verify(mockStateObserver).onChanged(DatabaseEntriesFetched(appsFilesystem, appSession))
-        verify(mockFilesystemDao, times(2)).findAppsFilesystemByType(app.filesystemRequired, app.serviceLocation.toString())
-        verify(mockFilesystemDao).insertFilesystem(appsFilesystem)
-    }
-
-    @Test
-    fun `Inserts app session DB entry if not yet present in DB`() {
-        appsFsm.setState(WaitingForAppSelection)
-        appsFsm.getState().observeForever(mockStateObserver)
-
-        whenever(mockFilesystemDao.findAppsFilesystemByType(app.filesystemRequired, app.serviceLocation.toString()))
-                .thenReturn(listOf(appsFilesystem))
-        whenever(mockSessionDao.findAppsSession(app.name))
-                .thenReturn(listOf())
-                .thenReturn(listOf(appSession))
-
-        runBlocking { appsFsm.submitEvent(AppSelected(app), this) }
-
-        verify(mockStateObserver).onChanged(FetchingDatabaseEntries)
-        verify(mockStateObserver).onChanged(DatabaseEntriesFetched(appsFilesystem, appSession))
-        verify(mockSessionDao, times(2)).findAppsSession(app.name)
-        verify(mockSessionDao).insertSession(appSession)
-    }
-
-    @Test
-    fun `Fetches database entries when app selected`() {
-        appsFsm.setState(WaitingForAppSelection)
-        appsFsm.getState().observeForever(mockStateObserver)
-
-        whenever(mockFilesystemDao.findAppsFilesystemByType(app.filesystemRequired, app.serviceLocation.toString()))
-                .thenReturn(listOf(appsFilesystem))
-        whenever(mockSessionDao.findAppsSession(app.name))
-                .thenReturn(listOf(appSession))
-
-        runBlocking { appsFsm.submitEvent(AppSelected(app), this) }
-
-        verify(mockStateObserver).onChanged(FetchingDatabaseEntries)
-        verify(mockStateObserver).onChanged(DatabaseEntriesFetched(appsFilesystem, appSession))
-    }
-
-    @Test
-    fun `Posts failure state if database fetching fails`() {
-        appsFsm.setState(WaitingForAppSelection)
-        appsFsm.getState().observeForever(mockStateObserver)
-
-        whenever(mockUlaFiles.getArchType())
-                .thenReturn("")
-        whenever(mockFilesystemDao.findAppsFilesystemByType(app.filesystemRequired, app.serviceLocation.toString()))
-                .thenReturn(listOf())
-                .thenReturn(listOf()) // Simulate failure to retrieve previous insertion
-
-        runBlocking { appsFsm.submitEvent(AppSelected(app), this) }
-
-        verify(mockFilesystemDao, times(2)).findAppsFilesystemByType(app.filesystemRequired, app.serviceLocation.toString())
-        verify(mockFilesystemDao).insertFilesystem(appsFilesystem)
-        verify(mockStateObserver).onChanged(FetchingDatabaseEntries)
-        verify(mockStateObserver).onChanged(DatabaseEntriesFetchFailed)
-    }
-
-    @Test
     fun `Requires credentials to be set if username is missing`() {
         appsFsm.setState(DatabaseEntriesFetched(appsFilesystem, appSession))
         appsFsm.getState().observeForever(mockStateObserver)
@@ -300,7 +227,7 @@ class AppsStartupFsmTest {
     fun `State is AppServiceTypeSet if already set`() {
         appsFsm.setState(AppsFilesystemHasCredentials)
         appsFsm.getState().observeForever(mockStateObserver)
-        appSession.serviceType = ServiceType.Ssh
+        app.serviceType = ServiceType.Ssh
 
         runBlocking { appsFsm.submitEvent(CheckAppSessionServiceType(app), this) }
 
@@ -325,9 +252,9 @@ class AppsStartupFsmTest {
 
         runBlocking { appsFsm.submitEvent(SubmitAppSessionServiceType(app, ServiceType.Ssh), this) }
 
-        val expectedSession = appSession
-        expectedSession.serviceType = ServiceType.Ssh
-        verify(mockSessionDao).updateSession(expectedSession)
+        val expectedApp = app
+        app.serviceType = ServiceType.Ssh
+        verify(mockAppsDao).updateApp(expectedApp)
         verify(mockStateObserver).onChanged(AppHasServiceTypeSet)
     }
 
