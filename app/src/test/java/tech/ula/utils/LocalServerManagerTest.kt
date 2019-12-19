@@ -1,7 +1,14 @@
 package tech.ula.utils
 
-import com.nhaarman.mockitokotlin2.* // ktlint-disable no-wildcard-imports
-import org.junit.Assert.* // ktlint-disable no-wildcard-imports
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.anyOrNull
+import com.nhaarman.mockitokotlin2.eq
+import com.nhaarman.mockitokotlin2.never
+import com.nhaarman.mockitokotlin2.verify
+import com.nhaarman.mockitokotlin2.whenever
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -9,6 +16,7 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
+import tech.ula.model.entities.ServiceLocation
 import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.Session
 import java.io.File
@@ -61,8 +69,8 @@ class LocalServerManagerTest {
 
     @Test
     fun `Calling startServer with an SSH session should use the appropriate command`() {
-        val session = Session(0, filesystemId = filesystemId, serviceType = ServiceType.Ssh)
-        val command = "/support/startSSHServer.sh"
+        val session = Session(0, filesystemId = filesystemId, serviceType = ServiceType.Ssh, serviceLocation = ServiceLocation.Local)
+        val command = "/support/common/startSSHServer.sh"
 
         whenever(mockBusyboxExecutor.executeProotCommand(
                 eq(command),
@@ -83,8 +91,8 @@ class LocalServerManagerTest {
 
     @Test
     fun `If starting an ssh server fails, an error is logged and -1 is returned`() {
-        val session = Session(0, filesystemId = filesystemId, serviceType = ServiceType.Ssh)
-        val command = "/support/startSSHServer.sh"
+        val session = Session(0, filesystemId = filesystemId, serviceType = ServiceType.Ssh, serviceLocation = ServiceLocation.Local)
+        val command = "/support/common/startSSHServer.sh"
 
         val reason = "reason"
         whenever(mockBusyboxExecutor.executeProotCommand(
@@ -109,8 +117,8 @@ class LocalServerManagerTest {
 
     @Test
     fun `Calling startServer with a VNC session should use the appropriate command`() {
-        val session = Session(0, filesystemId = filesystemId, serviceType = ServiceType.Vnc, username = "user", vncPassword = "userland", geometry = "10x10")
-        val command = "/support/startVNCServer.sh"
+        val session = Session(0, filesystemId = filesystemId, serviceType = ServiceType.Vnc, serviceLocation = ServiceLocation.Local, username = "user", vncPassword = "userland", geometry = "10x10")
+        val command = "/support/common/startVNCServer.sh"
         val env = hashMapOf("INITIAL_USERNAME" to "user", "INITIAL_VNC_PASSWORD" to "userland", "DIMENSIONS" to "10x10")
 
         whenever(mockBusyboxExecutor.executeProotCommand(
@@ -134,8 +142,8 @@ class LocalServerManagerTest {
 
     @Test
     fun `If starting a vnc server fails, an error is logged and -1 is returned`() {
-        val session = Session(0, filesystemId = filesystemId, serviceType = ServiceType.Vnc, username = "user", vncPassword = "userland", geometry = "10x10")
-        val command = "/support/startVNCServer.sh"
+        val session = Session(0, filesystemId = filesystemId, serviceType = ServiceType.Vnc, serviceLocation = ServiceLocation.Local, username = "user", vncPassword = "userland", geometry = "10x10")
+        val command = "/support/common/startVNCServer.sh"
         val env = hashMapOf("INITIAL_USERNAME" to "user", "INITIAL_VNC_PASSWORD" to "userland", "DIMENSIONS" to "10x10")
 
         val reason = "reason"
@@ -161,7 +169,7 @@ class LocalServerManagerTest {
 
     @Test
     fun `Calling startServer with an XSDL session should use the appropriate command`() {
-        val session = Session(0, filesystemId = filesystemId, serviceType = ServiceType.Xsdl, username = "user")
+        val session = Session(0, filesystemId = filesystemId, serviceType = ServiceType.Xsdl, serviceLocation = ServiceLocation.Local, username = "user")
         val command = "/support/startXSDLServer.sh"
         val env = hashMapOf<String, String>()
         env["INITIAL_USERNAME"] = session.username
@@ -189,7 +197,7 @@ class LocalServerManagerTest {
 
     @Test
     fun `If starting an XSDL server fails, an error is logged and -1 is returned`() {
-        val session = Session(0, filesystemId = filesystemId, serviceType = ServiceType.Xsdl, username = "user")
+        val session = Session(0, filesystemId = filesystemId, serviceType = ServiceType.Xsdl, serviceLocation = ServiceLocation.Local, username = "user")
         val command = "/support/startXSDLServer.sh"
         val env = hashMapOf<String, String>()
         env["INITIAL_USERNAME"] = session.username
@@ -219,7 +227,7 @@ class LocalServerManagerTest {
 
     @Test
     fun `Calling stop service uses the appropriate command`() {
-        val session = Session(0, filesystemId = filesystemId, serviceType = ServiceType.Ssh)
+        val session = Session(0, filesystemId = filesystemId, serviceType = ServiceType.Ssh, serviceLocation = ServiceLocation.Local)
         localServerManager.stopService(session)
         val command = "support/killProcTree.sh ${session.pid} -1"
         verify(mockBusyboxExecutor).executeScript(eq(command), anyOrNull())
@@ -227,7 +235,7 @@ class LocalServerManagerTest {
 
     @Test
     fun `If stop service fails, an error is logged`() {
-        val session = Session(0, filesystemId = filesystemId, serviceType = ServiceType.Ssh)
+        val session = Session(0, filesystemId = filesystemId, serviceType = ServiceType.Ssh, serviceLocation = ServiceLocation.Local)
         val command = "support/killProcTree.sh ${session.pid} -1"
 
         val reason = "reason"
@@ -241,7 +249,7 @@ class LocalServerManagerTest {
 
     @Test
     fun `Server is always considered running if session type is XSDL`() {
-        val session = Session(0, filesystemId = filesystemId, serviceType = ServiceType.Xsdl)
+        val session = Session(0, filesystemId = filesystemId, serviceType = ServiceType.Xsdl, serviceLocation = ServiceLocation.Local)
 
         val result = localServerManager.isServerRunning(session)
 
@@ -252,7 +260,7 @@ class LocalServerManagerTest {
 
     @Test
     fun `Calls appropriate command to check if server is running, and returns the result`() {
-        val session = Session(0, filesystemId = filesystemId, serviceType = ServiceType.Ssh)
+        val session = Session(0, filesystemId = filesystemId, serviceType = ServiceType.Ssh, serviceLocation = ServiceLocation.Local)
         val command = "support/isServerInProcTree.sh -1"
         whenever(mockBusyboxExecutor.executeScript(eq(command), anyOrNull()))
                 .thenReturn(SuccessfulExecution)
@@ -267,7 +275,7 @@ class LocalServerManagerTest {
 
     @Test
     fun `Logs an error and return false if isServerRunning causes an exception`() {
-        val session = Session(0, filesystemId = filesystemId, serviceType = ServiceType.Ssh)
+        val session = Session(0, filesystemId = filesystemId, serviceType = ServiceType.Ssh, serviceLocation = ServiceLocation.Local)
         val command = "support/isServerInProcTree.sh -1"
         val reason = "reason"
         whenever(mockBusyboxExecutor.executeScript(eq(command), anyOrNull()))

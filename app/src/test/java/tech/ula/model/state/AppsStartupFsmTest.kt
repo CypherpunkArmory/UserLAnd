@@ -7,13 +7,15 @@ import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.* // ktlint-disable no-wildcard-imports
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
+import tech.ula.model.daos.AppsDao
 import tech.ula.model.daos.FilesystemDao
 import tech.ula.model.daos.SessionDao
 import tech.ula.model.entities.App
@@ -21,7 +23,9 @@ import tech.ula.model.entities.Filesystem
 import tech.ula.model.entities.ServiceType
 import tech.ula.model.entities.Session
 import tech.ula.model.repositories.UlaDatabase
-import tech.ula.utils.* // ktlint-disable no-wildcard-imports
+import tech.ula.utils.FilesystemManager
+import tech.ula.utils.Logger
+import tech.ula.utils.UlaFiles
 import tech.ula.utils.preferences.AppsPreferences
 import java.io.IOException
 
@@ -35,6 +39,8 @@ class AppsStartupFsmTest {
     @Mock lateinit var mockFilesystemDao: FilesystemDao
 
     @Mock lateinit var mockSessionDao: SessionDao
+
+    @Mock lateinit var mockAppsDao: AppsDao
 
     @Mock lateinit var mockUlaDatabase: UlaDatabase
 
