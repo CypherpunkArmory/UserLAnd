@@ -104,6 +104,11 @@
         点击“是的”将会清除支持的文件。但这不会发生在安装的应用程序的文件的。
         点击“是的”将会导致在下次运行会话或应用程序时再下载资源。
     </string>
+    <string name="info_xsdl_support">Android 9.0及更高版本尚不完全支持XSDL</string>
     <string name="alert_clear_support_files_clear_button">清除</string>
-
+    <string name="review_is_user_enjoying">正在享受 UserLAnd吗？</string>
+    <string name="review_ask_for_rating">可以在 Play商店上为我们评分吗？</string>
+    <string name="review_ask_for_feedback">您介意在GitHub上给我们一些反馈吗？</string>
+    <string name="q_warning_title">文件访问权限已更改!</string>
+   <string name="q_warning_message">Android Q的下一个版本的正在改进安全性，会影响我们的应用程序以及用户如何从UserLAnd上的文件系统中获取文件。为了遵守这些更改，将sdcard内的文件移入和移出将不再像过去那样。请访问我们的Github上的Wiki了解更多信息.</string>
 </resources>
