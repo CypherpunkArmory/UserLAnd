@@ -33,6 +33,7 @@ import tech.ula.viewmodel.ImportSuccess
 import tech.ula.viewmodel.ImportFailure
 import tech.ula.viewmodel.FilesystemEditViewModel
 import tech.ula.viewmodel.FilesystemEditViewmodelFactory
+import java.util.Locale
 
 class FilesystemEditFragment : Fragment() {
 
@@ -94,7 +95,7 @@ class FilesystemEditFragment : Fragment() {
         }
         if (editExisting) {
             for (i in 0 until spinner_filesystem_type.adapter.count) {
-                val item = spinner_filesystem_type.adapter.getItem(i).toString().toLowerCase()
+                val item = spinner_filesystem_type.adapter.getItem(i).toString().toLowerCase(Locale.ENGLISH)
                 if (item == filesystem.distributionType) spinner_filesystem_type.setSelection(i)
             }
         }
@@ -117,7 +118,7 @@ class FilesystemEditFragment : Fragment() {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                filesystem.distributionType = parent?.getItemAtPosition(position).toString().toLowerCase()
+                filesystem.distributionType = parent?.getItemAtPosition(position).toString().toLowerCase(Locale.ENGLISH)
             }
         }
     }

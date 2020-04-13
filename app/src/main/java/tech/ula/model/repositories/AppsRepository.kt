@@ -11,6 +11,7 @@ import tech.ula.utils.Logger
 import tech.ula.utils.SentryLogger
 import tech.ula.utils.UlaBreadcrumb
 import tech.ula.utils.preferences.AppsPreferences
+import java.util.Locale
 
 class AppsRepository(
     private val appsDao: AppsDao,
@@ -41,7 +42,7 @@ class AppsRepository(
         try {
             remoteAppsSource.fetchAppsList().forEach { app ->
                 jobs.add(scope.launch {
-                    if (app.category.toLowerCase() == "distribution") distributionsList.add(app.name)
+                    if (app.category.toLowerCase(Locale.ENGLISH) == "distribution") distributionsList.add(app.name)
                     remoteAppsSource.fetchAppIcon(app)
                     remoteAppsSource.fetchAppDescription(app)
                     remoteAppsSource.fetchAppScript(app)
