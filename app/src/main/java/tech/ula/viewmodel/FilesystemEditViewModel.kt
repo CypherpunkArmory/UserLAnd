@@ -12,6 +12,7 @@ import tech.ula.model.entities.Filesystem
 import java.io.File
 import java.io.FileOutputStream
 import java.lang.Exception
+import java.util.*
 import kotlin.coroutines.CoroutineContext
 
 sealed class FilesystemImportStatus
@@ -55,7 +56,7 @@ class FilesystemEditViewModel(private val ulaDatabase: UlaDatabase) : ViewModel(
                 return@withContext
             }
 
-            if (filesystem.name.toLowerCase() == "apps") filesystem.isAppsFilesystem = true
+            if (filesystem.name.toLowerCase(Locale.ENGLISH) == "apps") filesystem.isAppsFilesystem = true
             filesystem.isCreatedFromBackup = true
             val id = ulaDatabase.filesystemDao().insertFilesystem(filesystem)
 

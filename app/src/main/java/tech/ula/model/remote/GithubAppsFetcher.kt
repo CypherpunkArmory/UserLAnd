@@ -6,6 +6,7 @@ import tech.ula.model.entities.App
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import java.io.File
 import java.io.IOException
+import java.util.*
 
 class GithubAppsFetcher(
     private val filesDirPath: String,
@@ -36,7 +37,7 @@ class GithubAppsFetcher(
                         supportsGui,
                         isPaidApp,
                         version
-                ) = line.toLowerCase().split(", ")
+                ) = line.toLowerCase(Locale.ENGLISH).split(", ")
                 // Construct app
                 App(
                         name,
