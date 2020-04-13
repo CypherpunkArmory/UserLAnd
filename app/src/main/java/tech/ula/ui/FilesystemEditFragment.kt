@@ -33,7 +33,7 @@ import tech.ula.viewmodel.ImportSuccess
 import tech.ula.viewmodel.ImportFailure
 import tech.ula.viewmodel.FilesystemEditViewModel
 import tech.ula.viewmodel.FilesystemEditViewmodelFactory
-import java.util.*
+import java.util.Locale
 
 class FilesystemEditFragment : Fragment() {
 

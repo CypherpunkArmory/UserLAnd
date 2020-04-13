@@ -6,7 +6,7 @@ import tech.ula.model.entities.App
 import tech.ula.utils.* // ktlint-disable no-wildcard-imports
 import java.io.File
 import java.io.IOException
-import java.util.*
+import java.util.Locale
 
 class GithubAppsFetcher(
     private val filesDirPath: String,

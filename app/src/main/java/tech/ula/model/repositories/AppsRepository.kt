@@ -11,7 +11,7 @@ import tech.ula.utils.Logger
 import tech.ula.utils.SentryLogger
 import tech.ula.utils.UlaBreadcrumb
 import tech.ula.utils.preferences.AppsPreferences
-import java.util.*
+import java.util.Locale
 
 class AppsRepository(
     private val appsDao: AppsDao,
