@@ -22,8 +22,3 @@ https://github.com/CypherpunkArmory/UserLAnd/wiki/Getting-Started-in-UserLAnd
 
 Want to ask questions, give feedback, or report any bugs you've encountered? Reach us on Github:
 https://github.com/CypherpunkArmory/UserLAnd/issues
-
-Want to chat about the app? Join us on Slack:
-https://communityinviter.com/apps/userlandtech/userland
-
-UserLAnd Technologies, LLC is a London Trust Media Holding Company.
