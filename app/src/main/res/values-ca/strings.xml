@@ -227,7 +227,7 @@
     <string name="opt_in_preference">Activa els informes d\'error</string>
     <string name="opt_in_preference_summary">Permeti\'ns a recollir informes d\'error per millorar UserLAnd.</string>
     <string name="opt_in_help_prompt">T\'agradaria ajudar a UserLAnd a ser més estable enviant informes d\'error?</string>
-    <string name="opt_in_error_collection_prompt">Opt-in to error log collection service?</string>
+    <string name="opt_in_error_collection_prompt">Activar el servei de col·lecció d\'errors?</string>
     <string name="opt_in_secondary_prompt">Estàs segur? Pots canviar aquesta opció després en el menú de configuració.</string>
     <string name="opt_in_secondary_pos_btn">D\'acord, l\'activaré.</string>
 
