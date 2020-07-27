@@ -67,13 +67,13 @@
     <string name="download_failure_destination_exists">La destinació ja existeix.</string>
     <string name="download_failure_unknown_file_error">Error d\'arxiu desconegut.</string>
     <string name="download_failure_http_processing">Error de processament de dades HTTP.</string>
-    <string name="download_failure_insufficient_external_storage">Espai d’emmagatzematge extern insuficient.</string>
+    <string name="download_failure_insufficient_external_storage">Espai d\'emmagatzematge extern insuficient.</string>
     <string name="download_failure_too_many_redirects">Massa redireccions.</string>
     <string name="download_failure_unhandled_http_response">Codi de resposta HTTP no controlat.</string>
     <string name="download_failure_unknown_error">Error desconegut.</string>
     <string name="download_failure_missing_error">Error de codi desconegut.</string>
     <string name="download_failure_reason_not_found">Motiu no disponible.</string>
-    <string name="download_failure_finished_wrong_items">S'ha intentat acabar el procés de descàrrega amb els elements que no hem obtingut.</string>
+    <string name="download_failure_finished_wrong_items">S\'ha intentat acabar el procés de descàrrega amb els elements que no hem obtingut.</string>
 
     <!-- Illegal State Dialog -->
     <string name="illegal_state_title">UserLAnd ha entrat a un estat il·legal!</string>
@@ -89,7 +89,7 @@
     <string name="illegal_state_error_fetching_app_database_entries">No s\'han pogut obtenir les entrades de les bases de dades de les aplicacions.</string>
     <string name="illegal_state_error_copying_app_script">No s\'ha pogut copiar l\'script de l\'aplicació.</string>
 
-    <string name="illegal_state_no_session_selected_when_preparation_started">S\'ha intentat gestionar la preparació de la sessió abans que se n'hagi seleccionat una anteriorment.</string>
+    <string name="illegal_state_no_session_selected_when_preparation_started">S\'ha intentat gestionar la preparació de la sessió abans que se n\'hagi seleccionat una anteriorment.</string>
     <string name="illegal_state_error_fetching_asset_lists">Ha fallat la recuperació de la llista de recursos.</string>
     <string name="illegal_state_downloads_did_not_complete_successfully">Les descàrregues han fallat degut a: %1$s.</string>
     <string name="illegal_state_failed_to_copy_assets_to_local">Ha fallat la còpia dels recursos a l\'emmagatzematge local.</string>
@@ -233,12 +233,7 @@
 
     <!-- Q Warning -->
     <string name="q_warning_title">L\'accés als fitxers ha canviat!</string>
-    <string name="q_warning_message">
-        La pròxima versió d\'Android (Q) està realitzant millores de seguretat, les quals afecten la nostra aplicació i 
-        la manera en què els usuaris accedeixen dins i fora dels sistemes d\'arxius d\'UserLAnd. Per tal de complir
-        amb aquests canvis, emprant \"/sdcard\" per moure fitxers dins i fora ja no es comportarà tal com s'utilitzava fins ara.
-        Per favor visita la nostra wiki al Github per a més informació.
-    </string>
+    <string name="q_warning_message">La pròxima versió d\'Android (Q) està realitzant millores de seguretat, les quals afecten la nostra aplicació i  la manera en què els usuaris accedeixen dins i fora dels sistemes d\'arxius d\'UserLAnd. Per tal de complir amb aquests canvis, emprant \"/sdcard\" per moure fitxers dins i fora ja no es comportarà tal com s'utilitzava fins ara. Per favor visita la nostra wiki al Github per a més informació.</string>
 
     <!-- Advanced options -->
     <string name="desc_import_backups_should_use_same_settings">Omple el mateix: \n\n\u2022 nom d\'usuari \n\u2022 contrasenya \n\u2022 contrasenya de VNC \n\u2022 distribució \n\n com a còpia de seguretat per assegurar una bona funcionalitat</string>
