@@ -224,16 +224,21 @@
     <string name="review_ask_for_feedback">T\'importaria escriure\'ns alguns comentaris a Github?</string>
 
     <!-- Error collection opt-in -->
-    <string name="opt_in_preference">Opt-in to error reporting</string>
-    <string name="opt_in_preference_summary">Allow us to collect error reports to improve UserLAnd.</string>
-    <string name="opt_in_help_prompt">Would you like to help UserLAnd become more stable by sending us error reports?</string>
+    <string name="opt_in_preference">Activa els informes d\'error</string>
+    <string name="opt_in_preference_summary">Permeti\'ns a recollir informes d\'error per millorar UserLAnd.</string>
+    <string name="opt_in_help_prompt">T\'agradaria ajudar a UserLAnd a ser més estable enviant informes d\'error?</string>
     <string name="opt_in_error_collection_prompt">Opt-in to error log collection service?</string>
-    <string name="opt_in_secondary_prompt">Are you sure? You can change this setting later in the settings page.</string>
-    <string name="opt_in_secondary_pos_btn">OK, I will opt-in.</string>
+    <string name="opt_in_secondary_prompt">Estàs segur? Pots canviar aquesta opció després en el menú de configuració.</string>
+    <string name="opt_in_secondary_pos_btn">D\'acord, l\'activaré.</string>
 
     <!-- Q Warning -->
     <string name="q_warning_title">L\'accés als fitxers ha canviat!</string>
-    <string name="q_warning_message">La pròxima versió d\'Android (Q) està realitzant millores de seguretat, les quals afecten la nostra aplicació i  la manera en què els usuaris accedeixen dins i fora dels sistemes d\'arxius d\'UserLAnd. Per tal de complir amb aquests canvis, emprant \"/sdcard\" per moure fitxers dins i fora ja no es comportarà tal com s'utilitzava fins ara. Per favor visita la nostra wiki al Github per a més informació.</string>
+    <string name="q_warning_message">
+    La pròxima versió d\'Android (Q) està realitzant millores de seguretat, les quals afecten la nostra aplicació i 
+    la manera en què els usuaris accedeixen dins i fora dels sistemes d\'arxius d\'UserLAnd. Per tal de complir 
+    amb aquests canvis, emprant \"/sdcard\" per moure fitxers dins i fora ja no es comportarà tal com s\'utilitzava fins ara. 
+    Per favor visita la nostra wiki al Github per a més informació.
+    </string>
 
     <!-- Advanced options -->
     <string name="desc_import_backups_should_use_same_settings">Omple el mateix: \n\n\u2022 nom d\'usuari \n\u2022 contrasenya \n\u2022 contrasenya de VNC \n\u2022 distribució \n\n com a còpia de seguretat per assegurar una bona funcionalitat</string>
