@@ -30,6 +30,7 @@ android {
         testInstrumentationRunnerArguments clearPackageData: 'true'
 
         vectorDrawables.useSupportLibrary = true
+        buildConfigField 'boolean', 'ENABLE_PLAY_SERVICES', 'true'
 
         // Ignore Sentry packages that cause lint failure
         lintOptions {
@@ -72,6 +73,7 @@ android {
             debuggable true
             minifyEnabled false
             testCoverageEnabled true
+            buildConfigField 'boolean', 'ENABLE_PLAY_SERVICES', 'false'
         }
         beta {
             versionNameSuffix "-beta-$defaultConfig.versionCode"
@@ -251,6 +253,7 @@ dependencies {
     def support_library_version = '1.1.0-alpha06'
     def preference_version = '1.1.0-alpha05'
     def ktx_version = '1.0.2'
+    def billing_version = '2.2.1'
 
     implementation project(':terminal-term')
 
@@ -275,6 +278,9 @@ dependencies {
     implementation 'org.rauschig:jarchivelib:0.8.0' // v1.0.0 breaks all sdk versions < 26 https://github.com/thrau/jarchivelib/issues/75
     implementation "io.sentry:sentry-android:$sentry_version"
     implementation "org.slf4j:slf4j-nop:$slf4j_version"
+
+    implementation "com.android.billingclient:billing-ktx:$billing_version"
+    implementation "com.google.android.gms:play-services-base:17.2.1"
 
     def mockito_version = '2.23.0'
     def mockito_kotlin_version = '2.1.0'
