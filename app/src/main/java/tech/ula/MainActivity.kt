@@ -75,11 +75,19 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
     }
 
     private val userFeedbackPrompter by lazy {
-        UserFeedbackPrompter(this)
+        UserFeedbackPrompter(this, findViewById(R.id.layout_user_prompt_insert))
     }
 
     private val optInPrompter by lazy {
-        CollectionOptInPrompter(this)
+        CollectionOptInPrompter(this, findViewById(R.id.layout_user_prompt_insert))
+    }
+
+    val billingManager by lazy {
+        BillingManager(this, contributionPrompter.onEntitledSubPurchases, contributionPrompter.onEntitledInAppPurchases, contributionPrompter.onPurchase, contributionPrompter.onSubscriptionSupportedChecked)
+    }
+
+    private val contributionPrompter by lazy {
+        ContributionPrompter(this, findViewById(R.id.layout_user_prompt_insert))
     }
 
     private val downloadBroadcastReceiver = object : BroadcastReceiver() {
@@ -147,11 +155,15 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
         val promptViewHolder = findViewById<ViewGroup>(R.id.layout_user_prompt_insert)
         if (userFeedbackPrompter.viewShouldBeShown()) {
-            userFeedbackPrompter.showView(promptViewHolder, this)
+            userFeedbackPrompter.showView()
         }
 
         if (optInPrompter.viewShouldBeShown()) {
-            optInPrompter.showView(promptViewHolder, this)
+            optInPrompter.showView()
+        }
+
+        if (contributionPrompter.viewShouldBeShown()) {
+            contributionPrompter.showView()
         }
 
         handleQWarning()
@@ -219,8 +231,14 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
 
     override fun onResume() {
         super.onResume()
-
+        billingManager.querySubPurchases()
+        billingManager.queryInAppPurchases()
         viewModel.handleOnResume()
+    }
+
+    override fun onDestroy() {
+        billingManager.destroy()
+        super.onDestroy()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

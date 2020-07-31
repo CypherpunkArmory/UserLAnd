@@ -200,6 +200,9 @@
     <string name="alert_clear_support_files_clear_button">Clear</string>
 
     <!-- Play service error alerts -->
+    <string name="alert_play_service_error_message">We\'re having trouble accessing the Google Play services to complete this action. Please try again later, and if the problem continues report it to a developer.</string>
+    <string name="alert_play_store_required">Paid apps require access to the Google Play Store for verification of payment. Please install it to continue.</string>
+    <string name="alert_subscriptions_unsupported_message">It looks like your version of the Play Store is too old to support subscriptions. Please update it to continue.</string>
     <string name="alert_need_client_app_title">Can\'t find a client app!</string>
     <string name="alert_need_client_app_message">You\'ll need an SSH or VNC or XSDL client to complete this action, but it looks like you don\'t have the play store installed. \n\nPlease install the client application (SSH/VNC/XSDL) associated with the session\'s client type to continue.</string>
 
@@ -249,6 +252,16 @@
     <string name="review_is_user_enjoying">Enjoying UserLAnd?</string>
     <string name="review_ask_for_rating">How about a rating on the Play Store, then?</string>
     <string name="review_ask_for_feedback">Would you mind giving us some feedback on Github?</string>
+
+    <!-- Contribution request -->
+    <string name="contribution_primary">Can you help support UserLAnd development?</string>
+    <string name="contribution_secondary_positive">How much can you contribute?</string>
+    <string name="contribution_secondary_negative">Do you want to see other ways you can help the project?</string>
+    <string name="contribution_frequency">How often?</string>
+    <string name="contribution_once">Once</string>
+    <string name="contribution_yearly">Yearly</string>
+    <string name="contribution_monthly">Monthly</string>
+    <string name="contribution_process">Process</string>
 
     <!-- Error collection opt-in -->
     <string name="opt_in_preference">Opt-in to error reporting</string>
