@@ -3,6 +3,7 @@ package tech.ula.utils
 import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
+import android.view.ViewGroup
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
@@ -16,6 +17,7 @@ import tech.ula.R
 @RunWith(MockitoJUnitRunner::class)
 class CollectionOptInPrompterTest {
     @Mock lateinit var mockActivity: Activity
+    @Mock lateinit var mockViewGroup: ViewGroup
 
     @Mock lateinit var mockSharedPrefs: SharedPreferences
 
@@ -29,7 +31,7 @@ class CollectionOptInPrompterTest {
         whenever(mockActivity.getSharedPreferences("${packageName}_preferences", Context.MODE_PRIVATE))
                 .thenReturn(mockSharedPrefs)
 
-        prompter = CollectionOptInPrompter(mockActivity)
+        prompter = CollectionOptInPrompter(mockActivity, mockViewGroup)
     }
 
     @Test
