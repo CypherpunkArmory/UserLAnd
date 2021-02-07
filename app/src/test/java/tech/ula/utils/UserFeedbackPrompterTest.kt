@@ -3,6 +3,7 @@ package tech.ula.utils
 import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
+import android.view.ViewGroup
 import com.nhaarman.mockitokotlin2.whenever
 import org.junit.Assert.* // ktlint-disable no-wildcard-imports
 import org.junit.Before
@@ -16,6 +17,7 @@ import tech.ula.R
 class UserFeedbackPrompterTest {
 
     @Mock lateinit var mockActivity: Activity
+    @Mock lateinit var mockViewGroup: ViewGroup
 
     @Mock lateinit var mockSharedPrefs: SharedPreferences
 
@@ -47,7 +49,7 @@ class UserFeedbackPrompterTest {
         whenever(mockActivity.getSharedPreferences(UserFeedbackPrompter.prefString, Context.MODE_PRIVATE))
                 .thenReturn(mockSharedPrefs)
         whenever(mockSharedPrefs.edit()).thenReturn(mockSharedPrefsEditor)
-        prompter = UserFeedbackPrompter(mockActivity)
+        prompter = UserFeedbackPrompter(mockActivity, mockViewGroup)
     }
 
     @Test
