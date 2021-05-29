@@ -47,6 +47,7 @@ final class TermuxPreferences {
     int mBellBehaviour = BELL_VIBRATE;
 
     boolean mBackIsEscape;
+    boolean mUseCtrlSpaceWorkaround;
     boolean mShowExtraKeys;
     
     /**
@@ -57,10 +58,10 @@ final class TermuxPreferences {
     }
 
     TermuxPreferences(Context context) {
+        home_path = context.getFilesDir().getAbsolutePath() + "/home";
+
         reloadFromProperties(context);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-
-        home_path = context.getFilesDir().getAbsolutePath() + "/home";
 
         float dipInPixels = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, context.getResources().getDisplayMetrics());
 
@@ -171,6 +172,7 @@ final class TermuxPreferences {
         }
 
         mBackIsEscape = "escape".equals(props.getProperty("back-key", "back"));
+        mUseCtrlSpaceWorkaround = Boolean.parseBoolean(props.getProperty("ctrl-space-workaround"));
 
         shortcuts.clear();
         parseAction("shortcut.create-session", SHORTCUT_ACTION_CREATE_SESSION, props);
