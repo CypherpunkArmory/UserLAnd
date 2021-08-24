@@ -54,7 +54,7 @@
     <string name="error_username_in_blacklist">그 이름은 리눅스가 차지할 가능성이 있어 파일시스템 이름으로 사용할 수 없습니다</string>
     <string name="error_filesystem_name_invalid_characters">파일 시스템 이름은 \"/:*\\| 같은 문자를 포함하지 않은 1~50자 이어야합니다</string>
     <string name="error_export_execution_failure">내보내기 실패. 이유: %1$s</string>
-    <string name="error_export_local_failure">로컬 저장소에 내보내기를 실패하였습니다<string>
+    <string name="error_export_local_failure">로컬 저장소에 내보내기를 실패하였습니다</string>
     <string name="error_export_filesystem_not_found">백업할 파일 시스템을 결정하지 못하였습니다. 다시 시도해 주세요.</string>
     <string name="error_export_copy_public_external_failure">외부 공개 저장소에 백업 복사를 실패하였습니다.</string>
     <string name="error_library_file_missing">우리가 필요한 라이브러리가 없는 것 같네요!</string>
