@@ -83,21 +83,22 @@
     </string>
     <string name="illegal_state_title">UserLAnd는 유효하지 않은 상태에 있습니다.</string>
 
-    <string name="illegal_state_transition">Bad state transition: %1$s</string>
+    <string name="illegal_state_transition">Transition 상태 오류: %1$s</string>
 
-    <string name="illegal_state_too_many_selections_when_permissions_granted">Both a session and an app have been selected when permissions are granted.</string>
-    <string name="illegal_state_no_selections_when_permissions_granted">Neither a session nor app have been selected when permissions are granted.</string>
+    <string name="illegal_state_too_many_selections_when_permissions_granted">권한이 수락되었을 때, 앱과 세션 둘 다 선택 되지 않았습니다</string>
+    <string name="illegal_state_no_selections_when_permissions_granted">권한이 수락되었을 때, 앱과 세션 둘 다 선택 되지 않았습니다</string>
 
-    <string name="illegal_state_no_filesystem_selected_when_credentials_selected">Credentials have been submitted for a filesystem, but one has not been selected.</string>
-    <string name="illegal_state_no_app_selected_when_preference_submitted">App preference submitted, but one has not been selected.</string>
-    <string name="illegal_state_no_app_selected_when_preparation_started">Trying to start app preparation, but no app has been selected.</string>
-    <string name="illegal_state_error_fetching_app_database_entries">Could not fetch apps database entries.</string>
-    <string name="illegal_state_error_copying_app_script">Could not copy app script.</string>
+    <string name="illegal_state_no_filesystem_selected_when_credentials_selected">파일 시스템 증명서가 선택되었지만, 파일 시스템이 선택되지 않았습니다</string>
+    <string name="illegal_state_no_app_selected_when_preference_submitted">앱 설정이 선택되었지만, 앱이 선택되지 않았습니다</string>
+    <string name="illegal_state_no_app_selected_when_preparation_started">앱이 설정되지 않았습니다</string>
+    <string name="illegal_state_error_fetching_app_database_entries">앱의 데이터베이스 엔트리를 불러오지 못했습니다</string>
+    <string name="illegal_state_error_copying_app_script">앱 스크립트를 복사하지 못하였습니다</string>
 
-    <string name="illegal_state_no_session_selected_when_preparation_started">Trying to handle session preparation before one has been selected.</string>
-    <string name="illegal_state_error_fetching_asset_lists">Failed to retrieve asset lists.</string>
+    <string name="illegal_state_no_session_selected_when_preparation_started">선택하기 전 세션을 준비하려고 했습니다</string>
+    <string name="illegal_state_error_fetching_asset_lists">자료 목록을 불러오는데 실패하였습니다</string>
 
     <string name="illegal_state_remote_unreachable_during_generation">
+        필수 다운로드를 생성하는 동안 원격 호스트와의 연결을 실패하였습니다. 강한 네트워크 연결 상태가 있는지 확인하고 다시 시도해 주세요
         Could not reach remote host while generating download requirements. Make sure you have a
         strong network connection and try again.
     </string>
@@ -114,27 +115,27 @@
     <string name="illegal_state_busybox_missing">Busybox is required for this operation. Try running a session to make sure it is installed.</string>
 
     <!-- Prompts -->
-    <string name="prompt_filesystem">Filesystem:</string>
-    <string name="prompt_service_type">Service Type:</string>
-    <string name="prompt_client_type">Client Type:</string>
-    <string name="prompt_app_connection_type_preference">Please select a connection type: </string>
-    <string name="prompt_select_backup">Select filesystem backup file</string>
-    <string name="prompt_install_file_manager">Please install a File Manager</string>
+    <string name="prompt_filesystem">파일시스템:</string>
+    <string name="prompt_service_type">서버 타입:</string>
+    <string name="prompt_client_type">클라이언트 타입:</string>
+    <string name="prompt_app_connection_type_preference">연결 타입을 선택해 주세요: </string>
+    <string name="prompt_select_backup">파일 시스템 백업 파일을 선택해 주세요</string>
+    <string name="prompt_install_file_manager">파일 관리자를 설치해 주세요</string>
 
     <!-- Notification strings -->
-    <string name="services_notification_channel_name">Services</string>
-    <string name="services_notification_channel_description">Persistent services</string>
+    <string name="services_notification_channel_name">서비스</string>
+    <string name="services_notification_channel_description">지속 서비스</string>
     <string name="service_notification_title">UserLAnd</string>
-    <string name="service_notification_description">UserLAnd is running a background service.</string>
+    <string name="service_notification_description">UserLAnd가 백그라운드에서 작동하고 있습니다.</string>
 
     <!-- Progress bar messages -->
-    <string name="progress_start_step">Getting things ready for you&#8230;</string>
-    <string name="progress_fetching_asset_lists">Fetching asset lists&#8230;</string>
-    <string name="progress_checking_for_required_updates">Checking whether updates are required&#8230;</string>
-    <string name="progress_downloading">Downloading required assets&#8230;</string>
-    <string name="progress_downloading_out_of">%1$d out of %2$d complete</string>
-    <string name="progress_copying_downloads">Copying downloaded files to local storage&#8230;</string>
-    <string name="progress_verifying_sufficient_storage">Verifying sufficient storage available&#8230;</string>
+    <string name="progress_start_step">준비중&#8230;</string>
+    <string name="progress_fetching_asset_lists">자료 목록 불러오는 중&#8230;</string>
+    <string name="progress_checking_for_required_updates">업데이트가 필요한 지 확인 중&#8230;</string>
+    <string name="progress_downloading">필요한 자료 다운로드 중&#8230;</string>
+    <string name="progress_downloading_out_of">%2$d 중에 %1$d 완료</string>
+    <string name="progress_copying_downloads">다운로드 된 파일을 복사하는 중&#8230;</string>
+    <string name="progress_verifying_sufficient_storage">저장공간 여유 확인 중&#8230;</string>
     <string name="progress_setting_up_filesystem">파일 시스템 셋업 중&#8230;</string>
     <string name="progress_extraction_details">압축 해제 중: %1$s</string>
     <string name="progress_verifying_assets">자원 유효 확인 중&#8230;</string>
@@ -144,27 +145,27 @@
     <string name="progress_deleting_filesystem">파일 시스템 삭제 중</string>
 
     <!-- Preferences -->
-    <string name="pref_app_category">App Preferences</string>
+    <string name="pref_app_category">앱 설정</string>
     <string name="pref_default_landing_page_title">기본 메인 페이지</string>
-    <string name="pref_default_landing_page_message">Select the page you would like to open the app with.</string>
+    <string name="pref_default_landing_page_message">메인 페이지를 설정하세요</string>
     <string name="pref_proot_category">PRoot 설정</string>
-    <string name="pref_proot_debugging_enabled_title">PRoot 디버깅 로그가 활성화되었</string>
-    <string name="pref_proot_debugging_enabled_summary">Only necessary if having problems with the app. Log file stored at\n/mnt/sdcard/PRoot_Debug_Log</string>
+    <string name="pref_proot_debugging_enabled_title">PRoot 디버깅 로그가 활성화되었습니다</string>
+    <string name="pref_proot_debugging_enabled_summary">앱에 문제가 있을 때만 필요. 로그 파일은 \n/mnt/sdcard/PRoot_Debug_Log에 저장됩니다</string>
     <string name="pref_proot_debugging_level_title">디버그 로그 수준</string>
     <string name="pref_proot_debugging_level_summary">숫자가 높을 수록 더 많은 로그</string>
     <string name="pref_proot_debugging_level_default">-1</string>
     <string name="pref_proot_delete_debug_file_title">오래된 디버그 파일 삭제</string>
 
     <!-- Help Activity -->
-    <string name="github_message">Experiencing bugs or want to request a feature? Our Github page is the best place to go to get a fast response.</string>
+    <string name="github_message">버그를 발견했거나 새로운 기능을 요청하고 싶으세요? GitHub는 빠른 답장을 위해 갈 최고의 곳입니다</string>
     <string name="supported_services">현재 지원하는 서비스:</string>
     <string name="terminology">터미널:</string>
     <string name="desc_apps_title">앱:</string>
-    <string name="desc_apps_message">Apps are the easiest way to launch common Linux applications.</string>
+    <string name="desc_apps_message">앱은 일반 리눅스 앱을 실행하기 위한 가장 쉬운 방법입니다</string>
     <string name="desc_sessions_title">세션:</string>
-    <string name="desc_sessions_message">Sessions start a server on a filesystem, which then allows you to connect to it using a third-party client application.</string>
-    <string name="desc_filesystems_title">Filesystems:</string>
-    <string name="desc_filesystems_message">Filesystems are just what they sound like: A collection of users and a file structure that allows Linux-like behavior.</string>
+    <string name="desc_sessions_message">세션은 파일 시스템에 서버를 시작하고, 이는 제3앱을 통한 연결을 허용합니다.</string>
+    <string name="desc_filesystems_title">파일시스템:</string>
+    <string name="desc_filesystems_message">파일시스템은 말 그대로 리눅스-같은 사용자와 파일 구조의 모음입니다.</string>
 
     <!-- Supported Services -->
     <string name="support_dropbear">SSH - Dropbear</string>
@@ -191,10 +192,9 @@
     <string name="export_started">Export started, please wait</string>
 
     <!-- Clear support files alert -->
-    <string name="alert_clear_support_files_title">Clear all support files?</string>
+    <string name="alert_clear_support_files_title">모든 지원파일 삭제</string>
     <string name="alert_clear_support_files_message">
-        This will delete all support files. This will not affect anything you have created on your
-        filesystems. It will cause assets to be downloaded again the next time a session or app is run.
+        이는 모든 지원파일을 삭제합니다. 이는 파일시스템에 아무런 영향을 주지 않습니다. 이는 다음 세션이나 앱을 열때 자료가 다시 다운로드되게 할 것입니다.
     </string>
     <string name="alert_clear_support_files_clear_button">Clear</string>
 
@@ -218,20 +218,20 @@
     <string name="alert_storage_low_message">To ensure smooth functionality of a filesystem in UserLAnd, ensure there is at least 1 GB of free space.</string>
 
     <!-- Wifi alert -->
-    <string name="alert_wifi_disabled_title">No wifi!</string>
-    <string name="alert_wifi_disabled_message">A large asset (~80mb) needs to be downloaded.</string>
-    <string name="alert_wifi_disabled_continue_button">Continue</string>
-    <string name="alert_wifi_disabled_turn_on_wifi_button">Turn On Wifi</string>
-    <string name="alert_wifi_disabled_cancel_button">Cancel</string>
+    <string name="alert_wifi_disabled_title">와이파이에 연결되지 않았습니다</string>
+    <string name="alert_wifi_disabled_message">큰 자료(~80mb)가 다운로드 됩니다</string>
+    <string name="alert_wifi_disabled_continue_button">계속</string>
+    <string name="alert_wifi_disabled_turn_on_wifi_button">와이파이 연결하기</string>
+    <string name="alert_wifi_disabled_cancel_button">취소</string>
 
     <!-- Toasts -->
-    <string name="session_unique_name_required">Sessions require a unique name!</string>
-    <string name="filesystem_unique_name_required">Filesystems require a unique name!</string>
-    <string name="single_session_supported">UserLAnd currently only supports a single active session!</string>
-    <string name="debug_log_export_success">Debug log exported successfully!</string>
-    <string name="debug_log_export_failure">Exporting debug log failed!</string>
-    <string name="debug_log_deleted">Debug log deleted!</string>
-    <string name="backup_export_success">Backup successfully exported!</string>
+    <string name="session_unique_name_required">세션은 독특한 이름이 필요합니다</string>
+    <string name="filesystem_unique_name_required">파일시스템은 독특한 이름이 필요합니다</string>
+    <string name="single_session_supported">UserLAnd는 현재 하나의 세션만 지원합니다</string>
+    <string name="debug_log_export_success">디버그 로그 내보내기 성공!</string>
+    <string name="debug_log_export_failure">디버그 로그 내보내기 실패!</string>
+    <string name="debug_log_deleted">디버그 로그 삭제됨!</string>
+    <string name="backup_export_success">백업 내보내기 성공!</string>
 
     <!-- Content descriptions -->
     <string name="desc_arrow">Image: Arrow denoting connection between session and filesystem.</string>
@@ -248,35 +248,32 @@
     <string name="no_backup_selected">No filesystem import selected</string>
     
     <!-- Review request -->
-    <string name="review_is_user_enjoying">Enjoying UserLAnd?</string>
-    <string name="review_ask_for_rating">How about a rating on the Play Store, then?</string>
-    <string name="review_ask_for_feedback">Would you mind giving us some feedback on Github?</string>
+    <string name="review_is_user_enjoying">UserLAnd애 만족합니까?</string>
+    <string name="review_ask_for_rating">플레이스토어에 리뷰를 하시는 것은 어떤가요?</string>
+    <string name="review_ask_for_feedback">GitHub에 피드벡을 주시겠습니까?</string>
 
     <!-- Contribution request -->
-    <string name="contribution_primary">Can you help support UserLAnd development?</string>
-    <string name="contribution_secondary_positive">How much can you contribute?</string>
-    <string name="contribution_secondary_negative">Do you want to see other ways you can help the project?</string>
-    <string name="contribution_frequency">How often?</string>
-    <string name="contribution_once">Once</string>
-    <string name="contribution_yearly">Yearly</string>
-    <string name="contribution_monthly">Monthly</string>
-    <string name="contribution_process">Process</string>
+    <string name="contribution_primary">UserLAnd 개발을 지원해주실 수 있습니까?</string>
+    <string name="contribution_secondary_positive">얼마나 기여할 수 있습니까?</string>
+    <string name="contribution_secondary_negative">프로젝트를 도울 수 있는 다른 방법을 알고 싶습니까?</string>
+    <string name="contribution_frequency">얼마나 자주?</string>
+    <string name="contribution_once">한번</string>
+    <string name="contribution_yearly">매년</string>
+    <string name="contribution_monthly">매월</string>
+    <string name="contribution_process">진행</string>
 
     <!-- Error collection opt-in -->
-    <string name="opt_in_preference">Opt-in to error reporting</string>
-    <string name="opt_in_preference_summary">Allow us to collect error reports to improve UserLAnd.</string>
-    <string name="opt_in_help_prompt">Would you like to help UserLAnd become more stable by sending us error reports?</string>
-    <string name="opt_in_error_collection_prompt">Opt-in to error log collection service?</string>
-    <string name="opt_in_secondary_prompt">Are you sure? You can change this setting later in the settings page.</string>
-    <string name="opt_in_secondary_pos_btn">OK, I will opt-in.</string>
+    <string name="opt_in_preference">에러 보고에 참여하세요</string>
+    <string name="opt_in_preference_summary">UserLAnd를 개선하기 위해 에러 보고서를 수집할 수 있게 해주세요.</string>
+    <string name="opt_in_help_prompt">오류 보고서를 제출 함으로서 UserLAnd가 더 안정적이게 도와주시겠습니까?</string>
+    <string name="opt_in_error_collection_prompt">오류 로그 수집 서비스에 참여하세요</string>
+    <string name="opt_in_secondary_prompt">확실합니까? 나중에 설정에서 다시 변경할 수 있습니다.</string>
+    <string name="opt_in_secondary_pos_btn">네, 참여하겠습니다.</string>
 
     <!-- Q Warning -->
-    <string name="q_warning_title">File access has changed!</string>
+    <string name="q_warning_title">파일 권한이 바뀌었습니다</string>
     <string name="q_warning_message">
-        The next version of Android, Q, is making improvements to security which affect our app and
-        how our users are able to get files in and out of UserLAnd filesystems. In order to comply
-        with these changes, using \"/sdcard\" to move files in and out will no longer behave as it used
-        to. Please visit our wiki on our Github to learn more.
+        안드로이드의 다음버전인 Q는 UserLAnd 파일시스템에 파일 읽기/쓰기를 하는데 영향을 미치는 보안 개선을 만들고 있습니다. 이 변화에 응하여, 파일을 옮기는 데 \"/sdcard\"를 사용 하는 것은 예전처럼 작동하지 않을 것입니다. 자세한 정보는 GitHub 위키에서 확인하세요.
     </string>
 
     <!-- Advanced options -->
