@@ -103,16 +103,16 @@
         strong network connection and try again.
     </string>
 
-    <string name="illegal_state_downloads_did_not_complete_successfully">Downloads have failed due to: %1$s.</string>
-    <string name="illegal_state_failed_to_copy_assets_to_local">Failed to copy assets to local storage. Try clearing support files.</string>
-    <string name="illegal_state_assets_have_not_been_downloaded">Assets need to be copied to your filesystem, but it looks like they have not been downloaded. Try clearing support files.</string>
-    <string name="illegal_state_empty_download_cache_access">The downloads cache was empty when access was attempted.</string>
-    <string name="illegal_state_failed_to_copy_assets_to_filesystem">Failed to copy assets to filesystem. Try clearing support files.</string>
-    <string name="illegal_state_failed_to_extract_filesystem">Failed to extract filesystem. Try clearing support files. Failure reason: %1$s</string>
-    <string name="illegal_state_failed_to_clear_support_files">Failed to clear support files.</string>
-    <string name="illegal_state_insufficient_storage">Failed to detect sufficient storage.  Try increasing the available storage on your device to at least 250 MB.</string>
-    <string name="illegal_state_unhandled_session_service_type">Trying to start a session with an unknown service type.</string>
-    <string name="illegal_state_busybox_missing">Busybox is required for this operation. Try running a session to make sure it is installed.</string>
+    <string name="illegal_state_downloads_did_not_complete_successfully">%1$s 때문에 다운로드에 실패하였습니다.</string>
+    <string name="illegal_state_failed_to_copy_assets_to_local">로컬 저장소에 자료 복사를 실패하였습니다. 지원파일을 삭제해 보세요.</string>
+    <string name="illegal_state_assets_have_not_been_downloaded">파일시스템에 자료가 복사되어야하는 데, 다운로드 되지 않은 것 같습니다. 지원파일을 삭제해 보세요.</string>
+    <string name="illegal_state_empty_download_cache_access">접근이 시도되었을 떄, 다운로드 캐시가 없었습니다.</string>
+    <string name="illegal_state_failed_to_copy_assets_to_filesystem">파일시스템에 자료 복사를 실패하였습니다. 지원파일을 삭제해 보세요.</string>
+    <string name="illegal_state_failed_to_extract_filesystem">파일시스템 압축해제에 실패하였습니다. 지원파일을 삭제해 보세요. 실패 이유: %1$s</string>
+    <string name="illegal_state_failed_to_clear_support_files">지원파일 삭제에 실패하였습니다</string>
+    <string name="illegal_state_insufficient_storage">충분한 저장공간 확인에 실패 하였습니다. 최소 250 MB의 기기의 여유 저장공간을 확보해 주세요.</string>
+    <string name="illegal_state_unhandled_session_service_type">모르는 서비스 종류의 세션은 시작하려고 했습니다.</string>
+    <string name="illegal_state_busybox_missing">Busybox가 이 작업에 필요합니다. 설치가 되었는지 확인하기 위해 세션을 시작해 보세요</string>
 
     <!-- Prompts -->
     <string name="prompt_filesystem">파일시스템:</string>
@@ -196,26 +196,26 @@
     <string name="alert_clear_support_files_message">
         이는 모든 지원파일을 삭제합니다. 이는 파일시스템에 아무런 영향을 주지 않습니다. 이는 다음 세션이나 앱을 열때 자료가 다시 다운로드되게 할 것입니다.
     </string>
-    <string name="alert_clear_support_files_clear_button">Clear</string>
+    <string name="alert_clear_support_files_clear_button">삭제</string>
 
     <!-- Play service error alerts -->
-    <string name="alert_play_service_error_message">We\'re having trouble accessing the Google Play services to complete this action. Please try again later, and if the problem continues report it to a developer.</string>
-    <string name="alert_play_store_required">Paid apps require access to the Google Play Store for verification of payment. Please install it to continue.</string>
-    <string name="alert_subscriptions_unsupported_message">It looks like your version of the Play Store is too old to support subscriptions. Please update it to continue.</string>
-    <string name="alert_need_client_app_title">Can\'t find a client app!</string>
-    <string name="alert_need_client_app_message">You\'ll need an SSH or VNC or XSDL client to complete this action, but it looks like you don\'t have the play store installed. \n\nPlease install the client application (SSH/VNC/XSDL) associated with the session\'s client type to continue.</string>
+    <string name="alert_play_service_error_message">우리는 이 작업을 수행하는 데 구글 플레이 서비스에 접근하는 데 실패했습니다. 나중에 다시 시도하고, 문제가 지속된다면 개발자에게 문의하세요</string>
+    <string name="alert_play_store_required">구매한 앱은 구매 인증을 위해 구글 플레이스토어가 필요합니다. 계속하기 위해서 설치해 주세요.</string>
+    <string name="alert_subscriptions_unsupported_message">구독을 지원하기에 플레이스토어가 너무 오래되었습니다. 계속하려면 업데이트 하세요.</string>
+    <string name="alert_need_client_app_title">클라이언트 앱을 찾을 수 없습니다</string>
+    <string name="alert_need_client_app_message">이 작업을 수행하려면 SSH 또는 VNC 또는 XSDL이 필요하지만 플레이스토어가 없는 것으로 보입니다. 계속하려면 클라이언트를 설치해 주세요.</string>
 
     <!-- Permissions necessary alert -->
-    <string name="alert_permissions_necessary_title">UserLAnd requires permissions!</string>
-    <string name="alert_permissions_necessary_message">To continue, enable storage permissions to allow UserLAnd to download files and move them from external storage to app local storage.</string>
+    <string name="alert_permissions_necessary_title">UserLAnd는 권한이 필요합니다!</string>
+    <string name="alert_permissions_necessary_message">계속려면, UserLAnd가 파일을 다운로드 해 로컬 저장소에서 앱 저장소로 옮기는 것을 허용하기 위해 파일 권한을 수락해주세요.</string>
     <string name="alert_permissions_necessary_cancel_button">Cancel</string>
 
     <!-- Network unavailable alert -->
-    <string name="alert_network_required_for_refresh">Refreshing apps requires an available or stronger network connection.</string>
+    <string name="alert_network_required_for_refresh">앱 새로고침은 네트워크 연결, 또는 더 강한 네트워크 연결이 필요합니다</string>
 
     <!-- Storage capacity low alert -->
-    <string name="alert_storage_low_title">Low storage capacity</string>
-    <string name="alert_storage_low_message">To ensure smooth functionality of a filesystem in UserLAnd, ensure there is at least 1 GB of free space.</string>
+    <string name="alert_storage_low_title">저장공간 부족</string>
+    <string name="alert_storage_low_message">UserLAnd에서 매끄러운 기능을 위해서 최소 1GB의 여유공간이 있는지 확인해 주세요.</string>
 
     <!-- Wifi alert -->
     <string name="alert_wifi_disabled_title">와이파이에 연결되지 않았습니다</string>
@@ -240,12 +240,12 @@
 
     <!-- Misc -->
     <string name="placeholder">Placeholder text</string>
-    <string name="custom_sessions">Custom Sessions</string>
-    <string name="apps_sessions">Apps Sessions</string>
-    <string name="info_finish_app_setup">Finish app setup to make these options available.</string>
-    <string name="info_stop_app">Stop this app to change its settings.</string>
-    <string name="info_xsdl_support">XSDL is not fully supported on Android 9.0 and above yet</string>
-    <string name="no_backup_selected">No filesystem import selected</string>
+    <string name="custom_sessions">커스텀 세션</string>
+    <string name="apps_sessions">앱 세션</string>
+    <string name="info_finish_app_setup">이 옵션을 활성화하기 위해서 앱을 셋업하세요</string>
+    <string name="info_stop_app">설정을 바꾸려면 앱을 정지 하세요.</string>
+    <string name="info_xsdl_support">XSDL 안드로이드9 이상에서는 완벽하게 지원되지 않습니다</string>
+    <string name="no_backup_selected">불러올 파일시스템을 선택하세요</string>
     
     <!-- Review request -->
     <string name="review_is_user_enjoying">UserLAnd애 만족합니까?</string>
