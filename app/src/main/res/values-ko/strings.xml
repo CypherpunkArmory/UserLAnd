@@ -178,7 +178,7 @@
 
     <!-- Alerts -->
     <string name="button_yes">네!</string>
-    <string name="button_negative>아니요.</string>
+    <string name="button_negative">아니요.</string>
     <string name="button_refuse">괜찮습니다</string>
     <string name="button_positive">네</string>
     <string name="button_cancel">Cancel</string>
