@@ -258,10 +258,6 @@ jobs:
       - *android_dependencies
       - *save_cache
       - *attach_debug_workspace
-      - *attach_firebase_workspace
-      - run:
-          name: Move Firebase coverage report
-          command: mkdir -p app/build/outputs/code-coverage/connected && cp firebase/*/artifacts/sdcard/* app/build/outputs/code-coverage/connected/
       - *export_gcloud_key
       - *decode_gcloud_key
       - run:
@@ -321,13 +317,9 @@ workflows:
       - test_unit:
           requires:
             - build_debug
-      - test_instrumented:
-          requires:
-            - build_debug
       - report_coverage:
           requires:
             - test_unit
-            - test_instrumented
       - deploy-beta:
           filters:
             branches:
@@ -335,7 +327,6 @@ workflows:
                 - master
           requires:
             - test_unit
-            - test_instrumented
             - build_beta_release
       - deploy-production:
           filters:
@@ -344,5 +335,4 @@ workflows:
                 - releases
           requires:
             - test_unit
-            - test_instrumented
             - build_production_release
