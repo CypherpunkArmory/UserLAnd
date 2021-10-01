@@ -321,13 +321,9 @@ workflows:
       - test_unit:
           requires:
             - build_debug
-      - test_instrumented:
-          requires:
-            - build_debug
       - report_coverage:
           requires:
             - test_unit
-            - test_instrumented
       - deploy-beta:
           filters:
             branches:
@@ -335,7 +331,6 @@ workflows:
                 - master
           requires:
             - test_unit
-            - test_instrumented
             - build_beta_release
       - deploy-production:
           filters:
@@ -344,5 +339,4 @@ workflows:
                 - releases
           requires:
             - test_unit
-            - test_instrumented
             - build_production_release
