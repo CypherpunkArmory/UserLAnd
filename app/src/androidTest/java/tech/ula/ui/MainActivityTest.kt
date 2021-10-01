@@ -1,12 +1,12 @@
 package tech.ula.ui
 
 import android.Manifest
-import android.content.Intent
-import android.net.Uri
+// import android.content.Intent
+// import android.net.Uri
 import androidx.test.espresso.Espresso
 import androidx.test.espresso.intent.rule.IntentsTestRule
-import androidx.test.espresso.intent.Intents.intended
-import androidx.test.espresso.intent.matcher.IntentMatchers.* // ktlint-disable no-wildcard-imports
+// import androidx.test.espresso.intent.Intents.intended
+// import androidx.test.espresso.intent.matcher.IntentMatchers.* // ktlint-disable no-wildcard-imports
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.rule.GrantPermissionRule
