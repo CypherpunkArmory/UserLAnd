@@ -125,6 +125,7 @@ class MainActivityTest {
         R.id.terminal_view.shortWaitForDisplay()
     }
 
+    /*
     @Test
     fun test_vnc_session_can_be_started() {
         R.id.app_list_fragment.shortWaitForDisplay()
@@ -176,6 +177,7 @@ class MainActivityTest {
             intended(hasFlag(Intent.FLAG_ACTIVITY_NEW_TASK))
         }
     }
+    */
 
     private fun doHappyPathTestScript(): List<File> {
         val startedFile = File(homeDirectory, "test.scriptStarted")
