@@ -1,0 +1,281 @@
+<resources>                                                         <!-- Translators, pay attention to these notes! --> 
+    <string name="app_name">UserLAnd</string>
+    <string name="welcome">Willkommen bei UserLAnd!</string>
+    <string name="permission_request_code">1000</string>
+
+    <!-- Labels -->
+    <string name="apps">Apps</string>                               <!-- This is a button, so the word used should be short! -->
+    <string name="sessions">Sitzungen</string>
+    <string name="edit_session">Sitzung bearbeiten</string>
+    <string name="filesystems">Dateisysteme</string>
+    <string name="edit_filesystem">Dateisystem bearbeiten</string>
+    <string name="settings">Einstellungen</string>
+    <string name="help">Hilfe</string>
+    <string name="toc">Geschäftsbedingungen</string>
+    <string name="wiki">Wiki</string>
+
+    <!-- Buttons -->
+    <string name="button_continue">Fortfahren</string>
+    <string name="button_advanced_options_show">Erweiterte Einstellungen anzeigen</string>
+    <string name="button_advanced_options_hide">Erweiterte Einstellungen ausblenden</string>
+    <string name="button_select_backup_import">Backupdatei für Import auswählen</string>
+
+    <!-- Menus -->
+    <string name="app_info">App-Information</string>
+    <string name="stop_app">App stoppen</string>
+    <string name="stop_session">Sitzung stoppen</string>
+    <string name="edit">Bearbeiten</string>
+    <string name="delete">Löschen</string>
+    <string name="backup">Exportieren</string>
+    <string name="save">Speichern</string>
+    <string name="add">Hinzufügen</string>
+    <string name="refresh">Aktualisieren</string>
+    <string name="clear_support_files">Alle Support-Dateien löschen</string>
+
+    <!-- Hints -->
+    <string name="hint_filesystem_name">Name des Dateisystems</string>
+    <string name="hint_session_name">Name der Sitzung</string>
+    <string name="hint_username">Benutzername</string>
+    <string name="hint_password">Passwort</string>
+    <string name="hint_vnc_password">VNC-Passwort</string>
+    
+    <!-- Errors -->
+    <string name="error_session_name">Sitzungsname muss angegeben werden</string>
+    <string name="error_filesystem_name">Name des Dateisystems muss angegeben werden</string>
+    <string name="error_username">Benutzername muss angegeben werden</string>
+    <string name="error_empty_field">Jedes Eingabefeld muss ausgefüllt werden!</string>
+    <string name="error_app_description_not_found">Zu dieser App kann keine Beschreibung gefunden werden. Bitte neu laden.</string>
+    <string name="error_vnc_password_length_incorrect">Das VNC-Passwort muss zwischen 6 und 8 Zeichen lang sein!</string>
+    <string name="error_username_invalid">Der Benutzername enthält ungültige Zeichen</string>
+    <string name="error_password_invalid">Das Passwort enthält ungültige Zeichen</string>
+    <string name="error_vnc_password_invalid">Das VNC-Passwort enthält ungültige Zeichen</string>
+    <string name="error_username_invalid_characters">Der Benutzername muss 1 bis 30 Zeichen lang sein, mit Kleinbuchstaben und/oder Ziffern.</string>
+    <string name="error_username_in_blacklist">Dieser Benutzername ist möglicherweise von Linux reserviert und kann nicht als Benutzername im Dateisystem verwendet werden.</string>
+    <string name="error_filesystem_name_invalid_characters">Der Dateisystemname muss zwischen 1 und 50 Zeichen lang sein und darf Zeichen wie \"/:*\\| nicht enthalten.</string>
+    <string name="error_export_execution_failure">Exportieren fehlgeschlagen. Ursache: %1$s</string>
+    <string name="error_export_local_failure">Exportieren zum lokalen Speicher fehlgeschlagen.</string>
+    <string name="error_export_filesystem_not_found">Das zu sichernde Dateisystem wurde nicht gefunden. Bitte erneut versuchen.</string>
+    <string name="error_export_copy_public_external_failure">Das Kopieren der Sicherung in den externen öffentlichen Speicher ist fehlgeschlagen.</string>
+    <string name="error_library_file_missing">Es sieht so aus, als würde eine benötigte Bibliothek fehlen!</string>
+    <string name="error_library_setup_failure">Es sieht so aus, als sei das initiale Setup fehlgeschlagen. Bitte über Github mit uns Kontakt aufnehmen.</string>
+    <string name="error_no_lib_directory">Es sieht so aus, als würde das Bibliotheksverzeichnis nicht existieren. Bitte über Github mit uns Kontakt aufnehmen.</string>
+    <string name="error_filesystem_delete">Dateisystem löschen fehlgeschlagen! Bitte alle Sitzungen stoppen und es anschließend erneut versuchen.</string>
+
+    <!-- Download Failure Reasons -->
+    <string name="download_failure_http_error">HTTP-Fehler: %1$s</string>
+    <string name="download_failure_cannot_resume">Download kann nicht fortgesetzt werden.</string>
+    <string name="download_failure_no_external_devices">Keine externen Speichergeräte gefunden.</string>
+    <string name="download_failure_destination_exists">Ziel existiert bereits.</string>
+    <string name="download_failure_unknown_file_error">Unbekannter Dateifehler.</string>
+    <string name="download_failure_http_processing">Verarbeitungsfehler der HTTP-Daten.</string>
+    <string name="download_failure_insufficient_external_storage">Unzureichender externer Speicherplatz.</string>
+    <string name="download_failure_too_many_redirects">Zu viele Weiterleitungen.</string>
+    <string name="download_failure_unhandled_http_response">Nicht behandelter HTTP-Antwortcode.</string>
+    <string name="download_failure_unknown_error">Unbekannter Fehler.</string>
+    <string name="download_failure_missing_error">Fehlercode unbekannt.</string>
+    <string name="download_failure_reason_not_found">Ursache nicht verfügbar.</string>
+    <string name="download_failure_finished_wrong_items">Es wurde versucht, den Download mit Einträgen zu beenden, die sich nicht in der Warteschlange befinden.</string>
+
+    <!-- Illegal State Dialog -->
+    <string name="illegal_state_github_message">
+        %1$s \Wir arbeiten daran, diesen Fehler zu beheben.
+		Eine Meldung des Problems auf Github wäre hilfreich!
+    </string>
+    <string name="illegal_state_title">UserLAnd befindet sich in einem ungültigen Status!</string>
+
+    <string name="illegal_state_transition">Ungültiger Statusübergang: %1$s</string>
+
+    <string name="illegal_state_too_many_selections_when_permissions_granted">Sowohl eine Sitzung als auch eine App wurden ausgewählt, als Berechtigungen zugeteilt wurden.</string>
+    <string name="illegal_state_no_selections_when_permissions_granted">Weder eine Sitzung noch eine App wurden ausgewählt, als Berechtigungen zugeteilt wurden.</string>
+
+    <string name="illegal_state_no_filesystem_selected_when_credentials_selected">Anmeldedaten für ein Dateisystem wurden übermittelt, aber es ist keines ausgewählt.</string>
+    <string name="illegal_state_no_app_selected_when_preference_submitted">Einstellungen für die App wurden übermittelt, aber es ist keine ausgewählt.</string>
+    <string name="illegal_state_no_app_selected_when_preparation_started">Es wurde versucht, den Start der App vorzubereiten, aber es ist keine App ausgewählt.</string>
+    <string name="illegal_state_error_fetching_app_database_entries">Datenbankeneinträge für Apps konnten nicht abgefragt werden.</string>
+    <string name="illegal_state_error_copying_app_script">App-Skript konnte nicht kopiert werden.</string>
+
+    <string name="illegal_state_no_session_selected_when_preparation_started">Es wurde versucht, die Sitzung vorzubereiten, bevor eine ausgewählt wurde.</string>
+    <string name="illegal_state_error_fetching_asset_lists">Liste der zusätzlichen Dateien konnte nicht abgerufen werden.</string>
+
+    <string name="illegal_state_remote_unreachable_during_generation">
+        Der Remotehost konnte beim Erzeugen der erforderlichen Downloads nicht erreicht werden. Sicherstellen, dass eine gute Netzwerkverbindung besteht und erneut versuchen.
+    </string>
+
+    <string name="illegal_state_downloads_did_not_complete_successfully">Downloads sind fehlgeschlagen. Ursache: %1$s.</string>
+    <string name="illegal_state_failed_to_copy_assets_to_local">Kopieren der zusätzlichen Dateien in den lokalen Speicher fehlgeschlagen. Versuchen Sie, die Support-Dateien zu löschen.</string>
+    <string name="illegal_state_assets_have_not_been_downloaded">Zusätzliche Dateien müssen in das Dateisystem kopiert werden, aber es sieht so aus, als wären keine heruntergeladen worden. Versuchen Sie, die Support-Dateien zu löschen.</string>
+    <string name="illegal_state_empty_download_cache_access">Der Downloadcache war leer, als dieser abgerufen wurde.</string>
+    <string name="illegal_state_failed_to_copy_assets_to_filesystem">Kopieren der zusätzlichen Dateien in das Dateisystem fehlgeschlagen. Versuchen Sie, die Support-Dateien zu löschen.</string>
+    <string name="illegal_state_failed_to_extract_filesystem">Entpacken des Dateisystems fehlgeschlagen. Versuchen Sie, die Support-Dateien zu löschen. Ursache: %1$s</string>
+    <string name="illegal_state_failed_to_clear_support_files">Löschen der Support-Dateien fehlgeschlagen.</string>
+    <string name="illegal_state_insufficient_storage">Erkennung von ausreichend Speicherplatz fehlgeschlagen. Der verfügbare Speicherplatz auf dem Gerät sollte auf mindestens 250 MB erhöht werden.</string>
+    <string name="illegal_state_unhandled_session_service_type">Es wurde versucht, eine Sitzung mit einem unbekannten Servicetyp zu starten.</string>
+    <string name="illegal_state_busybox_missing">Für diesen Vorgang ist Busybox erforderlich. Starten Sie eine Sitzung, um sicherzustellen, dass es installiert ist.</string>
+
+    <!-- Prompts -->
+    <string name="prompt_filesystem">Dateisystem:</string>
+    <string name="prompt_service_type">Service-Typ:</string>
+    <string name="prompt_client_type">Client-Typ:</string>
+    <string name="prompt_app_connection_type_preference">Bitte Verbindungstyp auswählen: </string>
+    <string name="prompt_select_backup">Sicherungsdatei des Dateisystems auswählen</string>
+    <string name="prompt_install_file_manager">Bitte einen Dateimanager installieren</string>
+
+    <!-- Notification strings -->
+    <string name="services_notification_channel_name">Dienste</string>
+    <string name="services_notification_channel_description">Dauerhafte Dienste</string>
+    <string name="service_notification_title">UserLAnd</string>
+    <string name="service_notification_description">UserLAnd führt einen Dienst im Hintergrund aus.</string>
+
+    <!-- Progress bar messages -->
+    <string name="progress_start_step">Dinge werden für Sie fertiggestellt&#8230;</string>
+    <string name="progress_fetching_asset_lists">Zusätzliche Dateien wird abgerufen&#8230;</string>
+    <string name="progress_checking_for_required_updates">Überprüfung, ob Updates benötigt sind&#8230;</string>
+    <string name="progress_downloading">Dateien werden heruntergeladen&#8230;</string>
+    <string name="progress_downloading_out_of">%1$d von %2$d fertiggestellt</string>
+    <string name="progress_copying_downloads">Heruntergeladene Dateien werden in den lokalen Speicher kopiert&#8230;</string>
+    <string name="progress_verifying_sufficient_storage">Überprüfen, ob genügend Speicher verfügbar ist &#8230;</string>
+    <string name="progress_setting_up_filesystem">Dateisystem wird eingerichtet&#8230;</string>
+    <string name="progress_extraction_details">Entpacken: %1$s</string>
+    <string name="progress_verifying_assets">Dateien werden geprüft&#8230;</string>
+    <string name="progress_starting">Dienst wird gestartet&#8230;</string>
+    <string name="progress_clearing_support_files">Alle Support-Dateien werden gelöscht&#8230;</string>
+    <string name="progress_exporting_filesystem">Dateisystem wird exportiert</string>
+    <string name="progress_deleting_filesystem">Dateisystem wird gelöscht</string>
+
+    <!-- Preferences -->
+    <string name="pref_app_category">App-Einstellungen</string>
+    <string name="pref_default_landing_page_title">Standard-Startseite</string>
+    <string name="pref_default_landing_page_message">Wählen Sie die Seite, mit der die App geöffnet werden soll.</string>
+    <string name="pref_proot_category">PRoot-Einstellungen</string>
+    <string name="pref_proot_debugging_enabled_title">PRoot-Debuglogs aktiviert</string>
+    <string name="pref_proot_debugging_enabled_summary">Nur bei Problemen mit der App notwendig. Logdateien werden gespeichert unter:\n/mnt/sdcard/PRoot_Debug_Log.</string>
+    <string name="pref_proot_debugging_level_title">Protokollierungsstufe</string>
+    <string name="pref_proot_debugging_level_summary">Je höher die Zahl, desto detaillierter die Informationen.</string>
+    <string name="pref_proot_debugging_level_default">-1</string>
+    <string name="pref_proot_delete_debug_file_title">Alte Debugdateien löschen</string>
+
+    <!-- Help Activity -->
+    <string name="github_message">Auf Bugs gestoßen oder eine Funktion erwünscht? Unsere GitHub-Seite ist das Beste für eine schnelle Antwort.</string>
+    <string name="supported_services">Derzeit unterstützte Dienste:</string>
+    <string name="terminology">Terminologie:</string>
+    <string name="desc_apps_title">Apps:</string>
+    <string name="desc_apps_message">Apps sind der einfachste Weg, Linux-Apps zu starten.</string>
+    <string name="desc_sessions_title">Sitzungen:</string>
+    <string name="desc_sessions_message">Sitzungen starten einen Server auf einem Dateisystem, was die Verbindung mit einer externen Anwendung eines Drittanbieters erlaubt.</string>
+    <string name="desc_filesystems_title">Dateisysteme:</string>
+    <string name="desc_filesystems_message">Dateisysteme sind genau das, wonach es sind anhört: Eine Sammlung von Nutzern und Dateistrukturen, die Linux-ähnliches Verhalten ermöglichen.</string>
+
+    <!-- Supported Services -->
+    <string name="support_dropbear">SSH - Dropbear</string>
+    <string name="support_tightvnc">VNC - TightVNC</string>
+
+    <!-- Client Types -->
+    <string name="client_ssh">SSH</string>
+    <string name="client_vnc">VNC</string>
+    <string name="client_xsdl">XSDL</string>
+
+    <!-- Alerts -->
+    <string name="button_yes">Ja!</string>
+    <string name="button_negative">Nicht wirklich</string>
+    <string name="button_refuse">Nein, Danke</string>
+    <string name="button_positive">In Ordnung, sicher</string>
+    <string name="button_ok">OK!</string>
+    <string name="button_cancel">Abbrechen</string>
+    <string name="general_error_title">Etwas Unerwartetes ist passiert!</string>
+    <string name="filesystem_credentials_reasoning">Wir erstellen ein Dateisystem für Ihre Apps. Bitte tragen Sie die relevanten Informationen ein, die als Standardwerte für das Dateisystem genutzt werden.</string>
+    <string name="deactivate_sessions">Alle Sitzungen müssen deaktiviert sein, um diese Aktion fortzusetzen.</string>
+    <string name="import_success">Backup wurde erfolgreich importiert</string>
+    <string name="import_failure">Backup konnte nicht importiert werden</string>
+    <string name="export_success">Backup wurde erfolgreich exportiert</string>
+    <string name="export_failure">Backup konnte nicht exportiert werden</string>
+    <string name="export_started">Export gestartet, bitte warten</string>
+
+    <!-- Clear support files alert -->
+    <string name="alert_clear_support_files_title">Sollen alle Support-Dateien gelöscht werden?</string>
+    <string name="alert_clear_support_files_message">
+        Alle Support-Dateien werden gelöscht. Das betrifft nicht die von Ihnen erzeugten Dateien auf Ihren Dateisystemen. Beim nächsten Start einer Sitzung oder App werden alle zusätzlichen Dateien wieder heruntergeladen werden.
+    </string>
+    <string name="alert_clear_support_files_clear_button">Löschen</string>
+
+    <!-- Play service error alerts -->
+    <string name="alert_play_service_error_message">Wir haben Probleme, den Google Play Store Service zur Fertigstellung der Aktion zu erreichen. Bitte später erneut versuchen, und falls das Problem weiterhin besteht, melden Sie es bitte einem Entwickler.</string>
+    <string name="alert_play_store_required">Kostenpflichtige Apps benötigen Zugriff auf den Google Play Store, um die Zahlung zu verifizieren. Bitte installieren Sie diesen, um fortzufahren.</string>
+    <string name="alert_subscriptions_unsupported_message">Die Version des Play Stores ist anscheinend zu alt, um Abonnements zu unterstützen. Bitte aktualisieren Sie ihn um fortzufahren.</string>
+    <string name="alert_need_client_app_title">Keine Client-App gefunden!</string>
+    <string name="alert_need_client_app_message">Sie benötigen einen SSH, VNC oder XSDL Client-App um diese Aktion zu vollenden. Anscheinend ist der Play Store nicht installiert. \n\nBitte eine Client-App (SSH/VNC/XSDL) passend zum Sitzungstyp installieren.</string>
+
+    <!-- Permissions necessary alert -->
+    <string name="alert_permissions_necessary_title">UserLAnd benötigt Berechtigungen!</string>
+    <string name="alert_permissions_necessary_message">Um fortzufahren, aktivieren Sie bitte Speicherberechtigungen, damit UserLAnd Dateien herunterladen und diese vom externen in den lokalen App-Speicher verschieben kann.</string>
+    <string name="alert_permissions_necessary_cancel_button">Abbrechen</string>
+
+    <!-- Network unavailable alert -->
+    <string name="alert_network_required_for_refresh">Das Aktualisieren der Apps benötigt eine verfügbare oder stärkere Netzwerkverbindung.</string>
+
+    <!-- Storage capacity low alert -->
+    <string name="alert_storage_low_title">Niedrige Speicherplatzkapazität</string>
+    <string name="alert_storage_low_message">Um einen reibungslosen Ablauf auf einem Dateisystem in UserLAnd zu gewährleisten, muss mindestens 1 GB freier Speicherplatz vorhanden sein.</string>
+
+    <!-- Wifi alert -->
+    <string name="alert_wifi_disabled_title">Kein WLAN!</string>
+    <string name="alert_wifi_disabled_message">Eine große Datei (~80 MB) muss heruntergeladen werden.</string>
+    <string name="alert_wifi_disabled_continue_button">Fortfahren</string>
+    <string name="alert_wifi_disabled_turn_on_wifi_button">WLAN einschalten</string>
+    <string name="alert_wifi_disabled_cancel_button">Abbrechen</string>
+
+    <!-- Toasts -->
+    <string name="session_unique_name_required">Sitzungen benötigen einen eindeutigen Namen!</string>
+    <string name="filesystem_unique_name_required">Dateisysteme benötigen einen eindeutigen Namen!</string>
+    <string name="single_session_supported">UserLAnd unterstützt derzeit nur eine einzige aktive Sitzung!</string>
+    <string name="debug_log_export_success">Debug-Log erfolgreich exportiert!</string>
+    <string name="debug_log_export_failure">Export des Debug-Logs fehlgeschlagen!</string>
+    <string name="debug_log_deleted">Debug-Log gelöscht!</string>
+    <string name="backup_export_success">Backup erfolgreich exportiert!</string>
+
+    <!-- Content descriptions -->
+    <string name="desc_arrow">Bild: Ein Pfeil stellt die Verbindung zwischen Sitzung und Dateisystem dar.</string>
+    <string name="desc_filesystem_type">Bild: Distributionslogo</string>
+    <string name="desc_default_app_icon">Bild: App-Icon Platzhalter</string>
+
+    <!-- Misc -->
+    <string name="placeholder">Platzhaltertext</string>
+    <string name="custom_sessions">Benutzerdefinierte Sitzungen</string>
+    <string name="apps_sessions">App-Sitzungen</string>
+    <string name="info_finish_app_setup">Vervollständigen Sie die App-Einrichtung, um diese Optionen verfügbar zu machen.</string>
+    <string name="info_stop_app">Stoppen Sie diese App, um die Einstellungen zu ändern.</string>
+    <string name="info_xsdl_support">XSDL ist auf Android 9.0 und darüber noch nicht vollständig unterstützt</string>
+    <string name="no_backup_selected">Kein Dateisystem-Import ausgewählt</string>
+    
+    <!-- Review request -->
+    <string name="review_is_user_enjoying">Gefällt Ihnen UserLAnd?</string>
+    <string name="review_ask_for_rating">Wie wäre es dann mit einer Bewertung im Play Store?</string>
+    <string name="review_ask_for_feedback">Würde Sie uns bitte Feedback auf Github geben?</string>
+
+    <!-- Contribution request -->
+    <string name="contribution_primary">Können Sie die Entwicklung von UserLAnd-Entwicklung unterstützen?</string>
+    <string name="contribution_secondary_positive">Wieviel möchten Sie beitragen?</string>
+    <string name="contribution_secondary_negative">Wollen Sie andere Wege kennen lernen um das Projekt zu unterstützen?</string>
+    <string name="contribution_frequency">Wie häufig?</string>
+    <string name="contribution_once">Einmalig</string>
+    <string name="contribution_yearly">Jährlich</string>
+    <string name="contribution_monthly">Monatlich</string>
+    <string name="contribution_process">Verarbeiten</string>
+
+    <!-- Error collection opt-in -->
+    <string name="opt_in_preference">An der Fehler-Berichterstattung teilnehmen</string>
+    <string name="opt_in_preference_summary">Erlauben Sie uns, Fehlerberichte zu sammeln, um UserLAnd zu verbessern.</string>
+    <string name="opt_in_help_prompt">Wollen Sie UserLAnd helfen, stabiler zu werden, indem uns Fehlerberichte gesendet werden?</string>
+    <string name="opt_in_error_collection_prompt">Wollen Sie an der Fehler-Berichterstattung teilnehmen?</string>
+    <string name="opt_in_secondary_prompt">Sind Sie sicher? Sie können dies später in den Einstellungen ändern.</string>
+    <string name="opt_in_secondary_pos_btn">In Ordnung, ich nehme teil.</string>
+
+    <!-- Q Warning -->
+    <string name="q_warning_title">Der Dateizugriff hat sich geändert!</string>
+    <string name="q_warning_message">
+        Die nächste Version von Android, Q, verbessert die Sicherheit, was sich auf unsere App auswirkt und wie unsere Benutzer auf Dateien in UserLAnd-Dateisysteme zugreifen können. Um diesen Änderungen gerecht zu werden, verhält sich die Verwendung von \"/sdcard\" zum Verschieben von  Dateien nicht mehr so wie früher. Bitte besuchen Sie unser Wiki auf Github, um mehr zu erfahren.
+    </string>
+
+    <!-- Advanced options -->
+    <string name="desc_import_backups_should_use_same_settings">Bitte gleich ausfüllen: \n\n\u2022 Nutzername \n\u2022 Passwort \n\u2022 VNC-Passwort \n\u2022 Distribution \n\n wie beim Backup, um einen reibungslosen Ablauf sicherzustellen</string>
+  
+</resources>

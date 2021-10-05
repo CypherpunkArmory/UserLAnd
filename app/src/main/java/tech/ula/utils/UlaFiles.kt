@@ -1,6 +1,7 @@
 package tech.ula.utils
 
 import android.content.Context
+import android.os.Build
 import android.system.Os
 import java.io.File
 import java.lang.NullPointerException
@@ -65,7 +66,23 @@ class UlaFiles(
         supportDir.mkdirs()
 
         libDir.listFiles()!!.forEach { libFile ->
-            val name = libFile.name.toSupportName()
+            var libFileName = libFile.name
+            if (libFileName.startsWith("lib_proot.") ||
+                    libFileName.startsWith("lib_libtalloc") ||
+                    libFileName.startsWith("lib_loader")) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    if (libFileName.endsWith(".a10.so")) {
+                        libFileName = libFileName.replace(".a10.so", ".so")
+                    } else {
+                        return@forEach
+                    }
+                } else {
+                    if (libFileName.endsWith(".a10.so")) {
+                        return@forEach
+                    }
+                }
+            }
+            val name = libFileName.toSupportName()
             val linkFile = File(supportDir, name)
             linkFile.delete()
             symlinker.createSymlink(libFile.path, linkFile.path)

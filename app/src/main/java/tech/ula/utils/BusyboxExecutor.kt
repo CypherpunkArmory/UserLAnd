@@ -1,5 +1,6 @@
 package tech.ula.utils
 
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -18,7 +19,7 @@ class BusyboxExecutor(
     private val busyboxWrapper: BusyboxWrapper = BusyboxWrapper(ulaFiles)
 ) {
 
-    private val discardOutput: (String) -> Any = { }
+    private val discardOutput: (String) -> Any = { Log.d("busybox", it) }
 
     fun executeScript(
         scriptCall: String,
