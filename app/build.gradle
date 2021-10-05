@@ -24,7 +24,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 29
         versionCode vcode
-        versionName "2.8.0"
+        versionName "2.8.1"
         
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunnerArguments clearPackageData: 'true'
@@ -200,7 +200,7 @@ ext.architectures = ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"]
 ext.libDir = "$project.projectDir/src/main/jniLibs"
 
 task downloadAssets(type: Download) {
-    def assetVersion = "v1.2.5"
+    def assetVersion = "v1.2.6"
     def baseUrl = "https://github.com/CypherpunkArmory/UserLAnd-Assets-Support/releases/download/$assetVersion"
     for (arch in architectures) {
         src "$baseUrl/$arch-assets.zip"
