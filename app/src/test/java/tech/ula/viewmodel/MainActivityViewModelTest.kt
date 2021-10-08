@@ -132,7 +132,7 @@ class MainActivityViewModelTest {
     fun `Apps and sessions cannot be selected if apps state is not WaitingForAppSelection`() {
         appsStartupStateLiveData.postValue(FetchingDatabaseEntries)
 
-        mainActivityViewModel.submitAppSelection(selectedApp)
+        mainActivityViewModel.submitAppSelection(selectedApp, false)
         mainActivityViewModel.submitSessionSelection(selectedSession)
 
         runBlocking {
@@ -145,7 +145,7 @@ class MainActivityViewModelTest {
     fun `Apps and sessions cannot be selected if session state is not WaitingForSessionSelection`() {
         sessionStartupStateLiveData.postValue(SessionIsReadyForPreparation(selectedSession, Filesystem(id = 0)))
 
-        mainActivityViewModel.submitAppSelection(selectedApp)
+        mainActivityViewModel.submitAppSelection(selectedApp, false)
         mainActivityViewModel.submitSessionSelection(selectedSession)
 
         runBlocking {
@@ -157,7 +157,7 @@ class MainActivityViewModelTest {
     @Test
     fun `Submits app selection if selections can be made`() {
         // App and session state are initialized to waiting for selection
-        mainActivityViewModel.submitAppSelection(selectedApp)
+        mainActivityViewModel.submitAppSelection(selectedApp, false)
 
         runBlocking {
             verify(mockAppsStartupFsm).submitEvent(AppSelected(selectedApp), mainActivityViewModel)

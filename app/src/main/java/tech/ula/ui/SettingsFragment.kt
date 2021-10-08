@@ -1,5 +1,6 @@
 package tech.ula.ui
 
+import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
@@ -25,6 +26,16 @@ class SettingsFragment : PreferenceFragmentCompat() {
         deleteFilePreference.setOnPreferenceClickListener {
             prootDebugLogger.deleteLogs()
             true
+        }
+
+        val clearAutoStartPreference: Preference = findPreference("pref_clear_auto_start")!!
+        clearAutoStartPreference.setOnPreferenceClickListener {
+            val prefs = activity!!.getSharedPreferences("apps", Context.MODE_PRIVATE)
+            with(prefs.edit()) {
+                remove("AutoApp")
+                apply()
+                true
+            }
         }
     }
 

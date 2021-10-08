@@ -32,7 +32,7 @@ import tech.ula.viewmodel.AppsListViewModelFactory
 class AppsListFragment : Fragment(), AppsListAdapter.AppsClickHandler {
 
     interface AppSelection {
-        fun appHasBeenSelected(app: App)
+        fun appHasBeenSelected(app: App, autoStart: Boolean)
     }
 
     private val doOnAppSelection: AppSelection by lazy {
@@ -108,7 +108,7 @@ class AppsListFragment : Fragment(), AppsListAdapter.AppsClickHandler {
     }
 
     override fun onClick(app: App) {
-        doOnAppSelection.appHasBeenSelected(app)
+        doOnAppSelection.appHasBeenSelected(app, false)
     }
 
     override fun createContextMenu(menu: Menu) {
