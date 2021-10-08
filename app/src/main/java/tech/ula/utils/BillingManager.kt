@@ -13,6 +13,8 @@ import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.SkuDetails
 import com.android.billingclient.api.SkuDetailsParams
+import java.util.*
+import kotlin.collections.HashMap
 
 /**
  * When using this class:
@@ -93,7 +95,7 @@ class BillingManager(
         if (isSubscriptionPurchaseSupported()) {
             val purchasesResult = billingClient.queryPurchases(BillingClient.SkuType.SUBS)
             if (purchasesResult.responseCode == BillingResponseCode.OK) {
-                onEntitledSubPurchases(purchasesResult.purchasesList)
+                onEntitledSubPurchases(Collections.unmodifiableList(purchasesResult.purchasesList))
             } else {
                 log("Error trying to query purchases: $purchasesResult")
             }
@@ -103,7 +105,7 @@ class BillingManager(
     fun queryInAppPurchases() {
         val purchasesResult = billingClient.queryPurchases(BillingClient.SkuType.INAPP)
         if (purchasesResult.responseCode == BillingResponseCode.OK) {
-            onEntitledInAppPurchases(purchasesResult.purchasesList)
+            onEntitledInAppPurchases(Collections.unmodifiableList(purchasesResult.purchasesList))
         } else {
             log("Error trying to query purchases: $purchasesResult")
         }
