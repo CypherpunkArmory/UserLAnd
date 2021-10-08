@@ -1,5 +1,6 @@
 package tech.ula.utils
 
+import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.util.DisplayMetrics
 import android.view.Display
@@ -11,6 +12,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
+import tech.ula.BuildConfig
 
 @RunWith(MockitoJUnitRunner::class)
 class DeviceDimensionsTest {
@@ -27,6 +29,9 @@ class DeviceDimensionsTest {
     @Mock
     lateinit var mockDisplay: Display
 
+    @Mock
+    lateinit var mockSharedPreferences: SharedPreferences
+
     @Before
     fun setup() {
         mockDeviceDimensions = DeviceDimensions()
@@ -41,15 +46,19 @@ class DeviceDimensionsTest {
     @Test
     fun `Device dimensions that are taller in height will have the height value first`() {
         setDimensions(mockDisplayMetrics, width = 100, height = 200)
-        mockDeviceDimensions.saveDeviceDimensions(mockWindowManager, mockDisplayMetrics, Configuration.ORIENTATION_PORTRAIT)
+        mockDeviceDimensions.saveDeviceDimensions(mockWindowManager, mockDisplayMetrics, Configuration.ORIENTATION_PORTRAIT, mockSharedPreferences)
         val geometry = mockDeviceDimensions.getScreenResolution()
-        assertEquals(geometry, "200x100")
+        if (BuildConfig.FORCE_PORTRAIT_GEOMETRY) {
+            assertEquals(geometry, "200x100")
+        } else {
+            assertEquals(geometry, "100x200")
+        }
     }
 
     @Test
     fun `Device dimensions that are longer in width will have the width value first`() {
         setDimensions(mockDisplayMetrics, width = 300, height = 200)
-        mockDeviceDimensions.saveDeviceDimensions(mockWindowManager, mockDisplayMetrics, Configuration.ORIENTATION_PORTRAIT)
+        mockDeviceDimensions.saveDeviceDimensions(mockWindowManager, mockDisplayMetrics, Configuration.ORIENTATION_PORTRAIT, mockSharedPreferences)
         val geometry = mockDeviceDimensions.getScreenResolution()
         assertEquals(geometry, "300x200")
     }
