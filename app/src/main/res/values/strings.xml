@@ -147,6 +147,8 @@
     <string name="pref_app_category">App Preferences</string>
     <string name="pref_default_landing_page_title">Default Landing Page</string>
     <string name="pref_default_landing_page_message">Select the page you would like to open the app with.</string>
+    <string name="pref_clear_auto_start_title">Clear Auto Start Settings</string>
+    <string name="pref_clear_auto_start_summary">Stops any app from auto starting until enabled again.</string>
     <string name="pref_proot_category">PRoot Preferences</string>
     <string name="pref_proot_debugging_enabled_title">PRoot Debugging Logs Enabled</string>
     <string name="pref_proot_debugging_enabled_summary">Only necessary if having problems with the app. Log file stored at\n/mnt/sdcard/PRoot_Debug_Log</string>
@@ -282,5 +284,6 @@
 
     <!-- Advanced options -->
     <string name="desc_import_backups_should_use_same_settings">Fill out the same: \n\n\u2022 username \n\u2022 password \n\u2022 VNC password \n\u2022 distribution \n\n as the backup to ensure smooth functionality</string>
+    <string name="auto_start_checkbox">Enable Auto Start</string>
   
 </resources>

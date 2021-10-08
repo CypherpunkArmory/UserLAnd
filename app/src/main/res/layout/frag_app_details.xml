@@ -108,7 +108,18 @@
             android:textAlignment="center"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/text_describe_state" />
+            app:layout_constraintTop_toBottomOf="@id/text_describe_state"
+            app:layout_constraintBottom_toTopOf="@id/checkbox_auto_start" />
+
+        <CheckBox android:id="@+id/checkbox_auto_start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+            android:text="@string/auto_start_checkbox"
+            android:textAlignment="center"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_xsdl_version_supported_description"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

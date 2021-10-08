@@ -13,6 +13,11 @@
             android:entryValues="@array/default_landing_pages"
             android:defaultValue="@string/apps"
             app:iconSpaceReserved="false"/>
+        <Preference
+            android:key="pref_clear_auto_start"
+            android:title="@string/pref_clear_auto_start_title"
+            android:summary="@string/pref_clear_auto_start_summary"
+            app:iconSpaceReserved="false"/>
         <CheckBoxPreference
             android:key="pref_opt_in"
             android:title="@string/opt_in_preference"

@@ -24,7 +24,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 29
         versionCode vcode
-        versionName "2.8.1"
+        versionName "2.8.2"
         
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunnerArguments clearPackageData: 'true'
@@ -79,13 +79,13 @@ android {
             versionNameSuffix "-beta-$defaultConfig.versionCode"
             debuggable false
             minifyEnabled false
-            signingConfig signingConfigs.beta
+            //signingConfig signingConfigs.beta
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         release {
             debuggable false
             minifyEnabled false
-            signingConfig signingConfigs.release
+            //signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -306,5 +306,7 @@ dependencies {
         exclude group: 'org.jetbrains.kotlin'
     }
     androidTestUtil "androidx.test:orchestrator:$androidx_test_version"
+
+    implementation 'com.google.code.gson:gson:2.8.6'
 
 }
