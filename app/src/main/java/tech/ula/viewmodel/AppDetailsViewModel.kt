@@ -37,7 +37,8 @@ sealed class AppDetailsEvent {
     data class AutoStartChanged(val autoStartEnabled: Boolean, val app: App) : AppDetailsEvent()
 }
 
-class AppDetailsViewModel(private val sessionDao: SessionDao, private val appDetails: AppDetails, private val buildVersion: Int, private val prefs: SharedPreferences) : ViewModel(), CoroutineScope {    private val job = Job()
+class AppDetailsViewModel(private val sessionDao: SessionDao, private val appDetails: AppDetails, private val buildVersion: Int, private val prefs: SharedPreferences) : ViewModel(), CoroutineScope {
+    private val job = Job()
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
 
@@ -133,7 +134,7 @@ class AppDetailsViewModel(private val sessionDao: SessionDao, private val appDet
             if (event.autoStartEnabled)
                 with(prefs.edit()) {
                     val gson = Gson()
-                    val json= gson.toJson(event.app)
+                    val json = gson.toJson(event.app)
                     putString("AutoApp", json)
                     apply()
                 }

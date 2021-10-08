@@ -105,5 +105,4 @@ class AppDetailsFragment : Fragment() {
             viewModel.submitEvent(AppDetailsEvent.AutoStartChanged(checked, app))
         }
     }
-
 }

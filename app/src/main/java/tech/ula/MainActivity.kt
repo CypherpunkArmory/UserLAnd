@@ -12,7 +12,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.net.wifi.WifiManager
-import android.os.*
+import android.os.* // ktlint-disable no-wildcard-imports
 import com.google.android.material.textfield.TextInputEditText
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.appcompat.app.AppCompatActivity
@@ -150,7 +150,6 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             autoStart()
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -242,7 +241,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
             if (json.compareTo(" ") != 0) {
                 val gson = Gson()
                 val autoApp = gson.fromJson(json, App::class.java)
-                autoStarted=true
+                autoStarted = true
                 appHasBeenSelected(autoApp, true)
             }
     }
