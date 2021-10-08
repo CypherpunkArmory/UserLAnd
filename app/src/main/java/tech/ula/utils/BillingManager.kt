@@ -13,7 +13,7 @@ import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.SkuDetails
 import com.android.billingclient.api.SkuDetailsParams
-import java.util.*
+import java.util.* // ktlint-disable no-wildcard-imports
 import kotlin.collections.HashMap
 
 /**
