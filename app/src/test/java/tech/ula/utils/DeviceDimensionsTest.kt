@@ -5,7 +5,6 @@ import android.content.res.Configuration
 import android.util.DisplayMetrics
 import android.view.Display
 import android.view.WindowManager
-import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
 import org.junit.Assert.assertEquals
 import org.junit.Before

@@ -30,11 +30,11 @@ class DeviceDimensions {
             scaling = sharedPreferences.getString("pref_scaling", "1.0")!!.toFloat()
         } else {
             if (height > width) {
-                scalingMax = height/BuildConfig.MAX_DIMENSION
-                scalingMin = width/BuildConfig.MIN_DIMENSION
+                scalingMax = height / BuildConfig.MAX_DIMENSION
+                scalingMin = width / BuildConfig.MIN_DIMENSION
             } else {
-                scalingMax = width/BuildConfig.MAX_DIMENSION
-                scalingMin = height/BuildConfig.MIN_DIMENSION
+                scalingMax = width / BuildConfig.MAX_DIMENSION
+                scalingMin = height / BuildConfig.MIN_DIMENSION
             }
             if (scalingMin < 1f)
                 scalingMin = 1f
@@ -46,8 +46,8 @@ class DeviceDimensions {
                 scaling = scalingMin
         }
 
-        height = height/scaling
-        width = width/scaling
+        height = height / scaling
+        width = width / scaling
     }
 
     fun getScreenResolution(): String {
