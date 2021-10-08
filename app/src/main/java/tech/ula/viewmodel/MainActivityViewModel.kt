@@ -122,8 +122,8 @@ class MainActivityViewModel(
         }
     }
 
-    fun submitAppSelection(app: App) {
-        if (!selectionsCanBeMade()) return
+    fun submitAppSelection(app: App, autoStart: Boolean) {
+        if (!autoStart && !selectionsCanBeMade()) return
         lastSelectedApp = app
         submitAppsStartupEvent(AppSelected(app))
     }

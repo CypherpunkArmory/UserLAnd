@@ -278,6 +278,9 @@
     <!-- Advanced options -->
     <string name="desc_import_backups_should_use_same_settings">Bitte gleich ausfüllen: \n\n\u2022 Nutzername \n\u2022 Passwort \n\u2022 VNC-Passwort \n\u2022 Distribution \n\n wie beim Backup, um einen reibungslosen Ablauf sicherzustellen</string>
 
+    <string name="pref_clear_auto_start_title">Autostart Einstellungen löschen</string>
+    <string name="pref_clear_auto_start_summary">Keine App mehr automatisch starten, bis wieder aktiviert wird.</string>
+    <string name="auto_start_checkbox">Autostart aktivieren</string>
     <string name="pref_custom_scaling_enabled_title">Benuterdefinierten Skalierfaktor verwenden</string>
     <string name="pref_custom_scaling_enabled_summary">Erlaubt das Einstellen eines benutzerdefinierten Skalierfaktors, um die Display Auflösung der VNC Sitzung zu verringern.</string>
     <string name="pref_scaling_title">Skalierfaktor festlegen</string>

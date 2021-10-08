@@ -1,5 +1,6 @@
 package tech.ula.viewmodel
 
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
@@ -27,6 +28,7 @@ class AppDetailsViewModelTest {
     // Constructor parameters
     @Mock lateinit var mockSessionDao: SessionDao
     @Mock lateinit var mockAppDetails: AppDetails
+    @Mock lateinit var mockSharedPreferences: SharedPreferences
 
     // Mocks returned from stubs
     @Mock lateinit var mockUri: Uri
@@ -61,7 +63,7 @@ class AppDetailsViewModelTest {
         whenever(mockSessionDao.findAppsSession(inactiveName)).thenReturn(listOf(session))
 
         val buildVersion = Build.VERSION_CODES.M
-        viewModel = AppDetailsViewModel(mockSessionDao, mockAppDetails, buildVersion)
+        viewModel = AppDetailsViewModel(mockSessionDao, mockAppDetails, buildVersion, mockSharedPreferences)
         viewModel.viewState.observeForever(mockViewStateObserver)
 
         runBlocking {
@@ -77,7 +79,8 @@ class AppDetailsViewModelTest {
                 xsdlEnabled = true,
                 describeStateHintEnabled = false,
                 describeStateText = null,
-                selectedServiceTypeButton = R.id.apps_ssh_preference
+                selectedServiceTypeButton = R.id.apps_ssh_preference,
+                autoStartEnabled = false
         )
         verify(mockViewStateObserver).onChanged(expectedResult)
     }
@@ -90,7 +93,7 @@ class AppDetailsViewModelTest {
         whenever(mockSessionDao.findAppsSession(activeName)).thenReturn(listOf(session))
 
         val buildVersion = Build.VERSION_CODES.M
-        viewModel = AppDetailsViewModel(mockSessionDao, mockAppDetails, buildVersion)
+        viewModel = AppDetailsViewModel(mockSessionDao, mockAppDetails, buildVersion, mockSharedPreferences)
         viewModel.viewState.observeForever(mockViewStateObserver)
 
         runBlocking {
@@ -106,7 +109,8 @@ class AppDetailsViewModelTest {
                 xsdlEnabled = false,
                 describeStateHintEnabled = true,
                 describeStateText = R.string.info_stop_app,
-                selectedServiceTypeButton = R.id.apps_ssh_preference
+                selectedServiceTypeButton = R.id.apps_ssh_preference,
+                autoStartEnabled = false
         )
         verify(mockViewStateObserver).onChanged(expectedResult)
     }
@@ -119,7 +123,7 @@ class AppDetailsViewModelTest {
         whenever(mockSessionDao.findAppsSession(inactiveName)).thenReturn(listOf(session))
 
         val buildVersion = Build.VERSION_CODES.P
-        viewModel = AppDetailsViewModel(mockSessionDao, mockAppDetails, buildVersion)
+        viewModel = AppDetailsViewModel(mockSessionDao, mockAppDetails, buildVersion, mockSharedPreferences)
         viewModel.viewState.observeForever(mockViewStateObserver)
 
         runBlocking {
@@ -135,7 +139,8 @@ class AppDetailsViewModelTest {
                 xsdlEnabled = false,
                 describeStateHintEnabled = false,
                 describeStateText = null,
-                selectedServiceTypeButton = R.id.apps_ssh_preference
+                selectedServiceTypeButton = R.id.apps_ssh_preference,
+                autoStartEnabled = false
         )
         verify(mockViewStateObserver).onChanged(expectedResult)
     }
@@ -148,7 +153,7 @@ class AppDetailsViewModelTest {
         whenever(mockSessionDao.findAppsSession(inactiveName)).thenReturn(listOf(session))
 
         val buildVersion = Build.VERSION_CODES.M
-        viewModel = AppDetailsViewModel(mockSessionDao, mockAppDetails, buildVersion)
+        viewModel = AppDetailsViewModel(mockSessionDao, mockAppDetails, buildVersion, mockSharedPreferences)
         viewModel.viewState.observeForever(mockViewStateObserver)
 
         runBlocking {
@@ -164,7 +169,8 @@ class AppDetailsViewModelTest {
                 xsdlEnabled = false,
                 describeStateHintEnabled = true,
                 describeStateText = R.string.info_finish_app_setup,
-                selectedServiceTypeButton = null
+                selectedServiceTypeButton = null,
+                autoStartEnabled = false
         )
         verify(mockViewStateObserver).onChanged(expectedResult)
     }
@@ -176,7 +182,7 @@ class AppDetailsViewModelTest {
         whenever(mockSessionDao.findAppsSession(inactiveName)).thenReturn(listOf())
 
         val buildVersion = Build.VERSION_CODES.M
-        viewModel = AppDetailsViewModel(mockSessionDao, mockAppDetails, buildVersion)
+        viewModel = AppDetailsViewModel(mockSessionDao, mockAppDetails, buildVersion, mockSharedPreferences)
         viewModel.viewState.observeForever(mockViewStateObserver)
 
         runBlocking {
@@ -192,7 +198,8 @@ class AppDetailsViewModelTest {
                 xsdlEnabled = false,
                 describeStateHintEnabled = true,
                 describeStateText = R.string.info_finish_app_setup,
-                selectedServiceTypeButton = null
+                selectedServiceTypeButton = null,
+                autoStartEnabled = false
         )
         verify(mockViewStateObserver).onChanged(expectedResult)
     }
