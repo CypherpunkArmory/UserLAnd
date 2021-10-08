@@ -332,7 +332,7 @@ class MainActivity : AppCompatActivity(), SessionListFragment.SessionSelection, 
         val windowManager = applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
         val orientation = applicationContext.resources.configuration.orientation
-        deviceDimensions.saveDeviceDimensions(windowManager, DisplayMetrics(), orientation)
+        deviceDimensions.saveDeviceDimensions(windowManager, DisplayMetrics(), orientation, defaultSharedPreferences)
         session.geometry = deviceDimensions.getScreenResolution()
     }
 

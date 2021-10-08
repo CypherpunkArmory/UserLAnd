@@ -147,6 +147,9 @@
     <string name="pref_app_category">App Preferences</string>
     <string name="pref_default_landing_page_title">Default Landing Page</string>
     <string name="pref_default_landing_page_message">Select the page you would like to open the app with.</string>
+    <string name="pref_custom_scaling_enabled_title">Use Custom Graphical Scaling Factor</string>
+    <string name="pref_custom_scaling_enabled_summary">Allows specifying a custom scaling factor to decrease the resolution of the VNC session.</string>
+    <string name="pref_scaling_title">Set Custom Scaling Factor</string>
     <string name="pref_proot_category">PRoot Preferences</string>
     <string name="pref_proot_debugging_enabled_title">PRoot Debugging Logs Enabled</string>
     <string name="pref_proot_debugging_enabled_summary">Only necessary if having problems with the app. Log file stored at\n/mnt/sdcard/PRoot_Debug_Log</string>
