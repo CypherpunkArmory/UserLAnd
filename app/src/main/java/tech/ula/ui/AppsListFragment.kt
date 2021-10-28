@@ -54,7 +54,7 @@ class AppsListFragment : Fragment(), AppsListAdapter.AppsClickHandler {
     private val viewModel: AppsListViewModel by lazy {
         val ulaDatabase = UlaDatabase.getInstance(activityContext)
         val appsDao = ulaDatabase.appsDao()
-        val githubFetcher = GithubAppsFetcher("${activityContext.filesDir}")
+        val githubFetcher = GithubAppsFetcher("${activityContext.filesDir}",activityContext.assets)
 
         val appsRepository = AppsRepository(appsDao, githubFetcher, appsPreferences)
         ViewModelProviders.of(this, AppsListViewModelFactory(appsRepository))

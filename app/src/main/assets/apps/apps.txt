@@ -1,0 +1,19 @@
+App Name, Category, Filesystem Type Required, Supports CLI, Supports GUI, isPaidApp, Version
+Ubuntu, Distribution, ubuntu, true, true, false, 1
+Debian, Distribution, debian, true, true, false, 1
+Arch, Distribution, arch, true, true, false, 1
+Kali, Distribution, kali, true, true, false, 1
+Alpine, Distribution, alpine, true, true, false, 1
+LXDE, Desktop, debian, false, true, false, 1
+XFCE, Desktop, debian, false, true, false, 1
+Octave, Math, debian, true, true, false, 1
+R, Math, debian, true, true, false, 1
+Gnuplot, Math, debian, true, true, false, 1
+Zork, Game, debian, true, true, false, 1
+Adventure, Game, debian, true, true, false, 1
+Firefox, Browser, debian, false, true, false, 1
+LibreOffice, Office, debian, false, true, false, 1
+Gimp, Office, debian, false, true, false, 1
+Inkscape, Office, debian, false, true, false, 1
+Git, Development, debian, false, true, false, 1
+Idle, Development, debian, false, true, false, 1

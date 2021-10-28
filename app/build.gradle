@@ -32,6 +32,8 @@ android {
         vectorDrawables.useSupportLibrary = true
         buildConfigField 'boolean', 'ENABLE_PLAY_SERVICES', 'true'
 
+        buildConfigField 'boolean', 'APPS_IN_ASSETS', 'true'
+
         //these are used to help determine the resolution
         buildConfigField 'boolean', 'FORCE_PORTRAIT_GEOMETRY', 'true'
         buildConfigField 'int', "MAX_DIMENSION", "1280"

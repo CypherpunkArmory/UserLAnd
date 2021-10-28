@@ -1,0 +1,1 @@
+Kali is a Debian-derived Linux distribution designed for digital forensics and penetration testing.
