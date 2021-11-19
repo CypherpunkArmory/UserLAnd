@@ -1,0 +1,3 @@
+[submodule "UserLAndLibrary"]
+	path = UserLAndLibrary
+	url = https://github.com/CypherpunkArmory/UserLAndLibrary.git
