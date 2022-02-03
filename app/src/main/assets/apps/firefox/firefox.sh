@@ -5,6 +5,12 @@ sudo rm -f $SCRIPT_PATH
 
 xterm &
 
+if [ ! -f /support/gdk_fix ]; then
+  update-mime-database /usr/share/mime
+  find /usr/lib -name gdk-pixbuf-query-loaders -exec {} --update-cache \;
+  touch /support/gdk_fix
+fi
+
 if [ -f /Intents/url.txt ]; then
   url=`cat /Intents/url.txt`
   rm /Intents/url.txt

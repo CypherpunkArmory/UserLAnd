@@ -3,14 +3,14 @@ include ':app', ':UserLAndLibrary'
 project(':UserLAndLibrary').projectDir = new File('UserLAndLibrary/app')
 
 include ':terminal-view', ':terminal-emulator', ':terminal-app'
-project(':terminal-app').projectDir = new File('UserLAndLibrary/termux-app-private/app')
-project(':terminal-view').projectDir = new File('UserLAndLibrary/termux-app-private/terminal-view')
-project(':terminal-emulator').projectDir = new File('UserLAndLibrary/termux-app-private/terminal-emulator')
+project(':terminal-app').projectDir = new File('UserLAndLibrary/termux-app/app')
+project(':terminal-view').projectDir = new File('UserLAndLibrary/termux-app/terminal-view')
+project(':terminal-emulator').projectDir = new File('UserLAndLibrary/termux-app/terminal-emulator')
 
 include ':pubkeyGenerator', ':bVNC', ':remoteClientLib'
-project(':bVNC').projectDir = new File('UserLAndLibrary/remote-desktop-clients-private/bVNC')
-project(':pubkeyGenerator').projectDir = new File('UserLAndLibrary/remote-desktop-clients-private/pubkeyGenerator')
-project(':remoteClientLib').projectDir = new File('UserLAndLibrary/remote-desktop-clients-private/remoteClientLib')
+project(':bVNC').projectDir = new File('UserLAndLibrary/remote-desktop-clients/bVNC')
+project(':pubkeyGenerator').projectDir = new File('UserLAndLibrary/remote-desktop-clients/pubkeyGenerator')
+project(':remoteClientLib').projectDir = new File('UserLAndLibrary/remote-desktop-clients/remoteClientLib')
 
 include ':remoteClientLib:jni:libs:deps:FreeRDP:client:Android:Studio:freeRDPCore'
-project(':remoteClientLib:jni:libs:deps:FreeRDP:client:Android:Studio:freeRDPCore').projectDir = new File('UserLAndLibrary/remote-desktop-clients-private/remoteClientLib/jni/libs/deps/FreeRDP/client/Android/Studio/freeRDPCore/')
+project(':remoteClientLib:jni:libs:deps:FreeRDP:client:Android:Studio:freeRDPCore').projectDir = new File('UserLAndLibrary/remote-desktop-clients/remoteClientLib/jni/libs/deps/FreeRDP/client/Android/Studio/freeRDPCore/')

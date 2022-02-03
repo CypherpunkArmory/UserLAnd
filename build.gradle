@@ -3,7 +3,7 @@ buildscript {
     ext {
         def vcode = (int)(((new Date().getTime()/1000) - 1559347200) / 10)
         appVersionCode = vcode
-        appVersionName = '0.0.1'
+        appVersionName = '0.0.2'
         kotlin_version = '1.5.10'
         android_plugin = '4.1.1'
         jacoco_version = '0.8.4'
