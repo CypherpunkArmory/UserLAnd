@@ -1,3 +1,2 @@
 App Name, Category, Filesystem Type Required, Supports CLI, Supports GUI, isPaidApp, Version
-Debian, Distribution, debian, true, true, false, 1
-Firefox, Browser, debian, false, true, false, 1
+GIMP, Distribution, gimp, false, true, false, 1

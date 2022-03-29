@@ -1,4 +1,4 @@
-package tech.ula.foxbox
+package tech.ula.gimp
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("tech.ula.foxbox", appContext.packageName)
+        assertEquals("tech.ula.gimp", appContext.packageName)
     }
 }

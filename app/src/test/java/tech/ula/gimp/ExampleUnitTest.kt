@@ -1,4 +1,4 @@
-package tech.ula.foxbox
+package tech.ula.gimp
 
 import org.junit.Test
 

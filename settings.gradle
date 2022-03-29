@@ -1,4 +1,4 @@
-rootProject.name = "FoxBox"
+rootProject.name = "GIMP"
 include ':app', ':UserLAndLibrary'
 project(':UserLAndLibrary').projectDir = new File('UserLAndLibrary/app')
 

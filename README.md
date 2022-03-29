@@ -1,2 +1,2 @@
-# FoxBox
-FoxBox
+# GIMP
+GIMP

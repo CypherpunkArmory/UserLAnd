@@ -1,8 +1,5 @@
 #! /bin/bash
 
-SCRIPT_PATH=$(realpath ${BASH_SOURCE})
-sudo rm -f $SCRIPT_PATH
-
 if [ -d /sdcard ]; then
   if [ ! -d ~/sdcard ]; then
     ln -s /sdcard ~/sdcard
@@ -53,20 +50,15 @@ if [ ! -f /support/gdk_fix ]; then
   touch /support/gdk_fix
 fi
 
-if [ -f /Intents/url.txt ]; then
-  url=`cat /Intents/url.txt`
-  rm /Intents/url.txt
-  MOZ_DISABLE_AUTO_SAFE_MODE=1 /usr/bin/firefox -new-tab "$url" &> /dev/null &
-else
-  MOZ_DISABLE_AUTO_SAFE_MODE=1 /usr/bin/firefox &> /dev/null &
+if [ ! -f /support/full_screen_fix ]; then
+  sed -i 's/<\/applications>/<application class="*"> <position force="yes"> <x>0<\/x> <y>0<\/y> <\/position> <size> <width>100%<\/width> <height>100%<\/height> <\/size> <\/application> <\/applications>/g' /etc/xdg/openbox/rc.xml
+  openbox --reconfigure
+  touch /support/full_screen_fix
 fi
 
-while true
-do
-    if [ -f /Intents/url.txt ]; then
-      url=`cat /Intents/url.txt`
-      rm /Intents/url.txt
-      MOZ_DISABLE_AUTO_SAFE_MODE=1 /usr/bin/firefox -new-tab "$url" &> /dev/null &
-    fi
-    sleep 1
-done
+SCRIPT_PATH=$(realpath ${BASH_SOURCE})
+sudo rm -f $SCRIPT_PATH
+
+gimp
+
+exit

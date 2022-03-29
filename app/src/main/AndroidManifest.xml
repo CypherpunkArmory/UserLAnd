@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="tech.ula.foxbox">
+    package="tech.ula.gimp">
 
     <application
         android:allowBackup="false"
@@ -10,20 +10,12 @@
         android:supportsRtl="true"
         android:extractNativeLibs="true" >
 
-        <activity android:name=".MainActivity" android:launchMode="singleTask" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|density|screenLayout">
+        <activity android:name="tech.ula.gimp.MainActivity" android:launchMode="singleTask" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|density|screenLayout">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="http" />
-                <data android:scheme="https" />
             </intent-filter>
         </activity>
 
