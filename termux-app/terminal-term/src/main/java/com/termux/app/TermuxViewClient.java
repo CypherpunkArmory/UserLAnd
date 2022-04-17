@@ -1,12 +1,14 @@
 package com.termux.app;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.media.AudioManager;
 import androidx.drawerlayout.widget.DrawerLayout;
 import android.view.Gravity;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
 import com.termux.terminal.KeyHandler;
@@ -39,8 +41,7 @@ public final class TermuxViewClient implements TerminalViewClient {
 
     @Override
     public void onSingleTapUp(MotionEvent e) {
-        InputMethodManager mgr = (InputMethodManager) mActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
-        mgr.showSoftInput(mActivity.mTerminalView, InputMethodManager.SHOW_IMPLICIT);
+        mActivity.makeFullscreen();
     }
 
     @Override
