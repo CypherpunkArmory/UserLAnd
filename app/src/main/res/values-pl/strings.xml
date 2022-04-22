@@ -6,16 +6,16 @@
     <!-- Labels -->
     <string name="apps">Aplikacje</string>                               <!-- This is a button, so the word used should be short! -->
     <string name="sessions">Sesje</string>
-    <string name="edit_session">Edytuj Sesje</string>
+    <string name="edit_session">Edytuj sesję</string>
     <string name="filesystems">Systemy plików</string>
-    <string name="edit_filesystem">Edytuj System Plików</string>
+    <string name="edit_filesystem">Edytuj system plików</string>
     <string name="settings">Ustawienia</string>
     <string name="help">Pomoc</string>
-    <string name="toc">Zasady &amp; Warunki</string>
+    <string name="toc">Zasady i Warunki</string>
     <string name="wiki">Wiki</string>
 
     <!-- Buttons -->
-    <string name="button_continue">Kontyntynuj</string>
+    <string name="button_continue">Kontynuuj</string>
     <string name="button_advanced_options_show">Pokaż zaawansowane opcje</string>
     <string name="button_advanced_options_hide">Ukryj zaawansowane opcje</string>
     <string name="button_select_backup_import">Wybierz plik kopii zapasowej do zaimportowania</string>
@@ -47,8 +47,8 @@
     <string name="error_app_description_not_found">Nie można znaleźć opisu tej aplikacji. Spróbuj odświeżyć.</string>
     <string name="error_vnc_password_length_incorrect">Hasło VNC musi mieć od 6 do 8 znaków!</string>
     <string name="error_username_invalid">Nazwa użytkownika ma nieprawidłowe znaki</string>
-    <string name="error_password_invalid">Hasło ma nieprawidłowe znaki</string>
-    <string name="error_vnc_password_invalid">Hasło VNC ma nieprawidłowe znaki</string>
+    <string name="error_password_invalid">Hasło zawiera nieprawidłowe znaki</string>
+    <string name="error_vnc_password_invalid">Hasło VNC zawiera nieprawidłowe znaki</string>
     <string name="error_username_invalid_characters">Znaki w nazwie użytkownika muszą mieć od 1 do 30 znaków z małymi literami i/lub cyframi.</string>
     <string name="error_username_in_blacklist">Ta nazwa użytkownika jest prawdopodobnie zarezerwowana dla systemu Linux i nie może być używana jako nazwa użytkownika systemu plików.</string>
     <string name="error_filesystem_name_invalid_characters">Znaki w nazwie systemu plików muszą mieć od 1 do 50 znaków bez znaków takich jak \"/:*\\|</string>
@@ -57,8 +57,8 @@
     <string name="error_export_filesystem_not_found">Nie można określić systemu plików do utworzenia kopii zapasowej. Spróbuj ponownie.</string>
     <string name="error_export_copy_public_external_failure">Utworzenie kopii zapasowej do pamięci zewnętrznej nie powiodło się.</string>
     <string name="error_library_file_missing">Wygląda na to, że brakuje wymaganej biblioteki!</string>
-    <string name="error_library_setup_failure">Wygląda na to, że początkowa konfiguracja nie powiodła się. Skontaktuj się z nami na Github\'ie.</string>
-    <string name="error_no_lib_directory">Wygląda na to, że katalog biblioteki, którego szukamy, nie istnieje. Skontaktuj się z nami na Github\'ie.</string>
+    <string name="error_library_setup_failure">Wygląda na to, że początkowa konfiguracja nie powiodła się. Skontaktuj się z nami na GitHubie.</string>
+    <string name="error_no_lib_directory">Wygląda na to, że katalog biblioteki, którego szukamy, nie istnieje. Skontaktuj się z nami na GitHubie.</string>
     <string name="error_filesystem_delete">Usuwanie systemu plików nie powiodło się! Spróbuj zatrzymać wszystkie sesje i spróbować ponownie.</string>
 
     <!-- Download Failure Reasons -->
@@ -74,12 +74,12 @@
     <string name="download_failure_unknown_error">Nieznany błąd.</string>
     <string name="download_failure_missing_error">Nieznany kod błędu.</string>
     <string name="download_failure_reason_not_found">Powód niedostępny.</string>
-    <string name="download_failure_finished_wrong_items">Próbowaliśmy zakończyć proces pobierania z elementami, których nie dodaliśmy do kolejki.</string>
+    <string name="download_failure_finished_wrong_items">Próba zakończenia procesu pobierania z elementami, które nie zostały dodane do kolejki.</string>
 
     <!-- Illegal State Dialog -->
     <string name="illegal_state_github_message">
         %1$s \nPracujemy nad rozwiązaniem tych problemów. Możesz nas poinformować o tym problemie w wątku
-          na Github\ie, jeśli chcesz pomóc!
+          na GitHubie, jeśli chcesz pomóc!
     </string>
     <string name="illegal_state_title">UserLAnd wszedł w nieprawidłowy stan!</string>
 
@@ -90,16 +90,16 @@
 
     <string name="illegal_state_no_filesystem_selected_when_credentials_selected">Poświadczenia zostały przesłane dla systemu plików, ale żaden nie został wybrany.</string>
     <string name="illegal_state_no_app_selected_when_preference_submitted">Zatwierdzono preferencję aplikacji, ale żadna nie została wybrana.</string>
-    <string name="illegal_state_no_app_selected_when_preparation_started">Próbuję rozpocząć przygotowywanie aplikacji, ale nie wybrano żadnej aplikacji.</string>
+    <string name="illegal_state_no_app_selected_when_preparation_started">Próba rozpoczęcia przygotowywania aplikacji, lecz nie wybrano żadnej aplikacji.</string>
     <string name="illegal_state_error_fetching_app_database_entries">Nie można pobrać pozycji bazy danych aplikacji.</string>
     <string name="illegal_state_error_copying_app_script">Nie można skopiować skryptu aplikacji.</string>
 
-    <string name="illegal_state_no_session_selected_when_preparation_started">Próbuję obsłużyć przygotowanie sesji, zanim zostanie wybrana.</string>
+    <string name="illegal_state_no_session_selected_when_preparation_started">Próba obsłużenia przygotowania sesji, zanim została wybrana.</string>
     <string name="illegal_state_error_fetching_asset_lists">Nie udało się pobrać list zasobów.</string>
 
     <string name="illegal_state_remote_unreachable_during_generation">
          Nie można połączyć się ze zdalnym hostem podczas generowania wymagań pobierania. Upewnij się, że masz
-         dobre połączenie sieciowe i spróbuj ponownie.
+         stabilne połączenie sieciowe i spróbuj ponownie.
     </string>
 
     <string name="illegal_state_downloads_did_not_complete_successfully">Pobieranie nie powiodło się z powodu: %1$s.</string>
@@ -119,16 +119,16 @@
     <string name="prompt_client_type">Typ klienta:</string>
     <string name="prompt_app_connection_type_preference">Wybierz typ połączenia: </string>
     <string name="prompt_select_backup">Wybierz plik kopii zapasowej systemu plików</string>
-    <string name="prompt_install_file_manager">Zainstaluj Menedżera plików</string>
+    <string name="prompt_install_file_manager">Zainstaluj menedżera plików</string>
 
     <!-- Notification strings -->
     <string name="services_notification_channel_name">Usługi</string>
-    <string name="services_notification_channel_description">Stałe usługi</string>
+    <string name="services_notification_channel_description">Usługi trwałe</string>
     <string name="service_notification_title">UserLAnd</string>
     <string name="service_notification_description">UserLAnd ma uruchomioną usługę w tle.</string>
 
     <!-- Progress bar messages -->
-    <string name="progress_start_step">Przygotowywanie rzeczy dla Ciebie&#8230;</string>
+    <string name="progress_start_step">Przygotowywanie wszystkiego dla Ciebie&#8230;</string>
     <string name="progress_fetching_asset_lists">Pobieranie list zasobów&#8230;</string>
     <string name="progress_checking_for_required_updates">Sprawdzanie, czy wymagane są aktualizacje&#8230;</string>
     <string name="progress_downloading">Pobieranie wymaganych zasobów&#8230;</string>
@@ -145,8 +145,13 @@
 
     <!-- Preferences -->
     <string name="pref_app_category">Preferencje aplikacji</string>
-    <string name="pref_default_landing_page_title">Domyślna strona docelowa</string>
-    <string name="pref_default_landing_page_message">Wybierz stronę, na której chcesz otworzyć aplikację.</string>
+    <string name="pref_default_landing_page_title">Domyślny widok</string>
+    <string name="pref_default_landing_page_message">Wybierz widok, na którym chcesz otworzyć aplikację.</string>
+    <string name="pref_clear_auto_start_title">Wyczyść ustawienia autostartu</string>
+    <string name="pref_clear_auto_start_summary">Wyłącza automatyczny start wszystkich aplikacji, dopóki nie zostanie włączony z powrotem.</string>
+    <string name="pref_custom_scaling_enabled_title">Użyj własnej proporcji skalowania</string>
+    <string name="pref_custom_scaling_enabled_summary">Pozwala ustawić własną proporcję skalowania sesji VNC, aby obniżyć jej rozdzielczość.</string>
+    <string name="pref_scaling_title">Ustaw własną proporcję skalowania</string>
     <string name="pref_proot_category">Preferencje PRoot</string>
     <string name="pref_proot_debugging_enabled_title">Dzienniki debugowania PRoot włączone</string>
     <string name="pref_proot_debugging_enabled_summary">Konieczne tylko w przypadku problemów z aplikacją. Plik dziennika przechowywany w\n/mnt/sdcard/PRoot_Debug_Log</string>
@@ -156,11 +161,11 @@
     <string name="pref_proot_delete_debug_file_title">Usuń stare pliki debugowania</string>
 
     <!-- Help Activity -->
-    <string name="github_message">Występują błędy lub chcesz poprosić o funkcję? Nasza strona Github to najlepsze miejsce, aby szybko uzyskać odpowiedź.</string>
+    <string name="github_message">Występują błędy lub chcesz poprosić o funkcję? Nasza strona GitHub to najlepsze miejsce, aby szybko uzyskać odpowiedź.</string>
     <string name="supported_services">Aktualnie obsługiwane usługi:</string>
     <string name="terminology">Terminologia:</string>
     <string name="desc_apps_title">Aplikacje:</string>
-    <string name="desc_apps_message">Aplikacje to najprostszy sposób na uruchamianie popularnych aplikacji Linux.</string>
+    <string name="desc_apps_message">Aplikacje to najprostszy sposób na uruchamianie popularnych aplikacji na system Linux.</string>
     <string name="desc_sessions_title">Sesje:</string>
     <string name="desc_sessions_message">Sesje uruchamiają serwer w systemie plików, który umożliwia połączenie z nim za pomocą aplikacji klienckiej innej firmy.</string>
     <string name="desc_filesystems_title">Systemy plików:</string>
@@ -177,7 +182,7 @@
 
     <!-- Alerts -->
     <string name="button_yes">Tak!</string>
-    <string name="button_negative">Nie do końca</string>
+    <string name="button_negative">Nie, dziękuję</string>
     <string name="button_refuse">Nie, dziękuję</string>
     <string name="button_positive">Ok, pewnie</string>
     <string name="button_ok">OK!</string>
@@ -194,14 +199,17 @@
     <!-- Clear support files alert -->
     <string name="alert_clear_support_files_title">Czy wyczyścić wszystkie pliki pomocnicze?</string>
     <string name="alert_clear_support_files_message">
-         Spowoduje to usunięcie wszystkich plików pomocniczych. Nie wpłynie to na nic, co stworzyłeś na swoim
-         systemy plików. Spowoduje to ponowne pobranie zasobów przy następnym uruchomieniu sesji lub aplikacji.
+         Spowoduje to usunięcie wszystkich plików pomocniczych. Nie wpłynie to na nic, co stworzyłeś na swoich
+         systemach plików, lecz przy następnym uruchomieniu sesji lub aplikacji zasoby zostaną pobrane ponownie.
     </string>
     <string name="alert_clear_support_files_clear_button">Wyczyść</string>
 
     <!-- Play service error alerts -->
+    <string name="alert_play_service_error_message">Nie udało się połączyć z Usługami Google Play. Spróbuj ponownie, a jeśli problem będzie się powtarzał, zgłoś go deweloperom.</string>
+    <string name="alert_play_store_required">Płatne aplikacje wymagają dostępu do Sklepu Play aby zweryfikować płatność. Zainstaluj go, aby kontynuować.</string>
+    <string name="alert_subscriptions_unsupported_message">Wygląda na to, że wersja Sklepu Play, której używasz, jest za stara, aby obsługiwać subskrypcje. Zaktualizuj ją, aby kontynuować.</string>
     <string name="alert_need_client_app_title">Nie można znaleźć aplikacji klienckiej!</string>
-    <string name="alert_need_client_app_message">YDo wykonania tej czynności będziesz potrzebować klienta SSH, VNC lub XSDL, ale wygląda na to, że nie masz zainstalowanego sklepu Play. \n\nAby kontynuować, zainstaluj aplikację kliencką (SSH/VNC/XSDL) powiązaną z typem klienta sesji.</string>
+    <string name="alert_need_client_app_message">Do wykonania tej czynności będziesz potrzebować klienta SSH, VNC lub XSDL, ale wygląda na to, że nie masz zainstalowanego sklepu Play. \n\nAby kontynuować, zainstaluj aplikację kliencką (SSH/VNC/XSDL) powiązaną z typem klienta sesji.</string>
 
     <!-- Permissions necessary alert -->
     <string name="alert_permissions_necessary_title">UserLAnd wymaga uprawnień!</string>
@@ -216,15 +224,15 @@
     <string name="alert_storage_low_message">Aby zapewnić płynną funkcjonalność systemu plików w UserLAnd, upewnij się, że jest co najmniej 1 GB wolnego miejsca.</string>
 
     <!-- Wifi alert -->
-    <string name="alert_wifi_disabled_title">Brak wifi!</string>
+    <string name="alert_wifi_disabled_title">Brak WiFi!</string>
     <string name="alert_wifi_disabled_message">Musimy pobrać duży zasób (~80 MB).</string>
-    <string name="alert_wifi_disabled_continue_button">Kontyntynuj</string>
+    <string name="alert_wifi_disabled_continue_button">Kontynuuj</string>
     <string name="alert_wifi_disabled_turn_on_wifi_button">Włącz Wi-Fi</string>
     <string name="alert_wifi_disabled_cancel_button">Anuluj</string>
 
     <!-- Toasts -->
-    <string name="session_unique_name_required">Sesje wymagają unikalnej nazwy!</string>
-    <string name="filesystem_unique_name_required">Systemy plików wymagają unikalnej nazwy!</string>
+    <string name="session_unique_name_required">Nazwy sesji muszą być unikalne!</string>
+    <string name="filesystem_unique_name_required">Nazwy systemów plików muszą być unikalne!</string>
     <string name="single_session_supported">UserLAnd obsługuje obecnie tylko jedną aktywną sesję!</string>
     <string name="debug_log_export_success">Dziennik debugowania został pomyślnie wyeksportowany!</string>
     <string name="debug_log_export_failure">Eksportowanie dziennika debugowania nie powiodło się!</string>
@@ -248,26 +256,37 @@
     <!-- Review request -->
     <string name="review_is_user_enjoying">Podoba Ci się UserLAnd?</string>
     <string name="review_ask_for_rating">Co powiesz na ocenę w Sklepie Play?</string>
-    <string name="review_ask_for_feedback">Czy mógłbyś przekazać nam swoją opinię na Github\'ie?</string>
+    <string name="review_ask_for_feedback">Czy mógłbyś przekazać nam swoją opinię na GitHubie?</string>
 
+    <!-- Contribution request -->
+    <string name="contribution_primary">Czy możesz wspomóc rozwój UserLAnd?</string>
+    <string name="contribution_secondary_positive">Jak dużo chcesz wpłacić?</string>
+    <string name="contribution_secondary_negative">Do you want to see other ways you can help the project?</string>
+    <string name="contribution_frequency">Jak często?</string>
+    <string name="contribution_once">Jednorazowo</string>
+    <string name="contribution_yearly">Corocznie</string>
+    <string name="contribution_monthly">Co miesiąc</string>
+    <string name="contribution_process">Zatwierdź</string>
+    
     <!-- Error collection opt-in -->
     <string name="opt_in_preference">Włącz raportowanie błędów</string>
     <string name="opt_in_preference_summary">Pozwól nam zbierać raporty o błędach w celu ulepszenia UserLAnd.</string>
     <string name="opt_in_help_prompt">Czy chcesz, aby UserLAnd stał się bardziej stabilny, wysyłając nam raporty o błędach?</string>
     <string name="opt_in_error_collection_prompt">Czy włączyć usługę zbierania dzienników błędów?</string>
     <string name="opt_in_secondary_prompt">Jesteś pewny? Możesz zmienić to ustawienie później w ustawieniach.</string>
-    <string name="opt_in_secondary_pos_btn">OK, włączę się.</string>
+    <string name="opt_in_secondary_pos_btn">OK, zgadzam się.</string>
 
     <!-- Q Warning -->
     <string name="q_warning_title">Dostęp do plików zmienił się!</string>
     <string name="q_warning_message">
-         Kolejna wersja Androida, Q, wprowadza ulepszenia bezpieczeństwa, które wpływają na naszą aplikację i
-         w jaki sposób nasi użytkownicy mogą uzyskiwać i odbierać pliki z systemów plików UserLAnd. W celu zachowania zgodności
-         przy tych zmianach użycie \"/sdcard\" do przenoszenia plików do i z powrotem nie będzie już zachowywać się tak, jak wcześniej.
-         Odwiedź naszą wiki na naszym Githubie, aby dowiedzieć się więcej.
+         Kolejna wersja Androida, Q, wprowadza ulepszenia bezpieczeństwa, które wpływają na naszą aplikację oraz sposób,
+         w jaki nasi użytkownicy mogą uzyskiwać i odbierać pliki z systemów plików UserLAnd. W celu zachowania zgodności
+         przy tych zmianach, użycie \"/sdcard\" do przenoszenia plików do i z systemu plików nie będzie już zachowywać się tak, jak wcześniej.
+         Odwiedź naszą wiki na naszym GitHubie, aby dowiedzieć się więcej.
     </string>
 
     <!-- Advanced options -->
     <string name="desc_import_backups_should_use_same_settings">Wypełnij tak samo: \n\n\u2022 nazwa użytkownika \n\n\u2022 hasło \\n\n\u2022 Hasło VNC \n\n\u2022 dystrybucja \n\n jako kopia zapasowa, aby zapewnić płynną funkcjonalność</string>
+    <string name="auto_start_checkbox">Włącz autostart</string>
 
 </resources>
