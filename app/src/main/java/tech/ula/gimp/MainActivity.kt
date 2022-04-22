@@ -4,7 +4,8 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import tech.ula.model.entities.App
+import tech.ula.library.MainActivity
+import tech.ula.library.model.entities.App
 import java.io.File
 
 class MainActivity : AppCompatActivity() {
@@ -22,7 +23,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun processIntent(intent: Intent) {
-        val ulaIntent = Intent(this, tech.ula.MainActivity::class.java)
+        val ulaIntent = Intent(this, MainActivity::class.java)
         val app = App("gimp","Distribution", "gimp", false, true, false, 1)
         ulaIntent.putExtra("app", app)
         this.startActivity(ulaIntent)

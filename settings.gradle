@@ -14,3 +14,6 @@ project(':remoteClientLib').projectDir = new File('UserLAndLibrary/remote-deskto
 
 include ':remoteClientLib:jni:libs:deps:FreeRDP:client:Android:Studio:freeRDPCore'
 project(':remoteClientLib:jni:libs:deps:FreeRDP:client:Android:Studio:freeRDPCore').projectDir = new File('UserLAndLibrary/remote-desktop-clients/remoteClientLib/jni/libs/deps/FreeRDP/client/Android/Studio/freeRDPCore/')
+
+include ':CustomLibrary'
+project(':CustomLibrary').projectDir = new File('CustomLibrary')

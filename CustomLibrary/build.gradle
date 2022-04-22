@@ -1,0 +1,123 @@
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+}
+
+android {
+    compileSdkVersion 30
+    buildToolsVersion "30.0.3"
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 30
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+
+        buildConfigField "String", "REPO_NAME", "\"GIMP\""
+
+        buildConfigField 'String', 'VERSION_CODE', '\"' + rootProject.ext.appVersionCode + '\"'
+        buildConfigField 'String', 'VERSION_NAME', '\"' + rootProject.ext.appVersionName + '\"'
+
+        buildConfigField 'boolean', 'ENABLE_PLAY_SERVICES', 'true'
+
+        buildConfigField 'boolean', 'APPS_IN_ASSETS', 'true'
+
+        //controls whether to ask for creds or not
+        buildConfigField 'boolean', 'USE_DEFAULT_CREDS', 'true'
+        buildConfigField "String", "DEFAULT_SSH_PASSWORD", "\"sshpass\""
+        buildConfigField 'boolean', 'USE_RANDOM_VNC_PASSWORD', 'true'
+        buildConfigField "String", "DEFAULT_VNC_PASSWORD", "\"vncpass\""
+        buildConfigField "String", "DEFAULT_USERNAME", "\"userland\""
+
+        //controls whether to ask for session type or not
+        buildConfigField 'boolean', 'USE_DEFAULT_SERVICE_TYPE', 'true'
+        buildConfigField "String", "DEFAULT_LAUNCH_TYPE", "\"vnc\""
+
+        buildConfigField "String", "VNC_DISPLAY", "\"52\""
+
+        //default settings for associated preferences
+        //this can be used to hide bottom navigation
+        buildConfigField 'boolean', 'DEFAULT_HIDE_SESSIONS_FILESYSTEMS', 'true'
+        resValue "string", "default_hide_sessions_filesystems", "true"
+        //this can be used to hide distributions from being shown in the apps list
+        buildConfigField 'boolean', 'DEFAULT_HIDE_DISTRIBUTIONS', 'false'
+        resValue "string", "default_hide_distributions", "false"
+        //this can be used to get apps from a custom url
+        buildConfigField 'boolean', 'DEFAULT_CUSTOM_APPS_ENABLED', 'false'
+        resValue "string", "default_custom_apps_enabled", "false"
+        //this is the default custom apps url
+        buildConfigField "String", "DEFAULT_APPS_URL", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Support/raw/test_sep/apps\""
+        resValue "string", "default_apps_url", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Support/raw/test_sep/apps\""
+        //this can be used to get the filesystem from a custom url
+        buildConfigField 'boolean', 'DEFAULT_CUSTOM_FILESYSTEM_ENABLED', 'false'
+        resValue "string", "default_custom_filesystem_enabled", "false"
+        //this is the default custom filesystem url
+        buildConfigField "String", "DEFAULT_FILESYSTEM_URL", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.9\""
+        resValue "string", "default_filesystem_url", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.9\""
+        //this can be used the hide the toolbar within bVNC
+        buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_TOOLBAR', 'false'
+        resValue "string", "default_hide_vnc_toolbar", "false"
+        //this can be used the hide the extra keys within bVNC
+        buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_EXTRA_KEYS', 'false'
+        resValue "string", "default_hide_vnc_extra_keys", "false"
+        //this is the default input mode in bVNC
+        buildConfigField "String", 'DEFAULT_VNC_INPUT_MODE', "\"Direct, Hold Pan\""
+        resValue "string", "default_vnc_input_mode", "\"Direct, Hold Pan\""
+        //this is the default hostname to get written to the hosts and hostname file
+        buildConfigField "String", "DEFAULT_HOSTNAME", "\"android-device\""
+        resValue "string", "pref_hostname_default", "\"android-device\""
+        //these are the default search domains and nameservers to get written to the resolv.conf file
+        buildConfigField "String", "DEFAULT_DNS_DOMAINS", "\"search Home\""
+        buildConfigField "String", "DEFAULT_DNS_NAMESERVERS", "\"nameserver 8.8.8.8\\nnameserver 8.8.4.4\""
+        resValue "string", "pref_dns_default", "\"search Home\\nnameserver 8.8.8.8\\nnameserver 8.8.4.4\""
+
+        //these are used to help determine the resolution
+        buildConfigField 'boolean', 'FORCE_PORTRAIT_GEOMETRY', 'true'
+        buildConfigField 'int', "MAX_DIMENSION", "1000"
+        buildConfigField 'int', "MIN_DIMENSION", "360"
+
+        //these can be used to turn off certain prompts we present to users
+        buildConfigField 'boolean', 'HAS_LOGGER', 'false'
+        buildConfigField 'boolean', 'ASK_FOR_FEEDBACK', 'true'
+        buildConfigField 'boolean', 'ASK_FOR_CONTRIBUTION', 'false'
+
+        //these can be used to remove items from the setting menu
+        resValue "string", "help_enabled", "false"
+        resValue "string", "wiki_enabled", "false"
+        resValue "string", "toc_enabled", "false"
+        resValue "string", "clear_support_files_enabled", "false"
+
+        //this should be set to true if the assets are embedded in the filesystem
+        buildConfigField 'boolean', 'FILESYSTEM_ONLY_ASSET', 'false'
+
+        buildConfigField 'boolean', 'CHECK_FILESYSTEM_MD5', 'false'
+
+        //this is the default github release for filesystems to use if not overwritten by a custom url
+        buildConfigField 'String', 'DEFAULT_RELEASE', "\"latest\""
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+
+    def ktx_version = '1.6.0'
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation "androidx.core:core-ktx:$ktx_version"
+}
