@@ -8,7 +8,7 @@ android {
     buildToolsVersion "30.0.3"
 
     defaultConfig {
-        applicationId "tech.ula.gimp"
+        applicationId "tech.ula.octave"
         minSdkVersion 21
         targetSdkVersion 30
 

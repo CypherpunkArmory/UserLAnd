@@ -1,2 +1,2 @@
 App Name, Category, Filesystem Type Required, Supports CLI, Supports GUI, isPaidApp, Version
-GIMP, Distribution, gimp, false, true, false, 1
+Octave, Distribution, octave, true, true, false, 1

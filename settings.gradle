@@ -1,4 +1,4 @@
-rootProject.name = "GIMP"
+rootProject.name = "Octave"
 include ':app', ':UserLAndLibrary'
 project(':UserLAndLibrary').projectDir = new File('UserLAndLibrary/app')
 

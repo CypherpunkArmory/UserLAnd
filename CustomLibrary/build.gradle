@@ -16,7 +16,7 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
 
-        buildConfigField "String", "REPO_NAME", "\"GIMP\""
+        buildConfigField "String", "REPO_NAME", "\"Octave\""
 
         buildConfigField 'String', 'VERSION_CODE', '\"' + rootProject.ext.appVersionCode + '\"'
         buildConfigField 'String', 'VERSION_NAME', '\"' + rootProject.ext.appVersionName + '\"'
@@ -27,13 +27,14 @@ android {
 
         //controls whether to ask for creds or not
         buildConfigField 'boolean', 'USE_DEFAULT_CREDS', 'true'
+        buildConfigField 'boolean', 'USE_RANDOM_SSH_PASSWORD', 'true'
         buildConfigField "String", "DEFAULT_SSH_PASSWORD", "\"sshpass\""
         buildConfigField 'boolean', 'USE_RANDOM_VNC_PASSWORD', 'true'
         buildConfigField "String", "DEFAULT_VNC_PASSWORD", "\"vncpass\""
         buildConfigField "String", "DEFAULT_USERNAME", "\"userland\""
 
         //controls whether to ask for session type or not
-        buildConfigField 'boolean', 'USE_DEFAULT_SERVICE_TYPE', 'true'
+        buildConfigField 'boolean', 'USE_DEFAULT_SERVICE_TYPE', 'false'
         buildConfigField "String", "DEFAULT_LAUNCH_TYPE", "\"vnc\""
 
         buildConfigField "String", "VNC_DISPLAY", "\"52\""
