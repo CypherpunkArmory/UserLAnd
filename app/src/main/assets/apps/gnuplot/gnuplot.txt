@@ -1,0 +1,1 @@
+Gnuplot is a portable command-line driven interactive data and function plotting utility that supports lots of output formats, including drivers for many printers, (La)TeX, (x)fig, Postscript, and so on.

@@ -16,7 +16,7 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
 
-        buildConfigField "String", "REPO_NAME", "\"Octave\""
+        buildConfigField "String", "REPO_NAME", "\"UserLAnd\""
 
         buildConfigField 'String', 'VERSION_CODE', '\"' + rootProject.ext.appVersionCode + '\"'
         buildConfigField 'String', 'VERSION_NAME', '\"' + rootProject.ext.appVersionName + '\"'
@@ -37,12 +37,12 @@ android {
         buildConfigField 'boolean', 'USE_DEFAULT_SERVICE_TYPE', 'false'
         buildConfigField "String", "DEFAULT_LAUNCH_TYPE", "\"vnc\""
 
-        buildConfigField "String", "VNC_DISPLAY", "\"52\""
+        buildConfigField "String", "VNC_DISPLAY", "\"51\""
 
         //default settings for associated preferences
         //this can be used to hide bottom navigation
-        buildConfigField 'boolean', 'DEFAULT_HIDE_SESSIONS_FILESYSTEMS', 'true'
-        resValue "string", "default_hide_sessions_filesystems", "true"
+        buildConfigField 'boolean', 'DEFAULT_HIDE_SESSIONS_FILESYSTEMS', 'false'
+        resValue "string", "default_hide_sessions_filesystems", "false"
         //this can be used to hide distributions from being shown in the apps list
         buildConfigField 'boolean', 'DEFAULT_HIDE_DISTRIBUTIONS', 'false'
         resValue "string", "default_hide_distributions", "false"
