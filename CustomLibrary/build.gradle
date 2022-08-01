@@ -83,13 +83,16 @@ android {
         //these can be used to turn off certain prompts we present to users
         buildConfigField 'boolean', 'HAS_LOGGER', 'false'
         buildConfigField 'boolean', 'ASK_FOR_FEEDBACK', 'true'
-        buildConfigField 'boolean', 'ASK_FOR_CONTRIBUTION', 'false'
+        buildConfigField 'boolean', 'ASK_FOR_CONTRIBUTION', 'true'
 
         //these can be used to remove items from the setting menu
-        resValue "string", "help_enabled", "false"
-        resValue "string", "wiki_enabled", "false"
-        resValue "string", "toc_enabled", "false"
-        resValue "string", "clear_support_files_enabled", "false"
+        resValue "string", "help_enabled", "true"
+        resValue "string", "wiki_enabled", "true"
+        resValue "string", "toc_enabled", "true"
+        resValue "string", "clear_support_files_enabled", "true"
+
+        //this is used to hide many of the preferences from the user
+        buildConfigField 'boolean', 'HIDE_USERLAND_PREFS', 'false'
 
         //this should be set to true if the assets are embedded in the filesystem
         buildConfigField 'boolean', 'FILESYSTEM_ONLY_ASSET', 'false'

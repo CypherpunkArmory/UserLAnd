@@ -18,6 +18,21 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        beta {
+            storeFile project.file('../keystore.jks')
+            keyAlias System.getenv('ANDROID_KEY_ALIAS')
+            storePassword System.getenv('ANDROID_STORE_PASSWORD')
+            keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+        }
+        release {
+            storeFile project.file('../keystore.jks')
+            keyAlias System.getenv('ANDROID_KEY_ALIAS')
+            storePassword System.getenv('ANDROID_STORE_PASSWORD')
+            keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+        }
+    }
+
     buildTypes {
         debug {
             debuggable true
