@@ -74,6 +74,9 @@ android {
         buildConfigField "String", "DEFAULT_DNS_DOMAINS", "\"search Home\""
         buildConfigField "String", "DEFAULT_DNS_NAMESERVERS", "\"nameserver 8.8.8.8\\nnameserver 8.8.4.4\""
         resValue "string", "pref_dns_default", "\"search Home\\nnameserver 8.8.8.8\\nnameserver 8.8.4.4\""
+        //this can be used the hide the settings menu
+        buildConfigField 'boolean', 'DEFAULT_HIDE_SETTINGS', 'false'
+        resValue "string", "pref_hide_settings_default", "false"
 
         //these are used to help determine the resolution
         buildConfigField 'boolean', 'FORCE_PORTRAIT_GEOMETRY', 'true'
@@ -86,6 +89,7 @@ android {
         buildConfigField 'boolean', 'ASK_FOR_CONTRIBUTION', 'true'
 
         //these can be used to remove items from the setting menu
+        resValue "string", "settings_enabled", "true"
         resValue "string", "help_enabled", "true"
         resValue "string", "wiki_enabled", "true"
         resValue "string", "toc_enabled", "true"
@@ -101,6 +105,16 @@ android {
 
         //this is the default github release for filesystems to use if not overwritten by a custom url
         buildConfigField 'String', 'DEFAULT_RELEASE', "\"latest\""
+
+        //this controls if we use the DownloadManager
+        buildConfigField 'boolean', 'USE_DOWNLOAD_MANAGER', 'false'
+
+        //these control what permissions we ask for
+        buildConfigField 'boolean', 'USES_CAMERA', 'false'
+        buildConfigField 'boolean', 'USES_MICROPHONE', 'false'
+
+        //this controls if we support firing Android intents from the Linux side
+        buildConfigField 'boolean', 'POLL_FOR_INTENTS', 'false'
     }
 
     buildTypes {
