@@ -107,7 +107,7 @@ android {
         buildConfigField 'String', 'DEFAULT_RELEASE', "\"latest\""
 
         //this controls if we use the DownloadManager
-        buildConfigField 'boolean', 'USE_DOWNLOAD_MANAGER', 'false'
+        buildConfigField 'boolean', 'USE_DOWNLOAD_MANAGER', 'true'
 
         //these control what permissions we ask for
         buildConfigField 'boolean', 'USES_CAMERA', 'false'
