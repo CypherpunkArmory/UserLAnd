@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="tech.ula">
+
+    <uses-permission android:name="android.permission.CAMERA" tools:node="remove"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove"/>
 
     <application
         android:allowBackup="false"
@@ -9,7 +13,7 @@
         android:supportsRtl="true"
         android:extractNativeLibs="true" >
 
-        <activity android:name="tech.ula.library.MainActivity" android:launchMode="singleTask">
+        <activity android:name="tech.ula.library.MainActivity" android:launchMode="singleTask" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|density|screenLayout" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />

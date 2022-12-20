@@ -4,12 +4,12 @@ plugins {
 }
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "30.0.3"
+    compileSdkVersion 33
+    buildToolsVersion "33.0.0"
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 30
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
 
@@ -79,6 +79,10 @@ android {
         resValue "string", "pref_hide_settings_default", "false"
 
         //these are used to help determine the resolution
+        buildConfigField 'boolean', 'DEFAULT_PREF_CUSTOM_SCALING_ENABLED', 'true'
+        resValue "string", "default_pref_custom_scaling_enabled", "true"
+        buildConfigField 'String', 'DEFAULT_PREF_SCALING', "\"1.0\""
+        resValue "string", "default_pref_scaling", "1.0"
         buildConfigField 'boolean', 'FORCE_PORTRAIT_GEOMETRY', 'true'
         buildConfigField 'int', "MAX_DIMENSION", "1000"
         buildConfigField 'int', "MIN_DIMENSION", "360"
@@ -115,6 +119,9 @@ android {
 
         //this controls if we support firing Android intents from the Linux side
         buildConfigField 'boolean', 'POLL_FOR_INTENTS', 'false'
+
+        //has a10 shmem proot build
+        buildConfigField 'boolean', 'HAS_A10_PROOT', 'true'
     }
 
     buildTypes {

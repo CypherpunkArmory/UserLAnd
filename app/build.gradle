@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "30.0.3"
+    compileSdkVersion 31
+    buildToolsVersion "33.0.0"
 
     defaultConfig {
         applicationId "tech.ula"
         minSdkVersion 21
-        targetSdkVersion 30
+        targetSdkVersion 31
 
         versionCode rootProject.ext.appVersionCode
         versionName rootProject.ext.appVersionName
