@@ -1,114 +1,286 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources>                                                         <!-- Translators, pay attention to these notes! -->
     <string name="app_name">UserLAnd</string>
-    <string name="apps">应用程序</string>
+    <string name="welcome">欢迎使用 UserLAnd ！</string>
+    <string name="permission_request_code">1000</string>
+
+    <!-- Labels -->
+    <string name="apps">应用程序</string>                               <!-- This is a button, so the word used should be short! -->
     <string name="sessions">会话</string>
     <string name="edit_session">编辑会话</string>
     <string name="filesystems">文件系统</string>
     <string name="edit_filesystem">编辑文件系统</string>
     <string name="settings">设置</string>
     <string name="help">帮助</string>
-    <string name="toc">条款和条件</string>
+    <string name="toc">条款与条件</string>
+    <string name="wiki">Wiki</string>
+
+    <!-- Buttons -->
     <string name="button_continue">继续</string>
+    <string name="button_advanced_options_show">显示高级选项</string>
+    <string name="button_advanced_options_hide">隐藏高级选项</string>
+    <string name="button_select_backup_import">选择要导入的备份</string>
+
+    <!-- Menus -->
     <string name="app_info">应用信息</string>
-    <string name="stop_app">停止应用程序</string>
-    <string name="stop_session">停止服务</string>
+    <string name="stop_app">结束应用</string>
+    <string name="stop_session">结束会话</string>
     <string name="edit">编辑</string>
     <string name="delete">删除</string>
-    <string name="save">储存</string>
+    <string name="backup">导出</string>
+    <string name="save">保存</string>
     <string name="add">添加</string>
     <string name="refresh">刷新</string>
-    <string name="clear_support_files">清除支持的文件</string>
+    <string name="clear_support_files">清除所有依赖文件</string>
+
+    <!-- Hints -->
     <string name="hint_filesystem_name">文件系统名</string>
-    <string name="welcome">欢迎使用UserLAnd</string>
-    <string name="permission_request_code">1000</string>
     <string name="hint_session_name">会话名</string>
     <string name="hint_username">用户名</string>
     <string name="hint_password">密码</string>
     <string name="hint_vnc_password">VNC 密码</string>
-    <string name="error_session_name">您必须提供会话名</string>
-    <string name="error_filesystem_name">您必须提供文件系统名</string>
-    <string name="error_username">您必须提供用户名</string>
-    <string name="error_empty_field">请填写所有选项！</string>
-    <string name="error_app_description_not_found">无法查询此应用，请刷新</string>
-    <string name="error_vnc_password_length_incorrect">VNC密码必须在6到8字符</string>
-    <string name="error_username_invalid">用户名含有无效字符</string>
-    <string name="error_password_invalid">密码含有无效字符</string>
-    <string name="error_vnc_password_invalid">VNC密码含有无效字符</string>
+
+    <!-- Errors -->
+    <string name="error_session_name">必须填写会话名</string>
+    <string name="error_filesystem_name">必须填写文件系统名</string>
+    <string name="error_username">必须填写用户名</string>
+    <string name="error_empty_field">必须填写所有项目</string>
+    <string name="error_app_description_not_found">找不到对应此程序的描述。请试着刷新一下。</string>
+    <string name="error_vnc_password_length_incorrect">VNC 密码长度需在 6 至 8 之间！</string>
+    <string name="error_username_invalid">用户名包含非法字符</string>
+    <string name="error_password_invalid">密码包含非法字符</string>
+    <string name="error_vnc_password_invalid">VNC 密码包含非法字符</string>
+    <string name="error_username_invalid_characters">用户名长度需在 1 至 30 之间，且只能包含小写字母和/或数字。</string>
+    <string name="error_username_in_blacklist">该用户名可能是 Linux 的保留字段，无法用作文件系统用户名。</string>
+    <string name="error_filesystem_name_invalid_characters">文件系统用户名长度需在 1 至 50 之间，且不得包含 \"/:*\\| 等字符。</string>
+    <string name="error_export_execution_failure">导出失败：%1$s</string>
+    <string name="error_export_local_failure">无法导出至本地存储空间。</string>
+    <string name="error_export_filesystem_not_found">找不到要备份的文件系统。请重试。</string>
+    <string name="error_export_copy_public_external_failure">无法将备份复制到外部共享存储空间。</string>
+    <string name="error_library_file_missing">程序似乎缺少关键运行库！</string>
+    <string name="error_library_setup_failure">初始化失败。请在 Github 上联系我们！</string>
+    <string name="error_no_lib_directory">程序所需运行库目录似乎不存在。请在 Github 上联系我们。</string>
+    <string name="error_filesystem_delete">文件系统删除失败！请尝试结束所有会话，并重试。</string>
+
+    <!-- Download Failure Reasons -->
+    <string name="download_failure_http_error">HTTP 错误：%1$s</string>
+    <string name="download_failure_cannot_resume">无法恢复下载。</string>
+    <string name="download_failure_no_external_devices">找不到外部（存储）设备。</string>
+    <string name="download_failure_destination_exists">下载目录已存在。</string>
+    <string name="download_failure_unknown_file_error">未知文件错误。</string>
+    <string name="download_failure_http_processing">HTTP 数据处理错误。</string>
+    <string name="download_failure_insufficient_external_storage">外部存储空间不足。</string>
+    <string name="download_failure_too_many_redirects">重定向数过多。</string>
+    <string name="download_failure_unhandled_http_response">无法处理 HTTP 状态码。</string>
+    <string name="download_failure_unknown_error">未知错误。</string>
+    <string name="download_failure_missing_error">未知错误码。</string>
+    <string name="download_failure_reason_not_found">错误原因不可用。</string>
+    <string name="download_failure_finished_wrong_items">尝试下载不在队列中的文件。</string>
+
+    <!-- Illegal State Dialog -->
+    <string name="illegal_state_github_message">
+        %1$s \n我们正尝试解决这些问题。如果您愿意提供帮助，请在 Github 上告知此问题！
+    </string>
+    <string name="illegal_state_title">UserLAnd 发生严重错误！</string>
+
+    <string name="illegal_state_transition">错误信息如下：%1$s</string>
+
+    <string name="illegal_state_too_many_selections_when_permissions_granted">授权时，同时选择了会话和应用程序。</string>
+    <string name="illegal_state_no_selections_when_permissions_granted">授权时，会话和应用程序都未选择。</string>
+
+    <string name="illegal_state_no_filesystem_selected_when_credentials_selected">证书已提交，但未选择对应的文件系统。</string>
+    <string name="illegal_state_no_app_selected_when_preference_submitted">应用程序首选项已提交，但未选择对应的应用程序。</string>
+    <string name="illegal_state_no_app_selected_when_preparation_started">尝试准备应用程序，但未选择应用程序。</string>
+    <string name="illegal_state_error_fetching_app_database_entries">无法获取应用程序数据库。</string>
+    <string name="illegal_state_error_copying_app_script">无法复制应用程序脚本。</string>
+
+    <string name="illegal_state_no_session_selected_when_preparation_started">尝试准备会话，但未选择会话。</string>
+    <string name="illegal_state_error_fetching_asset_lists">无法获取资源列表。</string>
+
+    <string name="illegal_state_remote_unreachable_during_generation">
+        生成下载任务时无法连接远程主机。请确保网络状态良好，并重试。
+    </string>
+
+    <string name="illegal_state_downloads_did_not_complete_successfully">下载失败：%1$s。</string>
+    <string name="illegal_state_failed_to_copy_assets_to_local">无法将资源下载至本地存储。请试着清除依赖文件。</string>
+    <string name="illegal_state_assets_have_not_been_downloaded">需复制到文件系统中的资源似乎尚未下载。请试着清除依赖文件。</string>
+    <string name="illegal_state_empty_download_cache_access">访问缓存时，下载缓存为空。</string>
+    <string name="illegal_state_failed_to_copy_assets_to_filesystem">无法将资源复制到文件系统中。请试着清除依赖文件。</string>
+    <string name="illegal_state_failed_to_extract_filesystem">无法解压文件系统。请试着清除依赖文件。错误原因：%1$s</string>
+    <string name="illegal_state_failed_to_clear_support_files">无法清除依赖文件。</string>
+    <string name="illegal_state_insufficient_storage">存储空间不足。请为设备腾出至少 250MiB 的空间。</string>
+    <string name="illegal_state_unhandled_session_service_type">尝试启动未知服务类型的会话。</string>
+    <string name="illegal_state_busybox_missing">此操作需要 Busybox 。请运行会话以确保此程序已安装。</string>
+
+    <!-- Prompts -->
     <string name="prompt_filesystem">文件系统：</string>
-    <string name="prompt_service_type">服务类别：</string>
-    <string name="prompt_client_type">客户端类别：</string>
+    <string name="prompt_service_type">服务类型：</string>
+    <string name="prompt_client_type">客户端类型：</string>
+    <string name="prompt_app_connection_type_preference">请选择连接类型：</string>
+    <string name="prompt_select_backup">选择文件系统备份</string>
+    <string name="prompt_install_file_manager">请安装一款文件管理器</string>
+
+    <!-- Notification strings -->
     <string name="services_notification_channel_name">服务</string>
-    <string name="services_notification_channel_description">永久服务</string>
+    <string name="services_notification_channel_description">持久化服务</string>
     <string name="service_notification_title">UserLAnd</string>
-    <string name="service_notification_description">UserLAnd在后台运行中</string>
-    <string name="progress_fetching_asset_lists">正在取得素材列表&#8230;</string>
-    <string name="progress_checking_for_required_updates">正在检查更新信息&#8230;</string>
-    <string name="progress_downloading">正在下载需要的素材&#8230;</string>
-    <string name="progress_downloading_out_of">%1$d/%2$d已完成</string>
-    <string name="progress_copying_downloads">正在将已下载文件复制到本地储存&#8230;</string>
-    <string name="progress_starting">开始服务&#8230;</string>
-    <string name="progress_setting_up_filesystem">设置文件系统中&#8230;</string>
-    <string name="progress_extraction_details">提取: %1$s</string>
-    <string name="illegal_state_title">UserLAnd发生了一些错误</string>
-    <string name="illegal_state_transition">这些错误有: %1$s</string>
-    <string name="progress_verifying_assets">正在验证下载的资源&#8230;\n很快就会完成。</string>
-    <string name="pref_app_category">应用偏好&#8230;</string>
-    <string name="pref_default_landing_page_title">默认登陆页面</string>
-    <string name="pref_default_landing_page_message">选择您喜好的登陆页面.</string>
-    <string name="pref_proot_category">PRoot偏好</string>
-    <string name="pref_proot_debugging_enabled_title">已开启PRoot除错日志</string>
-    <string name="pref_proot_debugging_enabled_summary">如若应用出错，日志文件储存在[&#8230;]</string>
-    <string name="pref_proot_debugging_level_title">除错的冗余级别</string>
+    <string name="service_notification_description">UserLAnd 正在后台运行服务。</string>
+
+    <!-- Progress bar messages -->
+    <string name="progress_start_step">准备中&#8230;</string>
+    <string name="progress_fetching_asset_lists">正在获取资源列表&#8230;</string>
+    <string name="progress_checking_for_required_updates">正在检查是否需要更新&#8230;</string>
+    <string name="progress_downloading">正在下载所需资源&#8230;</string>
+    <string name="progress_downloading_out_of">第 %1$d 个，共 %2$d 个</string>
+    <string name="progress_copying_downloads">正在将下载项复制到本地存储&#8230;</string>
+    <string name="progress_verifying_sufficient_storage">正在检查存储空间是否充足&#8230;</string>
+    <string name="progress_setting_up_filesystem">正在设置文件系统&#8230;</string>
+    <string name="progress_extraction_details">正在解压：%1$s</string>
+    <string name="progress_verifying_assets">正在验证资源：&#8230;</string>
+    <string name="progress_starting">正在启动服务&#8230;</string>
+    <string name="progress_clearing_support_files">正在清除所有依赖文件&#8230;</string>
+    <string name="progress_exporting_filesystem">正在导出文件系统</string>
+    <string name="progress_deleting_filesystem">正在删除文件系统</string>
+
+    <!-- Preferences -->
+    <string name="pref_app_category">应用程序偏好</string>
+    <string name="pref_default_landing_page_title">默认登陆界面</string>
+    <string name="pref_default_landing_page_message">选择您偏好的登陆界面</string>
+    <string name="pref_clear_auto_start_title">清除自启动设置</string>
+    <string name="pref_clear_auto_start_summary">阻止所有应用程序自动启动，除非再次手动启用自启动。</string>
+    <string name="pref_custom_scaling_enabled_title">使用自定义缩放率</string>
+    <string name="pref_custom_scaling_enabled_summary">指定自定义缩放率，从而降低 VNC 会话分辨率。</string>
+    <string name="pref_scaling_title">设置自定义缩放率</string>
+    <string name="pref_proot_category">PRoot 偏好</string>
+    <string name="pref_proot_debugging_enabled_title">启用 PRoot 调试日志</string>
+    <string name="pref_proot_debugging_enabled_summary">仅在程序出现问题时启用。日志将被存储在\n/mnt/sdcard/PRoot_Debug_Log</string>
+    <string name="pref_proot_debugging_level_title">调试详尽程度</string>
+    <string name="pref_proot_debugging_level_summary">数字越大，日志越详细。</string>
     <string name="pref_proot_debugging_level_default">-1</string>
-    <string name="pref_proot_delete_debug_file_title">删除除错记录</string>
-    <string name="supported_services">目前支持的服务：</string>
-    <string name="terminology">专业术语:</string>
+    <string name="pref_proot_delete_debug_file_title">删除旧的调试文件</string>
+
+    <!-- Help Activity -->
+    <string name="github_message">遇到 Bug 了？想要请求新特性？请访问我们的 Github 页面，快速获得相关答复。</string>
+    <string name="supported_services">当前支持的服务：</string>
+    <string name="terminology">术语：</string>
     <string name="desc_apps_title">应用程序：</string>
-    <string name="desc_apps_message">应用程序是启动Linux程序的最简单的方式</string>
+    <string name="desc_apps_message">应用程序时启动常用 Linux 程序的快捷方式。</string>
     <string name="desc_sessions_title">会话：</string>
-    <string name="desc_sessions_message">会话将在文件系统中开启一个服务器，让您通过第三方客户端来连接此服务器</string>
+    <string name="desc_sessions_message">会话将在文件系统上启动一个服务器，您可以用第三方客户端连接。</string>
     <string name="desc_filesystems_title">文件系统：</string>
-    <string name="desc_filesystems_message">文件系统就是：用户群体和文件组织方式下产生的如同linux的行为</string>
-    <string name="support_dropbear">SSH-Dropbear</string>
-    <string name="support_tightvnc">VNC- TightVNC</string>
+    <string name="desc_filesystems_message">顾名思义：系统用户与文件结构的集合，其行为类似 Linux 上的文件系统。</string>
+
+    <!-- Supported Services -->
+    <string name="support_dropbear">SSH - Dropbear</string>
+    <string name="support_tightvnc">VNC - TightVNC</string>
+
+    <!-- Client Types -->
     <string name="client_ssh">SSH</string>
     <string name="client_vnc">VNC</string>
-    <string name="button_ok">好的！</string>
-    <string name="prompt_app_connection_type_preference">请选择连接方式：</string>
-    <string name="general_error_title">好像哪里出错了！</string>
-    <string name="filesystem_credentials_reasoning">我们正在为您的程序创建一个文件系统，请输入相关信息，我们将为您设置成此文件系统的默认信息</string>
-    <string name="alert_need_client_app_title">无法找到客户端应用！</string>
-    <string name="alert_need_client_app_message">您需要一个SSH 或者VNC客户端来完成这项指令，看起来您并没有装载Google Play商店。 请装载SSH或者VNC客户端.</string>
-    <string name="alert_permissions_necessary_title">UserLAnd需要您的允许！</string>
-    <string name="alert_permissions_necessary_message">请允许UserLAnd下载文件并将它们储存在本地.</string>
+    <string name="client_xsdl">XSDL</string>
+
+    <!-- Alerts -->
+    <string name="button_yes">好！</string>
+    <string name="button_negative">还是算了</string>
+    <string name="button_refuse">不，谢谢</string>
+    <string name="button_positive">好的</string>
+    <string name="button_ok">好！</string>
+    <string name="button_cancel">取消</string>
+    <string name="general_error_title">发生错误！</string>
+    <string name="filesystem_credentials_reasoning">正在为您的应用程序创建文件系统。\n请输入相关信息，作为文件系统的默认设置。</string>
+    <string name="deactivate_sessions">若要继续此操作，需先结束所有会话。</string>
+    <string name="import_success">备份导入成功</string>
+    <string name="import_failure">备份导入失败</string>
+    <string name="export_success">备份导出成功</string>
+    <string name="export_failure">备份导出失败</string>
+    <string name="export_started">正在导出备份，请稍候</string>
+
+    <!-- Clear support files alert -->
+    <string name="alert_clear_support_files_title">清除所有依赖文件</string>
+    <string name="alert_clear_support_files_message">
+        这将清除所有依赖文件，但不会影响您在文件系统中的改动。这将导致下次运行会话或应用程序时需要重新下载资源。
+    </string>
+    <string name="alert_clear_support_files_clear_button">清除</string>
+
+    <!-- Play service error alerts -->
+    <string name="alert_play_service_error_message">访问 Google Play 服务时发生错误。请稍后重试。若问题仍旧，请联系开发者。</string>
+    <string name="alert_play_store_required">付费应用需要连接 Google Play 商店进行验证。请安装后继续。</string>
+    <string name="alert_subscriptions_unsupported_message">您的 Play 商店似乎版本过旧，不支持订阅。请更新后继续。</string>
+    <string name="alert_need_client_app_title">找不到客户端！</string>
+    <string name="alert_need_client_app_message">要继续操作，您需要 SSH、VNC 或 XSDL 客户端，但您似乎未安装 Play 商店。\n\n请安装协议 (SSH/VNC/XSDL) 所对应的客户端后继续。</string>
+
+    <!-- Permissions necessary alert -->
+    <string name="alert_permissions_necessary_title">UserLAnd 需要权限！</string>
+    <string name="alert_permissions_necessary_message">若要继续，请授予 UserLAnd 存储权限，以便程序下载文件并移动至应用程序私有存储空间。</string>
     <string name="alert_permissions_necessary_cancel_button">取消</string>
-    <string name="alert_network_required_for_refresh">刷新程序需要更好的网络连接强度</string>
-    <string name="alert_wifi_disabled_title">没有无线网络!</string>
-    <string name="alert_wifi_disabled_message">一个较大的素材（~80mb）需要下载.</string>
+
+    <!-- Network unavailable alert -->
+    <string name="alert_network_required_for_refresh">刷新应用程序需要可用的网络连接。</string>
+
+    <!-- Storage capacity low alert -->
+    <string name="alert_storage_low_title">可用存储容量低</string>
+    <string name="alert_storage_low_message">为保证 UserLAnd 中的文件系统运行顺畅，请确保存储设备有至少 1GiB 的可用空间。</string>
+
+    <!-- Wifi alert -->
+    <string name="alert_wifi_disabled_title">Wi-Fi 未连接！</string>
+    <string name="alert_wifi_disabled_message">程序需要下载大量（约 80MiB ）资源。</string>
     <string name="alert_wifi_disabled_continue_button">继续</string>
-    <string name="alert_wifi_disabled_turn_on_wifi_button">打开无线网络设置</string>
+    <string name="alert_wifi_disabled_turn_on_wifi_button">打开 Wi-Fi</string>
     <string name="alert_wifi_disabled_cancel_button">取消</string>
-    <string name="session_unique_name_required">此会话需要一个特殊的名字！</string>
-    <string name="filesystem_unique_name_required">文件系统需要一个特殊的名字！</string>
-    <string name="single_session_supported">UserLAnd目前仅支持一个会话！</string>
-    <string name="debug_log_deleted">除错日志已被删除或者不存在！</string>
-    <string name="desc_arrow">图像：箭头指示会话与文件系统之间的关系</string>
-    <string name="desc_filesystem_type">图像：分发图标</string>
+
+    <!-- Toasts -->
+    <string name="session_unique_name_required">会话名称不得重复！</string>
+    <string name="filesystem_unique_name_required">文件系统名称不得重复！</string>
+    <string name="single_session_supported">UserLAnd 当前只支持同时运行一个会话！</string>
+    <string name="debug_log_export_success">调试日志导出成功！</string>
+    <string name="debug_log_export_failure">调试日志导出失败！</string>
+    <string name="debug_log_deleted">调试日志已删除！</string>
+    <string name="backup_export_success">备份导出成功！</string>
+
+    <!-- Content descriptions -->
+    <string name="desc_arrow">图片：表示会话与文件系统之间关系的箭头</string>
+    <string name="desc_filesystem_type">图片：发行版徽标</string>
+    <string name="desc_default_app_icon">图片：默认应用程序图标</string>
+
+    <!-- Misc -->
+    <string name="placeholder">占位字段</string>
     <string name="custom_sessions">自定义会话</string>
     <string name="apps_sessions">应用程序会话</string>
-    <string name="github_message">发现错误并且想要申请新的功能？上我们的Github，在那里您能得到最快的答复！</string>
-    <string name="pref_proot_debugging_level_summary">数值越大，越冗余越高.</string>
-    <string name="alert_clear_support_files_title">真的要删除支持文件吗?</string>
-    <string name="alert_clear_support_files_message">
-        点击“是的”将会清除支持的文件。但这不会发生在安装的应用程序的文件的。
-        点击“是的”将会导致在下次运行会话或应用程序时再下载资源。
+    <string name="info_finish_app_setup">完成程序设置，方可启用这些选项。</string>
+    <string name="info_stop_app">结束此应用，方可编辑设置。</string>
+    <string name="info_xsdl_support">XSDL 尚未完全支持 Android 9.0 及以上版本</string>
+    <string name="no_backup_selected">未选择要导入的备份</string>
+
+    <!-- Review request -->
+    <string name="review_is_user_enjoying">感觉 UserLAnd 如何？</string>
+    <string name="review_ask_for_rating">想在 Play 商店上打个分吗？</string>
+    <string name="review_ask_for_feedback">想在 Github 上给予我们一些反馈吗？</string>
+
+    <!-- Contribution request -->
+    <string name="contribution_primary">您可以协助我们开发 UserLAnd 吗？</string>
+    <string name="contribution_secondary_positive">您可以参与多少贡献？</string>
+    <string name="contribution_secondary_negative">您还知道其他助力项目开发的方法吗？</string>
+    <string name="contribution_frequency">您可以按照怎样的频度参与贡献？</string>
+    <string name="contribution_once">仅一次</string>
+    <string name="contribution_yearly">每年一次</string>
+    <string name="contribution_monthly">每月一次</string>
+    <string name="contribution_process">进行</string>
+
+    <!-- Error collection opt-in -->
+    <string name="opt_in_preference">参与错误报告</string>
+    <string name="opt_in_preference_summary">允许我们收集错误报告，改进 UserLAnd 。</string>
+    <string name="opt_in_help_prompt">您愿意发送错误报告，帮助 UserLAnd 变得更稳定吗？</string>
+    <string name="opt_in_error_collection_prompt">参与错误报告收集？</string>
+    <string name="opt_in_secondary_prompt">确定吗？您稍后还可以在设置中修改这一选项。</string>
+    <string name="opt_in_secondary_pos_btn">好，我愿意参与。</string>
+
+    <!-- Q Warning -->
+    <string name="q_warning_title">文件访问方式已改变！</string>
+    <string name="q_warning_message">
+        Android Q 将改进安全性，而这会影响我们程序的运行，以及用户在 UserLAnd 文件系统间移动文件的方式。为适应这一更改，您通过 \"/sdcard\" 在文件系统间移动文件的方式将会调整。请访问我们 Github 上的 Wiki 了解更多细节。
     </string>
-    <string name="info_xsdl_support">Android 9.0及更高版本尚不完全支持XSDL</string>
-    <string name="alert_clear_support_files_clear_button">清除</string>
-    <string name="review_is_user_enjoying">正在享受 UserLAnd吗？</string>
-    <string name="review_ask_for_rating">可以在 Play商店上为我们评分吗？</string>
-    <string name="review_ask_for_feedback">您介意在GitHub上给我们一些反馈吗？</string>
-    <string name="q_warning_title">文件访问权限已更改!</string>
-   <string name="q_warning_message">Android Q的下一个版本的正在改进安全性，会影响我们的应用程序以及用户如何从UserLAnd上的文件系统中获取文件。为了遵守这些更改，将sdcard内的文件移入和移出将不再像过去那样。请访问我们的Github上的Wiki了解更多信息.</string>
+
+    <!-- Advanced options -->
+    <string name="desc_import_backups_should_use_same_settings">确保以下内容与备份中的一致：\n\n\u2022 用户名 \n\u2022 密码 \n\u2022 VNC 密码 \n\u2022 发行版 \n\n 从而保证程序功能顺利执行</string>
+    <string name="auto_start_checkbox">启用自启动</string>
+
 </resources>
