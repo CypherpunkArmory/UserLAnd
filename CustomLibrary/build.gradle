@@ -122,6 +122,9 @@ android {
 
         //has a10 shmem proot build
         buildConfigField 'boolean', 'HAS_A10_PROOT', 'true'
+
+        //Need unique provider authorities
+        buildConfigField 'String', 'PROVIDER_AUTHORITY', "\"tech.ula.provider.fileprovider\""
     }
 
     buildTypes {
