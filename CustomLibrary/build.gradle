@@ -90,7 +90,8 @@ android {
         //these can be used to turn off certain prompts we present to users
         buildConfigField 'boolean', 'HAS_LOGGER', 'false'
         buildConfigField 'boolean', 'ASK_FOR_FEEDBACK', 'true'
-        buildConfigField 'boolean', 'ASK_FOR_CONTRIBUTION', 'true'
+        buildConfigField 'boolean', 'ASK_FOR_CONTRIBUTION', 'false'
+        buildConfigField 'boolean', 'ASK_FOR_PAYMENT', 'true'
 
         //these can be used to remove items from the setting menu
         resValue "string", "settings_enabled", "true"
