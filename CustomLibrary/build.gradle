@@ -79,10 +79,7 @@ android {
         resValue "string", "pref_hide_settings_default", "false"
 
         //these are used to help determine the resolution
-        buildConfigField 'boolean', 'DEFAULT_PREF_CUSTOM_SCALING_ENABLED', 'true'
-        resValue "string", "default_pref_custom_scaling_enabled", "true"
-        buildConfigField 'String', 'DEFAULT_PREF_SCALING', "\"1.0\""
-        resValue "string", "default_pref_scaling", "1.0"
+        //TODO rework these into the math before next Relag merge
         buildConfigField 'boolean', 'FORCE_PORTRAIT_GEOMETRY', 'true'
         buildConfigField 'int', "MAX_DIMENSION", "1000"
         buildConfigField 'int', "MIN_DIMENSION", "360"

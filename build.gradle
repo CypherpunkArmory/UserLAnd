@@ -3,7 +3,7 @@ buildscript {
     ext {
         def vcode = (int)(((new Date().getTime()/1000) - 1559347200) / 10)
         appVersionCode = vcode
-        appVersionName = '3.1.9'
+        appVersionName = '23.06.06'
         orientation = "unspecified"
         provider_authority = "tech.ula.provider.fileprovider"
         kotlin_version = '1.5.10'
