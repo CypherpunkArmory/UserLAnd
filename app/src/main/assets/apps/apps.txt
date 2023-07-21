@@ -6,7 +6,7 @@ Kali, Distribution, kali, true, true, false, false, 1
 Alpine, Distribution, alpine, true, true, false, false, 1
 Thunderbird, Email, debian, true, true, tech.ula.birdbox, false, 1
 Octave, Math, debian, true, true, tech.ula.octave, false, 1
-R, Math, debian, true, true, false, false, 1
+R, Math, debian, true, true, tech.ula.r, false, 1
 Gnuplot, Math, debian, true, true, false, false, 1
 Zork, Game, debian, true, true, false, false, 1
 Adventure, Game, debian, true, true, false, false, 1
@@ -15,4 +15,4 @@ LibreOffice, Office, debian, false, true, false, false, 1
 Gimp, Office, debian, false, true, tech.ula.gimp, false, 1
 Inkscape, Office, debian, false, true, tech.ula.inkscape, false, 1
 Git, Development, debian, false, true, false, false, 1
-Idle, Development, debian, false, true, false, false, 1
+Idle, Development, debian, false, true, tech.ula.idle, false, 1
