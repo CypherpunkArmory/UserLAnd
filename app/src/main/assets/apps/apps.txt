@@ -16,3 +16,4 @@ Gimp, Office, debian, false, true, tech.ula.gimp, false, 1
 Inkscape, Office, debian, false, true, tech.ula.inkscape, false, 1
 Git, Development, debian, false, true, false, false, 1
 Idle, Development, debian, false, true, tech.ula.idle, false, 1
+Vscode, Development, debian, false, true, tech.ula.devstudio, false, 1
