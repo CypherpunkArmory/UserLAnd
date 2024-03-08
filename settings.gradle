@@ -7,6 +7,10 @@ project(':terminal-app').projectDir = new File('UserLAndLibrary/termux-app/app')
 project(':terminal-view').projectDir = new File('UserLAndLibrary/termux-app/terminal-view')
 project(':terminal-emulator').projectDir = new File('UserLAndLibrary/termux-app/terminal-emulator')
 
+include ':termux-x11', ':shell-loader:stub'
+project(':termux-x11').projectDir = new File('UserLAndLibrary/termux-x11/app')
+project(':shell-loader:stub').projectDir = new File('UserLAndLibrary/termux-x11/shell-loader/stub')
+
 include ':pubkeyGenerator', ':bVNC', ':remoteClientLib'
 project(':bVNC').projectDir = new File('UserLAndLibrary/remote-desktop-clients/bVNC')
 project(':pubkeyGenerator').projectDir = new File('UserLAndLibrary/remote-desktop-clients/pubkeyGenerator')
