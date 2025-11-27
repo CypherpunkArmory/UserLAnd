@@ -1,0 +1,97 @@
+import pyotp
+import qrcode
+import json
+import os
+
+# ---------------------------------------
+# 🔹 EDIT HERE: Change where user data is saved
+USER_FILE = "users.json"
+# ---------------------------------------
+
+# ---------------------------------------
+# 🔹 EDIT HERE: Change folder name for QR codes
+QR_FOLDER = "qrcodes"
+# ---------------------------------------
+
+# ------------------------------
+# Helper functions
+# ------------------------------
+def load_users():
+    if os.path.exists(USER_FILE):
+        with open(USER_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+def save_users(users):
+    with open(USER_FILE, "w") as f:
+        json.dump(users, f, indent=4)
+
+def create_user(username, email):
+    users = load_users()
+    if username in users:
+        print("⚠️ User already exists.")
+        return
+
+    # Generate TOTP secret key
+    secret = pyotp.random_base32()
+    users[username] = {"email": email, "secret": secret}
+    save_users(users)
+
+    # Create folder for QR codes if it doesn't exist
+    os.makedirs(QR_FOLDER, exist_ok=True)
+
+    totp = pyotp.TOTP(secret)
+    uri = totp.provisioning_uri(name=email, issuer_name="My2FASystem")
+
+    safe_email = email.replace("@", "_at_").replace(".", "_dot_")
+    filename = os.path.join(QR_FOLDER, f"{username}_{safe_email}_qrcode.png")
+
+    img = qrcode.make(uri)
+    img.save(filename)
+
+    print(f"✅ User '{username}' created successfully!")
+    print(f"Secret key (store securely): {secret}")
+    print(f"QR code saved as '{filename}'. Scan it with Google Authenticator or Authy.")
+
+def verify_user(username):
+    users = load_users()
+    if username not in users:
+        print("❌ User not found.")
+        return
+
+    secret = users[username]["secret"]
+    totp = pyotp.TOTP(secret)
+    code = input("Enter the 6-digit code from your authenticator: ").strip()
+
+    if totp.verify(code, valid_window=1):
+        print("✅ 2FA verification successful. Access granted.")
+    else:
+        print("❌ Invalid or expired code. Access denied.")
+
+# ------------------------------
+# Main Menu
+# ------------------------------
+def main():
+    while True:
+        print("\n--- 2FA User System ---")
+        print("1. Create new user")
+        print("2. Verify user login")
+        print("3. Exit")
+
+        choice = input("Select an option: ").strip()
+
+        if choice == "1":
+            username = input("Enter username: ").strip()
+            email = input("Enter email: ").strip()
+            create_user(username, email)
+        elif choice == "2":
+            username = input("Enter username: ").strip()
+            verify_user(username)
+        elif choice == "3":
+            print("Goodbye!")
+            break
+        else:
+            print("Invalid option. Try again.")
+
+if __name__ == "__main__":
+    main()
