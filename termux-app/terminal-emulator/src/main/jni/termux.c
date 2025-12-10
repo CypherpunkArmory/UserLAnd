@@ -13,11 +13,14 @@
  *   - Minor cleanups for descriptor and signal handling
  */
 
+#include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <jni.h>
+#include <limits.h>
 #include <signal.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,6 +47,37 @@ static int throw_runtime_exception(JNIEnv* env, const char* message)
 
     (*env)->ThrowNew(env, exClass, message ? message : "Native error");
     return -1;
+}
+
+static void secure_memzero(void* ptr, size_t len)
+{
+    if (!ptr || len == 0) return;
+
+#if defined(__STDC_LIB_EXT1__)
+    (void) memset_s(ptr, len, 0, len);
+#else
+    volatile unsigned char* p = (volatile unsigned char*) ptr;
+    while (len--) {
+        *p++ = 0;
+    }
+#endif
+}
+
+static void free_and_zero_string_array(char** array, size_t count)
+{
+    if (!array) return;
+
+    for (size_t i = 0; i < count; ++i) {
+        if (array[i]) {
+            size_t len = strlen(array[i]);
+            secure_memzero(array[i], len);
+            free(array[i]);
+            array[i] = NULL;
+        }
+    }
+
+    secure_memzero(array, count * sizeof(char*));
+    free(array);
 }
 
 static int create_subprocess(JNIEnv* env,
@@ -139,10 +173,27 @@ static int create_subprocess(JNIEnv* env,
         // Close any remaining fds except std{in,out,err} and self_dir.
         DIR* self_dir = opendir("/proc/self/fd");
         if (self_dir != NULL) {
+            static const size_t PROC_FD_NAME_MAX = 32; // Enough for any fd number.
             int self_dir_fd = dirfd(self_dir);
             struct dirent* entry;
             while ((entry = readdir(self_dir)) != NULL) {
-                int fd = atoi(entry->d_name);
+                size_t name_len = strnlen(entry->d_name, PROC_FD_NAME_MAX);
+                if (name_len == 0 || name_len >= PROC_FD_NAME_MAX) continue;
+
+                bool all_digits = true;
+                for (size_t i = 0; i < name_len; ++i) {
+                    if (!isdigit((unsigned char) entry->d_name[i])) {
+                        all_digits = false;
+                        break;
+                    }
+                }
+                if (!all_digits) continue;
+
+                errno = 0;
+                long fd_long = strtol(entry->d_name, NULL, 10);
+                if (errno != 0 || fd_long < 0 || fd_long > INT_MAX) continue;
+
+                int fd = (int) fd_long;
                 if (fd > 2 && fd != self_dir_fd) close(fd);
             }
             closedir(self_dir);
@@ -195,6 +246,8 @@ Java_com_termux_terminal_JNI_createSubprocess(
     jsize size = args ? (*env)->GetArrayLength(env, args) : 0;
     char** argv = NULL;
     char** envp = NULL;
+    size_t argv_count_built = 0;
+    size_t envp_count_built = 0;
 
     // Build argv.
     if (size > 0) {
@@ -202,29 +255,29 @@ Java_com_termux_terminal_JNI_createSubprocess(
         if (!argv) {
             return throw_runtime_exception(env, "Couldn't allocate argv array");
         }
+        memset(argv, 0, (size + 1) * sizeof(char*));
         for (jsize i = 0; i < size; ++i) {
             jstring arg_java_string = (jstring) (*env)->GetObjectArrayElement(env, args, i);
             if (!arg_java_string) {
-                for (jsize j = 0; j < i; ++j) free(argv[j]);
-                free(argv);
+                free_and_zero_string_array(argv, argv_count_built);
                 return throw_runtime_exception(env, "Null argument in args array");
             }
 
             const char* arg_utf8 = (*env)->GetStringUTFChars(env, arg_java_string, NULL);
             if (!arg_utf8) {
-                for (jsize j = 0; j < i; ++j) free(argv[j]);
-                free(argv);
+                free_and_zero_string_array(argv, argv_count_built);
                 return throw_runtime_exception(env, "GetStringUTFChars() failed for argv");
             }
             argv[i] = strdup(arg_utf8);
             (*env)->ReleaseStringUTFChars(env, arg_java_string, arg_utf8);
             if (!argv[i]) {
-                for (jsize j = 0; j <= i; ++j) free(argv[j]);
-                free(argv);
+                free_and_zero_string_array(argv, argv_count_built + 1);
                 return throw_runtime_exception(env, "strdup() failed for argv");
             }
+            argv_count_built = (size_t) i + 1;
         }
         argv[size] = NULL;
+        argv_count_built = (size_t) size;
     }
 
     // Build envp.
@@ -232,74 +285,50 @@ Java_com_termux_terminal_JNI_createSubprocess(
     if (size > 0) {
         envp = (char**) malloc((size + 1) * sizeof(char*));
         if (!envp) {
-            if (argv) {
-                for (char** tmp = argv; *tmp; ++tmp) free(*tmp);
-                free(argv);
-            }
+            free_and_zero_string_array(argv, argv_count_built);
             return throw_runtime_exception(env, "malloc() for envp array failed");
         }
+        memset(envp, 0, (size + 1) * sizeof(char*));
         for (jsize i = 0; i < size; ++i) {
             jstring env_java_string = (jstring) (*env)->GetObjectArrayElement(env, envVars, i);
             if (!env_java_string) {
-                for (jsize j = 0; j < i; ++j) free(envp[j]);
-                free(envp);
-                if (argv) {
-                    for (char** tmp = argv; *tmp; ++tmp) free(*tmp);
-                    free(argv);
-                }
+                free_and_zero_string_array(envp, envp_count_built);
+                free_and_zero_string_array(argv, argv_count_built);
                 return throw_runtime_exception(env, "Null element in envVars array");
             }
 
             const char* env_utf8 = (*env)->GetStringUTFChars(env, env_java_string, NULL);
             if (!env_utf8) {
-                for (jsize j = 0; j < i; ++j) free(envp[j]);
-                free(envp);
-                if (argv) {
-                    for (char** tmp = argv; *tmp; ++tmp) free(*tmp);
-                    free(argv);
-                }
+                free_and_zero_string_array(envp, envp_count_built);
+                free_and_zero_string_array(argv, argv_count_built);
                 return throw_runtime_exception(env, "GetStringUTFChars() failed for env");
             }
             envp[i] = strdup(env_utf8);
             (*env)->ReleaseStringUTFChars(env, env_java_string, env_utf8);
             if (!envp[i]) {
-                for (jsize j = 0; j <= i; ++j) free(envp[j]);
-                free(envp);
-                if (argv) {
-                    for (char** tmp = argv; *tmp; ++tmp) free(*tmp);
-                    free(argv);
-                }
+                free_and_zero_string_array(envp, envp_count_built + 1);
+                free_and_zero_string_array(argv, argv_count_built);
                 return throw_runtime_exception(env, "strdup() failed for env");
             }
+            envp_count_built = (size_t) i + 1;
         }
         envp[size] = NULL;
+        envp_count_built = (size_t) size;
     }
 
     int procId = 0;
     const char* cmd_cwd = (*env)->GetStringUTFChars(env, cwd, NULL);
     if (!cmd_cwd) {
-        if (argv) {
-            for (char** tmp = argv; *tmp; ++tmp) free(*tmp);
-            free(argv);
-        }
-        if (envp) {
-            for (char** tmp = envp; *tmp; ++tmp) free(*tmp);
-            free(envp);
-        }
+        free_and_zero_string_array(envp, envp_count_built);
+        free_and_zero_string_array(argv, argv_count_built);
         return throw_runtime_exception(env, "GetStringUTFChars() failed for cwd");
     }
 
     const char* cmd_utf8 = (*env)->GetStringUTFChars(env, cmd, NULL);
     if (!cmd_utf8) {
         (*env)->ReleaseStringUTFChars(env, cwd, cmd_cwd);
-        if (argv) {
-            for (char** tmp = argv; *tmp; ++tmp) free(*tmp);
-            free(argv);
-        }
-        if (envp) {
-            for (char** tmp = envp; *tmp; ++tmp) free(*tmp);
-            free(envp);
-        }
+        free_and_zero_string_array(envp, envp_count_built);
+        free_and_zero_string_array(argv, argv_count_built);
         return throw_runtime_exception(env, "GetStringUTFChars() failed for cmd");
     }
 
@@ -309,14 +338,8 @@ Java_com_termux_terminal_JNI_createSubprocess(
     (*env)->ReleaseStringUTFChars(env, cwd, cmd_cwd);
 
     // Free argv/envp strings and arrays (parent side).
-    if (argv) {
-        for (char** tmp = argv; *tmp; ++tmp) free(*tmp);
-        free(argv);
-    }
-    if (envp) {
-        for (char** tmp = envp; *tmp; ++tmp) free(*tmp);
-        free(envp);
-    }
+    free_and_zero_string_array(argv, argv_count_built);
+    free_and_zero_string_array(envp, envp_count_built);
 
     if ((*env)->ExceptionCheck(env)) {
         // create_subprocess already threw; propagate.
