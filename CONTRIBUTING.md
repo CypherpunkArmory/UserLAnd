@@ -24,6 +24,19 @@ viewmodel as much as possible.
 6. Ensure that your code follows our styling by running `./gradlew ktlint` at the root of the project.
 7. Submit a pull request to master!
 
+## Pull request etiquette
+
+Every pull request should use the template in `PULL_REQUEST_TEMPLATE.md` so reviewers can quickly understand the change.
+Please fill out each section before requesting a review, including:
+
+- A concise summary of the changes.
+- Any context reviewers need to understand the approach.
+- The best place in the diff for reviewers to start.
+- A clear description of the manual testing performed (or why it was not needed).
+- The value the change provides to users.
+
+Using the template consistently helps reviewers move faster and avoids the need for follow-up PRs to correct incomplete descriptions.
+
 ## Style Guides
 **Commit Messages**
 - Use present tense.
