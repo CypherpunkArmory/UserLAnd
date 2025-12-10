@@ -24,6 +24,19 @@ viewmodel as much as possible.
 6. Ensure that your code follows our styling by running `./gradlew ktlint` at the root of the project.
 7. Submit a pull request to master!
 
+## Fluxo de branches e merges
+
+- **Crie sempre um branch** a partir de `master` (ou do branch de suporte indicado no ticket) e use um nome curto que já traga o
+  número da issue.
+- **Abra o PR apontando para `master`** e use o template. Se o PR for para um branch de release, deixe isso claro no título
+  e na descrição.
+- **Aprovação e aplicação**: não faça rebase forçado em cima de um PR em revisão. Prefira commits pequenos e deixe o histórico
+  limpo para que o revisor possa aprovar e aplicar sem conflitos.
+- **Estratégia de merge**: quando o destino for `master`, use `Squash and merge`; para branches de release use `Create merge
+  commit`, preservando os commits individuais.
+- **Status obrigatórios**: só faça o merge depois que os checks e testes obrigatórios tiverem passado e o PR tiver as
+  aprovações necessárias.
+
 ## Pull request etiquette
 
 Every pull request should use the template in `PULL_REQUEST_TEMPLATE.md` so reviewers can quickly understand the change.
