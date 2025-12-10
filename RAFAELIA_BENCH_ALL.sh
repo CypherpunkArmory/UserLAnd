@@ -131,11 +131,13 @@ bench_vector_core() {
   # Aqui assumimos que você tem um modo --bench similar ao log que mostrou.
   log "RUN    raf_vec --bench 10000"
   ./raf_vec --bench 10000 | tee vec_bench.log || log "raf_vec --bench não implementado, apenas compilado"
-  if grep -q 'BEMCH' vec_bench.log 2>/dev/null; then
+  if grep -q 'BENCH' vec_bench.log 2>/dev/null; then
     local hash
     hash=$(grep 'Hash' vec_bench.log | awk '{print $3}')
     [[ -n "${hash:-}" ]] && matrix_send "VECTOR_CORE_HASH" "$hash"
     trinity_svg vec_bench.log vector_core_memory.svg
+  else
+    log "Saída de benchmark não encontrada em vec_bench.log; pulando envio de hash e SVG"
   fi
 }
 
