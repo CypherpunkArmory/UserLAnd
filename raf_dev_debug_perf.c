@@ -14,7 +14,7 @@
 // -------------------------------
 #define D_ROWS 64u      // time slices
 #define D_COLS 8u       // metrics per slice
-#define D_JSON 6144u    // JSON buffer (covers worst-case 64x8 matrix)
+#define D_JSON 12288u   // JSON buffer (covers worst-case 64x8 matrix with headroom)
 #define D_TAG  32u      // label length
 
 // -------------------------------
@@ -246,9 +246,10 @@ static int j(const DField *f, char *out, size_t out_len) {
 static int h(void) {
     typedef struct { size_t buf; uint32_t rows; uint32_t cols; int expect; } JCase;
     static const JCase cases[] = {
-        {8u, 1u, 2u, 1},      // tiny buffer must fail
-        {64u, 4u, 4u, 1},     // mid buffer with multiple rows should fail fast
-        {D_JSON, 2u, 3u, 0}   // nominal case should pass
+        {8u, 1u, 2u, 1},        // tiny buffer must fail
+        {64u, 4u, 4u, 1},       // mid buffer with multiple rows should fail fast
+        {D_JSON, 2u, 3u, 0},    // nominal case should pass
+        {D_JSON, D_ROWS, D_COLS, 0} // maximum advertised matrix must serialize
     };
 
     for (size_t idx = 0; idx < (sizeof(cases) / sizeof(cases[0])); ++idx) {
