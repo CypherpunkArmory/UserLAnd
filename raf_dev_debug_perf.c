@@ -14,7 +14,7 @@
 // -------------------------------
 #define D_ROWS 64u      // time slices
 #define D_COLS 8u       // metrics per slice
-#define D_JSON 4096u    // JSON buffer
+#define D_JSON 6144u    // JSON buffer (covers worst-case 64x8 matrix)
 #define D_TAG  32u      // label length
 
 // -------------------------------
