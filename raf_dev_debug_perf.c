@@ -125,20 +125,27 @@ static int v(const char *line, DField *f) {
 // -------------------------------
 // JSON writer (W3C/JSON, RFC 8259 safe subset)
 // -------------------------------
-static void j(const DField *f, char *out, size_t out_len) {
-    if (!out || out_len == 0) return;
+static int j(const DField *f, char *out, size_t out_len) {
+    if (!f || !out || out_len == 0) {
+        return -1; // invalid args
+    }
+
     uint32_t sev = f->severity;
 
-    int w = snprintf(out, out_len,
+    /*
+     * Predict total length to avoid ambiguous partial writes (ISO/IEEE/NIST defensive).
+     * snprintf(NULL,0,...) is C11-compliant and keeps footprint minimal.
+     */
+    int prefix = snprintf(NULL, 0,
         "{"
-        "\"tag\":\"%s\"," 
-        "\"severity\":%u," 
-        "\"rows\":%u," 
-        "\"cols\":%u," 
-        "\"crc\":%u," 
-        "\"epoch\":%llu," 
-        "\"perm\":{\"dev\":%u,\"p2p\":%u,\"io\":%u,\"net\":%u}," 
-        "\"p2p_overlay\":\"tor-metadata-only\"," 
+        "\"tag\":\"%s\","\
+        "\"severity\":%u,"\
+        "\"rows\":%u,"\
+        "\"cols\":%u,"\
+        "\"crc\":%u,"\
+        "\"epoch\":%llu,"\
+        "\"perm\":{\"dev\":%u,\"p2p\":%u,\"io\":%u,\"net\":%u},"\
+        "\"p2p_overlay\":\"tor-metadata-only\","\
         "\"matrix\":[",
         f->tag,
         sev,
@@ -151,46 +158,120 @@ static void j(const DField *f, char *out, size_t out_len) {
         f->perm_io,
         f->perm_net
     );
+    if (prefix < 0) {
+        out[0] = '\\0';
+        return -2; // encoding failure
+    }
 
-    if (w < 0 || (size_t)w >= out_len) {
-        if (out_len > 2u) {
-            out[0] = '{';
-            out[1] = '}';
-            out[2] = '\0';
+    size_t need = (size_t)prefix;
+    for (uint32_t i = 0; i < f->r_used; ++i) {
+        need += 1u; // '['
+        for (uint32_t c = 0; c < f->c_used; ++c) {
+            int cell = snprintf(NULL, 0,
+                                (c + 1u < f->c_used) ? "%.6f," : "%.6f",
+                                f->m[i][c]);
+            if (cell < 0) {
+                out[0] = '\\0';
+                return -2;
+            }
+            need += (size_t)cell;
         }
-        return;
+        need += 1u; // ']'
+        if (i + 1u < f->r_used) {
+            need += 1u; // ',' between rows
+        }
+    }
+    need += 2u; // closing ]}
+
+    if (need + 1u > out_len) { // +1 for NUL
+        out[0] = '\\0';
+        return 1; // overflow prevented
+    }
+
+    int w = snprintf(out, out_len,
+        "{"
+        "\"tag\":\"%s\","\
+        "\"severity\":%u,"\
+        "\"rows\":%u,"\
+        "\"cols\":%u,"\
+        "\"crc\":%u,"\
+        "\"epoch\":%llu,"\
+        "\"perm\":{\"dev\":%u,\"p2p\":%u,\"io\":%u,\"net\":%u},"\
+        "\"p2p_overlay\":\"tor-metadata-only\","\
+        "\"matrix\":[",
+        f->tag,
+        sev,
+        f->r_used,
+        f->c_used,
+        f->crc_state,
+        (unsigned long long)f->t_epoch,
+        f->perm_dev,
+        f->perm_p2p,
+        f->perm_io,
+        f->perm_net
+    );
+    if (w < 0 || (size_t)w >= out_len) {
+        out[0] = '\\0';
+        return -2;
     }
 
     size_t pos = (size_t)w;
     for (uint32_t i = 0; i < f->r_used; ++i) {
-        if (pos + 2 >= out_len) break;
         out[pos++] = '[';
         for (uint32_t c = 0; c < f->c_used; ++c) {
             int z = snprintf(out + pos, out_len - pos,
-                             (c + 1 < f->c_used) ? "%.6f," : "%.6f",
+                             (c + 1u < f->c_used) ? "%.6f," : "%.6f",
                              f->m[i][c]);
             if (z < 0 || (size_t)z >= (out_len - pos)) {
-                pos = out_len - 1;
-                break;
+                out[0] = '\\0';
+                return -2;
             }
             pos += (size_t)z;
         }
-        if (pos + 2 >= out_len) break;
         out[pos++] = ']';
-        if (i + 1 < f->r_used) {
+        if (i + 1u < f->r_used) {
             out[pos++] = ',';
         }
     }
 
-    if (pos + 2 < out_len) {
-        out[pos++] = ']';
-        out[pos++] = '}';
-        out[pos]   = '\0';
-    } else if (out_len > 2u) {
-        out[0] = '{';
-        out[1] = '}';
-        out[2] = '\0';
+    out[pos++] = ']';
+    out[pos++] = '}';
+    out[pos] = '\\0';
+    return 0;
+}
+
+// -------------------------------
+// In-process serializer guardrail (table driven)
+// -------------------------------
+static int h(void) {
+    typedef struct { size_t buf; uint32_t rows; uint32_t cols; int expect; } JCase;
+    static const JCase cases[] = {
+        {8u, 1u, 2u, 1},      // tiny buffer must fail
+        {64u, 4u, 4u, 1},     // mid buffer with multiple rows should fail fast
+        {D_JSON, 2u, 3u, 0}   // nominal case should pass
+    };
+
+    for (size_t idx = 0; idx < (sizeof(cases) / sizeof(cases[0])); ++idx) {
+        DField f;
+        memset(&f, 0, sizeof(f));
+        p(&f);
+        f.r_used = cases[idx].rows;
+        f.c_used = cases[idx].cols;
+        f.t_epoch = 1u;
+        for (uint32_t r = 0; r < f.r_used && r < D_ROWS; ++r) {
+            for (uint32_t c = 0; c < f.c_used && c < D_COLS; ++c) {
+                f.m[r][c] = 0.123456f * (float)(r + 1u + c);
+            }
+        }
+        char tmp[D_JSON];
+        memset(tmp, 0, sizeof(tmp));
+        size_t limit = (cases[idx].buf < sizeof(tmp)) ? cases[idx].buf : sizeof(tmp);
+        int status = j(&f, tmp, limit);
+        if (status != cases[idx].expect) {
+            return -1; // harness failure
+        }
     }
+    return 0;
 }
 
 // -------------------------------
@@ -199,6 +280,10 @@ static void j(const DField *f, char *out, size_t out_len) {
 int main(int argc, char **argv) {
     (void)argc;
     (void)argv;
+
+    if (h() != 0) {
+        fprintf(stderr, "[RAF_DEVPERF] serializer_selftest_failed\n");
+    }
 
     DField f;
     memset(&f, 0, sizeof(f));
@@ -220,7 +305,13 @@ int main(int argc, char **argv) {
     s(&f);
 
     char json[D_JSON];
-    j(&f, json, sizeof(json));
+    int js = j(&f, json, sizeof(json));
+    if (js != 0) {
+        fprintf(stderr, "[RAF_DEVPERF] serialize_error=%d buffer=%zu rows=%u cols=%u\n",
+                js, sizeof(json), f.r_used, f.c_used);
+        fputs("{}\n", stdout);
+        return 1;
+    }
 
     fputs(json, stdout);
     fputc('\n', stdout);
