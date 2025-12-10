@@ -27,3 +27,19 @@ The assets that UserLAnd depends on and the scripts that build them are containe
 The common assets that are used for all distros and application are found at [CypherpunkArmory/UserLAnd-Assets-Support](https://github.com/CypherpunkArmory/UserLAnd-Assets-Support).  
 
 Distribution or application specific assets are found under CypherpunkArmory/UserLAnd-Assets-(__Distribution/App__). For example, our Debian specific assets can be found at [CypherpunkArmory/UserLAnd-Assets-Debian](https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian)
+
+## Static musl/clang utilities
+
+We ship tiny, static helpers compiled with musl/clang and invoked by thin shell scripts (no Python wrappers). Build them with:
+
+```sh
+./scripts/build_static.sh
+```
+
+The `raf_cpu_core` binary reads `/proc/stat` from stdin and prints a compact, stable JSON payload to stdout. Example:
+
+```sh
+cat /proc/stat | ./scripts/raf_cpu_core.sh
+```
+
+The output fields (`timestamp_ms` plus the per-CPU `user/nice/system/idle/iowait/irq/softirq/steal/guest/guest_nice` counters) are kept stable so downstream scripts can consume them directly.
