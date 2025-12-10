@@ -18,20 +18,45 @@
 #define D_TAG  32u      // label length
 
 // -------------------------------
+// Time-series block layout (row-major, SIMD friendly)
+// -------------------------------
+typedef struct {
+    uint32_t len;          // total elements stored (rows * cols)
+    uint32_t stride;       // element stride in bytes
+    uint64_t ts_start;     // epoch base for first sample
+    uint64_t ts_delta;     // delta between rows (nanoseconds)
+} TSBlockHeader;
+
+typedef struct {
+    TSBlockHeader header;          // [len | stride | ts_start | ts_delta]
+    union {                       // contiguous row-major payload, 64B aligned
+        float    f32[D_ROWS * D_COLS];
+        double   f64[D_ROWS * D_COLS];
+        int16_t  i16[D_ROWS * D_COLS];
+    } payload;
+} TSBlock;
+
+#if defined(__GNUC__) || defined(__clang__)
+typedef TSBlock TSBlockAligned __attribute__((aligned(64)));
+#else
+typedef __declspec(align(64)) TSBlock TSBlockAligned;
+#endif
+
+// -------------------------------
 // Data field and permissions snapshot
 // -------------------------------
 typedef struct {
-    float m[D_ROWS][D_COLS];   // metric matrix (cpu,mem,io,net,gpu,temp,jank,entropy)
-    uint32_t r_used;           // active rows
-    uint32_t c_used;           // active cols
-    uint32_t severity;         // 0 ok / 1 warn / 2 critical
-    uint32_t crc_state;        // crc over matrix
-    uint64_t t_epoch;          // epoch seconds
-    uint8_t perm_dev;          // developer mode asserted
-    uint8_t perm_p2p;          // P2P allowed (tor-like overlay)
-    uint8_t perm_io;           // IO read allowed
-    uint8_t perm_net;          // network monitor allowed
-    char tag[D_TAG];           // label for JSON
+    TSBlockAligned series;   // aligned time-series buffer
+    uint32_t r_used;         // active rows
+    uint32_t c_used;         // active cols
+    uint32_t severity;       // 0 ok / 1 warn / 2 critical
+    uint32_t crc_state;      // crc over matrix
+    uint64_t t_epoch;        // epoch seconds
+    uint8_t perm_dev;        // developer mode asserted
+    uint8_t perm_p2p;        // P2P allowed (tor-like overlay)
+    uint8_t perm_io;         // IO read allowed
+    uint8_t perm_net;        // network monitor allowed
+    char tag[D_TAG];         // label for JSON
 } DField;
 
 // -------------------------------
@@ -55,6 +80,11 @@ static void p(DField *f) {
     f->perm_io  = 1u;   // allow /proc sampling in ethical mode
     f->perm_net = 1u;   // allow metadata-only network metrics
     snprintf(f->tag, sizeof(f->tag), "raf_devperf");
+
+    f->series.header.len     = 0u;
+    f->series.header.stride  = (uint32_t)sizeof(float);
+    f->series.header.ts_start= 0u;
+    f->series.header.ts_delta= 0u;
 }
 
 // -------------------------------
@@ -64,7 +94,7 @@ static float e(DField *f) {
     float acc = 0.0f;
     for (uint32_t i = 0; i < f->r_used; ++i) {
         for (uint32_t j = 0; j < f->c_used; ++j) {
-            float v = f->m[i][j];
+            float v = f->series.payload.f32[(size_t)i * f->c_used + j];
             acc += v * v; // energy-like metric; stable and cheap
         }
     }
@@ -72,8 +102,20 @@ static float e(DField *f) {
 }
 
 static void k(DField *f) {
-    f->crc_state = raf_fast_crc32(0u, f->m,
-        (size_t)(sizeof(float) * f->r_used * f->c_used));
+    size_t bytes = (size_t)(sizeof(float) * f->r_used * f->c_used);
+    f->crc_state = raf_fast_crc32(0u, f->series.payload.f32, bytes);
+}
+
+static void finalize_ts_block(DField *f, uint64_t delta_ns) {
+    if (!f) return;
+    f->series.header.stride = (uint32_t)sizeof(float);
+    f->series.header.len = f->r_used * f->c_used;
+    if (f->series.header.ts_start == 0u) {
+        f->series.header.ts_start = f->t_epoch * 1000000000ull; // epoch to ns
+    }
+    if (f->series.header.ts_delta == 0u) {
+        f->series.header.ts_delta = delta_ns;
+    }
 }
 
 static void s(DField *f) {
@@ -109,16 +151,21 @@ static int v(const char *line, DField *f) {
     uint32_t r = f->r_used;
     f->c_used = 8u;
 
-    f->m[r][0] = c01(cpu, 0.0f, 100.0f);
-    f->m[r][1] = c01(mem, 0.0f, 8192.0f);
-    f->m[r][2] = c01(io,  0.0f, 2000.0f);
-    f->m[r][3] = c01(net, 0.0f, 1000.0f);
-    f->m[r][4] = c01(gpu, 0.0f, 100.0f);
-    f->m[r][5] = c01(tmp, 0.0f, 110.0f);
-    f->m[r][6] = c01(jank,0.0f, 120.0f);
-    f->m[r][7] = c01(ent, 0.0f, 10.0f);
+    // Decode /proc or dumpsys rows directly into the aligned row-major buffer
+    // to keep SIMD/NEON loads contiguous.
+    float *row = f->series.payload.f32 + ((size_t)r * f->c_used);
+
+    row[0] = c01(cpu, 0.0f, 100.0f);
+    row[1] = c01(mem, 0.0f, 8192.0f);
+    row[2] = c01(io,  0.0f, 2000.0f);
+    row[3] = c01(net, 0.0f, 1000.0f);
+    row[4] = c01(gpu, 0.0f, 100.0f);
+    row[5] = c01(tmp, 0.0f, 110.0f);
+    row[6] = c01(jank,0.0f, 120.0f);
+    row[7] = c01(ent, 0.0f, 10.0f);
 
     f->r_used++;
+    f->series.header.len = f->r_used * f->c_used;
     return 0;
 }
 
@@ -159,7 +206,7 @@ static int j(const DField *f, char *out, size_t out_len) {
         f->perm_net
     );
     if (prefix < 0) {
-        out[0] = '\\0';
+        out[0] = '\0';
         return -2; // encoding failure
     }
 
@@ -169,9 +216,9 @@ static int j(const DField *f, char *out, size_t out_len) {
         for (uint32_t c = 0; c < f->c_used; ++c) {
             int cell = snprintf(NULL, 0,
                                 (c + 1u < f->c_used) ? "%.6f," : "%.6f",
-                                f->m[i][c]);
+                                f->series.payload.f32[(size_t)i * f->c_used + c]);
             if (cell < 0) {
-                out[0] = '\\0';
+                out[0] = '\0';
                 return -2;
             }
             need += (size_t)cell;
@@ -184,7 +231,7 @@ static int j(const DField *f, char *out, size_t out_len) {
     need += 2u; // closing ]}
 
     if (need + 1u > out_len) { // +1 for NUL
-        out[0] = '\\0';
+        out[0] = '\0';
         return 1; // overflow prevented
     }
 
@@ -211,7 +258,7 @@ static int j(const DField *f, char *out, size_t out_len) {
         f->perm_net
     );
     if (w < 0 || (size_t)w >= out_len) {
-        out[0] = '\\0';
+        out[0] = '\0';
         return -2;
     }
 
@@ -221,9 +268,9 @@ static int j(const DField *f, char *out, size_t out_len) {
         for (uint32_t c = 0; c < f->c_used; ++c) {
             int z = snprintf(out + pos, out_len - pos,
                              (c + 1u < f->c_used) ? "%.6f," : "%.6f",
-                             f->m[i][c]);
+                             f->series.payload.f32[(size_t)i * f->c_used + c]);
             if (z < 0 || (size_t)z >= (out_len - pos)) {
-                out[0] = '\\0';
+                out[0] = '\0';
                 return -2;
             }
             pos += (size_t)z;
@@ -236,7 +283,7 @@ static int j(const DField *f, char *out, size_t out_len) {
 
     out[pos++] = ']';
     out[pos++] = '}';
-    out[pos] = '\\0';
+    out[pos] = '\0';
     return 0;
 }
 
@@ -260,9 +307,11 @@ static int h(void) {
         f.t_epoch = 1u;
         for (uint32_t r = 0; r < f.r_used && r < D_ROWS; ++r) {
             for (uint32_t c = 0; c < f.c_used && c < D_COLS; ++c) {
-                f.m[r][c] = 0.123456f * (float)(r + 1u + c);
+                f.series.payload.f32[(size_t)r * f.c_used + c] =
+                    0.123456f * (float)(r + 1u + c);
             }
         }
+        finalize_ts_block(&f, 1000000000ull);
         char tmp[D_JSON];
         memset(tmp, 0, sizeof(tmp));
         size_t limit = (cases[idx].buf < sizeof(tmp)) ? cases[idx].buf : sizeof(tmp);
@@ -302,6 +351,7 @@ int main(int argc, char **argv) {
         }
     }
 
+    finalize_ts_block(&f, 1000000000ull);
     s(&f);
 
     char json[D_JSON];
