@@ -2,6 +2,9 @@
 *.apk
 *.ap_
 
+# macOS artifacts
+.DS_Store
+
 # Files for the ART/Dalvik VM
 *.dex
 
