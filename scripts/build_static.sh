@@ -17,7 +17,7 @@ build() {
   echo "[static] $src -> $out" >&2
   "$CC" $TARGET $CFLAGS "$SRC_DIR/$src" -o "$out" $LDFLAGS
 }
-
+echo "🦉"
 if ! command -v "$CC" >/dev/null 2>&1; then
   echo "clang não encontrado (defina CC)" >&2
   exit 1
