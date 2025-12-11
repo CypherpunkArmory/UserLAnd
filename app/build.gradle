@@ -58,18 +58,25 @@ android {
         }
     }
 
+    def keystoreFile = project.file('../keystore.jks')
+    def hasSigningCredentials = keystoreFile.exists() && [
+            'ANDROID_KEY_ALIAS', 'ANDROID_STORE_PASSWORD', 'ANDROID_KEY_PASSWORD'
+    ].every { System.getenv(it) }
+
     signingConfigs {
-        beta {
-            storeFile project.file('../keystore.jks')
-            keyAlias System.getenv('ANDROID_KEY_ALIAS')
-            storePassword System.getenv('ANDROID_STORE_PASSWORD')
-            keyPassword System.getenv('ANDROID_KEY_PASSWORD')
-        }
-        release {
-            storeFile project.file('../keystore.jks')
-            keyAlias System.getenv('ANDROID_KEY_ALIAS')
-            storePassword System.getenv('ANDROID_STORE_PASSWORD')
-            keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+        if (hasSigningCredentials) {
+            beta {
+                storeFile keystoreFile
+                keyAlias System.getenv('ANDROID_KEY_ALIAS')
+                storePassword System.getenv('ANDROID_STORE_PASSWORD')
+                keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+            }
+            release {
+                storeFile keystoreFile
+                keyAlias System.getenv('ANDROID_KEY_ALIAS')
+                storePassword System.getenv('ANDROID_STORE_PASSWORD')
+                keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+            }
         }
     }
 
@@ -85,14 +92,18 @@ android {
             debuggable false
             minifyEnabled true
             shrinkResources true
-            signingConfig signingConfigs.beta
+            if (hasSigningCredentials) {
+                signingConfig signingConfigs.beta
+            }
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         release {
             debuggable false
             minifyEnabled true
             shrinkResources true
-            signingConfig signingConfigs.release
+            if (hasSigningCredentials) {
+                signingConfig signingConfigs.release
+            }
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
