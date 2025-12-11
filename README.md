@@ -158,6 +158,8 @@ HTTP endpoints (all JSON):
 * `GET /status` → latest telemetry (CPU load, `MemFree`, disk I/O deltas) plus current RAF core config (`active_cores`, `decay_rate`, universe MB) and thresholds.
 * `GET /jobs` → recent auto-tuning actions (core throttling, decay adjustments, universe resize) and collector errors, useful for UI surface in the app.
 
+Client snippets for hitting `/status` from Python, Node.js, and Go are in [docs/telemetry_client_examples.md](docs/telemetry_client_examples.md).
+
 ## RAFAELIA kernel v2.2 (bio-quantum demo)
 
 The `rafaelia_kernel_v22.c` sample implements the latest “MELHOR DOS MUNDOS” loop: a branch-light C11 kernel that uses short-circuit recursion, dual toroidal rotations (13/20), a harmonic 137 anchor, and a 42-column ASCII tomogram output. It is meant for quick experiments on both desktop toolchains and Termux builds.
