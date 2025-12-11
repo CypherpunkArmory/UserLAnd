@@ -51,3 +51,4 @@ fi
 
 # Aqui você pode adicionar mais fontes se quiser
 build raf_cpu_core.c raf_cpu_core
+```0
