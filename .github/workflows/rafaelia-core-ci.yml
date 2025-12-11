@@ -20,13 +20,11 @@ jobs:
           sudo apt-get install -y build-essential clang make
 
       - name: Build static RAFAELIA tools
-        working-directory: UserLAnd
         run: |
           chmod +x scripts/build_static.sh || true
           ./scripts/build_static.sh || true
 
       - name: Compile core C files (sanity)
-        working-directory: UserLAnd
         run: |
           CC=clang
           CFLAGS="-std=c11 -Wall -Wextra -Werror -O2"
