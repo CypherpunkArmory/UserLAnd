@@ -12,8 +12,6 @@ LDFLAGS="${LDFLAGS:-}"
 mkdir -p "$OUT_DIR"
 
 build() {
-echo "$1" bin_name="$2"
-echo "$OUT_DIR/$bin_name
   local src="$1" bin_name="$2"
   local out="$OUT_DIR/$bin_name"
   echo "[static] $src -> $out" >&2
