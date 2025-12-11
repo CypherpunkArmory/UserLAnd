@@ -48,3 +48,5 @@ fi
 
 # Core binaries to build. Extend this list as needed.
 build raf_cpu_core.c raf_cpu_core
+build raf_mem_core.c raf_mem_core
+build raf_disk_core.c raf_disk_core
