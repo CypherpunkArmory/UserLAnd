@@ -31,9 +31,7 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Make gradlew executable
-        working-directory: UserLAnd
         run: chmod +x gradlew
 
       - name: Build debug APK
-        working-directory: UserLAnd
         run: ./gradlew assembleDebug --stacktrace --no-daemon
