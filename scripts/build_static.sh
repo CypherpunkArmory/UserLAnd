@@ -13,8 +13,11 @@ CC="${CC:-cc}"
 
 # Alvo opcional:
 # - Em CI / GitHub, deixamos vazio (target nativo).
-# - Em casa, se quiser MUSL, você pode chamar:
-#     TARGET="--target=x86_64-linux-musl" CFLAGS="-O2 -pipe -static -fvisibility=hidden" ./scripts/build_static.sh
+# - Em casa, se quiser MUSL estático, você pode chamar, por exemplo:
+#     TARGET="--target=x86_64-linux-musl" \
+#     CFLAGS="-O2 -pipe -static -fvisibility=hidden" \
+#     CC=clang \
+#     ./scripts/build_static.sh
 TARGET="${TARGET:-}"
 
 # Flags padrão: otimização moderada, sem -static por padrão (mais compatível)
