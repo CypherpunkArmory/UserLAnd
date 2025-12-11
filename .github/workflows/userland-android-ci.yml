@@ -35,5 +35,5 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build debug APK
-        working-directory: UserLAnd-master
+        working-directory: UserLAnd
         run: ./gradlew assembleDebug --stacktrace --no-daemon
