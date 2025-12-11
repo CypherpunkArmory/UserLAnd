@@ -31,7 +31,7 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Make gradlew executable
-        working-directory: UserLAnd-master
+        working-directory: UserLAnd
         run: chmod +x gradlew
 
       - name: Build debug APK
