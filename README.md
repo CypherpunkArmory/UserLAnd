@@ -115,6 +115,11 @@ All helpers emit stable JSON payloads so monitoring tools can parse the same sch
 
 Each binary has a matching shell entrypoint (`scripts/raf_cpu_core.sh`, `scripts/raf_mem_core.sh`, `scripts/raf_disk_core.sh`) that prefers the local `build/bin` artifacts but also falls back to whatever is on the `$PATH`, ensuring consistent invocation names everywhere.
 
+Two additional wrappers are available for the higher-level tools:
+
+* `scripts/raf_kerneld.sh` launches the daemon binary from `build/bin` (or whichever `raf_kerneld` is on your `$PATH`) and emits a short JSON error plus exit code `127` if the binary is missing.
+* `scripts/raf_status.sh` wraps the `raf_status` client the same way, giving a JSON error payload and non-zero exit if the binary cannot be resolved.
+
 ### Kernel telemetry daemon
 
 The lightweight daemon `core/librafaelia/raf_kerneld.py` polls the helpers above, keeps a rolling CPU/Mem/Disk state in memory and exposes a JSON API for the Android/UserLAnd app to consume.
@@ -136,6 +141,16 @@ Start the daemon on the internal loopback, pointing it at the helper scripts (th
 ```sh
 python core/librafaelia/raf_kerneld.py --host 127.0.0.1 --port 8027 --interval 2 \
   --cpu-cmd scripts/raf_cpu_core.sh --mem-cmd scripts/raf_mem_core.sh --disk-cmd scripts/raf_disk_core.sh
+```
+
+The same pipeline using the wrappers keeps Android/UserLAnd integration scripts simple and consistently named:
+
+```sh
+scripts/raf_kerneld.sh --host 127.0.0.1 --port 8027 --interval 2 \
+  --cpu-cmd scripts/raf_cpu_core.sh --mem-cmd scripts/raf_mem_core.sh --disk-cmd scripts/raf_disk_core.sh &
+
+# Query the JSON status later on (fails fast with a JSON error + non-zero exit if the binary is unavailable)
+scripts/raf_status.sh --host 127.0.0.1 --port 8027
 ```
 
 HTTP endpoints (all JSON):
