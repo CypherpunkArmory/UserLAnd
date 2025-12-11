@@ -114,3 +114,14 @@ All helpers emit stable JSON payloads so monitoring tools can parse the same sch
   ```
 
 Each binary has a matching shell entrypoint (`scripts/raf_cpu_core.sh`, `scripts/raf_mem_core.sh`, `scripts/raf_disk_core.sh`) that prefers the local `build/bin` artifacts but also falls back to whatever is on the `$PATH`, ensuring consistent invocation names everywhere.
+
+### RAFAELIA "GOD" core example
+
+Para testar o núcleo RAFAELIA mais completo já incluído neste repositório, use o
+script de build dedicado e siga o guia `RAF_GOD_CORE_EXAMPLE.md`:
+
+```sh
+./scripts/build_raf_god_core.sh
+```
+
+O binário interativo/bridge será gerado em `build/bin/raf_god_core_example`.
