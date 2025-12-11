@@ -4,6 +4,9 @@
 #include <string.h>
 #include <time.h>
 #include <math.h>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 // ===================== CONSTANTES RAFAELIA =====================
 #define MAGIC_RAF   0x52414641  // "RAFA"

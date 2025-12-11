@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <complex.h> /* Matemática Nativa de Números Complexos */
 #include <time.h>
