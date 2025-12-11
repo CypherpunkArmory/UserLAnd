@@ -158,6 +158,19 @@ HTTP endpoints (all JSON):
 * `GET /status` → latest telemetry (CPU load, `MemFree`, disk I/O deltas) plus current RAF core config (`active_cores`, `decay_rate`, universe MB) and thresholds.
 * `GET /jobs` → recent auto-tuning actions (core throttling, decay adjustments, universe resize) and collector errors, useful for UI surface in the app.
 
+## RAFAELIA kernel v2.2 (bio-quantum demo)
+
+The `rafaelia_kernel_v22.c` sample implements the latest “MELHOR DOS MUNDOS” loop: a branch-light C11 kernel that uses short-circuit recursion, dual toroidal rotations (13/20), a harmonic 137 anchor, and a 42-column ASCII tomogram output. It is meant for quick experiments on both desktop toolchains and Termux builds.
+
+Compile and run a standalone frame generator:
+
+```sh
+gcc -std=c11 -O3 -march=native rafaelia_kernel_v22.c -o raf_kernel_v22
+./raf_kernel_v22 > kernel_frames.txt
+```
+
+You can also include it in the existing bench harness via `RAFAELIA_BENCH_ALL.sh`, which now builds `raf_kernel_v22` alongside the other cores. The binary emits deterministic “frames” (42 columns each) that can be fed into compression/hash tests or piping workflows.
+
 The daemon auto-tunes the core when telemetry crosses thresholds:
 
 * High CPU load throttles `active_cores`; low load ramps back up until `--max-cores`.
