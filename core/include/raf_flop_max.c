@@ -1,5 +1,3 @@
-#define _POSIX_C_SOURCE 199309L
-
 /* RAFAELIA FLOP MAXIMIZER
  * Target: ARMv8 NEON + OpenMP (8 Cores)
  * Logic: Raw Matrix Multiplication (C = A * B)

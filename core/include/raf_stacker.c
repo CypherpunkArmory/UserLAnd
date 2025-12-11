@@ -1,5 +1,3 @@
-#define _POSIX_C_SOURCE 199309L
-
 /* RAFAELIA PETA STACKER
  * Logic: Cumulative Matrix Multiplication + Disk Persistence
  * Goal: Stack operations until 1.0 PetaFlop is reached.
