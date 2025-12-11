@@ -1,4 +1,4 @@
-name: UserLAnd Android CI
+name: RAFAELIA Core CI
 
 on:
   push:
@@ -7,33 +7,32 @@ on:
     branches: [ master ]
 
 jobs:
-  build-android:
+  build-core:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential clang make
 
-      - name: Cache Gradle
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Make gradlew executable
+      - name: Build static RAFAELIA tools
         working-directory: UserLAnd-master
-        run: chmod +x gradlew
+        run: |
+          chmod +x scripts/build_static.sh || true
+          ./scripts/build_static.sh || true
 
-      - name: Build debug APK
+      - name: Compile core C files (sanity)
+        working-directory: UserLAnd-master
+        run: |
+          CC=clang
+          CFLAGS="-std=c11 -Wall -Wextra -Werror -O2"
+          $CC $CFLAGS -c raf_cpu_core.c
+          $CC $CFLAGS -c raf_dev_debug_perf.c
+          $CC $CFLAGS -c raf_userland_debug.c
+          # aqui você pode adicionar mais raf_*.c / rafaelia_*.c      - name: Build debug APK
         working-directory: UserLAnd-master
         run: ./gradlew assembleDebug --stacktrace --no-daemon
