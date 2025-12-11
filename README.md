@@ -115,6 +115,40 @@ All helpers emit stable JSON payloads so monitoring tools can parse the same sch
 
 Each binary has a matching shell entrypoint (`scripts/raf_cpu_core.sh`, `scripts/raf_mem_core.sh`, `scripts/raf_disk_core.sh`) that prefers the local `build/bin` artifacts but also falls back to whatever is on the `$PATH`, ensuring consistent invocation names everywhere.
 
+### Kernel telemetry daemon
+
+The lightweight daemon `core/librafaelia/raf_kerneld.py` polls the helpers above, keeps a rolling CPU/Mem/Disk state in memory and exposes a JSON API for the Android/UserLAnd app to consume.
+
+Minimum requirements:
+
+* Python 3.10+
+* `gcc` (to build `raf_cpu_core`, `raf_mem_core`, `raf_disk_core` via `scripts/build_static.sh`)
+* Optional: `librrafaelia_core.so` compiled from `core/include/raf_core.c` (drop it into `core/librafaelia/librrafaelia_core.so` or point `--core-lib` to its location)
+
+Build the helper binaries once (no need to commit the artifacts):
+
+```sh
+./scripts/build_static.sh
+```
+
+Start the daemon on the internal loopback, pointing it at the helper scripts (they automatically pick up the freshly built binaries):
+
+```sh
+python core/librafaelia/raf_kerneld.py --host 127.0.0.1 --port 8027 --interval 2 \
+  --cpu-cmd scripts/raf_cpu_core.sh --mem-cmd scripts/raf_mem_core.sh --disk-cmd scripts/raf_disk_core.sh
+```
+
+HTTP endpoints (all JSON):
+
+* `GET /status` → latest telemetry (CPU load, `MemFree`, disk I/O deltas) plus current RAF core config (`active_cores`, `decay_rate`, universe MB) and thresholds.
+* `GET /jobs` → recent auto-tuning actions (core throttling, decay adjustments, universe resize) and collector errors, useful for UI surface in the app.
+
+The daemon auto-tunes the core when telemetry crosses thresholds:
+
+* High CPU load throttles `active_cores`; low load ramps back up until `--max-cores`.
+* Low `MemFree` halves the allocated universe via `raf_alloc_universe`.
+* Sustained disk I/O time nudges `decay_rate` down to cool the workload.
+
 ### RAFAELIA "GOD" core example
 
 Para testar o núcleo RAFAELIA mais completo já incluído neste repositório, use o
