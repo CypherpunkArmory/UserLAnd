@@ -18,6 +18,18 @@ You can see our templates by visiting our [issue center](https://github.com/Cyph
 ## Want to contribute?
 See our [CONTRIBUTING](https://github.com/CypherpunkArmory/UserLAnd/blob/master/CONTRIBUTING.md) document.
 
+## Build the APK locally
+UserLAnd depends on legacy Android Gradle Plugin tooling that expects Java 11 and
+Android SDK platform 30. To build from a clean machine:
+
+1. Install a Java 11 JDK and ensure `JAVA_HOME` points to it (or export
+   `JAVA_HOME_11_X64` on Windows).
+2. Run `scripts/build_apk.sh` to download the Android command-line tools into
+   `build/android-sdk`, accept licenses, generate `local.properties`, and invoke
+   `assembleDebug`.
+3. Pass `--skip-sdk` if you already have an SDK available, or `--skip-build` if
+   you only want to bootstrap the SDK without running Gradle.
+
 ## Start using UserLAnd
 See our [Getting Started](https://github.com/CypherpunkArmory/UserLAnd/wiki/Getting-Started-in-UserLAnd) page.
 
