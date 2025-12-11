@@ -1,4 +1,4 @@
-version: 2
+package-ecosystem: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -6,6 +6,7 @@ updates:
       interval: "weekly"
 
   - package-ecosystem: "gradle"
-    directory: "/UserLAnd-master"
+    directory: "/UserLAnd"
     schedule:
       interval: "weekly"
+      
