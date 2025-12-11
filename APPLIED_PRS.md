@@ -1,4 +1,4 @@
-# Pull requests aplicados
+# Pull requests aplicados.
 
 Os PRs abaixo estão presentes neste branch, conforme o histórico de merges:
 
