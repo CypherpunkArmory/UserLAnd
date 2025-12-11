@@ -1,0 +1,10 @@
+
+[--- RAFAELIA MATRIX AUDIT ---]
+Version        : v500.1-MATRIX
+State CRC      : 0x1593DF24
+Cycles         : 3
+Nodes          : 256
+Flags          : 0x00
+Plastic Nodes  : 0 / 256
+Watchdog (ms)  : 5000
+----------------------------------------
