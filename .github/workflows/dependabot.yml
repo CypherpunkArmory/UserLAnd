@@ -6,7 +6,8 @@ updates:
       interval: "weekly"
 
   - package-ecosystem: "gradle"
-    directory: "/UserLAnd"
+    directory: "/"
     schedule:
       interval: "weekly"
+
       
