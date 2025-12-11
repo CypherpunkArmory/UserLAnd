@@ -33,6 +33,4 @@ jobs:
           $CC $CFLAGS -c raf_cpu_core.c
           $CC $CFLAGS -c raf_dev_debug_perf.c
           $CC $CFLAGS -c raf_userland_debug.c
-          # aqui você pode adicionar mais raf_*.c / rafaelia_*.c      - name: Build debug APK
-        working-directory: UserLAnd-master
-        run: ./gradlew assembleDebug --stacktrace --no-daemon
+          # aqui você pode adicionar mais raf_*.c / rafaelia_*.c
