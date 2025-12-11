@@ -47,6 +47,7 @@ build rafaelia_hyper_core_v800.c     raf_hyper_core_v800
 build rafaelia_infinite_core.c       raf_infinite_core
 build rafaelia_infinite_tuner.c      raf_infinite_tuner
 build rafaelia_omni_core.c           raf_omni_core
+build rafaelia_kernel_v22.c          raf_kernel_v22
 build raf_vector_core.c              raf_vec
 build rafaelia_matrix_core.c         raf_mtx_core
 build rafaelia_trinity_ultimate.c   raf_trinity_ultimate
