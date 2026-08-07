@@ -1,0 +1,2 @@
+Release Name, Display Name, isPaid
+default, Minimal, false
