@@ -133,44 +133,13 @@ android {
         }
     }
 
-    // Don't re-compress the APK asset — it's a compressed binary.
-    aaptOptions {
-        noCompress "apk"
-    }
-
 }
 
-// Copy userland-vm.apk from the companion UserLAnd-VM app's build output for the UserLAnd
-// flavor. Run `cd ~/UserLAnd-VM && ./gradlew assembleDebug` first. UserLAnd-VM is its own repo
-// (github.com/CypherpunkArmory/UserLAnd-VM), not a sibling directory of this repo, so its
-// checkout location is resolved from a Gradle property (-PuserLandVmDir=...) with a fallback
-// to ~/UserLAnd-VM rather than a relative path.
-tasks.register('copyUserLandVmApk', Copy) {
-    def vmDir = project.findProperty('userLandVmDir') ?: "${System.getProperty('user.home')}/UserLAnd-VM"
-    def src = file("${vmDir}/app/build/outputs/apk/debug/app-debug.apk")
-    def assetsDir = file("src/UserLAnd/assets")
-    onlyIf { src.exists() }
-    from src
-    into assetsDir
-    rename { "userland-vm.apk" }
-    doFirst { assetsDir.mkdirs() }
-}
-preBuild.dependsOn 'copyUserLandVmApk'
-
-// Same as copyUserLandVmApk, for the companion UserLAnd-QEMU app
-// (github.com/CypherpunkArmory/UserLAnd-QEMU). Run `cd ~/UserLAnd-QEMU && ./gradlew
-// assembleDebug` first.
-tasks.register('copyUserLandQemuApk', Copy) {
-    def qemuDir = project.findProperty('userLandQemuDir') ?: "${System.getProperty('user.home')}/UserLAnd-QEMU"
-    def src = file("${qemuDir}/app/build/outputs/apk/debug/app-debug.apk")
-    def assetsDir = file("src/UserLAnd/assets")
-    onlyIf { src.exists() }
-    from src
-    into assetsDir
-    rename { "userland-qemu.apk" }
-    doFirst { assetsDir.mkdirs() }
-}
-preBuild.dependsOn 'copyUserLandQemuApk'
+// UserLAnd VM/QEMU are no longer bundled with this app in any form (neither as a raw asset nor
+// as a Play Asset Delivery pack) -- InstallWizardFragment downloads the companion APK directly
+// from a GitHub release at wizard-run time instead (see InstallTarget.downloadUrl in
+// UserLAndLibrary's InstallWizardFragment.kt). Nothing here needs to know about UserLAnd-VM/
+// UserLAnd-QEMU's local checkouts anymore.
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"

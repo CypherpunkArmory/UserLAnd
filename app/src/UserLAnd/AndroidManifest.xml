@@ -4,8 +4,6 @@
 
     <uses-permission android:name="android.permission.CAMERA" tools:node="remove"/>
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" tools:node="remove"/>
-    <uses-permission android:name="tech.ula.vm.permission.CONTROL" />
-    <uses-permission android:name="tech.ula.qemu.permission.CONTROL" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <queries>
@@ -24,6 +22,21 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="tech.ula.library.INSTALL_PAIR" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Cross-app target for UserLAnd VM's/UserLAnd QEMU's own notification "Stop
+             Session"/"Settings" actions; see CompanionNotificationActionReceiver's doc
+             comment. Unlike InstallPairingReceiver above (a same-app PendingIntent reply target,
+             correctly unexported), this genuinely needs exported="true": the companion app
+             targets it by explicit component from its own process. No permission gate is used
+             here deliberately; see the doc comment for why that's an accepted tradeoff. -->
+        <receiver
+            android:name="tech.ula.library.ui.CompanionNotificationActionReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="tech.ula.STOP_SESSION" />
+                <action android:name="tech.ula.OPEN_SETTINGS" />
             </intent-filter>
         </receiver>
 
