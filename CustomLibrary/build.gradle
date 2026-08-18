@@ -1534,13 +1534,18 @@ android {
             buildConfigField 'boolean', 'HAS_A10_PROOT', 'true'
 
             //controls whether to download filesystems as OCI images from ghcr.io instead of tar.gz from GitHub releases
-            buildConfigField 'boolean', 'USE_OCI_IMAGE', 'true'
+            //proot only -- AVF/QEMU always pull OCI images via their own companion apps regardless of this flag
+            buildConfigField 'boolean', 'USE_OCI_IMAGE', 'false'
 
             //enables the AVF (virtual machine) backend and ADB install wizard
             buildConfigField 'boolean', 'ENABLE_AVF_BACKEND', 'true'
 
             //enables the QEMU full-system emulation backend
-            buildConfigField 'boolean', 'ENABLE_QEMU_BACKEND', 'true'
+            //disabled for now (flip back to 'true' to re-enable) -- gates only the "QEMU Emulation" radio
+            //button in the new/edit filesystem dialogs (MainActivity.getFlavor(),
+            //FilesystemEditFragment.setupExecutionTypeSelector()); existing QEMU filesystems and
+            //ServerService's session-start branching are unaffected either way
+            buildConfigField 'boolean', 'ENABLE_QEMU_BACKEND', 'false'
 
             //Need unique provider authorities
             buildConfigField 'String', 'PROVIDER_AUTHORITY', "\"tech.ula.provider.fileprovider\""
