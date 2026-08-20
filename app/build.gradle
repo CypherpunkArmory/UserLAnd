@@ -128,6 +128,16 @@ android {
     }
     packagingOptions {
         jniLibs {
+            // REVERTED to true (see git history for the failed attempt at false). Confirmed
+            // live: with useLegacyPackaging=false, this device's PackageManager extracted
+            // *nothing* to legacyNativeLibraryDir at all -- android:extractNativeLibs="true"
+            // in UserLAndLibrary's manifest did not force extraction the way it's documented
+            // to. Since busybox/proot/pulseaudio/etc. are "fake .so" executables that only
+            // work by actually landing on disk (not by being mmap'd as real shared
+            // libraries), useLegacyPackaging=false breaks every session outright. Getting
+            // Play's 16KB-page-size compatibility without breaking this needs those
+            // executables moved off the native-lib-extraction trick entirely (e.g. shipped as
+            // assets and self-extracted to filesDir at startup) -- not attempted here.
             useLegacyPackaging true
             excludes += ['lib/armeabi/libsqlcipher.so', 'lib/mips64/libsqlcipher.so', 'lib/mips/libsqlcipher.so']
         }
