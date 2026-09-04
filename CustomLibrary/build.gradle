@@ -822,7 +822,7 @@ android {
             buildConfigField 'boolean', 'CHECK_FILESYSTEM_MD5', 'false'
 
             //this is the default github release for filesystems to use if not overwritten by a custom url
-            buildConfigField 'String', 'DEFAULT_RELEASE', "\"tags/v0.0.2\""
+            buildConfigField 'String', 'DEFAULT_RELEASE', "\"tags/v0.0.1\""
 
             //this controls if we use the DownloadManager
             buildConfigField 'boolean', 'USE_DOWNLOAD_MANAGER', 'true'
