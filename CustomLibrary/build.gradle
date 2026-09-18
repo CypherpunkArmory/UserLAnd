@@ -65,6 +65,9 @@ android {
             //this can be used to hide distributions from being shown in the apps list
             buildConfigField 'boolean', 'DEFAULT_HIDE_DISTRIBUTIONS', 'false'
             resValue "string", "default_hide_distributions", "false"
+            //replaces the apps/filesystems tabs with a single list of named
+            //distribution instances, created with a + button -- see InstanceListFragment
+            buildConfigField 'boolean', 'USE_INSTANCE_LIST', 'false'
             //this can be used to get apps from a custom url
             buildConfigField 'boolean', 'DEFAULT_CUSTOM_APPS_ENABLED', 'false'
             resValue "string", "default_custom_apps_enabled", "false"
@@ -181,6 +184,9 @@ android {
             //this can be used to hide distributions from being shown in the apps list
             buildConfigField 'boolean', 'DEFAULT_HIDE_DISTRIBUTIONS', 'true'
             resValue "string", "default_hide_distributions", "true"
+            //replaces the apps/filesystems tabs with a single list of named
+            //distribution instances, created with a + button -- see InstanceListFragment
+            buildConfigField 'boolean', 'USE_INSTANCE_LIST', 'false'
             //this can be used to get apps from a custom url
             buildConfigField 'boolean', 'DEFAULT_CUSTOM_APPS_ENABLED', 'false'
             resValue "string", "default_custom_apps_enabled", "false"
@@ -297,6 +303,9 @@ android {
             //this can be used to hide distributions from being shown in the apps list
             buildConfigField 'boolean', 'DEFAULT_HIDE_DISTRIBUTIONS', 'false'
             resValue "string", "default_hide_distributions", "false"
+            //replaces the apps/filesystems tabs with a single list of named
+            //distribution instances, created with a + button -- see InstanceListFragment
+            buildConfigField 'boolean', 'USE_INSTANCE_LIST', 'false'
             //this can be used to get apps from a custom url
             buildConfigField 'boolean', 'DEFAULT_CUSTOM_APPS_ENABLED', 'false'
             resValue "string", "default_custom_apps_enabled", "false"
@@ -414,6 +423,9 @@ android {
             //this can be used to hide distributions from being shown in the apps list
             buildConfigField 'boolean', 'DEFAULT_HIDE_DISTRIBUTIONS', 'true'
             resValue "string", "default_hide_distributions", "true"
+            //replaces the apps/filesystems tabs with a single list of named
+            //distribution instances, created with a + button -- see InstanceListFragment
+            buildConfigField 'boolean', 'USE_INSTANCE_LIST', 'false'
             //this can be used to get apps from a custom url
             buildConfigField 'boolean', 'DEFAULT_CUSTOM_APPS_ENABLED', 'false'
             resValue "string", "default_custom_apps_enabled", "false"
@@ -530,6 +542,9 @@ android {
             //this can be used to hide distributions from being shown in the apps list
             buildConfigField 'boolean', 'DEFAULT_HIDE_DISTRIBUTIONS', 'false'
             resValue "string", "default_hide_distributions", "false"
+            //replaces the apps/filesystems tabs with a single list of named
+            //distribution instances, created with a + button -- see InstanceListFragment
+            buildConfigField 'boolean', 'USE_INSTANCE_LIST', 'false'
             //this can be used to get apps from a custom url
             buildConfigField 'boolean', 'DEFAULT_CUSTOM_APPS_ENABLED', 'false'
             resValue "string", "default_custom_apps_enabled", "false"
@@ -646,6 +661,9 @@ android {
             //this can be used to hide distributions from being shown in the apps list
             buildConfigField 'boolean', 'DEFAULT_HIDE_DISTRIBUTIONS', 'false'
             resValue "string", "default_hide_distributions", "false"
+            //replaces the apps/filesystems tabs with a single list of named
+            //distribution instances, created with a + button -- see InstanceListFragment
+            buildConfigField 'boolean', 'USE_INSTANCE_LIST', 'false'
             //this can be used to get apps from a custom url
             buildConfigField 'boolean', 'DEFAULT_CUSTOM_APPS_ENABLED', 'false'
             resValue "string", "default_custom_apps_enabled", "false"
@@ -762,6 +780,9 @@ android {
             //this can be used to hide distributions from being shown in the apps list
             buildConfigField 'boolean', 'DEFAULT_HIDE_DISTRIBUTIONS', 'false'
             resValue "string", "default_hide_distributions", "false"
+            //replaces the apps/filesystems tabs with a single list of named
+            //distribution instances, created with a + button -- see InstanceListFragment
+            buildConfigField 'boolean', 'USE_INSTANCE_LIST', 'false'
             //this can be used to get apps from a custom url
             buildConfigField 'boolean', 'DEFAULT_CUSTOM_APPS_ENABLED', 'false'
             resValue "string", "default_custom_apps_enabled", "false"
@@ -878,6 +899,9 @@ android {
             //this can be used to hide distributions from being shown in the apps list
             buildConfigField 'boolean', 'DEFAULT_HIDE_DISTRIBUTIONS', 'false'
             resValue "string", "default_hide_distributions", "false"
+            //replaces the apps/filesystems tabs with a single list of named
+            //distribution instances, created with a + button -- see InstanceListFragment
+            buildConfigField 'boolean', 'USE_INSTANCE_LIST', 'false'
             //this can be used to get apps from a custom url
             buildConfigField 'boolean', 'DEFAULT_CUSTOM_APPS_ENABLED', 'false'
             resValue "string", "default_custom_apps_enabled", "false"
@@ -994,6 +1018,9 @@ android {
             //this can be used to hide distributions from being shown in the apps list
             buildConfigField 'boolean', 'DEFAULT_HIDE_DISTRIBUTIONS', 'false'
             resValue "string", "default_hide_distributions", "false"
+            //replaces the apps/filesystems tabs with a single list of named
+            //distribution instances, created with a + button -- see InstanceListFragment
+            buildConfigField 'boolean', 'USE_INSTANCE_LIST', 'false'
             //this can be used to get apps from a custom url
             buildConfigField 'boolean', 'DEFAULT_CUSTOM_APPS_ENABLED', 'false'
             resValue "string", "default_custom_apps_enabled", "false"
@@ -1110,6 +1137,9 @@ android {
             //this can be used to hide distributions from being shown in the apps list
             buildConfigField 'boolean', 'DEFAULT_HIDE_DISTRIBUTIONS', 'false'
             resValue "string", "default_hide_distributions", "false"
+            //replaces the apps/filesystems tabs with a single list of named
+            //distribution instances, created with a + button -- see InstanceListFragment
+            buildConfigField 'boolean', 'USE_INSTANCE_LIST', 'false'
             //this can be used to get apps from a custom url
             buildConfigField 'boolean', 'DEFAULT_CUSTOM_APPS_ENABLED', 'false'
             resValue "string", "default_custom_apps_enabled", "false"
@@ -1226,6 +1256,9 @@ android {
             //this can be used to hide distributions from being shown in the apps list
             buildConfigField 'boolean', 'DEFAULT_HIDE_DISTRIBUTIONS', 'false'
             resValue "string", "default_hide_distributions", "false"
+            //replaces the apps/filesystems tabs with a single list of named
+            //distribution instances, created with a + button -- see InstanceListFragment
+            buildConfigField 'boolean', 'USE_INSTANCE_LIST', 'false'
             //this can be used to get apps from a custom url
             buildConfigField 'boolean', 'DEFAULT_CUSTOM_APPS_ENABLED', 'false'
             resValue "string", "default_custom_apps_enabled", "false"
@@ -1342,6 +1375,9 @@ android {
             //this can be used to hide distributions from being shown in the apps list
             buildConfigField 'boolean', 'DEFAULT_HIDE_DISTRIBUTIONS', 'false'
             resValue "string", "default_hide_distributions", "false"
+            //replaces the apps/filesystems tabs with a single list of named
+            //distribution instances, created with a + button -- see InstanceListFragment
+            buildConfigField 'boolean', 'USE_INSTANCE_LIST', 'false'
             //this can be used to get apps from a custom url
             buildConfigField 'boolean', 'DEFAULT_CUSTOM_APPS_ENABLED', 'false'
             resValue "string", "default_custom_apps_enabled", "false"
@@ -1458,6 +1494,9 @@ android {
             //this can be used to hide distributions from being shown in the apps list
             buildConfigField 'boolean', 'DEFAULT_HIDE_DISTRIBUTIONS', 'false'
             resValue "string", "default_hide_distributions", "false"
+            //replaces the apps/filesystems tabs with a single list of named
+            //distribution instances, created with a + button -- see InstanceListFragment
+            buildConfigField 'boolean', 'USE_INSTANCE_LIST', 'true'
             //this can be used to get apps from a custom url
             buildConfigField 'boolean', 'DEFAULT_CUSTOM_APPS_ENABLED', 'false'
             resValue "string", "default_custom_apps_enabled", "false"
