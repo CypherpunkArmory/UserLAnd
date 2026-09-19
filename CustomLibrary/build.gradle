@@ -1535,7 +1535,7 @@ android {
 
             //controls whether to download filesystems as OCI images from ghcr.io instead of tar.gz from GitHub releases
             //proot only -- AVF/QEMU always pull OCI images via their own companion apps regardless of this flag
-            buildConfigField 'boolean', 'USE_OCI_IMAGE', 'false'
+            buildConfigField 'boolean', 'USE_OCI_IMAGE', 'true'
 
             //enables the AVF (virtual machine) backend and ADB install wizard
             buildConfigField 'boolean', 'ENABLE_AVF_BACKEND', 'true'
