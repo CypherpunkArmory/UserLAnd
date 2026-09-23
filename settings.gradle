@@ -2,11 +2,6 @@ rootProject.name = "UserLAnd"
 include ':app', ':UserLAndLibrary'
 project(':UserLAndLibrary').projectDir = new File('UserLAndLibrary/app')
 
-include ':terminal-view', ':terminal-emulator', ':terminal-app'
-project(':terminal-app').projectDir = new File('UserLAndLibrary/termux-app/app')
-project(':terminal-view').projectDir = new File('UserLAndLibrary/termux-app/terminal-view')
-project(':terminal-emulator').projectDir = new File('UserLAndLibrary/termux-app/terminal-emulator')
-
 include ':pubkeyGenerator', ':bVNC', ':remoteClientLib'
 project(':bVNC').projectDir = new File('UserLAndLibrary/remote-desktop-clients/bVNC')
 project(':pubkeyGenerator').projectDir = new File('UserLAndLibrary/remote-desktop-clients/pubkeyGenerator')
