@@ -18,5 +18,9 @@ project(':remoteClientLib:jni:libs:deps:FreeRDP:client:Android:Studio:freeRDPCor
 include ':CustomLibrary'
 project(':CustomLibrary').projectDir = new File('CustomLibrary')
 
+// Replacement for the termux-app terminal; see UserLAndLibrary/terminal.
+include ':terminal'
+project(':terminal').projectDir = new File('UserLAndLibrary/terminal')
+
 include ':adbndk'
 project(':adbndk').projectDir = new File('../../adb-ndk/android')
