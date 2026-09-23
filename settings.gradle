@@ -19,3 +19,7 @@ project(':terminal').projectDir = new File('UserLAndLibrary/terminal')
 
 include ':adbndk'
 project(':adbndk').projectDir = new File('../../adb-ndk/android')
+
+// Replacement for the bVNC client; see UserLAndLibrary/vnc.
+include ':vnc'
+project(':vnc').projectDir = new File('UserLAndLibrary/vnc')
