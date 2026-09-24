@@ -88,13 +88,13 @@ android {
             //this is the default custom filesystem url
             buildConfigField "String", "DEFAULT_FILESYSTEM_URL", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.8.11\""
             resValue "string", "default_filesystem_url", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.8.11\""
-            //this can be used the hide the toolbar within bVNC
+            //this can be used the hide the toolbar within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_TOOLBAR', 'false'
             resValue "string", "default_hide_vnc_toolbar", "false"
-            //this can be used the hide the extra keys within bVNC
+            //this can be used the hide the extra keys within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_EXTRA_KEYS', 'false'
             resValue "string", "default_hide_vnc_extra_keys", "false"
-            //this is the default input mode in bVNC
+            //this is the default input mode in the VNC viewer
             buildConfigField "String", 'DEFAULT_VNC_INPUT_MODE', "\"Direct, Swipe Pan\""
             resValue "string", "default_vnc_input_mode", "\"Direct, Swipe Pan\""
             //this is the default hostname to get written to the hosts and hostname file
@@ -204,13 +204,13 @@ android {
             //this is the default custom filesystem url
             buildConfigField "String", "DEFAULT_FILESYSTEM_URL", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.8.11\""
             resValue "string", "default_filesystem_url", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.8.11\""
-            //this can be used the hide the toolbar within bVNC
+            //this can be used the hide the toolbar within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_TOOLBAR', 'false'
             resValue "string", "default_hide_vnc_toolbar", "false"
-            //this can be used the hide the extra keys within bVNC
+            //this can be used the hide the extra keys within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_EXTRA_KEYS', 'false'
             resValue "string", "default_hide_vnc_extra_keys", "false"
-            //this is the default input mode in bVNC
+            //this is the default input mode in the VNC viewer
             buildConfigField "String", 'DEFAULT_VNC_INPUT_MODE', "\"Direct, Swipe Pan\""
             resValue "string", "default_vnc_input_mode", "\"Direct, Swipe Pan\""
             //this is the default hostname to get written to the hosts and hostname file
@@ -320,13 +320,13 @@ android {
             //this is the default custom filesystem url
             buildConfigField "String", "DEFAULT_FILESYSTEM_URL", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.9\""
             resValue "string", "default_filesystem_url", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.9\""
-            //this can be used the hide the toolbar within bVNC
+            //this can be used the hide the toolbar within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_TOOLBAR', 'false'
             resValue "string", "default_hide_vnc_toolbar", "false"
-            //this can be used the hide the extra keys within bVNC
+            //this can be used the hide the extra keys within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_EXTRA_KEYS', 'false'
             resValue "string", "default_hide_vnc_extra_keys", "false"
-            //this is the default input mode in bVNC
+            //this is the default input mode in the VNC viewer
             buildConfigField "String", 'DEFAULT_VNC_INPUT_MODE', "\"Direct, Hold Pan\""
             resValue "string", "default_vnc_input_mode", "\"Direct, Hold Pan\""
             //this is the default hostname to get written to the hosts and hostname file
@@ -437,13 +437,13 @@ android {
             //this is the default custom filesystem url
             buildConfigField "String", "DEFAULT_FILESYSTEM_URL", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.11\""
             resValue "string", "default_filesystem_url", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.11\""
-            //this can be used the hide the toolbar within bVNC
+            //this can be used the hide the toolbar within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_TOOLBAR', 'false'
             resValue "string", "default_hide_vnc_toolbar", "false"
-            //this can be used the hide the extra keys within bVNC
+            //this can be used the hide the extra keys within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_EXTRA_KEYS', 'false'
             resValue "string", "default_hide_vnc_extra_keys", "false"
-            //this is the default input mode in bVNC
+            //this is the default input mode in the VNC viewer
             buildConfigField "String", 'DEFAULT_VNC_INPUT_MODE', "\"Direct, Swipe Pan\""
             resValue "string", "default_vnc_input_mode", "\"Direct, Swipe Pan\""
             //this is the default hostname to get written to the hosts and hostname file
@@ -553,13 +553,13 @@ android {
             //this is the default custom filesystem url
             buildConfigField "String", "DEFAULT_FILESYSTEM_URL", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.9\""
             resValue "string", "default_filesystem_url", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.9\""
-            //this can be used the hide the toolbar within bVNC
+            //this can be used the hide the toolbar within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_TOOLBAR', 'false'
             resValue "string", "default_hide_vnc_toolbar", "false"
-            //this can be used the hide the extra keys within bVNC
+            //this can be used the hide the extra keys within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_EXTRA_KEYS', 'false'
             resValue "string", "default_hide_vnc_extra_keys", "false"
-            //this is the default input mode in bVNC
+            //this is the default input mode in the VNC viewer
             buildConfigField "String", 'DEFAULT_VNC_INPUT_MODE', "\"Direct, Hold Pan\""
             resValue "string", "default_vnc_input_mode", "\"Direct, Hold Pan\""
             //this is the default hostname to get written to the hosts and hostname file
@@ -669,13 +669,13 @@ android {
             //this is the default custom filesystem url
             buildConfigField "String", "DEFAULT_FILESYSTEM_URL", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.9\""
             resValue "string", "default_filesystem_url", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.9\""
-            //this can be used the hide the toolbar within bVNC
+            //this can be used the hide the toolbar within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_TOOLBAR', 'false'
             resValue "string", "default_hide_vnc_toolbar", "false"
-            //this can be used the hide the extra keys within bVNC
+            //this can be used the hide the extra keys within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_EXTRA_KEYS', 'false'
             resValue "string", "default_hide_vnc_extra_keys", "false"
-            //this is the default input mode in bVNC
+            //this is the default input mode in the VNC viewer
             buildConfigField "String", 'DEFAULT_VNC_INPUT_MODE', "\"Direct, Hold Pan\""
             resValue "string", "default_vnc_input_mode", "\"Direct, Hold Pan\""
             //this is the default hostname to get written to the hosts and hostname file
@@ -785,13 +785,13 @@ android {
             //this is the default custom filesystem url
             buildConfigField "String", "DEFAULT_FILESYSTEM_URL", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.9\""
             resValue "string", "default_filesystem_url", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.9\""
-            //this can be used the hide the toolbar within bVNC
+            //this can be used the hide the toolbar within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_TOOLBAR', 'false'
             resValue "string", "default_hide_vnc_toolbar", "false"
-            //this can be used the hide the extra keys within bVNC
+            //this can be used the hide the extra keys within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_EXTRA_KEYS', 'false'
             resValue "string", "default_hide_vnc_extra_keys", "false"
-            //this is the default input mode in bVNC
+            //this is the default input mode in the VNC viewer
             buildConfigField "String", 'DEFAULT_VNC_INPUT_MODE', "\"Direct, Hold Pan\""
             resValue "string", "default_vnc_input_mode", "\"Direct, Hold Pan\""
             //this is the default hostname to get written to the hosts and hostname file
@@ -901,13 +901,13 @@ android {
             //this is the default custom filesystem url
             buildConfigField "String", "DEFAULT_FILESYSTEM_URL", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.9\""
             resValue "string", "default_filesystem_url", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.9\""
-            //this can be used the hide the toolbar within bVNC
+            //this can be used the hide the toolbar within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_TOOLBAR', 'false'
             resValue "string", "default_hide_vnc_toolbar", "false"
-            //this can be used the hide the extra keys within bVNC
+            //this can be used the hide the extra keys within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_EXTRA_KEYS', 'false'
             resValue "string", "default_hide_vnc_extra_keys", "false"
-            //this is the default input mode in bVNC
+            //this is the default input mode in the VNC viewer
             buildConfigField "String", 'DEFAULT_VNC_INPUT_MODE', "\"Direct, Hold Pan\""
             resValue "string", "default_vnc_input_mode", "\"Direct, Hold Pan\""
             //this is the default hostname to get written to the hosts and hostname file
@@ -1017,13 +1017,13 @@ android {
             //this is the default custom filesystem url
             buildConfigField "String", "DEFAULT_FILESYSTEM_URL", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.9\""
             resValue "string", "default_filesystem_url", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.9\""
-            //this can be used the hide the toolbar within bVNC
+            //this can be used the hide the toolbar within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_TOOLBAR', 'false'
             resValue "string", "default_hide_vnc_toolbar", "false"
-            //this can be used the hide the extra keys within bVNC
+            //this can be used the hide the extra keys within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_EXTRA_KEYS', 'false'
             resValue "string", "default_hide_vnc_extra_keys", "false"
-            //this is the default input mode in bVNC
+            //this is the default input mode in the VNC viewer
             buildConfigField "String", 'DEFAULT_VNC_INPUT_MODE', "\"Direct, Hold Pan\""
             resValue "string", "default_vnc_input_mode", "\"Direct, Hold Pan\""
             //this is the default hostname to get written to the hosts and hostname file
@@ -1133,13 +1133,13 @@ android {
             //this is the default custom filesystem url
             buildConfigField "String", "DEFAULT_FILESYSTEM_URL", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.9\""
             resValue "string", "default_filesystem_url", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.9\""
-            //this can be used the hide the toolbar within bVNC
+            //this can be used the hide the toolbar within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_TOOLBAR', 'false'
             resValue "string", "default_hide_vnc_toolbar", "false"
-            //this can be used the hide the extra keys within bVNC
+            //this can be used the hide the extra keys within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_EXTRA_KEYS', 'false'
             resValue "string", "default_hide_vnc_extra_keys", "false"
-            //this is the default input mode in bVNC
+            //this is the default input mode in the VNC viewer
             buildConfigField "String", 'DEFAULT_VNC_INPUT_MODE', "\"Direct, Hold Pan\""
             resValue "string", "default_vnc_input_mode", "\"Direct, Hold Pan\""
             //this is the default hostname to get written to the hosts and hostname file
@@ -1249,13 +1249,13 @@ android {
             //this is the default custom filesystem url
             buildConfigField "String", "DEFAULT_FILESYSTEM_URL", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.9\""
             resValue "string", "default_filesystem_url", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.9\""
-            //this can be used the hide the toolbar within bVNC
+            //this can be used the hide the toolbar within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_TOOLBAR', 'false'
             resValue "string", "default_hide_vnc_toolbar", "false"
-            //this can be used the hide the extra keys within bVNC
+            //this can be used the hide the extra keys within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_EXTRA_KEYS', 'false'
             resValue "string", "default_hide_vnc_extra_keys", "false"
-            //this is the default input mode in bVNC
+            //this is the default input mode in the VNC viewer
             buildConfigField "String", 'DEFAULT_VNC_INPUT_MODE', "\"Direct, Hold Pan\""
             resValue "string", "default_vnc_input_mode", "\"Direct, Hold Pan\""
             //this is the default hostname to get written to the hosts and hostname file
@@ -1365,13 +1365,13 @@ android {
             //this is the default custom filesystem url
             buildConfigField "String", "DEFAULT_FILESYSTEM_URL", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.9\""
             resValue "string", "default_filesystem_url", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.9\""
-            //this can be used the hide the toolbar within bVNC
+            //this can be used the hide the toolbar within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_TOOLBAR', 'false'
             resValue "string", "default_hide_vnc_toolbar", "false"
-            //this can be used the hide the extra keys within bVNC
+            //this can be used the hide the extra keys within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_EXTRA_KEYS', 'false'
             resValue "string", "default_hide_vnc_extra_keys", "false"
-            //this is the default input mode in bVNC
+            //this is the default input mode in the VNC viewer
             buildConfigField "String", 'DEFAULT_VNC_INPUT_MODE', "\"Direct, Hold Pan\""
             resValue "string", "default_vnc_input_mode", "\"Direct, Hold Pan\""
             //this is the default hostname to get written to the hosts and hostname file
@@ -1481,13 +1481,13 @@ android {
             //this is the default custom filesystem url
             buildConfigField "String", "DEFAULT_FILESYSTEM_URL", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.9\""
             resValue "string", "default_filesystem_url", "\"https://github.com/CypherpunkArmory/UserLAnd-Assets-Debian/releases/download/v7.7.9\""
-            //this can be used the hide the toolbar within bVNC
+            //this can be used the hide the toolbar within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_TOOLBAR', 'false'
             resValue "string", "default_hide_vnc_toolbar", "false"
-            //this can be used the hide the extra keys within bVNC
+            //this can be used the hide the extra keys within the VNC viewer
             buildConfigField 'boolean', 'DEFAULT_HIDE_VNC_EXTRA_KEYS', 'false'
             resValue "string", "default_hide_vnc_extra_keys", "false"
-            //this is the default input mode in bVNC
+            //this is the default input mode in the VNC viewer
             buildConfigField "String", 'DEFAULT_VNC_INPUT_MODE', "\"Direct, Hold Pan\""
             resValue "string", "default_vnc_input_mode", "\"Direct, Hold Pan\""
             //this is the default hostname to get written to the hosts and hostname file
