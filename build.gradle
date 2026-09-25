@@ -6,7 +6,7 @@ buildscript {
         appVersionName = '26.09.05'
         orientation = "unspecified"
         provider_authority = "tech.ula.provider.fileprovider"
-        support_assets_version = "v1.4.21"
+        support_assets_version = "v1.4.23"
         kotlin_version = '1.9.20'
         android_plugin = '8.7.2'
         jacoco_version = '0.8.4'
