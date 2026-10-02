@@ -6,12 +6,12 @@ plugins {
 android {
     namespace 'tech.ula'
 
-    compileSdkVersion 35
+    compileSdkVersion 37
 
     defaultConfig {
         applicationId "tech.ula"
         minSdkVersion 24
-        targetSdkVersion 35
+        targetSdkVersion 37
 
         versionCode rootProject.ext.appVersionCode
         versionName rootProject.ext.appVersionName
