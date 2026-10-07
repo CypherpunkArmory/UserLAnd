@@ -1606,6 +1606,9 @@ android {
     buildTypes {
         debug {
             buildConfigField 'String', 'COMPANION_CHANNEL', '"next"'
+            // Debug builds test the images OCI-Builder has built but not yet promoted; see
+            // ImageChannel. Release builds keep the DEFAULT_OCI_TAG set above.
+            buildConfigField 'String', 'DEFAULT_OCI_TAG', '"next"'
         }
         release {
             minifyEnabled false
