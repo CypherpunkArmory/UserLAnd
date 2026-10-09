@@ -1,0 +1,4 @@
+Release Name, Display Name, isPaid
+default, Minimal, false
+lxde, LXDE, true
+xfce, XFCE, true

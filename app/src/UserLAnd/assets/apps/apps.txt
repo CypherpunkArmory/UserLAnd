@@ -4,6 +4,7 @@ Debian, Distribution, debian, true, true, false, false, 1
 Arch, Distribution, arch, true, true, false, false, 1
 Kali, Distribution, kali, true, true, false, false, 1
 Alpine, Distribution, alpine, true, true, false, false, 1
+Fedora, Distribution, fedora, true, true, false, false, 1
 Thunderbird, Email, debian, true, true, tech.ula.birdbox, false, 1
 Octave, Math, debian, true, true, tech.ula.octave, false, 1
 R, Math, debian, true, true, tech.ula.r, false, 1
