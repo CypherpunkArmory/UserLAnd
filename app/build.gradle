@@ -17,6 +17,11 @@ android {
         versionName rootProject.ext.appVersionName
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // 64-bit only: keeps any 32-bit native libraries a dependency brings along out of the APK.
+        ndk {
+            abiFilters 'x86_64', 'arm64-v8a'
+        }
     }
 
     signingConfigs {
