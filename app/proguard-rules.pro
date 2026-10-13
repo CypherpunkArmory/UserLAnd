@@ -1,21 +1,42 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
+# R8 rules for release builds. R8 shrinks and renames the whole app in one pass, so these cover
+# the library modules too (UserLAndLibrary, terminal, vnc, adbndk).
 #
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Libraries that ship their own rules need nothing here: Room, the Moshi-generated adapters
+# (@JsonClass), Play Billing, kotlinx.coroutines. proguard-android-optimize.txt already keeps
+# native method names and Parcelable CREATORs.
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Line numbers in crash reports. Play receives the mapping file with the bundle to turn the
+# renamed classes back into readable ones.
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Called by name from native code (libdroid_files.c), so they must keep their names.
+-keepclassmembers class tech.ula.library.ServerService {
+    void open(int, int, java.lang.String, int, int);
+    int staticMethod(int);
+}
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Named as argument types in navigation/nav_graph.xml, which the Navigation library loads by
+# class name.
+-keepnames class tech.ula.library.model.entities.App
+-keepnames class tech.ula.library.model.entities.Filesystem
+-keepnames class tech.ula.library.model.entities.Session
+
+# Gson works by reflection. App is stored in preferences as JSON by field name, and older
+# versions' saved JSON has to keep loading, so its fields keep their names.
+-keepclassmembers class tech.ula.library.model.entities.App {
+    <fields>;
+}
+# TypeToken reads the generic type from the anonymous subclass's signature.
+-keepattributes Signature
+-keep class * extends com.google.gson.reflect.TypeToken
+-keep class com.google.gson.reflect.TypeToken { *; }
+
+# Optional dependencies that are not bundled and never used: commons-compress's zstd, brotli and
+# xz codecs (OCI layers are gzip), and OkHttp's alternative TLS providers.
+-dontwarn com.github.luben.zstd.**
+-dontwarn org.brotli.dec.**
+-dontwarn org.tukaani.xz.**
+-dontwarn org.bouncycastle.jsse.**
+-dontwarn org.conscrypt.**
+-dontwarn org.openjsse.**
