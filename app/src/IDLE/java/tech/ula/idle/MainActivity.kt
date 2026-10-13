@@ -8,7 +8,7 @@ import tech.ula.library.model.entities.App
 
 class MainActivity : AppCompatActivity() {
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent != null) {
             processIntent(intent)
