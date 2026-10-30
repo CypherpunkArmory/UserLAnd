@@ -1590,12 +1590,11 @@ android {
             //enables the AVF (virtual machine) backend and ADB install wizard
             buildConfigField 'boolean', 'ENABLE_AVF_BACKEND', 'true'
 
-            //enables the QEMU full-system emulation backend
-            //disabled for now (flip back to 'true' to re-enable) -- gates only the "QEMU Emulation" radio
+            //enables the QEMU full-system emulation backend -- gates the "QEMU Emulation" radio
             //button in the new/edit filesystem dialogs (MainActivity.getFlavor(),
-            //FilesystemEditFragment.setupExecutionTypeSelector()); existing QEMU filesystems and
-            //ServerService's session-start branching are unaffected either way
-            buildConfigField 'boolean', 'ENABLE_QEMU_BACKEND', 'false'
+            //FilesystemEditFragment.setupExecutionTypeSelector()) and restoring QEMU backups;
+            //existing QEMU filesystems and ServerService's session-start branching are unaffected
+            buildConfigField 'boolean', 'ENABLE_QEMU_BACKEND', 'true'
 
             //Need unique provider authorities
             buildConfigField 'String', 'PROVIDER_AUTHORITY', "\"tech.ula.provider.fileprovider\""
