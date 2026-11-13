@@ -37,6 +37,9 @@ android {
 
         // controls whether the QEMU full-system emulation backend is available in this flavor
         buildConfigField 'boolean', 'ENABLE_QEMU_BACKEND', 'false'
+
+        // controls whether sessions can be offered to other devices (Local vs Remote)
+        buildConfigField 'boolean', 'ENABLE_REMOTE_SESSIONS', 'false'
     }
 
     flavorDimensions "app"
@@ -68,6 +71,8 @@ android {
             buildConfigField 'boolean', 'DEFAULT_MICROPHONE_SUPPORT', 'false'
 
             buildConfigField "String", "VNC_DISPLAY", "\"53\""
+            //each flavor has its own SSH port and VNC display, so two of them can run at once
+            buildConfigField "String", "SSH_PORT", "\"2025\""
 
             //default settings for associated preferences
             //this can be used to hide bottom navigation
@@ -186,7 +191,9 @@ android {
             buildConfigField 'boolean', 'DEFAULT_SOUND_SUPPORT', 'true'
             buildConfigField 'boolean', 'DEFAULT_MICROPHONE_SUPPORT', 'true'
 
-            buildConfigField "String", "VNC_DISPLAY", "\"52\""
+            buildConfigField "String", "VNC_DISPLAY", "\"54\""
+            //each flavor has its own SSH port and VNC display, so two of them can run at once
+            buildConfigField "String", "SSH_PORT", "\"2026\""
 
             //default settings for associated preferences
             //this can be used to hide bottom navigation
@@ -305,7 +312,9 @@ android {
             buildConfigField 'boolean', 'DEFAULT_SOUND_SUPPORT', 'false'
             buildConfigField 'boolean', 'DEFAULT_MICROPHONE_SUPPORT', 'false'
 
-            buildConfigField "String", "VNC_DISPLAY", "\"52\""
+            buildConfigField "String", "VNC_DISPLAY", "\"55\""
+            //each flavor has its own SSH port and VNC display, so two of them can run at once
+            buildConfigField "String", "SSH_PORT", "\"2027\""
 
             //default settings for associated preferences
             //this can be used to hide bottom navigation
@@ -425,7 +434,9 @@ android {
             buildConfigField 'boolean', 'DEFAULT_SOUND_SUPPORT', 'true'
             buildConfigField 'boolean', 'DEFAULT_MICROPHONE_SUPPORT', 'false'
 
-            buildConfigField "String", "VNC_DISPLAY", "\"52\""
+            buildConfigField "String", "VNC_DISPLAY", "\"56\""
+            //each flavor has its own SSH port and VNC display, so two of them can run at once
+            buildConfigField "String", "SSH_PORT", "\"2028\""
 
             //default settings for associated preferences
             //this can be used to hide bottom navigation
@@ -545,6 +556,8 @@ android {
             buildConfigField 'boolean', 'DEFAULT_MICROPHONE_SUPPORT', 'false'
 
             buildConfigField "String", "VNC_DISPLAY", "\"52\""
+            //each flavor has its own SSH port and VNC display, so two of them can run at once
+            buildConfigField "String", "SSH_PORT", "\"2023\""
 
             //default settings for associated preferences
             //this can be used to hide bottom navigation
@@ -663,7 +676,9 @@ android {
             buildConfigField 'boolean', 'DEFAULT_SOUND_SUPPORT', 'true'
             buildConfigField 'boolean', 'DEFAULT_MICROPHONE_SUPPORT', 'false'
 
-            buildConfigField "String", "VNC_DISPLAY", "\"52\""
+            buildConfigField "String", "VNC_DISPLAY", "\"57\""
+            //each flavor has its own SSH port and VNC display, so two of them can run at once
+            buildConfigField "String", "SSH_PORT", "\"2029\""
 
             //default settings for associated preferences
             //this can be used to hide bottom navigation
@@ -783,6 +798,8 @@ android {
             buildConfigField 'boolean', 'DEFAULT_MICROPHONE_SUPPORT', 'false'
 
             buildConfigField "String", "VNC_DISPLAY", "\"52\""
+            //each flavor has its own SSH port and VNC display, so two of them can run at once
+            buildConfigField "String", "SSH_PORT", "\"2024\""
 
             //default settings for associated preferences
             //this can be used to hide bottom navigation
@@ -901,7 +918,9 @@ android {
             buildConfigField 'boolean', 'DEFAULT_SOUND_SUPPORT', 'true'
             buildConfigField 'boolean', 'DEFAULT_MICROPHONE_SUPPORT', 'false'
 
-            buildConfigField "String", "VNC_DISPLAY", "\"52\""
+            buildConfigField "String", "VNC_DISPLAY", "\"58\""
+            //each flavor has its own SSH port and VNC display, so two of them can run at once
+            buildConfigField "String", "SSH_PORT", "\"2030\""
 
             //default settings for associated preferences
             //this can be used to hide bottom navigation
@@ -1020,7 +1039,9 @@ android {
             buildConfigField 'boolean', 'DEFAULT_SOUND_SUPPORT', 'true'
             buildConfigField 'boolean', 'DEFAULT_MICROPHONE_SUPPORT', 'false'
 
-            buildConfigField "String", "VNC_DISPLAY", "\"52\""
+            buildConfigField "String", "VNC_DISPLAY", "\"59\""
+            //each flavor has its own SSH port and VNC display, so two of them can run at once
+            buildConfigField "String", "SSH_PORT", "\"2031\""
 
             //default settings for associated preferences
             //this can be used to hide bottom navigation
@@ -1139,7 +1160,9 @@ android {
             buildConfigField 'boolean', 'DEFAULT_SOUND_SUPPORT', 'true'
             buildConfigField 'boolean', 'DEFAULT_MICROPHONE_SUPPORT', 'false'
 
-            buildConfigField "String", "VNC_DISPLAY", "\"52\""
+            buildConfigField "String", "VNC_DISPLAY", "\"60\""
+            //each flavor has its own SSH port and VNC display, so two of them can run at once
+            buildConfigField "String", "SSH_PORT", "\"2032\""
 
             //default settings for associated preferences
             //this can be used to hide bottom navigation
@@ -1258,7 +1281,9 @@ android {
             buildConfigField 'boolean', 'DEFAULT_SOUND_SUPPORT', 'true'
             buildConfigField 'boolean', 'DEFAULT_MICROPHONE_SUPPORT', 'false'
 
-            buildConfigField "String", "VNC_DISPLAY", "\"52\""
+            buildConfigField "String", "VNC_DISPLAY", "\"61\""
+            //each flavor has its own SSH port and VNC display, so two of them can run at once
+            buildConfigField "String", "SSH_PORT", "\"2033\""
 
             //default settings for associated preferences
             //this can be used to hide bottom navigation
@@ -1377,7 +1402,9 @@ android {
             buildConfigField 'boolean', 'DEFAULT_SOUND_SUPPORT', 'false'
             buildConfigField 'boolean', 'DEFAULT_MICROPHONE_SUPPORT', 'false'
 
-            buildConfigField "String", "VNC_DISPLAY", "\"52\""
+            buildConfigField "String", "VNC_DISPLAY", "\"62\""
+            //each flavor has its own SSH port and VNC display, so two of them can run at once
+            buildConfigField "String", "SSH_PORT", "\"2034\""
 
             //default settings for associated preferences
             //this can be used to hide bottom navigation
@@ -1497,6 +1524,8 @@ android {
             buildConfigField 'boolean', 'DEFAULT_MICROPHONE_SUPPORT', 'true'
 
             buildConfigField "String", "VNC_DISPLAY", "\"51\""
+            //each flavor has its own SSH port and VNC display, so two of them can run at once
+            buildConfigField "String", "SSH_PORT", "\"2022\""
 
             //default settings for associated preferences
             //this can be used to hide bottom navigation
@@ -1595,6 +1624,9 @@ android {
             //FilesystemEditFragment.setupExecutionTypeSelector()) and restoring QEMU backups;
             //existing QEMU filesystems and ServerService's session-start branching are unaffected
             buildConfigField 'boolean', 'ENABLE_QEMU_BACKEND', 'true'
+
+            //offers Remote sessions, served to other devices on the network, beside Local ones
+            buildConfigField 'boolean', 'ENABLE_REMOTE_SESSIONS', 'true'
 
             //Need unique provider authorities
             buildConfigField 'String', 'PROVIDER_AUTHORITY', "\"tech.ula.provider.fileprovider\""
