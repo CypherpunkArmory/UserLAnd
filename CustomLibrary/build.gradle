@@ -629,7 +629,7 @@ android {
             buildConfigField 'boolean', 'CHECK_FILESYSTEM_MD5', 'false'
 
             //this is the default github release for filesystems to use if not overwritten by a custom url
-            buildConfigField 'String', 'DEFAULT_RELEASE', "\"tags/v0.0.3\""
+            buildConfigField 'String', 'DEFAULT_RELEASE', "\"tags/v0.0.4\""
 
             //this controls if we use the DownloadManager
             buildConfigField 'boolean', 'USE_DOWNLOAD_MANAGER', 'true'
@@ -797,7 +797,7 @@ android {
             buildConfigField 'boolean', 'DEFAULT_SOUND_SUPPORT', 'false'
             buildConfigField 'boolean', 'DEFAULT_MICROPHONE_SUPPORT', 'false'
 
-            buildConfigField "String", "VNC_DISPLAY", "\"52\""
+            buildConfigField "String", "VNC_DISPLAY", "\"63\""
             //each flavor has its own SSH port and VNC display, so two of them can run at once
             buildConfigField "String", "SSH_PORT", "\"2024\""
 
@@ -871,7 +871,7 @@ android {
             buildConfigField 'boolean', 'CHECK_FILESYSTEM_MD5', 'false'
 
             //this is the default github release for filesystems to use if not overwritten by a custom url
-            buildConfigField 'String', 'DEFAULT_RELEASE', "\"tags/v0.0.1\""
+            buildConfigField 'String', 'DEFAULT_RELEASE', "\"tags/v0.0.3\""
 
             //this controls if we use the DownloadManager
             buildConfigField 'boolean', 'USE_DOWNLOAD_MANAGER', 'true'
@@ -1113,7 +1113,7 @@ android {
             buildConfigField 'boolean', 'CHECK_FILESYSTEM_MD5', 'false'
 
             //this is the default github release for filesystems to use if not overwritten by a custom url
-            buildConfigField 'String', 'DEFAULT_RELEASE', "\"tags/v0.0.4\""
+            buildConfigField 'String', 'DEFAULT_RELEASE', "\"tags/v0.0.5\""
 
             //this controls if we use the DownloadManager
             buildConfigField 'boolean', 'USE_DOWNLOAD_MANAGER', 'true'
